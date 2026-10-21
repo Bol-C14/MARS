@@ -38,7 +38,7 @@ task1_done:
 
 task1_error:
         la $a0, error_text
-        jal printString                     
+        jal printString
         nop
         move $v0, $s0                       # propagate the -1 error code
         lw $s0, 0($sp)

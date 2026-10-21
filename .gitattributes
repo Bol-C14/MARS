@@ -1,2 +1,2 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Sources live in teaching/ui; this vendored browser bundle is reproducible.
+teaching/web/app.js linguist-generated=true whitespace=-blank-at-eol
