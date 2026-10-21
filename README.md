@@ -1,3 +1,21 @@
+# MARS Trace — modern teaching IDE
+
+This fork adds a local CodeMirror-based teaching and debugging workspace backed by the original MARS execution core.
+
+**[Start here: setup, controls and supported scope](teaching/README.md)** · [Design](teaching/docs/DESIGN.md) · [Architecture](teaching/docs/ARCHITECTURE.md) · [Validation](teaching/docs/VALIDATION.md)
+
+```sh
+sh teaching/scripts/start.sh
+```
+
+Open http://127.0.0.1:8765. Requires JDK 17+. The frontend is bundled for offline use.
+
+M0–M2 includes source/expanded-instruction/CFG views, actual and preview data-flow overlays, reversible virtual I/O, conditional breakpoints, read/write watches, call stepping, loop history and last-writer lookup.
+
+---
+
+## Original upstream project
+
 # MARS
 MARS (official) MIPS Assembler and Runtime Simulator
 

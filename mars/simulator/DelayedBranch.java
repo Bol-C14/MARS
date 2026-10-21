@@ -60,6 +60,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  **/
 
 public class DelayedBranch {
+   /** Teaching adapter: exact pending-branch checkpoint, no semantic changes. */
+   public static int[] checkpoint() { return new int[]{state, branchTargetAddress}; }
+   public static void restore(int[] saved) { state=saved[0]; branchTargetAddress=saved[1]; }
    // Class states.
    private static final int CLEARED    = 0;
 	private static final int REGISTERED = 1;

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MARS · Trace IDE</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="brand-icon">M</span>
+        <div>MARS <b>Trace</b><small>EXECUTION · CONNECTED</small></div>
+      </div>
+      <div class="project">
+        <select id="example" aria-label="示例项目"></select
+        ><button id="import">导入文件</button
+        ><input id="upload" type="file" multiple hidden /><button id="save">
+          导出工程
+        </button>
+      </div>
+      <button id="commands" title="Cmd/Ctrl K">⌘ K 命令</button
+      ><button id="theme">◐</button><button id="zoom">A＋</button>
+    </header>
+    <nav class="toolbar">
+      <button id="assemble" class="primary">汇编 ⌘↵</button
+      ><span class="separator"></span
+      ><button id="back" title="Alt Left">↶ 回退</button
+      ><button id="step" title="F7">→ 单步</button
+      ><button id="source">源码步</button
+      ><button id="over" title="F8">跨过</button><button id="out">跳出</button
+      ><button id="run" class="run" title="F9">▶ 运行</button
+      ><button id="pause" disabled>Ⅱ 暂停</button
+      ><label><input type="checkbox" id="delay" />延迟分支</label
+      ><span id="status" class="status">未汇编</span>
+    </nav>
+    <div id="banner" role="status"></div>
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="section-title">
+          EXPLORER <button id="new-file">＋</button>
+        </div>
+        <div id="files"></div>
+        <div class="section-title">符号与定位</div>
+        <input
+          id="symbol-search"
+          placeholder="搜索标签 / 地址"
+          aria-label="搜索符号"
+        />
+        <div id="symbols"></div>
+        <div class="section-title">BREAKPOINTS</div>
+        <div id="breakpoints"></div>
+        <div class="section-title">
+          WATCHPOINTS <button id="add-watch">＋</button>
+        </div>
+        <div id="watches"></div>
+        <div class="section-title">VIRTUAL FILES</div>
+        <div id="data-files"></div>
+      </aside>
+      <main class="code-pane">
+        <div id="tabs" class="tabs"></div>
+        <div class="viewbar">
+          <button data-view="source" class="selected">源码</button
+          ><button data-view="machine">实际指令</button
+          ><button data-view="cfg">控制流</button><span id="location"></span>
+        </div>
+        <div id="editor"></div>
+        <div id="machine" class="alternate" hidden></div>
+        <div id="cfg" class="alternate" hidden></div>
+        <div class="execution-strip">
+          <div id="last-card" data-anchor="last">
+            <small>刚完成 · 实线</small><b>尚无执行记录</b>
+          </div>
+          <div id="next-card" data-anchor="next">
+            <small>即将执行 · 虚线</small><b>汇编以开始</b>
+          </div>
+        </div>
+        <section class="bottom">
+          <div class="viewbar">
+            <button data-bottom="console" class="selected">控制台</button
+            ><button data-bottom="trace">执行轨迹</button
+            ><button data-bottom="calls">调用</button
+            ><button data-bottom="problems">问题</button
+            ><span id="history-info"></span>
+          </div>
+          <div id="console" class="bottom-panel">
+            <pre id="output"></pre>
+            <form id="input-form">
+              <input
+                id="stdin"
+                placeholder="输入值，按 Enter 提交"
+                aria-label="程序输入"
+              /><button>发送</button>
+            </form>
+          </div>
+          <div id="trace" class="bottom-panel" hidden></div>
+          <div id="calls" class="bottom-panel" hidden></div>
+          <div id="problems" class="bottom-panel" hidden></div>
+        </section>
+      </main>
+      <aside class="inspector">
+        <div class="section-title">
+          CONTEXT <button id="clear-focus">清除聚焦</button>
+        </div>
+        <div id="context" tabindex="0">
+          <h3>沿着程序理解执行</h3>
+          <p>
+            悬停查看含义。Cmd/Ctrl＋点击或 F12
+            深入查询。点击寄存器、地址或指令固定上下文。
+          </p>
+        </div>
+        <div class="section-title">
+          REGISTERS
+          <select id="reg-filter" aria-label="寄存器过滤">
+            <option value="related">本步相关</option>
+            <option value="all">全部</option>
+            <option value="pinned">已固定</option>
+          </select>
+        </div>
+        <div id="registers"></div>
+        <div class="section-title">
+          MEMORY <button id="stack">栈</button><button id="data">数据</button>
+        </div>
+        <form id="memory-form">
+          <input
+            id="address"
+            value="0x10010000"
+            aria-label="内存地址或符号"
+          /><button>定位</button>
+        </form>
+        <div id="memory"></div>
+      </aside>
+    </div>
+    <footer>
+      <div class="overlay-controls">
+        <label><input type="checkbox" id="solid" checked />实线 · 刚完成</label
+        ><label
+          ><input type="checkbox" id="dashed" checked />虚线 · 下一步</label
+        ><label class="read"
+          ><input type="checkbox" id="reads" checked />读取</label
+        ><label class="write"
+          ><input type="checkbox" id="writes" checked />写入</label
+        ><label class="flow"
+          ><input type="checkbox" id="flows" checked />控制流</label
+        >
+      </div>
+      <span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
+    </footer>
+    <svg id="overlay" aria-hidden="true"></svg>
+    <div id="tooltip" role="tooltip" hidden></div>
+    <dialog id="modal">
+      <form method="dialog"><button class="close">×</button></form>
+      <div id="modal-content"></div>
+    </dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

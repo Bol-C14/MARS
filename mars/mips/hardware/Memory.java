@@ -408,6 +408,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             throw new AddressErrorException("address out of range ",
                Exceptions.ADDRESS_EXCEPTION_STORE, address);
          }
+         mars.ide.TraceHooks.memory(true, address, length, oldValue, value);
          notifyAnyObservers(AccessNotice.WRITE, address, length, value);
          return oldValue;
       }
@@ -477,6 +478,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             throw new AddressErrorException("store address out of range ",
                Exceptions.ADDRESS_EXCEPTION_STORE,	address);
          }
+         mars.ide.TraceHooks.memory(true, address, WORD_LENGTH_BYTES, oldValue, value);
          notifyAnyObservers(AccessNotice.WRITE, address, WORD_LENGTH_BYTES, value);
          if (Globals.getSettings().getBackSteppingEnabled()) {
             Globals.program.getBackStepper().addMemoryRestoreRawWord(address,oldValue);
@@ -652,7 +654,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             throw new AddressErrorException("address out of range ",
                Exceptions.ADDRESS_EXCEPTION_LOAD, address);
          }
-         if (notify) notifyAnyObservers(AccessNotice.READ, address, length, value);
+         if (notify) { mars.ide.TraceHooks.memory(false, address, length, value, value); notifyAnyObservers(AccessNotice.READ, address, length, value); }
          return value;
       }
    
@@ -724,6 +726,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             throw new AddressErrorException("address out of range ", 
                Exceptions.ADDRESS_EXCEPTION_LOAD, address);
          }
+         mars.ide.TraceHooks.memory(false, address, Memory.WORD_LENGTH_BYTES, value, value);
          notifyAnyObservers(AccessNotice.READ, address, Memory.WORD_LENGTH_BYTES,value);
          return value;
       } 

@@ -1,0 +1,7 @@
+teaching/build/
+teaching/node_modules/
+teaching/test-results/
+.DS_Store
+
+__pycache__/
+*.pyc

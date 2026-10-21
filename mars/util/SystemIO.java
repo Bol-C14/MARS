@@ -77,6 +77,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    
        public static int readInteger(int serviceNumber)
       {
+         if (mars.ide.VirtualIO.current != null) return Integer.parseInt(mars.ide.VirtualIO.current.input().trim());
          String input = "0";
          if (Globals.getGui() == null)
          {
@@ -112,6 +113,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static float readFloat(int serviceNumber)
       {
+         if (mars.ide.VirtualIO.current != null) return Float.parseFloat(mars.ide.VirtualIO.current.input().trim());
          String input = "0";
          if (Globals.getGui() == null)
          {
@@ -146,6 +148,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static double readDouble(int serviceNumber)
       {
+         if (mars.ide.VirtualIO.current != null) return Double.parseDouble(mars.ide.VirtualIO.current.input().trim());
          String input = "0";
          if (Globals.getGui() == null)
          {
@@ -176,6 +179,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static void printString(String string)
       {
+         if (mars.ide.VirtualIO.current != null) { mars.ide.VirtualIO.current.print(string); return; }
          if (Globals.getGui() == null)
          {
             System.out.print(string);
@@ -196,6 +200,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static String readString(int serviceNumber, int maxLength)
       {
+         if (mars.ide.VirtualIO.current != null) return mars.ide.VirtualIO.current.inputString(maxLength);
          String input = "";
          if (Globals.getGui() == null)
          {
@@ -238,6 +243,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static int readChar(int serviceNumber)
       {
+         if (mars.ide.VirtualIO.current != null) return (mars.ide.VirtualIO.current.input()+"\n").charAt(0);
          String input = "0";
          int returnValue = 0;
          if (Globals.getGui() == null)
@@ -286,6 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    
        public static int writeToFile(int fd, byte[] myBuffer, int lengthRequested)
       {
+         if (mars.ide.VirtualIO.current != null) return mars.ide.VirtualIO.current.write(fd,myBuffer,lengthRequested);
        /////////////// DPS 8-Jan-2013  ////////////////////////////////////////////////////
        /// Write to STDOUT or STDERR file descriptor while using IDE - write to Messages pane. 
          if ((fd==STDOUT || fd==STDERR) && Globals.getGui() != null) {
@@ -351,6 +358,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static int readFromFile(int fd, byte[] myBuffer, int lengthRequested)
       {
+         if (mars.ide.VirtualIO.current != null) return mars.ide.VirtualIO.current.read(fd,myBuffer,lengthRequested);
          int retValue = -1;  
        /////////////// DPS 8-Jan-2013  //////////////////////////////////////////////////
        /// Read from STDIN file descriptor while using IDE - get input from Messages pane. 
@@ -411,6 +419,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     */
        public static int openFile(String filename, int flags)
       {
+         if (mars.ide.VirtualIO.current != null) return mars.ide.VirtualIO.current.open(filename,flags);
         // Internally, a "file descriptor" is an index into a table
         // of the filename, flag, and the File???putStream associated with
         // that file descriptor.
@@ -470,6 +479,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static void closeFile(int fd)
       {
+         if (mars.ide.VirtualIO.current != null) { mars.ide.VirtualIO.current.close(fd); return; }
          FileIOData.close(fd);
       }
    
@@ -478,6 +488,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      */
        public static void resetFiles()
       {
+         if (mars.ide.VirtualIO.current != null) return;
          FileIOData.resetFiles();
       }
    

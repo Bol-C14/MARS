@@ -75,6 +75,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    	  */
    	  
        public synchronized int getValue(){
+         mars.ide.TraceHooks.register(this, false, value, value);
          notifyAnyObservers(AccessNotice.READ);
          return value;
       }
@@ -118,6 +119,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        public synchronized int setValue(int val){
          int old = value;
          value = val;
+         mars.ide.TraceHooks.register(this, true, old, val);
          notifyAnyObservers(AccessNotice.WRITE);
          return old;
       }
