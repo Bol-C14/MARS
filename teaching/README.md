@@ -12,7 +12,9 @@ MARS Trace 在原 MARS 4.5 汇编器和执行器上增加现代代码编辑、�
 sh teaching/scripts/start.sh
 ```
 
-打开 **http://127.0.0.1:8765**。服务只监听本机。macOS 也可以运行根目录的 `Start-Teaching-IDE.command`。终端 Ctrl+C 结束服务。
+打开 **http://127.0.0.1:8765**。服务只监听本机。macOS 可以双击根目录的 `Start-Teaching-IDE.command`：它会启动独立后台进程并打开浏览器，关闭启动终端不会停止服务。命令行 `start.sh` 则以前台方式运行，Ctrl+C 结束服务。
+
+后台启动也可执行 `sh teaching/scripts/start-background.sh`（需要 Python 3）；日志在 `teaching/build/server.log`。已运行时复用现有服务。
 
 指定其他端口：`sh teaching/scripts/start.sh 8766`。首次启动会从源码编译 Java；前端已打包，正常使用无需安装 Node 依赖。当前是本地浏览器工作区，原生安装包属于 M3。
 
