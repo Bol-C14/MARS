@@ -26,3 +26,7 @@ Final checks:
 - Browser acceptance: **not verified in this environment**. The runner skipped browser launch. An explicit attempt with the installed Chromium failed because the executor blocks required local sockets; the elevated launch path also failed before execution. No browser pass is claimed. A focused assertion for the new input hint is included but has not been executed here.
 
 These checks cover machine compatibility and display semantics, not visual quality, keyboard interaction on a live desktop, Windows packaging, long-session memory budgets, or real classroom outcomes. Re-run `sh teaching/scripts/test.sh` in a supported browser-enabled environment before treating browser acceptance as complete.
+
+## Addendum · browser acceptance
+
+Applied on macOS arm64 (OpenJDK 25, Chrome 155) on top of `313c420`; the rebuilt `web/app.js` matched the patched bundle byte for byte. `sh teaching/scripts/test.sh` passed in full, including browser acceptance: 58 checks with real key events and no page errors, among them the new focus input hint assertion. Core 21, front-end 49, upstream output 18 cases, step parity 518 snapshots.
