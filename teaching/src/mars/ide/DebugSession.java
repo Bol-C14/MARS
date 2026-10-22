@@ -704,6 +704,17 @@ public final class DebugSession {
     stopReason = "Batch complete";
   }
 
+  /** Consumed inputs with the output offset where the console shows them. */
+  private List<Object> inputEchoes() {
+    var out = new ArrayList<Object>();
+    if (VirtualIO.current == null) return out;
+    var io = VirtualIO.current;
+    for (int i = 0; i < io.echoAt.size(); i++) out.add(
+      obj("at", io.echoAt.get(i), "text", io.inputs.get(i))
+    );
+    return out;
+  }
+
   /** Logpoint text with {$reg} as decimal and {$reg:x} as hex. */
   private String message(String template) {
     var m = java.util.regex.Pattern.compile("\\{(\\$\\w+)(:x)?\\}").matcher(
@@ -904,6 +915,10 @@ public final class DebugSession {
       VirtualIO.current == null ? List.of() : VirtualIO.current.describe(),
       "inputCursor",
       VirtualIO.current == null ? 0 : VirtualIO.current.cursor,
+      "inputEchoes",
+      inputEchoes(),
+      "pcVisits",
+      executed.getOrDefault(RegisterFile.getProgramCounter(), 0) + 1,
       "exitCode",
       Globals.exitCode,
       "delay",

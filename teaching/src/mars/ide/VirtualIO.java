@@ -14,6 +14,8 @@ public final class VirtualIO {
   public List<String> inputs = new ArrayList<>();
   public int cursor = 0;
   public String output = "";
+  /** Output length at the moment each input was consumed (for echoing it); replaced, never mutated. */
+  public List<Integer> echoAt = List.of();
   private Map<Integer, Handle> handles = new LinkedHashMap<>();
 
   private record Handle(String name, int flags, int position) {}
@@ -24,12 +26,16 @@ public final class VirtualIO {
     v.inputs = inputs;
     v.cursor = cursor;
     v.output = output;
+    v.echoAt = echoAt;
     v.handles = new LinkedHashMap<>(handles);
     return v;
   }
 
   public String input() {
     if (cursor >= inputs.size()) throw new NeedsInput();
+    var at = new ArrayList<>(echoAt);
+    at.add(output.length());
+    echoAt = List.copyOf(at);
     return inputs.get(cursor++);
   }
 

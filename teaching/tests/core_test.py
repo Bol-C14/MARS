@@ -114,4 +114,10 @@ class CoreTests(unittest.TestCase):
   s=self.call('run',breakpoints=[{'address':addr,'log':'t0={$t0} {$t0:x}'}]);self.assertEqual(s['status'],'ended')
   self.assertEqual([l['text'] for l in s['logs']],['t0=3 0x00000003','t0=2 0x00000002','t0=1 0x00000001'])
   self.assertEqual(self.call('state')['logs'],[])
+ def test_input_echo_and_visit_count(self):
+  self.asm('.text\nmain:\nli $v0,4\nla $a0,p\nsyscall\nli $v0,5\nsyscall\nli $v0,10\nsyscall\n.data\np: .asciiz "N? "\n',inputs=['42'])
+  s=self.finish();self.assertEqual(s['output'],'N? ');self.assertEqual(s['inputEchoes'],[{'at':3,'text':'42'}])
+  self.call('seek',step=0);s=self.call('state');self.assertEqual(s['inputEchoes'],[]);self.assertEqual(s['pcVisits'],1)
+  s=self.asm('.text\nmain:\nli $t0,2\nloop:\naddiu $t0,$t0,-1\nbnez $t0,loop\nnop\n');a=next(i['address'] for i in s['instructions'] if i['line']==5)
+  self.call('step');self.call('step');s=self.call('step');self.assertEqual(s['pc'],a);self.assertEqual(s['pcVisits'],2)
 if __name__=='__main__':unittest.main(verbosity=2)

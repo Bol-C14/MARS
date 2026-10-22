@@ -67,7 +67,7 @@ export class FocusLens {
     // The backdrop blocks the IDE console, so input waits are answered here.
     $("focus-input").onsubmit = async (e) => {
       e.preventDefault();
-      await this.host.command("input", { value: $("focus-input-value").value });
+      await this.host.submitInput($("focus-input-value").value);
       $("focus-input-value").value = "";
       this.el.focus();
     };

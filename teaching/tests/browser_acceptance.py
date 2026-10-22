@@ -54,7 +54,6 @@ class Run:
 def scenario(r, page, mod):
     state = lambda: r.js("() => window.marsIDE.state")
     r.until("() => window.marsIDE?.state?.status === 'paused'")
-    page.check("#fast-run")
 
     # --- M1/M2 workflow (ported from the earlier smoke script) ---
     page.keyboard.press(f"{mod}+Shift+P")
@@ -66,12 +65,14 @@ def scenario(r, page, mod):
     r.until("() => window.marsIDE.files['main.s']?.includes('Hex') && window.marsIDE.state.step === 0")
     page.locator("#run").click()
     r.until("() => window.marsIDE.state.status === 'waiting'")
+    r.check("status chip says waiting for input", "等待输入" in page.locator("#status").inner_text())
     page.locator("#stdin").fill("898")
     page.locator("#input-form button").click()
-    r.until("() => window.marsIDE.state.status === 'paused'")
-    page.locator("#run").click()
+    # Trial A4: submitting input resumes the interrupted run and echoes the input.
     r.until("() => window.marsIDE.state.status === 'ended'")
     r.check("hexOut output", page.locator("#output").inner_text().endswith("00000382"))
+    r.check("input is echoed in the console", page.locator("#output .echo").inner_text() == "898⏎")
+    r.check("status chip says ended", "已结束" in page.locator("#status").inner_text())
     page.locator("#back").click()
     r.until("() => window.marsIDE.state.status === 'paused'")
     page.locator('[data-register="$v0"]').click()
@@ -87,7 +88,9 @@ def scenario(r, page, mod):
     page.locator(f'[data-machine-bp="{address}"]').click()
     page.locator("#run").click()
     r.until("(a) => window.marsIDE.state.pc === a", address)
-    r.check("breakpoint pause", "Breakpoint" in page.locator("#banner").inner_text())
+    chip = page.locator("#status").inner_text()
+    r.check("breakpoint stop explained in Chinese", "停在断点前" in chip and "task1.s 第 21 行" in chip and "第 1 次" in chip, chip)
+    r.check("no English stop reason in the banner", "Breakpoint" not in page.locator("#banner").inner_text())
     r.js("(a) => window.marsIDE.gotoAddress(a)", address)
     page.locator("#step").click()
     r.until("() => window.marsIDE.state.last.instruction.op === 'lbu'")
@@ -126,6 +129,26 @@ def scenario(r, page, mod):
     # --- M2.5: inline values ---
     r.check("inline execution values", page.locator(".cm-inline-value").count() > 0)
 
+    # --- Trial A: running is visible; demo follows across files and says so ---
+    page.keyboard.press("Shift+F5")
+    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
+    r.check("spotlight marks where execution stopped after a jump", True)
+    r.until("() => !document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
+    r.check("spotlight fades by itself", True)
+    page.select_option("#demo-speed", "150")
+    page.locator("#demo").click()
+    r.until("() => document.getElementById('status').dataset.state === 'running'")
+    r.check("status chip shows running during a demo", "运行中" in page.locator("#status").inner_text())
+    notice = page.wait_for_function(
+        "() => { const t = document.getElementById('banner').textContent; return t.startsWith('执行进入') && t }",
+        timeout=30000).json_value()
+    r.check("demo announces entering another file", any(f in notice for f in ("main.s", "task1.s", "libio.s")), notice)
+    page.keyboard.press("F6")
+    r.until("() => document.getElementById('status').dataset.state !== 'running'")
+    r.check("pause ends the running state", "运行中" not in page.locator("#status").inner_text())
+
+
     # --- M2.5: VS Code keys ---
     page.keyboard.press("Shift+F5")
     r.until("() => window.marsIDE.state.step === 0")
@@ -133,6 +156,14 @@ def scenario(r, page, mod):
     page.keyboard.press("F11")
     r.until("() => window.marsIDE.state.step === 2")  # la expands to two instructions
     page.keyboard.press("Alt+F11")
+    r.until("() => window.marsIDE.state.step === 3")
+    page.wait_for_timeout(1300)
+    page.keyboard.press("Alt+F11")
+    r.until("() => window.marsIDE.state.step === 4")
+    page.wait_for_timeout(150)
+    r.check("no spotlight for an adjacent single step",
+            not r.js("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')"))
+    page.keyboard.press("Shift+F9")
     r.until("() => window.marsIDE.state.step === 3")
     page.keyboard.press("Shift+F9")
     r.until("() => window.marsIDE.state.step === 2")
@@ -246,6 +277,11 @@ def reduced_motion(r, page, mod):
     dots = r.js("() => [...document.querySelectorAll('.fdot')].map(d => d.className)")
     r.check("reduced motion shows the conclusion", "now" in dots[-1], str(dots))
     r.check("reduced motion: no moving values", page.locator(".ftoken").count() == 0)
+    page.keyboard.press("Escape")
+    page.keyboard.press("F5")
+    r.until("() => window.marsIDE.state.status !== 'paused' || window.marsIDE.state.stopReason !== ''")
+    page.wait_for_timeout(300)
+    r.check("reduced motion: no spotlight", not r.js("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')"))
 
 
 def main():
@@ -275,7 +311,7 @@ def main():
                 calm.on("pageerror", lambda e: errors.append(str(e)))
                 calm.goto(f"http://127.0.0.1:{port}")
                 reduced_motion(Run(calm), calm, mod)
-                r.passed += ["reduced motion shows the conclusion", "reduced motion: no moving values"]
+                r.passed += ["reduced motion shows the conclusion", "reduced motion: no moving values", "reduced motion: no spotlight"]
                 r.check("no page errors", not errors, json.dumps(errors))
             except Exception as e:
                 page.screenshot(path=str(ROOT / "teaching/test-results/browser-failure.png"))

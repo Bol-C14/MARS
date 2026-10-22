@@ -23867,7 +23867,7 @@ var FocusLens = class {
     $2("focus-why").onclick = () => this.toggleWhy();
     $2("focus-input").onsubmit = async (e) => {
       e.preventDefault();
-      await this.host.command("input", { value: $2("focus-input-value").value });
+      await this.host.submitInput($2("focus-input-value").value);
       $2("focus-input-value").value = "";
       this.el.focus();
     };
@@ -24993,6 +24993,7 @@ var lens = new FocusLens({
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
+  submitInput: (value) => submitInput(value),
   isBusy: () => busy,
   onClose: () => {
     followPC();
@@ -25158,7 +25159,7 @@ async function command2(name2, extra = {}) {
     return s;
   } catch (e) {
     notify(e.message);
-    running = false;
+    if (running) stopRequested = true;
     return null;
   } finally {
     busy = false;
@@ -25166,8 +25167,8 @@ async function command2(name2, extra = {}) {
   }
 }
 async function assemble() {
+  await requestStop();
   if (busy) return;
-  running = false;
   busy = true;
   updateControls();
   try {
@@ -25281,9 +25282,51 @@ function gotoSymbol(s) {
   }
   gotoAddress(s.address);
 }
+var arrivedAt = null;
+function arrive(jumped = false) {
+  const ins = program.instructions.find((i) => i.address === state?.pc);
+  if (!ins || view !== "source" || dirty) return;
+  const far = jumped || !arrivedAt || arrivedAt.file !== ins.file || Math.abs(arrivedAt.line - ins.line) > 1;
+  arrivedAt = { file: ins.file, line: ins.line };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const line = editor.dom.querySelector(".cm-line.next-line");
+    line?.animate(
+      [
+        { background: "color-mix(in srgb, var(--blue) 40%, var(--panel))" },
+        { background: "color-mix(in srgb, var(--blue) 12%, transparent)" }
+      ],
+      { duration: 900, iterations: 2, easing: "ease-out" }
+    );
+    if (!far) return;
+    editor.dom.classList.add("arrival-spotlight");
+    clearTimeout(arrive.timer);
+    arrive.timer = setTimeout(
+      () => editor.dom.classList.remove("arrival-spotlight"),
+      1100
+    );
+  });
+}
+var keepNotice = false;
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
-  if (ins && view === "source") gotoSource(ins.file, ins.line, false);
+  if (ins && view === "source" && ins.file !== activeFile && activeFile) {
+    const label2 = program.symbols.filter((s) => !s.data && s.address <= ins.address).filter(
+      (s) => program.instructions.find((i) => i.address === s.address)?.file === ins.file
+    ).sort((a, b) => b.address - a.address)[0];
+    gotoSource(ins.file, ins.line, false);
+    notify(`\u6267\u884C\u8FDB\u5165 ${ins.file}${label2 ? " \xB7 " + label2.name : ""}`);
+    keepNotice = true;
+    clearTimeout(followPC.timer);
+    followPC.timer = setTimeout(() => keepNotice = false, 2500);
+    document.querySelector(".tabs .active")?.animate(
+      [
+        { background: "color-mix(in srgb, var(--accent) 30%, var(--panel))" },
+        { background: "transparent" }
+      ],
+      { duration: 900 }
+    );
+  } else if (ins && view === "source") gotoSource(ins.file, ins.line, false);
   if (view === "machine")
     document.querySelector(`[data-instruction="${state.pc}"]`)?.scrollIntoView({ block: "nearest" });
 }
@@ -25305,19 +25348,73 @@ function setBottom(v) {
     $(name2).hidden = name2 !== v;
   document.querySelectorAll("[data-bottom]").forEach((b) => b.classList.toggle("selected", b.dataset.bottom === v));
 }
+function statusInfo() {
+  const where = (address) => {
+    const i = program.instructions.find((x) => x.address === address);
+    return i ? { file: i.file, line: i.line, text: `${i.file} \u7B2C ${i.line} \u884C` } : null;
+  };
+  if (dirty) return { kind: "dirty", text: "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED" };
+  if (!state || state.status === "empty")
+    return { kind: "idle", text: "\u672A\u6C47\u7F16" };
+  if (running)
+    return {
+      kind: "running",
+      text: stopRequested ? "\u6B63\u5728\u6682\u505C\u2026" : `\u8FD0\u884C\u4E2D \xB7 \u7B2C ${state.step} \u6B65`
+    };
+  const next = where(state.pc), last2 = state.last ? where(state.last.pc) : null, reason = state.stopReason || "";
+  if (state.status === "waiting")
+    return {
+      kind: "waiting",
+      text: "\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u63A7\u5236\u53F0\u8F93\u5165\u540E\u6309 Enter",
+      at: next
+    };
+  if (state.status === "ended")
+    return { kind: "ended", text: `\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}` };
+  if (state.status === "error")
+    return {
+      kind: "error",
+      text: "\u51FA\u9519 \xB7 " + (state.error || "").split("\n")[0].slice(0, 80),
+      at: last2
+    };
+  if (reason.startsWith("Breakpoint") && next)
+    return {
+      kind: "breakpoint",
+      text: `\u505C\u5728\u65AD\u70B9\u524D \xB7 ${next.text}\uFF08\u8FD9\u4E00\u884C\u8FD8\u6CA1\u6267\u884C\uFF09\xB7 \u5373\u5C06\u7B2C ${state.pcVisits} \u6B21\u6267\u884C`,
+      at: next
+    };
+  if (reason.startsWith("Watchpoint") && last2)
+    return {
+      kind: "breakpoint",
+      text: `\u89C2\u5BDF\u70B9\u89E6\u53D1 \xB7 \u521A\u6267\u884C\u7684 ${last2.text}${reason.endsWith("read") ? "\u8BFB\u53D6" : "\u5199\u5165"}\u4E86\u88AB\u89C2\u5BDF\u7684\u5BF9\u8C61`,
+      at: last2
+    };
+  if (reason.startsWith("History limit"))
+    return { kind: "error", text: "\u5DF2\u8FBE\u5230\u5386\u53F2\u4E0A\u9650 100000 \u6B65 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED" };
+  if (reason.startsWith("History"))
+    return {
+      kind: "paused",
+      text: `\u56DE\u653E\u5386\u53F2 \xB7 \u7B2C ${state.step} / ${state.historyLength} \u6B65`,
+      at: next
+    };
+  if (!state.step && next)
+    return { kind: "paused", text: `\u5C31\u7EEA \xB7 \u4ECE ${next.text} \u5F00\u59CB`, at: next };
+  return {
+    kind: "paused",
+    text: last2 ? `\u5DF2\u6682\u505C \xB7 \u521A\u6267\u884C ${last2.text}` : "\u5DF2\u6682\u505C",
+    at: next
+  };
+}
 function updateControls() {
-  for (let name2 of ["step", "source", "over", "out", "run"])
-    $(name2).disabled = busy || dirty || !state || !["paused", "waiting"].includes(state.status);
-  $("back").disabled = busy || dirty || !state?.step;
+  for (let name2 of ["step", "source", "over", "out", "run", "demo"])
+    $(name2).disabled = busy || dirty || running || !state || !["paused", "waiting"].includes(state.status);
+  $("back").disabled = busy || dirty || running || !state?.step;
   $("assemble").disabled = busy;
   $("pause").disabled = !running;
-  $("status").textContent = dirty ? "\u6E90\u7801\u5DF2\u4FEE\u6539" : {
-    empty: "\u672A\u6C47\u7F16",
-    paused: "\u6682\u505C",
-    waiting: "\u7B49\u5F85\u8F93\u5165",
-    ended: "\u6267\u884C\u7ED3\u675F",
-    error: "\u9519\u8BEF"
-  }[state?.status] || "\u672A\u6C47\u7F16";
+  const info = statusInfo();
+  $("status").textContent = info.text;
+  $("status").dataset.state = info.kind;
+  $("status").onclick = info.at ? () => gotoSource(info.at.file, info.at.line) : null;
+  $("status").title = info.at ? "\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C" : "";
 }
 function renderFiles() {
   $("files").innerHTML = Object.keys(files).map(
@@ -25491,8 +25588,7 @@ function render() {
   renderTrace();
   renderStops();
   renderLogs();
-  $("output").textContent = state.output;
-  $("output").scrollTop = $("output").scrollHeight;
+  renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
   $("location").textContent = `S${state.step} \xB7 ${hex(state.pc)}`;
   $("history-info").textContent = `${state.step} / ${state.historyLength} \u6B65`;
@@ -25514,8 +25610,7 @@ function render() {
   if (state.error) {
     notify(state.error);
     setBottom("problems");
-  } else if (!dirty)
-    notify(state.stopReason === "Batch complete" ? "" : state.stopReason);
+  } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
@@ -25618,6 +25713,16 @@ function renderLogs() {
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.logStep) }).then(followPC)
   );
 }
+function renderOutput() {
+  let html = "", from = 0;
+  for (const e of state.inputEchoes || []) {
+    html += escapeHTML(state.output.slice(from, e.at)) + `<span class="echo">${escapeHTML(e.text)}\u23CE</span>
+`;
+    from = e.at;
+  }
+  $("output").innerHTML = html + escapeHTML(state.output.slice(from));
+  $("output").scrollTop = $("output").scrollHeight;
+}
 function renderStops() {
   $("breakpoints").innerHTML = breakpoints.map((b, i) => {
     const details = [
@@ -25662,13 +25767,39 @@ function renderStops() {
     }
   );
 }
+var stopRequested = false;
+var runDone = Promise.resolve();
+function requestStop() {
+  if (running) {
+    stopRequested = true;
+    updateControls();
+  }
+  return runDone;
+}
 async function run(mode = "run", extra = {}) {
-  if (busy || dirty) return;
+  if (busy || dirty || running) return;
   running = true;
+  stopRequested = false;
+  let finish;
+  runDone = new Promise((resolve) => finish = resolve);
+  try {
+    await runLoop(mode, extra);
+  } finally {
+    running = false;
+    stopRequested = false;
+    updateControls();
+    finish();
+  }
+  arrive(mode !== "source");
+  lens.settle();
+}
+async function runLoop(mode, extra) {
   updateControls();
   let first = true;
-  const demonstrate = mode === "run" && !$("fast-run").checked && !lens.isOpen;
-  while (running) {
+  const demonstrate = mode === "demo";
+  if (demonstrate) mode = "run";
+  pendingResume = null;
+  while (!stopRequested) {
     let s = await command2(mode, {
       limit: mode === "run" ? demonstrate ? 1 : 150 : mode === "over" || mode === "out" ? 1e5 : 1e3,
       breakpoints: activeBreakpoints(),
@@ -25679,16 +25810,26 @@ async function run(mode = "run", extra = {}) {
     first = false;
     if (demonstrate && s?.last) {
       followPC();
-      await new Promise((resolve) => setTimeout(resolve, 450));
+      await new Promise(
+        (resolve) => setTimeout(resolve, Number($("demo-speed").value))
+      );
     }
     if (!s || s.status !== "paused" || s.stopReason !== "Batch complete" || mode !== "run")
       break;
     await new Promise((r) => setTimeout(r, 0));
   }
-  running = false;
+  if (state?.status === "waiting")
+    pendingResume = { mode: demonstrate ? "demo" : mode, extra };
   followPC();
-  updateControls();
-  lens.settle();
+}
+var pendingResume = null;
+async function submitInput(value) {
+  await command2("input", { value });
+  const resume = pendingResume;
+  pendingResume = null;
+  if (!resume || state?.status !== "paused") return;
+  if (resume.mode === "step") await command2("step").then(followPC);
+  else await run(resume.mode, resume.extra);
 }
 async function runUntilWrite(register) {
   await run("run", { watches: [...watches, { register, access: "write" }] });
@@ -25734,7 +25875,9 @@ function commandList() {
     ["\u8DF3\u51FA\u51FD\u6570", () => run("out"), "out"],
     ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC), "back"],
     ["\u8FD0\u884C\uFF0F\u7EE7\u7EED", () => run(), "run"],
-    ["\u6682\u505C", () => running = false, "pause"],
+    ["\u6F14\u793A\u64AD\u653E\uFF08\u9010\u6761\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run("demo")],
+    ["\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F", () => assemble(), "restart"],
+    ["\u6682\u505C", () => requestStop(), "pause"],
     ["\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9", () => actions.stop(), "stop"],
     ["\u5207\u6362\u65AD\u70B9\uFF08\u5149\u6807\u884C\uFF09", () => actions.breakpoint(), "breakpoint"],
     [
@@ -25842,14 +25985,19 @@ function openPicker(prefix = "") {
   input.setSelectionRange(input.value.length, input.value.length);
 }
 $("assemble").onclick = assemble;
-$("step").onclick = () => command2("step").then(followPC);
-$("back").onclick = () => command2("back").then(followPC);
+$("step").onclick = () => command2("step").then((s) => {
+  pendingResume = s?.status === "waiting" ? { mode: "step" } : null;
+  followPC();
+  arrive();
+});
+$("demo").onclick = () => run("demo");
+$("back").onclick = () => command2("back").then(() => {
+  followPC();
+  arrive();
+});
 for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
-$("pause").onclick = () => {
-  running = false;
-  updateControls();
-};
+$("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
 function openFocus() {
   if (dirty || !state || state.status === "empty")
@@ -25891,7 +26039,7 @@ $("input-form").onsubmit = async (e) => {
   e.preventDefault();
   let value = $("stdin").value;
   $("stdin").value = "";
-  await command2("input", { value });
+  await submitInput(value);
 };
 $("memory-form").onsubmit = (e) => {
   e.preventDefault();
@@ -25972,10 +26120,10 @@ var actions = {
   run: () => !running && $("run").click(),
   pause: () => running && $("pause").click(),
   stop: async () => {
-    running = false;
-    updateControls();
+    await requestStop();
     if (state?.step) await command2("seek", { step: 0 });
     followPC();
+    arrive(true);
   },
   restart: () => assemble(),
   over: () => $("over").click(),

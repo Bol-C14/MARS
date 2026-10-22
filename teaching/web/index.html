@@ -37,11 +37,17 @@
       ><button id="source" title="源码单步 · F11">源码步</button
       ><button id="over" title="跨过调用 · F10">跨过</button
       ><button id="out" title="跳出函数 · Shift+F11">跳出</button
-      ><button id="run" class="run" title="运行／继续 · F5">▶ 播放</button
+      ><button id="run" class="run" title="运行到断点或结束 · F5">▶ 运行</button
+      ><button id="demo" title="演示：逐条执行并跟随执行位置">▷ 演示</button
+      ><select id="demo-speed" aria-label="演示速度" title="演示速度">
+        <option value="900">慢</option>
+        <option value="450" selected>中</option>
+        <option value="150">快</option></select
       ><button id="pause" title="暂停 · F6" disabled>Ⅱ 暂停</button
       ><label><input type="checkbox" id="delay" />延迟分支</label
-      ><label><input type="checkbox" id="fast-run" />快速运行</label
-      ><span id="status" class="status">未汇编</span>
+      ><span id="status" class="status" role="status" aria-live="polite"
+        >未汇编</span
+      >
     </nav>
     <div id="banner" role="status"></div>
     <div class="workspace">

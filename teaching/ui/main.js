@@ -484,6 +484,7 @@ const lens = new FocusLens({
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
+  submitInput: (value) => submitInput(value),
   isBusy: () => busy,
   onClose: () => {
     followPC();
@@ -674,7 +675,7 @@ async function command(name, extra = {}) {
     return s;
   } catch (e) {
     notify(e.message);
-    running = false;
+    if (running) stopRequested = true;
     return null;
   } finally {
     busy = false;
@@ -682,8 +683,8 @@ async function command(name, extra = {}) {
   }
 }
 async function assemble() {
+  await requestStop();
   if (busy) return;
-  running = false;
   busy = true;
   updateControls();
   try {
@@ -806,9 +807,67 @@ function gotoSymbol(s) {
   }
   gotoAddress(s.address);
 }
+// Where execution just stopped, shown without words (trial A5, variants A+B):
+// the next line pulses on every stop; after a run, a file change or a jump the
+// rest of the code also dims for a moment so the eye lands on it.
+let arrivedAt = null;
+function arrive(jumped = false) {
+  const ins = program.instructions.find((i) => i.address === state?.pc);
+  if (!ins || view !== "source" || dirty) return;
+  const far =
+    jumped ||
+    !arrivedAt ||
+    arrivedAt.file !== ins.file ||
+    Math.abs(arrivedAt.line - ins.line) > 1;
+  arrivedAt = { file: ins.file, line: ins.line };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const line = editor.dom.querySelector(".cm-line.next-line");
+    line?.animate(
+      [
+        { background: "color-mix(in srgb, var(--blue) 40%, var(--panel))" },
+        { background: "color-mix(in srgb, var(--blue) 12%, transparent)" },
+      ],
+      { duration: 900, iterations: 2, easing: "ease-out" },
+    );
+    if (!far) return;
+    editor.dom.classList.add("arrival-spotlight");
+    clearTimeout(arrive.timer);
+    arrive.timer = setTimeout(
+      () => editor.dom.classList.remove("arrival-spotlight"),
+      1100,
+    );
+  });
+}
+// Moving to another file while following execution is easy to miss; say where
+// execution went and flash the tab.
+let keepNotice = false;
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
-  if (ins && view === "source") gotoSource(ins.file, ins.line, false);
+  if (ins && view === "source" && ins.file !== activeFile && activeFile) {
+    const label = program.symbols
+      .filter((s) => !s.data && s.address <= ins.address)
+      .filter(
+        (s) =>
+          program.instructions.find((i) => i.address === s.address)?.file ===
+          ins.file,
+      )
+      .sort((a, b) => b.address - a.address)[0];
+    gotoSource(ins.file, ins.line, false);
+    notify(`执行进入 ${ins.file}${label ? " · " + label.name : ""}`);
+    keepNotice = true;
+    clearTimeout(followPC.timer);
+    followPC.timer = setTimeout(() => (keepNotice = false), 2500);
+    document
+      .querySelector(".tabs .active")
+      ?.animate(
+        [
+          { background: "color-mix(in srgb, var(--accent) 30%, var(--panel))" },
+          { background: "transparent" },
+        ],
+        { duration: 900 },
+      );
+  } else if (ins && view === "source") gotoSource(ins.file, ins.line, false);
   if (view === "machine")
     document
       .querySelector(`[data-instruction="${state.pc}"]`)
@@ -836,22 +895,86 @@ function setBottom(v) {
     .querySelectorAll("[data-bottom]")
     .forEach((b) => b.classList.toggle("selected", b.dataset.bottom === v));
 }
+// What the machine is doing and why it stopped, in the student's words
+// (DESIGN P06: a breakpoint stops *before* its line runs).
+function statusInfo() {
+  const where = (address) => {
+    const i = program.instructions.find((x) => x.address === address);
+    return i
+      ? { file: i.file, line: i.line, text: `${i.file} 第 ${i.line} 行` }
+      : null;
+  };
+  if (dirty) return { kind: "dirty", text: "源码已修改 · 重新汇编后继续" };
+  if (!state || state.status === "empty")
+    return { kind: "idle", text: "未汇编" };
+  if (running)
+    return {
+      kind: "running",
+      text: stopRequested ? "正在暂停…" : `运行中 · 第 ${state.step} 步`,
+    };
+  const next = where(state.pc),
+    last = state.last ? where(state.last.pc) : null,
+    reason = state.stopReason || "";
+  if (state.status === "waiting")
+    return {
+      kind: "waiting",
+      text: "等待输入 · 在控制台输入后按 Enter",
+      at: next,
+    };
+  if (state.status === "ended")
+    return { kind: "ended", text: `已结束 · 退出码 ${state.exitCode}` };
+  if (state.status === "error")
+    return {
+      kind: "error",
+      text: "出错 · " + (state.error || "").split("\n")[0].slice(0, 80),
+      at: last,
+    };
+  if (reason.startsWith("Breakpoint") && next)
+    return {
+      kind: "breakpoint",
+      text: `停在断点前 · ${next.text}（这一行还没执行）· 即将第 ${state.pcVisits} 次执行`,
+      at: next,
+    };
+  if (reason.startsWith("Watchpoint") && last)
+    return {
+      kind: "breakpoint",
+      text: `观察点触发 · 刚执行的 ${last.text}${reason.endsWith("read") ? "读取" : "写入"}了被观察的对象`,
+      at: last,
+    };
+  if (reason.startsWith("History limit"))
+    return { kind: "error", text: "已达到历史上限 100000 步 · 重新汇编后继续" };
+  if (reason.startsWith("History"))
+    return {
+      kind: "paused",
+      text: `回放历史 · 第 ${state.step} / ${state.historyLength} 步`,
+      at: next,
+    };
+  if (!state.step && next)
+    return { kind: "paused", text: `就绪 · 从 ${next.text} 开始`, at: next };
+  return {
+    kind: "paused",
+    text: last ? `已暂停 · 刚执行 ${last.text}` : "已暂停",
+    at: next,
+  };
+}
 function updateControls() {
-  for (let name of ["step", "source", "over", "out", "run"])
+  for (let name of ["step", "source", "over", "out", "run", "demo"])
     $(name).disabled =
-      busy || dirty || !state || !["paused", "waiting"].includes(state.status);
-  $("back").disabled = busy || dirty || !state?.step;
+      busy ||
+      dirty ||
+      running ||
+      !state ||
+      !["paused", "waiting"].includes(state.status);
+  $("back").disabled = busy || dirty || running || !state?.step;
   $("assemble").disabled = busy;
   $("pause").disabled = !running;
-  $("status").textContent = dirty
-    ? "源码已修改"
-    : {
-        empty: "未汇编",
-        paused: "暂停",
-        waiting: "等待输入",
-        ended: "执行结束",
-        error: "错误",
-      }[state?.status] || "未汇编";
+  const info = statusInfo();
+  $("status").textContent = info.text;
+  $("status").dataset.state = info.kind;
+  $("status").onclick = info.at
+    ? () => gotoSource(info.at.file, info.at.line)
+    : null;
+  $("status").title = info.at ? "点击跳到这一行" : "";
 }
 function renderFiles() {
   $("files").innerHTML = Object.keys(files)
@@ -1110,8 +1233,7 @@ function render() {
   renderTrace();
   renderStops();
   renderLogs();
-  $("output").textContent = state.output;
-  $("output").scrollTop = $("output").scrollHeight;
+  renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
   $("location").textContent = `S${state.step} · ${hex(state.pc)}`;
   $("history-info").textContent = `${state.step} / ${state.historyLength} 步`;
@@ -1148,8 +1270,7 @@ function render() {
   if (state.error) {
     notify(state.error);
     setBottom("problems");
-  } else if (!dirty)
-    notify(state.stopReason === "Batch complete" ? "" : state.stopReason);
+  } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
@@ -1265,6 +1386,19 @@ function renderLogs() {
           command("seek", { step: Number(b.dataset.logStep) }).then(followPC)),
     );
 }
+// Program output with each consumed input echoed where the program read it.
+function renderOutput() {
+  let html = "",
+    from = 0;
+  for (const e of state.inputEchoes || []) {
+    html +=
+      esc(state.output.slice(from, e.at)) +
+      `<span class="echo">${esc(e.text)}⏎</span>\n`;
+    from = e.at;
+  }
+  $("output").innerHTML = html + esc(state.output.slice(from));
+  $("output").scrollTop = $("output").scrollHeight;
+}
 function renderStops() {
   $("breakpoints").innerHTML = breakpoints
     .map((b, i) => {
@@ -1330,13 +1464,45 @@ function renderStops() {
         }),
     );
 }
+// Pausing only asks the run loop to stop: the request in flight finishes and
+// the loop exits before anything else may command the machine. Until then
+// the UI keeps saying "running" (2026-10-22 trial: commands were dropped and a
+// late follow switched files when this flag was cleared early).
+let stopRequested = false,
+  runDone = Promise.resolve();
+function requestStop() {
+  if (running) {
+    stopRequested = true;
+    updateControls();
+  }
+  return runDone;
+}
 async function run(mode = "run", extra = {}) {
-  if (busy || dirty) return;
+  if (busy || dirty || running) return;
   running = true;
+  stopRequested = false;
+  let finish;
+  runDone = new Promise((resolve) => (finish = resolve));
+  try {
+    await runLoop(mode, extra);
+  } finally {
+    running = false;
+    stopRequested = false;
+    updateControls();
+    finish();
+  }
+  arrive(mode !== "source");
+  lens.settle();
+}
+async function runLoop(mode, extra) {
   updateControls();
   let first = true;
-  const demonstrate = mode === "run" && !$("fast-run").checked && !lens.isOpen;
-  while (running) {
+  // F5 runs at full speed like VS Code; "演示" steps one instruction at a time
+  // and follows the PC so a class can watch (decided after the 2026-10-22 trial).
+  const demonstrate = mode === "demo";
+  if (demonstrate) mode = "run";
+  pendingResume = null;
+  while (!stopRequested) {
     let s = await command(mode, {
       limit:
         mode === "run"
@@ -1356,7 +1522,9 @@ async function run(mode = "run", extra = {}) {
     // Step-by-step narration lives in focus mode (DESIGN §3.8).
     if (demonstrate && s?.last) {
       followPC();
-      await new Promise((resolve) => setTimeout(resolve, 450));
+      await new Promise((resolve) =>
+        setTimeout(resolve, Number($("demo-speed").value)),
+      );
     }
     if (
       !s ||
@@ -1367,10 +1535,19 @@ async function run(mode = "run", extra = {}) {
       break;
     await new Promise((r) => setTimeout(r, 0));
   }
-  running = false;
+  // An input wait interrupts the action; submitting input repeats it (§ trial A4).
+  if (state?.status === "waiting")
+    pendingResume = { mode: demonstrate ? "demo" : mode, extra };
   followPC();
-  updateControls();
-  lens.settle();
+}
+let pendingResume = null;
+async function submitInput(value) {
+  await command("input", { value });
+  const resume = pendingResume;
+  pendingResume = null;
+  if (!resume || state?.status !== "paused") return;
+  if (resume.mode === "step") await command("step").then(followPC);
+  else await run(resume.mode, resume.extra);
 }
 async function runUntilWrite(register) {
   await run("run", { watches: [...watches, { register, access: "write" }] });
@@ -1416,7 +1593,9 @@ function commandList() {
     ["跳出函数", () => run("out"), "out"],
     ["回退一步", () => command("back").then(followPC), "back"],
     ["运行／继续", () => run(), "run"],
-    ["暂停", () => (running = false), "pause"],
+    ["演示播放（逐条执行并跟随）", () => run("demo")],
+    ["重新汇编并重启", () => assemble(), "restart"],
+    ["暂停", () => requestStop(), "pause"],
     ["停止并回到起点", () => actions.stop(), "stop"],
     ["切换断点（光标行）", () => actions.breakpoint(), "breakpoint"],
     [
@@ -1535,14 +1714,21 @@ function openPicker(prefix = "") {
   input.setSelectionRange(input.value.length, input.value.length);
 }
 $("assemble").onclick = assemble;
-$("step").onclick = () => command("step").then(followPC);
-$("back").onclick = () => command("back").then(followPC);
+$("step").onclick = () =>
+  command("step").then((s) => {
+    pendingResume = s?.status === "waiting" ? { mode: "step" } : null;
+    followPC();
+    arrive();
+  });
+$("demo").onclick = () => run("demo");
+$("back").onclick = () =>
+  command("back").then(() => {
+    followPC();
+    arrive();
+  });
 for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
-$("pause").onclick = () => {
-  running = false;
-  updateControls();
-};
+$("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
 function openFocus() {
   if (dirty || !state || state.status === "empty")
@@ -1588,7 +1774,7 @@ $("input-form").onsubmit = async (e) => {
   e.preventDefault();
   let value = $("stdin").value;
   $("stdin").value = "";
-  await command("input", { value });
+  await submitInput(value);
 };
 $("memory-form").onsubmit = (e) => {
   e.preventDefault();
@@ -1674,10 +1860,10 @@ const actions = {
   run: () => !running && $("run").click(),
   pause: () => running && $("pause").click(),
   stop: async () => {
-    running = false;
-    updateControls();
+    await requestStop();
     if (state?.step) await command("seek", { step: 0 });
     followPC();
+    arrive(true);
   },
   restart: () => assemble(),
   over: () => $("over").click(),

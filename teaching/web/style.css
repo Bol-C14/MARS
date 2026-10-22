@@ -1248,3 +1248,69 @@ body.focusing #tooltip {
     Menlo,
     monospace;
 }
+/* Status chip: what the machine is doing, by colour and words (trial 2026-10-22). */
+.status[data-state] {
+  font-size: 12px;
+  border: 1px solid var(--line);
+}
+.status[data-state="running"] {
+  background: color-mix(in srgb, #2f9e62 14%, var(--panel));
+  border-color: #2f9e62;
+  color: #24804f;
+}
+.status[data-state="running"]::before {
+  content: "● ";
+  animation: status-blink 1s steps(2, start) infinite;
+}
+.status[data-state="breakpoint"] {
+  background: color-mix(in srgb, #d65454 12%, var(--panel));
+  border-color: #d65454;
+  color: #b23d3d;
+}
+.status[data-state="waiting"] {
+  background: color-mix(in srgb, var(--orange) 16%, var(--panel));
+  border-color: var(--orange);
+}
+.status[data-state="error"] {
+  background: #fde7e7;
+  color: #a12f2f;
+}
+.status[onclick],
+.status[title^="点击"] {
+  cursor: pointer;
+}
+@keyframes status-blink {
+  to {
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status[data-state="running"]::before {
+    animation: none;
+  }
+}
+#output .echo {
+  color: var(--accent);
+  font-weight: 600;
+}
+#demo-speed {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: var(--panel);
+}
+/* Arrival spotlight: everything but the next line dims briefly after a jump. */
+.cm-editor.arrival-spotlight .cm-line:not(.next-line),
+.cm-editor.arrival-spotlight .cm-gutterElement {
+  opacity: 0.28;
+}
+.cm-editor .cm-line,
+.cm-editor .cm-gutterElement {
+  transition: opacity 0.35s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cm-editor .cm-line,
+  .cm-editor .cm-gutterElement {
+    transition: none;
+  }
+}
