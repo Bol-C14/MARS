@@ -23,6 +23,7 @@ import {
 } from "./model.js";
 import { OverlayRenderer } from "./overlay.js";
 import { FocusLens } from "./focus.js";
+import { Keymap, label as keyLabel } from "./keymap.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
   files = {},
@@ -261,6 +262,14 @@ const editor = new EditorView({
           key: "F12",
           run: () => {
             inspectToken(tokenAt(editor.state.selection.main.head));
+            return true;
+          },
+        },
+        {
+          key: "Shift-F12",
+          run: () => {
+            const token = tokenAt(editor.state.selection.main.head);
+            if (token) showReferences(token);
             return true;
           },
         },
@@ -569,8 +578,43 @@ function switchFile(file) {
   renderFiles();
   overlay.schedule();
 }
-function gotoSource(file, line) {
+// Cursor navigation history (VS Code Go Back / Go Forward). Following the PC
+// is not a navigation and passes record = false.
+const navBack = [],
+  navForward = [];
+function here() {
+  return activeFile
+    ? { file: activeFile, pos: editor.state.selection.main.head }
+    : null;
+}
+function restorePlace(place) {
+  if (!place || !files.hasOwnProperty(place.file)) return;
+  if (place.file !== activeFile) switchFile(place.file);
+  setView("source");
+  const pos = Math.min(place.pos, editor.state.doc.length);
+  editor.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: "center" }),
+  });
+  editor.focus();
+}
+function navigate(direction) {
+  const [from, to] =
+    direction < 0 ? [navBack, navForward] : [navForward, navBack];
+  const place = from.pop();
+  if (!place) return;
+  const current = here();
+  if (current) to.push(current);
+  restorePlace(place);
+}
+function gotoSource(file, line, record = true) {
   if (!files.hasOwnProperty(file)) return;
+  const before = here();
+  if (record && before) {
+    navBack.push(before);
+    if (navBack.length > 50) navBack.shift();
+    navForward.length = 0;
+  }
   if (file !== activeFile) switchFile(file);
   setView("source");
   let l = editor.state.doc.line(
@@ -601,7 +645,7 @@ function gotoSymbol(s) {
 }
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
-  if (ins && view === "source") gotoSource(ins.file, ins.line);
+  if (ins && view === "source") gotoSource(ins.file, ins.line, false);
   if (view === "machine")
     document
       .querySelector(`[data-instruction="${state.pc}"]`)
@@ -1090,14 +1134,17 @@ function editData(name) {
 }
 function openCommands() {
   const commands = [
-    ["汇编工程", assemble],
-    ["专注模式", () => openFocus()],
-    ["机器单步", () => command("step").then(followPC)],
-    ["源码单步", () => run("source")],
-    ["跨过调用", () => run("over")],
-    ["跳出函数", () => run("out")],
-    ["回退一步", () => command("back").then(followPC)],
-    ["运行／暂停", () => (running ? (running = false) : run())],
+    ["汇编工程", assemble, "assemble"],
+    ["专注模式", () => openFocus(), "focus"],
+    ["机器单步", () => command("step").then(followPC), "step"],
+    ["源码单步", () => run("source"), "source"],
+    ["跨过调用", () => run("over"), "over"],
+    ["跳出函数", () => run("out"), "out"],
+    ["回退一步", () => command("back").then(followPC), "back"],
+    ["运行／继续", () => run(), "run"],
+    ["暂停", () => (running = false), "pause"],
+    ["停止并回到起点", () => actions.stop(), "stop"],
+    ["切换断点（光标行）", () => actions.breakpoint(), "breakpoint"],
     [
       "运行到光标",
       () => {
@@ -1138,7 +1185,7 @@ function openCommands() {
   ];
   modal(
     "命令面板",
-    `<input id="command-filter" placeholder="搜索命令…" style="width:100%">${commands.map(([n], i) => `<button class="command-item" data-command="${i}">${n}</button>`).join("")}`,
+    `<input id="command-filter" placeholder="搜索命令…" style="width:100%">${commands.map(([n, , action], i) => `<button class="command-item" data-command="${i}">${n}${action && keys.find(action) ? `<kbd>${keyLabel(keys.find(action), mac)}</kbd>` : ""}</button>`).join("")}`,
   );
   $("command-filter").oninput = (e) =>
     document
@@ -1279,31 +1326,72 @@ $("save").onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 $("example").onchange = () => loadExample(Number($("example").value));
+// Global shortcuts (DESIGN §3.9). Focus mode handles its own arrow keys first.
+const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+const keys = new Keymap(mac);
+function hintOnce(key, text) {
+  try {
+    if (localStorage.getItem("key-hint:" + key)) return;
+    localStorage.setItem("key-hint:" + key, "1");
+  } catch {}
+  notify(text);
+}
+const actions = {
+  run: () => !running && $("run").click(),
+  pause: () => running && $("pause").click(),
+  stop: async () => {
+    running = false;
+    updateControls();
+    if (state?.step) await command("seek", { step: 0 });
+    followPC();
+  },
+  restart: () => assemble(),
+  over: () => $("over").click(),
+  source: () => $("source").click(),
+  step: () => $("step").click(),
+  out: () => $("out").click(),
+  back: () => $("back").click(),
+  breakpoint: () => {
+    if (view !== "source") return;
+    toggleBreakpoint(
+      editor.state.doc.lineAt(editor.state.selection.main.head).number,
+    );
+  },
+  assemble: () => assemble(),
+  quickOpen: () => $("symbol-search").focus(),
+  outline: () => $("symbol-search").focus(),
+  commands: () => openCommands(),
+  focus: () => openFocus(),
+  navBack: () => navigate(-1),
+  navForward: () => navigate(1),
+};
 document.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+  const r = keys.handle(e);
+  if (r.pending) {
     e.preventDefault();
-    openCommands();
+    notify(`已按下 ${keyLabel("Mod+K", mac)}，等待第二个键…`);
+    setTimeout(() => {
+      const t = keys.expire();
+      if (t.hint) hintOnce(t.retiredKey, t.hint);
+      else if ($("banner").textContent.startsWith("已按下")) notify("");
+    }, 1600);
+    return;
   }
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-    e.preventDefault();
-    assemble();
-  }
-  if (e.key === "F7") {
-    e.preventDefault();
-    $("step").click();
-  }
-  if (e.key === "F8") {
-    e.preventDefault();
-    $("over").click();
-  }
-  if (e.key === "F9") {
-    e.preventDefault();
-    running ? $("pause").click() : $("run").click();
-  }
-  if (e.altKey && e.key === "ArrowLeft") {
-    e.preventDefault();
-    $("back").click();
-  }
+  const typing = e.target.closest?.("input, textarea, .cm-editor");
+  // Alt+Left still moves by word inside text on macOS; only explain it elsewhere.
+  if (r.hint && !(typing && r.retiredKey === "Alt+ArrowLeft"))
+    hintOnce(r.retiredKey, r.hint);
+  else if ($("banner").textContent.startsWith("已按下")) notify("");
+  if (!r.action) return;
+  // Inside text fields only global, non-character commands apply.
+  if (
+    typing &&
+    ["navBack", "navForward"].includes(r.action) &&
+    e.target.closest("input, textarea")
+  )
+    return;
+  e.preventDefault();
+  actions[r.action]();
 });
 async function loadExample(index) {
   let p = exampleList[index];

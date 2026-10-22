@@ -12056,10 +12056,10 @@ var handleKeyEvents = /* @__PURE__ */ Prec.default(/* @__PURE__ */ EditorView.do
 var keymap = /* @__PURE__ */ Facet.define({ enables: handleKeyEvents });
 var Keymaps = /* @__PURE__ */ new WeakMap();
 function getKeymap(state2) {
-  let bindings = state2.facet(keymap);
-  let map = Keymaps.get(bindings);
+  let bindings2 = state2.facet(keymap);
+  let map = Keymaps.get(bindings2);
   if (!map)
-    Keymaps.set(bindings, map = buildKeymap(bindings.reduce((a, b) => a.concat(b), [])));
+    Keymaps.set(bindings2, map = buildKeymap(bindings2.reduce((a, b) => a.concat(b), [])));
   return map;
 }
 function runScopeHandlers(view2, event, scope) {
@@ -12067,7 +12067,7 @@ function runScopeHandlers(view2, event, scope) {
 }
 var storedPrefix = null;
 var PrefixTimeout = 4e3;
-function buildKeymap(bindings, platform = currentPlatform) {
+function buildKeymap(bindings2, platform = currentPlatform) {
   let bound = /* @__PURE__ */ Object.create(null);
   let isPrefix = /* @__PURE__ */ Object.create(null);
   let checkPrefix = (name2, is) => {
@@ -12112,7 +12112,7 @@ function buildKeymap(bindings, platform = currentPlatform) {
     if (stopPropagation)
       binding.stopPropagation = true;
   };
-  for (let b of bindings) {
+  for (let b of bindings2) {
     let scopes = b.scope ? b.scope.split(" ") : ["editor"];
     if (b.any)
       for (let scope of scopes) {
@@ -20542,10 +20542,10 @@ function toSet(chars) {
 }
 function prefixMatch(options) {
   let first = /* @__PURE__ */ Object.create(null), rest = /* @__PURE__ */ Object.create(null);
-  for (let { label } of options) {
-    first[label[0]] = true;
-    for (let i = 1; i < label.length; i++)
-      rest[label[i]] = true;
+  for (let { label: label2 } of options) {
+    first[label2[0]] = true;
+    for (let i = 1; i < label2.length; i++)
+      rest[label2[i]] = true;
   }
   let source = toSet(first) + toSet(rest) + "*$";
   return [new RegExp("^" + source), new RegExp(source)];
@@ -20829,18 +20829,18 @@ function optionContent(config2) {
     render(completion2, _s, _v, match) {
       let labelElt = document.createElement("span");
       labelElt.className = "cm-completionLabel";
-      let label = completion2.displayLabel || completion2.label, off = 0;
+      let label2 = completion2.displayLabel || completion2.label, off = 0;
       for (let j = 0; j < match.length; ) {
         let from = match[j++], to = match[j++];
         if (from > off)
-          labelElt.appendChild(document.createTextNode(label.slice(off, from)));
+          labelElt.appendChild(document.createTextNode(label2.slice(off, from)));
         let span = labelElt.appendChild(document.createElement("span"));
-        span.appendChild(document.createTextNode(label.slice(from, to)));
+        span.appendChild(document.createTextNode(label2.slice(from, to)));
         span.className = "cm-completionMatchedText";
         off = to;
       }
-      if (off < label.length)
-        labelElt.appendChild(document.createTextNode(label.slice(off)));
+      if (off < label2.length)
+        labelElt.appendChild(document.createTextNode(label2.slice(off)));
       return labelElt;
     },
     position: 50
@@ -22297,10 +22297,10 @@ var lintConfig = /* @__PURE__ */ Facet.define({
 function combineFilter(a, b) {
   return !a ? b : !b ? a : (d, s) => b(a(d, s), s);
 }
-function assignKeys(actions) {
+function assignKeys(actions2) {
   let assigned = [];
-  if (actions)
-    actions: for (let { name: name2 } of actions) {
+  if (actions2)
+    actions: for (let { name: name2 } of actions2) {
       for (let i = 0; i < name2.length; i++) {
         let ch = name2[i];
         if (/[a-zA-Z]/.test(ch) && !assigned.some((c) => c.toLowerCase() == ch.toLowerCase())) {
@@ -22314,7 +22314,7 @@ function assignKeys(actions) {
 }
 function renderDiagnostic(view2, diagnostic, inPanel) {
   var _a2;
-  let keys2 = inPanel ? assignKeys(diagnostic.actions) : [];
+  let keys3 = inPanel ? assignKeys(diagnostic.actions) : [];
   return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage(view2) : diagnostic.message), (_a2 = diagnostic.actions) === null || _a2 === void 0 ? void 0 : _a2.map((action, i) => {
     let fired = false, click = (e) => {
       e.preventDefault();
@@ -22325,7 +22325,7 @@ function renderDiagnostic(view2, diagnostic, inPanel) {
       if (found)
         action.apply(view2, found.from, found.to);
     };
-    let { name: name2 } = action, keyIndex = keys2[i] ? name2.indexOf(keys2[i]) : -1;
+    let { name: name2 } = action, keyIndex = keys3[i] ? name2.indexOf(keys3[i]) : -1;
     let nameElt = keyIndex < 0 ? name2 : [
       name2.slice(0, keyIndex),
       crelt("u", name2.slice(keyIndex, keyIndex + 1)),
@@ -22337,7 +22337,7 @@ function renderDiagnostic(view2, diagnostic, inPanel) {
       class: "cm-diagnosticAction" + markClass,
       onclick: click,
       onmousedown: click,
-      "aria-label": ` Action: ${name2}${keyIndex < 0 ? "" : ` (access key "${keys2[i]})"`}.`
+      "aria-label": ` Action: ${name2}${keyIndex < 0 ? "" : ` (access key "${keys3[i]})"`}.`
     }, nameElt);
   }), diagnostic.source && crelt("div", { class: "cm-diagnosticSource" }, diagnostic.source));
 }
@@ -22383,9 +22383,9 @@ var LintPanel = class _LintPanel {
       } else if (event.keyCode == 13) {
         this.view.focus();
       } else if (event.keyCode >= 65 && event.keyCode <= 90 && this.selectedIndex >= 0) {
-        let { diagnostic } = this.items[this.selectedIndex], keys2 = assignKeys(diagnostic.actions);
-        for (let i = 0; i < keys2.length; i++)
-          if (keys2[i].toUpperCase().charCodeAt(0) == event.keyCode) {
+        let { diagnostic } = this.items[this.selectedIndex], keys3 = assignKeys(diagnostic.actions);
+        for (let i = 0; i < keys3.length; i++)
+          if (keys3[i].toUpperCase().charCodeAt(0) == event.keyCode) {
             let found = findDiagnostic(this.view.state.field(lintState).diagnostics, diagnostic);
             if (found)
               diagnostic.actions[i].apply(view2, found.from, found.to);
@@ -22839,9 +22839,9 @@ function buildCFG(instructions, delay = false) {
     for (let i of b.instructions) owner.set(i.address, b.id);
   for (let b of blocks) {
     let terminal = [...b.instructions].reverse().find((i) => i.flow !== "next") || b.instructions.at(-1);
-    let add2 = (address, label) => {
+    let add2 = (address, label2) => {
       if (owner.has(address))
-        b.edges.push({ target: owner.get(address), label });
+        b.edges.push({ target: owner.get(address), label: label2 });
     };
     if (terminal.flow === "branch") {
       add2(terminal.target, "\u6761\u4EF6\u6210\u7ACB");
@@ -22939,16 +22939,16 @@ var OverlayRenderer = class {
       this.svg.innerHTML = "";
       return;
     }
-    let draw = (a, b, type, dashed, label, action) => {
+    let draw = (a, b, type, dashed, label2, action) => {
       if (!a || !b) return;
       let n = paths.length, curve = Math.min(100, Math.abs(b.x - a.x) * 0.35 + 25), d = `M ${a.x} ${a.y} C ${a.x + curve} ${a.y}, ${b.x - curve} ${b.y}, ${b.x} ${b.y}`;
       paths.push(
         `<path d="${d}" fill="none" stroke="${colors[type]}" stroke-width="1.6" opacity="${focus2 ? 0.58 : 0.32}" ${dashed ? 'stroke-dasharray="5 5"' : ""} marker-end="url(#arrow-${type})"/>`
       );
-      if (label) {
+      if (label2) {
         let x = (a.x + b.x) / 2, y = (a.y + b.y) / 2 + (n % 3 - 1) * 12;
         labels.push(
-          `<g class="edge-label" data-action="${action || ""}" style="pointer-events:auto;cursor:pointer"><rect x="${x - 3}" y="${y - 10}" width="${Math.min(220, label.length * 5.8 + 8)}" height="15" rx="3" fill="var(--panel)" opacity=".9"/><text x="${x}" y="${y}" fill="${colors[type]}" font-size="9" font-family="monospace">${escapeHTML(label)}</text></g>`
+          `<g class="edge-label" data-action="${action || ""}" style="pointer-events:auto;cursor:pointer"><rect x="${x - 3}" y="${y - 10}" width="${Math.min(220, label2.length * 5.8 + 8)}" height="15" rx="3" fill="var(--panel)" opacity=".9"/><text x="${x}" y="${y}" fill="${colors[type]}" font-size="9" font-family="monospace">${escapeHTML(label2)}</text></g>`
         );
       }
     };
@@ -22982,13 +22982,13 @@ var OverlayRenderer = class {
           offscreen = true;
         }
         let code = this.codePoint(event.instruction, a.name) || origin;
-        let label = offscreen ? a.kind === "memory" ? hex(a.address) : a.name : focus2 ? a.write ? `${a.before} \u2192 ${a.value}` : `${a.value}` : "";
+        let label2 = offscreen ? a.kind === "memory" ? hex(a.address) : a.name : focus2 ? a.write ? `${a.before} \u2192 ${a.value}` : `${a.value}` : "";
         draw(
           a.write ? code : target,
           a.write ? target : code,
           type,
           dashed,
-          label,
+          label2,
           a.kind === "memory" ? "memory:" + a.address : "register:" + a.name
         );
         if (paths.length >= 35) break;
@@ -23297,9 +23297,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       kind: "read"
     }))
   });
-  const writing = (a, label = show(a.value)) => ({
+  const writing = (a, label2 = show(a.value)) => ({
     lit: [{ id: id(a), mode: "write" }],
-    tokens: [{ from: "code", to: id(a), label, kind: "write" }]
+    tokens: [{ from: "code", to: id(a), label: label2, kind: "write" }]
   });
   const addressing = (at, base2, off, addr, width) => {
     const align = width > 1 ? `${op} \u8981\u6C42\u5730\u5740\u662F ${width} \u7684\u500D\u6570\uFF0C\u5426\u5219\u89E6\u53D1\u5730\u5740\u5F02\u5E38\u3002` : "\u6309\u5B57\u8282\u8BBF\u95EE\u4E0D\u9700\u8981\u5BF9\u9F50\u3002";
@@ -23568,10 +23568,10 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       }
     );
   } else if (ins.flow === "branch") {
-    const target = ins.target, label = where(target), fallthrough = ins.address + (delay ? 8 : 4);
+    const target = ins.target, label2 = where(target), fallthrough = ins.address + (delay ? 8 : 4);
     const always = op === "beq" ? rsN === rtN : rsN === 0 && /^(bgez|blez|bgezal)$/.test(op);
     let taken = always;
-    if (always) template = ["\u8DF3\u5230 ", label];
+    if (always) template = ["\u8DF3\u5230 ", label2];
     else if (/^(beq|bne)$/.test(op) && rs && rt) {
       const sym = op === "beq" ? "==" : "\u2260";
       taken = op === "beq" ? rs.value === rt.value : rs.value !== rt.value;
@@ -23581,7 +23581,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ` ${sym} `,
         dim(rt.name),
         " \u2192 \u8DF3\u5230 ",
-        label
+        label2
       ];
       beat(
         [
@@ -23590,7 +23590,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           ` ${sym} `,
           fresh(rt.value),
           " \u2192 \u8DF3\u5230 ",
-          label
+          label2
         ],
         "\u8BFB\u51FA\u8981\u6BD4\u8F83\u7684\u4E24\u4E2A\u5BC4\u5B58\u5668\u3002",
         reading([rs, rt])
@@ -23598,7 +23598,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       beat(
         [
           fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
-          taken ? ` \u2192 \u8DF3\u5230 ${label}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
         ],
         "\u6BD4\u8F83\u7ED3\u679C\u3002",
         {
@@ -23608,16 +23608,16 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     } else if (compareZero[op] && rs) {
       const [cond, test] = compareZero[op];
       taken = test(rs.value);
-      template = ["\u82E5 ", dim(rs.name), ` ${cond} \u2192 \u8DF3\u5230 `, label];
+      template = ["\u82E5 ", dim(rs.name), ` ${cond} \u2192 \u8DF3\u5230 `, label2];
       beat(
-        ["\u82E5 ", fresh(rs.value), ` ${cond} \u2192 \u8DF3\u5230 `, label],
+        ["\u82E5 ", fresh(rs.value), ` ${cond} \u2192 \u8DF3\u5230 `, label2],
         `\u8BFB\u51FA ${rs.name}\u3002`,
         reading([rs])
       );
       beat(
         [
           fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
-          taken ? ` \u2192 \u8DF3\u5230 ${label}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
         ],
         "\u6BD4\u8F83\u7ED3\u679C\u3002",
         {
@@ -23648,19 +23648,19 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       }
     );
   } else if (/^(j|jal)$/.test(op)) {
-    const label = where(ins.target);
-    template = op === "jal" ? ["$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1B\u8DF3\u5230 ", label] : ["\u8DF3\u5230 ", label];
+    const label2 = where(ins.target);
+    template = op === "jal" ? ["$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1B\u8DF3\u5230 ", label2] : ["\u8DF3\u5230 ", label2];
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(hex(ra.value)), "\uFF1B\u8DF3\u5230 ", label], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
+      beat(["$ra = ", ok(hex(ra.value)), "\uFF1B\u8DF3\u5230 ", label2], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
         ...writing(ra, hex(ra.value)),
         why: `\u8FD4\u56DE\u5730\u5740\u662F${delay ? "\u5EF6\u8FDF\u69FD\u4E4B\u540E" : "\u4E0B\u4E00\u6761"}\u6307\u4EE4 ${where(ra.value)}\uFF0C\u51FD\u6570\u7528 jr $ra \u56DE\u5230\u8FD9\u91CC\u3002`
       });
     beat(
-      ["\u4E0B\u4E00\u6761 = ", ok(label), " \u2713"],
+      ["\u4E0B\u4E00\u6761 = ", ok(label2), " \u2713"],
       op === "jal" ? "\u8FDB\u5165\u51FD\u6570\u3002" : "\u8DF3\u8F6C\u3002",
       {
-        tokens: [{ from: "code", to: "next", label, kind: "flow" }],
+        tokens: [{ from: "code", to: "next", label: label2, kind: "flow" }],
         why: `\u76EE\u6807 = (PC+4) \u7684\u9AD8 4 \u4F4D | \u6307\u4EE4\u4E2D\u7684 26 \u4F4D \xD7 4 = ${hex(ins.target)}\u3002${delay ? "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002" : ""}`
       }
     );
@@ -24216,9 +24216,9 @@ var FocusLens = class {
     const shown = objects.slice(0, 12);
     const value = (o, n) => o.kind === "memory" && o.width < 4 ? "0x" + (n >>> 0 & 2 ** (8 * o.width) - 1).toString(16).padStart(2 * o.width, "0") : Math.abs(n) >= 1e4 || o.kind === "memory" ? hex(n) : String(n);
     $2("focus-objects").innerHTML = `<div class="fobj-title">\u6D89\u53CA\u5BF9\u8C61</div>` + shown.map((o) => {
-      const label = o.kind === "register" ? o.name : `[${hex(o.address)}]\xB7${o.width}B`;
+      const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}]\xB7${o.width}B`;
       const v = o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value);
-      return `<div class="fobj ${lit.has(o.id) ? "lit-" + lit.get(o.id) : ""} ${o.touched ? "touched" : ""}" data-obj="${o.id}"><span>${escapeHTML(label)}</span><span>${escapeHTML(v)}</span></div>`;
+      return `<div class="fobj ${lit.has(o.id) ? "lit-" + lit.get(o.id) : ""} ${o.touched ? "touched" : ""}" data-obj="${o.id}"><span>${escapeHTML(label2)}</span><span>${escapeHTML(v)}</span></div>`;
     }).join("") + (objects.length > 12 ? `<div class="fmore">\u53E6\u6709 ${objects.length - 12} \u4E2A\u5BF9\u8C61</div>` : "");
     this.draw(animate ? b : null);
   }
@@ -24299,9 +24299,9 @@ var FocusLens = class {
         `<path d="${path(p)}" fill="none" stroke="${color.edge}" stroke-width="1.4" marker-end="url(#farrow-edge)" opacity=".8"/>`
       );
       const mid = bezier(p, 0.5);
-      const label = e.label + (e.count > 1 ? ` \xD7${e.count}` : "");
+      const label2 = e.label + (e.count > 1 ? ` \xD7${e.count}` : "");
       out.push(
-        `<g><rect x="${mid.x - label.length * 6 - 4}" y="${mid.y - 9}" width="${label.length * 12 + 8}" height="16" rx="4" fill="var(--panel)" opacity=".95"/><text x="${mid.x}" y="${mid.y + 3}" text-anchor="middle" font-size="11" fill="${color.edge}">${escapeHTML(label)}</text></g>`
+        `<g><rect x="${mid.x - label2.length * 6 - 4}" y="${mid.y - 9}" width="${label2.length * 12 + 8}" height="16" rx="4" fill="var(--panel)" opacity=".95"/><text x="${mid.x}" y="${mid.y + 3}" text-anchor="middle" font-size="11" fill="${color.edge}">${escapeHTML(label2)}</text></g>`
       );
     }
     const step = order.find((s) => s.index === this.selected), b = this.beat > 0 ? this.current()?.beats[this.beat - 1] : null, routes = [];
@@ -24395,6 +24395,101 @@ function bezier([a, b, c, d], t2) {
     y: u * u * u * a.y + 3 * u * u * t2 * b.y + 3 * u * t2 * t2 * c.y + t2 * t2 * t2 * d.y
   };
 }
+
+// ui/keymap.js
+var navigation = (mac3) => mac3 ? [
+  ["Ctrl+-", "navBack"],
+  ["Ctrl+Shift+-", "navForward"]
+] : [
+  ["Alt+ArrowLeft", "navBack"],
+  ["Alt+ArrowRight", "navForward"]
+];
+function bindings(mac3) {
+  return new Map([
+    ["F5", "run"],
+    ["Shift+F5", "stop"],
+    ["Mod+Shift+F5", "restart"],
+    ["F6", "pause"],
+    ["F10", "over"],
+    ["F11", "source"],
+    ["Alt+F11", "step"],
+    ["Shift+F11", "out"],
+    ["Shift+F9", "back"],
+    ["F9", "breakpoint"],
+    ["Mod+Enter", "assemble"],
+    ["Mod+P", "quickOpen"],
+    ["Mod+Shift+P", "commands"],
+    ["F1", "commands"],
+    ["Mod+Shift+O", "outline"],
+    ["Mod+K F", "focus"],
+    ...navigation(mac3)
+  ]);
+}
+var retired = {
+  F7: "\u673A\u5668\u5355\u6B65\u5DF2\u6539\u4E3A Alt+F11\uFF08F11 \u4E3A\u6E90\u7801\u5355\u6B65\uFF09",
+  F8: "\u8DE8\u8FC7\u8C03\u7528\u5DF2\u6539\u4E3A F10",
+  F9: "F9 \u73B0\u5728\u5207\u6362\u65AD\u70B9\uFF1B\u8FD0\u884C\uFF0F\u7EE7\u7EED\u6539\u4E3A F5\uFF0C\u6682\u505C\u4E3A F6",
+  "Alt+ArrowLeft": "\u56DE\u9000\u4E00\u6B65\u5DF2\u6539\u4E3A Shift+F9",
+  "Mod+K": "\u547D\u4EE4\u9762\u677F\u5DF2\u6539\u4E3A Cmd/Ctrl+Shift+P \u6216 F1\uFF1BCmd/Ctrl+K \u73B0\u5728\u662F\u7EC4\u5408\u952E\u524D\u7F00\uFF08\u5982 Cmd/Ctrl+K F \u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F\uFF09"
+};
+function keyName2(e, mac3) {
+  if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return null;
+  const mod = mac3 ? e.metaKey : e.ctrlKey;
+  const key = /^Key[A-Z]$/.test(e.code) ? e.code.slice(3) : e.code === "Minus" ? "-" : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+  return [
+    mod && "Mod",
+    mac3 && e.ctrlKey && "Ctrl",
+    e.altKey && "Alt",
+    e.shiftKey && "Shift",
+    key
+  ].filter(Boolean).join("+");
+}
+function label(binding, mac3) {
+  return binding.split(" ").map(
+    (part) => part.replace("Mod", mac3 ? "\u2318" : "Ctrl").replace("Shift", mac3 ? "\u21E7" : "Shift").replace("Alt", mac3 ? "\u2325" : "Alt").replace("Ctrl+", mac3 ? "\u2303" : "Ctrl+").replace("ArrowLeft", "\u2190").replace("ArrowRight", "\u2192").replace(/\+/g, mac3 ? "" : "+")
+  ).join(" ");
+}
+var CHORD_MS = 1500;
+var Keymap = class {
+  constructor(mac3) {
+    this.mac = mac3;
+    this.map = bindings(mac3);
+    this.pending = null;
+  }
+  // → { action?, pending?, hint?, retiredKey? } for one keydown.
+  handle(e, now = Date.now()) {
+    const name2 = keyName2(e, this.mac);
+    if (!name2) return {};
+    if (this.pending != null && now - this.pending < CHORD_MS) {
+      this.pending = null;
+      const action2 = this.map.get("Mod+K " + name2.replace(/^Mod\+/, ""));
+      return action2 ? { action: action2 } : { hint: retired["Mod+K"], retiredKey: "Mod+K" };
+    }
+    this.pending = null;
+    if (name2 === "Mod+K") {
+      this.pending = now;
+      return { pending: true };
+    }
+    const action = this.map.get(name2);
+    const retiredKey = name2 in retired ? name2 : null;
+    return {
+      action,
+      ...retiredKey ? { hint: retired[retiredKey], retiredKey } : {}
+    };
+  }
+  // A chord that timed out without a second key.
+  expire(now = Date.now()) {
+    if (this.pending != null && now - this.pending >= CHORD_MS) {
+      this.pending = null;
+      return { hint: retired["Mod+K"], retiredKey: "Mod+K" };
+    }
+    return {};
+  }
+  find(action) {
+    for (const [key, a] of this.map) if (a === action) return key;
+    return null;
+  }
+};
 
 // ui/main.js
 var $ = (id2) => document.getElementById(id2);
@@ -24577,8 +24672,8 @@ function completion(context) {
         type: "variable",
         detail: role("$" + n)
       })),
-      ...Object.entries(program.instructionDocs).map(([label, d]) => ({
-        label,
+      ...Object.entries(program.instructionDocs).map(([label2, d]) => ({
+        label: label2,
         type: "keyword",
         detail: d.description
       })),
@@ -24603,6 +24698,14 @@ var editor = new EditorView({
           key: "F12",
           run: () => {
             inspectToken(tokenAt(editor.state.selection.main.head));
+            return true;
+          }
+        },
+        {
+          key: "Shift-F12",
+          run: () => {
+            const token = tokenAt(editor.state.selection.main.head);
+            if (token) showReferences(token);
             return true;
           }
         }
@@ -24882,8 +24985,38 @@ function switchFile(file) {
   renderFiles();
   overlay.schedule();
 }
-function gotoSource(file, line) {
+var navBack = [];
+var navForward = [];
+function here() {
+  return activeFile ? { file: activeFile, pos: editor.state.selection.main.head } : null;
+}
+function restorePlace(place) {
+  if (!place || !files.hasOwnProperty(place.file)) return;
+  if (place.file !== activeFile) switchFile(place.file);
+  setView("source");
+  const pos = Math.min(place.pos, editor.state.doc.length);
+  editor.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: "center" })
+  });
+  editor.focus();
+}
+function navigate(direction) {
+  const [from, to] = direction < 0 ? [navBack, navForward] : [navForward, navBack];
+  const place = from.pop();
+  if (!place) return;
+  const current = here();
+  if (current) to.push(current);
+  restorePlace(place);
+}
+function gotoSource(file, line, record = true) {
   if (!files.hasOwnProperty(file)) return;
+  const before = here();
+  if (record && before) {
+    navBack.push(before);
+    if (navBack.length > 50) navBack.shift();
+    navForward.length = 0;
+  }
   if (file !== activeFile) switchFile(file);
   setView("source");
   let l = editor.state.doc.line(
@@ -24912,7 +25045,7 @@ function gotoSymbol(s) {
 }
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
-  if (ins && view === "source") gotoSource(ins.file, ins.line);
+  if (ins && view === "source") gotoSource(ins.file, ins.line, false);
   if (view === "machine")
     document.querySelector(`[data-instruction="${state.pc}"]`)?.scrollIntoView({ block: "nearest" });
 }
@@ -25266,14 +25399,17 @@ function editData(name2) {
 }
 function openCommands() {
   const commands = [
-    ["\u6C47\u7F16\u5DE5\u7A0B", assemble],
-    ["\u4E13\u6CE8\u6A21\u5F0F", () => openFocus()],
-    ["\u673A\u5668\u5355\u6B65", () => command2("step").then(followPC)],
-    ["\u6E90\u7801\u5355\u6B65", () => run("source")],
-    ["\u8DE8\u8FC7\u8C03\u7528", () => run("over")],
-    ["\u8DF3\u51FA\u51FD\u6570", () => run("out")],
-    ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC)],
-    ["\u8FD0\u884C\uFF0F\u6682\u505C", () => running ? running = false : run()],
+    ["\u6C47\u7F16\u5DE5\u7A0B", assemble, "assemble"],
+    ["\u4E13\u6CE8\u6A21\u5F0F", () => openFocus(), "focus"],
+    ["\u673A\u5668\u5355\u6B65", () => command2("step").then(followPC), "step"],
+    ["\u6E90\u7801\u5355\u6B65", () => run("source"), "source"],
+    ["\u8DE8\u8FC7\u8C03\u7528", () => run("over"), "over"],
+    ["\u8DF3\u51FA\u51FD\u6570", () => run("out"), "out"],
+    ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC), "back"],
+    ["\u8FD0\u884C\uFF0F\u7EE7\u7EED", () => run(), "run"],
+    ["\u6682\u505C", () => running = false, "pause"],
+    ["\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9", () => actions.stop(), "stop"],
+    ["\u5207\u6362\u65AD\u70B9\uFF08\u5149\u6807\u884C\uFF09", () => actions.breakpoint(), "breakpoint"],
     [
       "\u8FD0\u884C\u5230\u5149\u6807",
       () => {
@@ -25314,7 +25450,7 @@ function openCommands() {
   ];
   modal(
     "\u547D\u4EE4\u9762\u677F",
-    `<input id="command-filter" placeholder="\u641C\u7D22\u547D\u4EE4\u2026" style="width:100%">${commands.map(([n], i) => `<button class="command-item" data-command="${i}">${n}</button>`).join("")}`
+    `<input id="command-filter" placeholder="\u641C\u7D22\u547D\u4EE4\u2026" style="width:100%">${commands.map(([n, , action], i) => `<button class="command-item" data-command="${i}">${n}${action && keys2.find(action) ? `<kbd>${label(keys2.find(action), mac2)}</kbd>` : ""}</button>`).join("")}`
   );
   $("command-filter").oninput = (e) => document.querySelectorAll("[data-command]").forEach((b) => b.hidden = !b.textContent.includes(e.target.value));
   document.querySelectorAll("[data-command]").forEach(
@@ -25442,31 +25578,66 @@ $("save").onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
 };
 $("example").onchange = () => loadExample(Number($("example").value));
+var mac2 = /Mac|iPhone|iPad/.test(navigator.platform);
+var keys2 = new Keymap(mac2);
+function hintOnce(key, text2) {
+  try {
+    if (localStorage.getItem("key-hint:" + key)) return;
+    localStorage.setItem("key-hint:" + key, "1");
+  } catch {
+  }
+  notify(text2);
+}
+var actions = {
+  run: () => !running && $("run").click(),
+  pause: () => running && $("pause").click(),
+  stop: async () => {
+    running = false;
+    updateControls();
+    if (state?.step) await command2("seek", { step: 0 });
+    followPC();
+  },
+  restart: () => assemble(),
+  over: () => $("over").click(),
+  source: () => $("source").click(),
+  step: () => $("step").click(),
+  out: () => $("out").click(),
+  back: () => $("back").click(),
+  breakpoint: () => {
+    if (view !== "source") return;
+    toggleBreakpoint(
+      editor.state.doc.lineAt(editor.state.selection.main.head).number
+    );
+  },
+  assemble: () => assemble(),
+  quickOpen: () => $("symbol-search").focus(),
+  outline: () => $("symbol-search").focus(),
+  commands: () => openCommands(),
+  focus: () => openFocus(),
+  navBack: () => navigate(-1),
+  navForward: () => navigate(1)
+};
 document.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+  const r = keys2.handle(e);
+  if (r.pending) {
     e.preventDefault();
-    openCommands();
+    notify(`\u5DF2\u6309\u4E0B ${label("Mod+K", mac2)}\uFF0C\u7B49\u5F85\u7B2C\u4E8C\u4E2A\u952E\u2026`);
+    setTimeout(() => {
+      const t2 = keys2.expire();
+      if (t2.hint) hintOnce(t2.retiredKey, t2.hint);
+      else if ($("banner").textContent.startsWith("\u5DF2\u6309\u4E0B")) notify("");
+    }, 1600);
+    return;
   }
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-    e.preventDefault();
-    assemble();
-  }
-  if (e.key === "F7") {
-    e.preventDefault();
-    $("step").click();
-  }
-  if (e.key === "F8") {
-    e.preventDefault();
-    $("over").click();
-  }
-  if (e.key === "F9") {
-    e.preventDefault();
-    running ? $("pause").click() : $("run").click();
-  }
-  if (e.altKey && e.key === "ArrowLeft") {
-    e.preventDefault();
-    $("back").click();
-  }
+  const typing = e.target.closest?.("input, textarea, .cm-editor");
+  if (r.hint && !(typing && r.retiredKey === "Alt+ArrowLeft"))
+    hintOnce(r.retiredKey, r.hint);
+  else if ($("banner").textContent.startsWith("\u5DF2\u6309\u4E0B")) notify("");
+  if (!r.action) return;
+  if (typing && ["navBack", "navForward"].includes(r.action) && e.target.closest("input, textarea"))
+    return;
+  e.preventDefault();
+  actions[r.action]();
 });
 async function loadExample(index) {
   let p = exampleList[index];

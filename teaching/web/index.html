@@ -20,18 +20,18 @@
           导出工程
         </button>
       </div>
-      <button id="commands" title="Cmd/Ctrl K">⌘ K 命令</button
+      <button id="commands" title="命令面板 · Cmd/Ctrl+Shift+P 或 F1">命令面板</button
       ><button id="theme">◐</button><button id="zoom">A＋</button>
     </header>
     <nav class="toolbar">
-      <button id="assemble" class="primary">汇编 ⌘↵</button
+      <button id="assemble" class="primary" title="汇编 · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5">汇编 ⌘↵</button
       ><span class="separator"></span
-      ><button id="back" title="Alt Left">↶ 回退</button
-      ><button id="step" title="F7">→ 单步</button
-      ><button id="source">源码步</button
-      ><button id="over" title="F8">跨过</button><button id="out">跳出</button
-      ><button id="run" class="run" title="F9">▶ 播放</button
-      ><button id="pause" disabled>Ⅱ 暂停</button
+      ><button id="back" title="回退一步 · Shift+F9">↶ 回退</button
+      ><button id="step" title="机器单步 · Alt+F11">→ 单步</button
+      ><button id="source" title="源码单步 · F11">源码步</button
+      ><button id="over" title="跨过调用 · F10">跨过</button><button id="out" title="跳出函数 · Shift+F11">跳出</button
+      ><button id="run" class="run" title="运行／继续 · F5">▶ 播放</button
+      ><button id="pause" title="暂停 · F6" disabled>Ⅱ 暂停</button
       ><label><input type="checkbox" id="delay" />延迟分支</label
       ><label><input type="checkbox" id="fast-run" />快速运行</label
       ><span id="status" class="status">未汇编</span>
@@ -154,7 +154,7 @@
           >
         </div>
       </details>
-      <button id="focus-open" title="专注调试：前 1 步与之后的预计路径">◎ 专注</button
+      <button id="focus-open" title="专注调试：前 1 步与之后的预计路径 · Cmd/Ctrl+K F">◎ 专注</button
       ><span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
     </footer>
     <svg id="overlay" aria-hidden="true"></svg>

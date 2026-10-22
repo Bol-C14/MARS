@@ -1123,3 +1123,11 @@ body.focusing #tooltip {
   font-style: italic;
   pointer-events: none;
 }
+.command-item kbd {
+  float: right;
+  color: var(--muted);
+  font:
+    11px ui-monospace,
+    Menlo,
+    monospace;
+}
