@@ -145,7 +145,7 @@ test("adjacent bytes merge into one object with readable text and raw bytes", ()
   ];
   const g = groupBytes(objs);
   assert.deepEqual(g.map((o) => [o.kind, o.width, o.ids.length]), [["register", undefined, 1], ["memory", 3, 3], ["memory", 1, 1]]);
-  assert.equal(g[1].text, JSON.stringify("Hi\0"));
+  assert.equal(g[1].text, '"Hi\\0"');
   assert.deepEqual(g[1].bytes, [72, 105, 0]);
 });
 
@@ -179,7 +179,12 @@ test("grouped bytes preserve interior and trailing NUL rather than joining strin
     width: 1, value, write: false,
   }));
   const [group] = groupBytes(objects);
-  assert.equal(group.text, JSON.stringify("A\0B\0"));
+  assert.equal(group.text, '"A\\0B\\0"');
   assert.deepEqual(group.bytes, bytes);
   assert.deepEqual(objects.map(o => o.value), bytes);
+});
+
+test("merged bytes escape like ASCII mode, including quotes and line breaks", () => {
+  const objects = [34, 72, 10, 9, 92, 0].map((value, i) => ({ id: `mem:${i}`, kind: "memory", address: i, width: 1, value, write: false }));
+  assert.equal(groupBytes(objects)[0].text, String.raw`"\"H\n\t\\\0"`);
 });

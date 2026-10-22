@@ -1,4 +1,5 @@
 import { hex, registerNames, services } from "./model.js";
+import { escapeByte } from "./radix.js";
 // Fill-in-the-blank explanation of one recorded step (DESIGN §3.7): a symbolic
 // template, then beats that each substitute one recorded value. Values come
 // only from the event's accesses; nothing here executes or predicts.
@@ -1044,11 +1045,18 @@ export function groupBytes(objects) {
     );
   }
   // This is a byte view, not a syscall string: NUL stays visible, including
-  // inside a buffer. Removing it would incorrectly turn A\0B into AB.
+  // inside a buffer. Removing it would incorrectly turn A\0B into AB. Escapes
+  // match ASCII mode (\0, \n, \t), not JSON's \u0000.
   for (const o of out)
     if (o.kind === "memory" && o.bytes.length > 1)
-      o.text = o.bytes.every((b) => b === 0 || (b >= 32 && b < 127) || b === 10)
-        ? JSON.stringify(String.fromCharCode(...o.bytes))
+      o.text = o.bytes.every(
+        (b) => b === 0 || b === 9 || b === 10 || (b >= 32 && b < 127),
+      )
+        ? '"' +
+          o.bytes
+            .map((b) => (b === 34 ? '\\"' : b === 92 ? "\\\\" : escapeByte(b)))
+            .join("") +
+          '"'
         : null;
   return out;
 }

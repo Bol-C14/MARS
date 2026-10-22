@@ -23218,6 +23218,40 @@ function layoutPath({
   };
 }
 
+// ui/radix.js
+var RADIXES = [
+  ["auto", "\u81EA\u52A8"],
+  ["hex", "HEX"],
+  ["dec", "DEC"],
+  ["bin", "BIN"],
+  ["ascii", "ASCII"]
+];
+var printable = (b) => b >= 32 && b < 127;
+var escapeByte = (b) => printable(b) ? String.fromCharCode(b) : b === 0 ? "\\0" : b === 10 ? "\\n" : b === 9 ? "\\t" : "\\x" + b.toString(16).padStart(2, "0");
+function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = {}) {
+  const bits = 8 * width, unsigned = width < 4 ? (n & 2 ** bits - 1) >>> 0 : n >>> 0, signed = width < 4 ? unsigned << 32 - bits >> 32 - bits : n | 0;
+  const hex2 = "0x" + unsigned.toString(16).padStart(2 * width, "0");
+  const bin = (all) => {
+    const digits = unsigned.toString(2).padStart(bits, "0");
+    const shown = all ? digits : digits.replace(/^(?:0000)+(?=.{4})/, "");
+    return "0b" + shown.replace(/(.{4})(?=.)/g, "$1_");
+  };
+  const dec2 = "0d" + (kind === "value" ? signed : unsigned);
+  const bytes = Array.from(
+    { length: width },
+    (_, i) => unsigned >>> 8 * i & 255
+  );
+  let shownBytes = bytes;
+  while (shownBytes.length > 1 && shownBytes.at(-1) === 0)
+    shownBytes = shownBytes.slice(0, -1);
+  const ascii = "'" + shownBytes.map(escapeByte).join("") + "'";
+  const mode = radix2 === "auto" ? kind === "value" && Math.abs(signed) < 1e4 ? "dec" : "hex" : radix2;
+  const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
+  const note = mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
+  return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
+}
+var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
+
 // ui/beats.js
 var N = (v, w = 4, k = "value") => ({
   num: true,
@@ -24073,7 +24107,9 @@ function groupBytes(objects) {
   }
   for (const o of out)
     if (o.kind === "memory" && o.bytes.length > 1)
-      o.text = o.bytes.every((b) => b === 0 || b >= 32 && b < 127 || b === 10) ? JSON.stringify(String.fromCharCode(...o.bytes)) : null;
+      o.text = o.bytes.every(
+        (b) => b === 0 || b === 9 || b === 10 || b >= 32 && b < 127
+      ) ? '"' + o.bytes.map((b) => b === 34 ? '\\"' : b === 92 ? "\\\\" : escapeByte(b)).join("") + '"' : null;
   return out;
 }
 function bytesOf(o) {
@@ -24196,40 +24232,6 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
     }
   };
 }
-
-// ui/radix.js
-var RADIXES = [
-  ["auto", "\u81EA\u52A8"],
-  ["hex", "HEX"],
-  ["dec", "DEC"],
-  ["bin", "BIN"],
-  ["ascii", "ASCII"]
-];
-var printable = (b) => b >= 32 && b < 127;
-var escapeByte = (b) => printable(b) ? String.fromCharCode(b) : b === 0 ? "\\0" : b === 10 ? "\\n" : b === 9 ? "\\t" : "\\x" + b.toString(16).padStart(2, "0");
-function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = {}) {
-  const bits = 8 * width, unsigned = width < 4 ? (n & 2 ** bits - 1) >>> 0 : n >>> 0, signed = width < 4 ? unsigned << 32 - bits >> 32 - bits : n | 0;
-  const hex2 = "0x" + unsigned.toString(16).padStart(2 * width, "0");
-  const bin = (all) => {
-    const digits = unsigned.toString(2).padStart(bits, "0");
-    const shown = all ? digits : digits.replace(/^(?:0000)+(?=.{4})/, "");
-    return "0b" + shown.replace(/(.{4})(?=.)/g, "$1_");
-  };
-  const dec2 = "0d" + (kind === "value" ? signed : unsigned);
-  const bytes = Array.from(
-    { length: width },
-    (_, i) => unsigned >>> 8 * i & 255
-  );
-  let shownBytes = bytes;
-  while (shownBytes.length > 1 && shownBytes.at(-1) === 0)
-    shownBytes = shownBytes.slice(0, -1);
-  const ascii = "'" + shownBytes.map(escapeByte).join("") + "'";
-  const mode = radix2 === "auto" ? kind === "value" && Math.abs(signed) < 1e4 ? "dec" : "hex" : radix2;
-  const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
-  const note = mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
-  return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
-}
-var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
 
 // ui/glossary.js
 var glossary = {

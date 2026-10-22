@@ -13,7 +13,8 @@ export const RADIXES = [
 ];
 
 const printable = (b) => b >= 32 && b < 127;
-const escapeByte = (b) =>
+// One escape vocabulary for bytes everywhere (\0 \n \t \xNN), as in ASCII mode.
+export const escapeByte = (b) =>
   printable(b)
     ? String.fromCharCode(b)
     : b === 0
