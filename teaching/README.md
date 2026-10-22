@@ -86,7 +86,7 @@ sh teaching/scripts/test.sh
 
 浏览器验收 `tests/browser_acceptance.py` 用 Python Playwright 自行启动一个使用空闲端口的本地服务，以真实键盘与鼠标事件走完整工作流：输入与输出、断点与观察点、叠加层、VS Code 快捷键、快速打开、Peek 引用、日志断点、专注模式（方向键、Tab、Enter、按住节流）以及减少动态效果。依次尝试 Playwright 自带浏览器、已安装的 Chrome、本机缓存的 Chromium；都不可用时输出 SKIP（退出码 2），`test.sh` 视为跳过。也可单独运行 `python3 teaching/tests/browser_acceptance.py`。失败时截图保存到 `teaching/test-results/browser-failure.png`。
 
-架构与完成证据见 [ARCHITECTURE.md](docs/ARCHITECTURE.md) 和 [VALIDATION.md](docs/VALIDATION.md)。长期设计见 [DESIGN.md](docs/DESIGN.md)。
+架构与完成证据见 [ARCHITECTURE.md](docs/ARCHITECTURE.md) 和 [VALIDATION.md](docs/VALIDATION.md)；模拟课堂试用记录见 [TRIAL-2026-10-22.md](docs/TRIAL-2026-10-22.md)。长期设计见 [DESIGN.md](docs/DESIGN.md)。
 
 ## Limitations
 
