@@ -1,3 +1,23 @@
+# M2.5 validation — 2026-10-22
+
+Environment: macOS arm64, OpenJDK 25, system Chrome 155 driven by Python Playwright 1.49. All checks below are run by `sh teaching/scripts/test.sh`.
+
+| Gate | Evidence |
+| --- | --- |
+| Lookahead is exact and side-effect free | On array-sum, hexOut and Task1 with delayed branching off and on, the state before and after every lookahead is identical (registers, memory, output, input cursor, file handles, status), and every predicted event equals the event the following real step produces |
+| Lookahead boundaries | Stops at input waits without consuming input; pseudo-instructions form one line; window size, 64-instruction limit and "ended" have explicit stop reasons |
+| Source-line history and breakpoint options | Line seek back/forward; hit count N pauses before the Nth execution and stays correct after rewinding; logpoints format `{$reg}` / `{$reg:x}` and never pause |
+| Core integration | 20 scenarios pass |
+| Upstream compatibility (unchanged) | 18 output cases and 518 step snapshots against the unmodified upstream probe |
+| Path layout | 8 tests: segments per visited block, loop iterations, edge kinds (fallthrough, taken, jump, call, return), single untaken hints, unconditional `b`, delayed branches, auto range |
+| Fill-in explanations | 11 tests plus a run over all 1022 events of the three examples (21 instruction kinds, no fallbacks) |
+| Keymap and quick open | 5 keymap tests (both platforms, chord, retired-key hints) and 4 quick-open tests (ranking, outline, prefixes) |
+| Browser workflow | 35 checks with real key and mouse events and no page errors: earlier M1/M2 workflow, inline values, VS Code debug keys and hints, quick open and outline, Peek references, context menu, logpoint with hit count, focus mode entry by chord, beats, ↑/↓, Tab, Enter, Esc, holding ↓ (throttled, no animation backlog, narration resumes), reduced motion (conclusion shown, nothing moves), edit invalidation |
+
+Lookahead cost on Task1: single-step request p95 1.0 ms without lookahead, 1.5 ms with an 8-line lookahead (local JSON-lines transport; not browser paint time).
+
+Not covered: OS-level key auto-repeat is simulated with repeat-flagged key events; in the Claude desktop browser pane, Ctrl+- is taken by the host before the page sees it (verified with synthetic events instead). Classroom outcomes, Windows and packaging remain M3.
+
 # M0–M2 validation — 2026-10-21
 
 Environment: macOS arm64, OpenJDK 25; Java sources target release 17. Browser smoke checks ran at 1440×1000 and 1280×850. This is a local implementation milestone; cross-platform installers and classroom outcome validation remain M3.
@@ -25,7 +45,7 @@ Screenshots were reviewed internally for code visibility, register and memory an
 
 ## Reproduction
 
-Run `sh teaching/scripts/test.sh` from the repository root. Run `tests/browser_smoke.js` with a Playwright page against the local service. The upstream reference is exported from commit `ac3d34ea65c3b8349c4f6c00306bade9e3fec5c9`, not the modified working tree.
+Run `sh teaching/scripts/test.sh` from the repository root. Browser checks now run through `tests/browser_acceptance.py` (see above). The upstream reference is exported from commit `ac3d34ea65c3b8349c4f6c00306bade9e3fec5c9`, not the modified working tree.
 
 The differential script writes machine-readable results to ignored `teaching/test-results/differential.json`. A short state-and-preview microbenchmark was sub-millisecond p95 on this machine; this measures local JSON-lines transport, not browser paint latency, and is not a release performance guarantee.
 

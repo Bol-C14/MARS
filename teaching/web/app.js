@@ -24057,9 +24057,12 @@ var FocusLens = class {
       handled();
       const now = performance.now();
       if (e.repeat) {
+        if (!this.holding) {
+          this.holding = true;
+          this.stop();
+          this.el.querySelectorAll(".ftoken").forEach((t2) => t2.remove());
+        }
         if (now - (this.lastMove || 0) < 125) return;
-        this.holding = true;
-        this.stop();
       }
       this.lastMove = now;
       if (!state2 || this.host.isBusy()) return;

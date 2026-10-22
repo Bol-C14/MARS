@@ -272,9 +272,13 @@ export class FocusLens {
       // Holding a key repeats at the OS rate; keep it to about 8 lines a second.
       const now = performance.now();
       if (e.repeat) {
+        // Holding: no narration and nothing in flight until the key is released.
+        if (!this.holding) {
+          this.holding = true;
+          this.stop();
+          this.el.querySelectorAll(".ftoken").forEach((t) => t.remove());
+        }
         if (now - (this.lastMove || 0) < 125) return;
-        this.holding = true;
-        this.stop();
       }
       this.lastMove = now;
       if (!state || this.host.isBusy()) return;

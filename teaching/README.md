@@ -81,9 +81,9 @@ npm run build --prefix teaching
 sh teaching/scripts/test.sh
 ```
 
-`test.sh` 从仓库内固定的上游 commit 导出独立基线，运行核心测试、前端语义测试、完整输出对照和逐步状态对照。
+`test.sh` 从仓库内固定的上游 commit 导出独立基线，运行核心测试、前端语义测试、完整输出对照、逐步状态对照和浏览器验收。
 
-浏览器验收脚本在 `tests/browser_smoke.js`，它是接收 Playwright `page` 的异步函数表达式；启动服务后，可由 Playwright runner 加载并执行。包含编辑、输入、断点、读观察点、源码切换、叠加开关、缩放、命令筛选和历史相关检查。
+浏览器验收 `tests/browser_acceptance.py` 用 Python Playwright 自行启动一个使用空闲端口的本地服务，以真实键盘与鼠标事件走完整工作流：输入与输出、断点与观察点、叠加层、VS Code 快捷键、快速打开、Peek 引用、日志断点、专注模式（方向键、Tab、Enter、按住节流）以及减少动态效果。依次尝试 Playwright 自带浏览器、已安装的 Chrome、本机缓存的 Chromium；都不可用时输出 SKIP（退出码 2），`test.sh` 视为跳过。也可单独运行 `python3 teaching/tests/browser_acceptance.py`。失败时截图保存到 `teaching/test-results/browser-failure.png`。
 
 架构与完成证据见 [ARCHITECTURE.md](docs/ARCHITECTURE.md) 和 [VALIDATION.md](docs/VALIDATION.md)。长期设计见 [DESIGN.md](docs/DESIGN.md)。
 
