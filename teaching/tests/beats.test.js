@@ -1,0 +1,101 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { beatModel } from "../ui/beats.js";
+
+const r = (number, name, value) => ({ kind: "register", number, name, value, before: value, write: false });
+const w = (number, name, before, value) => ({ kind: "register", number, name, before, value, write: true });
+const m = (address, width, value, write = false, before = value) => ({ kind: "memory", address, width, value, before, write });
+const I = (op, binary, extra = {}) => ({ op, binary, address: 0x400000, file: "main.s", line: 3, flow: "next", ...extra });
+const step = (instruction, accesses, extra = {}) => ({ instruction, accesses, nextPC: 0x400004, status: "paused", ...extra });
+const R = (op, rs = 0, rt = 0, rd = 0, sa = 0, funct = 0) => (op << 26) | (rs << 21) | (rt << 16) | (rd << 11) | (sa << 6) | funct;
+const plain = (parts) => parts.map((p) => (typeof p === "string" ? p : p.t)).join("");
+const lines = (model) => model.beats.map((b) => plain(b.eq));
+
+test("each beat substitutes exactly what was recorded, starting from the symbolic template", () => {
+  const e = step(I("addu", R(0, 8, 9, 10, 0, 33)), [r(8, "$t0", 7), r(9, "$t1", 5), w(10, "$t2", 0, 12)]);
+  const before = JSON.stringify(e), b = beatModel(e);
+  assert.equal(plain(b.template), "$t2 ← $t0 + $t1");
+  assert.deepEqual(lines(b), ["$t2 ← 7 + 5", "$t2 ← 12", "$t2 = 12 ✓"]);
+  assert.deepEqual(b.beats[0].tokens.map((t) => [t.from, t.to]), [["reg:$t0", "code"], ["reg:$t1", "code"]]);
+  assert.deepEqual(b.beats[2].tokens.map((t) => [t.from, t.to, t.kind]), [["code", "reg:$t2", "write"]]);
+  assert.equal(b.summary, "$t2 = 12");
+  assert.deepEqual(b.objects.map((o) => [o.id, o.before, o.after, o.write]), [["reg:$t0", 7, 7, false], ["reg:$t1", 5, 5, false], ["reg:$t2", 0, 12, true]]);
+  assert.equal(JSON.stringify(e), before);
+});
+
+test("lb sign-extends with its own beat; lh shows little-endian composition", () => {
+  const lb = beatModel(step(I("lb", R(32, 5, 10) | 0), [r(5, "$a1", 0x10010010), m(0x10010010, 1, 0xf0), w(10, "$t2", 0, -16)]));
+  assert.deepEqual(lines(lb), ["$t2 ← 字节[ 0x10010010 ]", "$t2 ← 0xf0", "$t2 ← -16", "$t2 = -16 ✓"]);
+  assert.match(lb.beats[2].caption, /最高位是 1，补 1/);
+  assert.match(lb.beats[2].why, /lbu 则补 0，得到 240/);
+  const lh = beatModel(step(I("lh", R(33, 4, 8) | 2), [r(4, "$a0", 0x100), m(0x102, 2, 0x1234), w(8, "$t0", 0, 0x1234)]));
+  assert.deepEqual(lines(lh).slice(0, 2), ["$t0 ← 半字[ 0x00000100 + 2 ]", "$t0 ← 半字[ 0x00000102 ]"]);
+  assert.match(lh.beats[2].why, /\[0x00000102\] 0x34 \[0x00000103\] 0x12 → 0x1234/);
+});
+
+test("negative offsets read as subtraction and the address beat shows the sum", () => {
+  const b = beatModel(step(I("lw", R(35, 29, 8) | 0xfffc), [r(29, "$sp", 100), m(96, 4, 42), w(8, "$t0", 0, 42)]));
+  assert.equal(plain(b.template), "$t0 ← 内存[ $sp − 4 ]");
+  assert.match(b.beats[1].why, /\(-4\) = 0x00000060/);
+});
+
+test("mult reports the 64-bit product; div by zero says the result is undefined", () => {
+  const mult = beatModel(step(I("mult", R(0, 8, 9, 0, 0, 24)), [r(8, "$t0", -2), r(9, "$t1", 3), w(33, "hi", 0, -1), w(34, "lo", 0, -6)]));
+  assert.deepEqual(lines(mult), ["HI:LO ← -2 × 3", "HI:LO ← 0xfffffffffffffffa", "HI = -1，LO = -6 ✓"]);
+  const div = beatModel(step(I("div", R(0, 8, 9, 0, 0, 26)), [r(8, "$t0", 7), r(9, "$t1", 0), w(33, "hi", 0, 0), w(34, "lo", 0, 0)]));
+  assert.deepEqual(lines(div), ["LO, HI ← 7 ÷ 0", "除数为 0"]);
+});
+
+test("logic and shifts show bit patterns; variable shifts use the low 5 bits", () => {
+  const nor = beatModel(step(I("nor", R(0, 8, 9, 10, 0, 39)), [r(8, "$t0", 0), r(9, "$t1", 0xff), w(10, "$t2", 0, ~0xff)]));
+  assert.equal(lines(nor)[0], "$t2 ← ~(0x00000000 | 0x000000ff)");
+  const sllv = beatModel(step(I("sllv", R(0, 9, 8, 10, 0, 4)), [r(9, "$t1", 33), r(8, "$t0", 1), w(10, "$t2", 0, 2)]));
+  assert.equal(lines(sllv)[0], "$t2 ← 0x00000001 << 1");
+  assert.match(sllv.beats[1].why, /33，低 5 位为 1/);
+  const andi = beatModel(step(I("andi", R(12, 8, 9) | 0xff00), [r(8, "$t0", -1), w(9, "$t1", 0, 0xff00)]));
+  assert.equal(plain(andi.template), "$t1 ← $t0 & 0x0000ff00");
+});
+
+test("writes to $zero are shown as discarded", () => {
+  const b = beatModel(step(I("addiu", R(9, 8, 0) | 5), [r(8, "$t0", 1)]));
+  assert.equal(lines(b).at(-1), "$zero = 0 ✓");
+  assert.match(b.beats.at(-1).caption, /被丢弃/);
+});
+
+test("movz explains a false condition without inventing a write", () => {
+  const b = beatModel(step(I("movz", R(0, 8, 9, 10, 0, 10)), [r(8, "$t0", 5), r(9, "$t1", 1)]));
+  assert.deepEqual(lines(b), ["若 1 == 0：$t2 ← 5", "不成立 → 不写入"]);
+});
+
+test("branches decide from operands and name the destination", () => {
+  const program = { instructions: [{ address: 0x400004, line: 4 }, { address: 0x400010, line: 7 }], symbols: [{ name: "done", address: 0x400010 }] };
+  const bne = beatModel(step(I("bne", R(5, 8, 9) | 3, { flow: "branch", target: 0x400010 }), [r(8, "$t0", 7), r(9, "$t1", 5)], { nextPC: 0x400010 }), program);
+  assert.deepEqual(lines(bne), ["若 7 ≠ 5 → 跳到 done", "成立 → 跳到 done", "下一条 = done ✓"]);
+  const b = beatModel(step(I("bgez", R(1, 0, 1) | 3, { flow: "branch", target: 0x400010 }), [r(0, "$zero", 0)], { nextPC: 0x400010 }), program);
+  assert.deepEqual(lines(b), ["下一条 = done ✓"]);
+  const link = beatModel(step(I("bltzal", R(1, 8, 16) | 3, { flow: "branch", target: 0x400010 }), [r(8, "$t0", 1), w(31, "$ra", 0, 0x400008)]), program);
+  assert.deepEqual(lines(link), ["若 1 < 0 → 跳到 done", "不成立 → 继续下一条", "$ra = 0x00400008 ✓", "下一条 = 第 4 行 ✓"]);
+  const delayed = beatModel(step(I("bne", R(5, 8, 9) | 3, { flow: "branch", target: 0x400010 }), [r(8, "$t0", 7), r(9, "$t1", 7)]), { ...program, delay: true });
+  assert.match(delayed.beats.at(-1).why, /延迟槽/);
+});
+
+test("jalr saves the link register and jr $ra is a return", () => {
+  const jalr = beatModel(step(I("jalr", R(0, 9, 0, 31, 0, 9), { flow: "call" }), [r(9, "$t1", 0x400100), w(31, "$ra", 0, 0x400004)], { nextPC: 0x400100 }));
+  assert.deepEqual(lines(jalr), ["跳到 0x00400100", "$ra = 0x00400004 ✓", "下一条 = 0x00400100 ✓"]);
+  const jr = beatModel(step(I("jr", R(0, 31, 0, 0, 0, 8), { flow: "indirect" }), [r(31, "$ra", 0x400004)]));
+  assert.equal(jr.beats.at(-1).caption, "返回调用者。");
+});
+
+test("input syscalls stop at waiting and never invent the result", () => {
+  const b = beatModel({ instruction: I("syscall", 12), service: 5, status: "waiting-input", accesses: [r(2, "$v0", 5)] });
+  assert.deepEqual(lines(b), ["syscall 5 · 读取整数", "等待输入"]);
+  assert.ok(!b.beats.some((x) => x.lit.some((l) => l.mode === "write")));
+});
+
+test("errors add a final beat; blocked previews explain they will not run", () => {
+  const e = beatModel(step(I("lw", R(35, 0, 8) | 1), [r(0, "$zero", 0)], { error: "Runtime exception: address not word-aligned\nmore", status: "error" }));
+  assert.equal(lines(e).at(-1), "执行异常");
+  assert.equal(e.beats.at(-1).caption, "Runtime exception: address not word-aligned");
+  const ended = beatModel({ instruction: I("addu", 0), status: "ended", accesses: [] });
+  assert.deepEqual([lines(ended), ended.summary], [["程序已结束"], "程序已结束"]);
+});

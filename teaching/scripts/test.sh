@@ -2,7 +2,7 @@
 set -eu
 cd "$(dirname "$0")/../.."
 sh teaching/scripts/build.sh
-mkdir -p teaching/build/upstream
+rm -rf teaching/build/upstream && mkdir -p teaching/build/upstream
 git archive ac3d34ea65c3b8349c4f6c00306bade9e3fec5c9 | tar -x -C teaching/build/upstream
 python3 teaching/tests/core_test.py
 npm test --prefix teaching

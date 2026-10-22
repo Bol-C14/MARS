@@ -70,4 +70,40 @@ class CoreTests(unittest.TestCase):
    if s['preview'].get('service')==15:break
    self.call('step')
   before=s['step'];self.assertEqual(s['handles'][0]['position'],0);s=self.call('step');self.assertEqual(s['handles'][0]['position'],2);s=self.call('seek',step=before);self.assertEqual(s['handles'][0]['position'],0);self.assertEqual(self.call('step')['handles'][0]['position'],2)
+ def observable(self,s):
+  return {k:s[k] for k in ('pc','step','registers','memory','output','inputCursor','handles','status','exitCode','preview')}
+ def test_lookahead_matches_execution_without_side_effects(self):
+  for example,kw in [('array-sum',{}),('hexout',{'inputs':['898']}),('task1',{'data':{'input.txt':'Hi'}})]:
+   for delay in (False,True):
+    self.asm(example=example,delay=delay,**kw);checked=0
+    for _ in range(40):
+     before=self.call('state');look=self.call('state',lookahead=8)['lookahead'];after=self.call('state')
+     self.assertEqual(self.observable(before),self.observable(after),(example,delay))
+     self.assertLessEqual(len(look['groups']),8);self.assertTrue(look['stop'])
+     for g in look['groups']:
+      self.assertTrue(all(e['instruction']['file']==g['file'] and e['instruction']['line']==g['line'] for e in g['events']))
+     for e in [e for g in look['groups'] for e in g['events']]:
+      s=self.call('step');self.assertEqual(s['last'],e,(example,delay,e['step']));checked+=1
+     s=self.call('state')
+     if s['status']!='paused':break
+     if not look['groups']:s=self.call('step')
+    self.assertGreater(checked,20,(example,delay))
+ def test_lookahead_stops_at_input_without_consuming(self):
+  self.asm('.text\nmain:\nli $t0,1\nli $v0,5\nsyscall\nmove $s0,$v0\n',inputs=['7'])
+  look=self.call('state',lookahead=8)['lookahead'];self.assertEqual(look['stop'],'waiting-input');self.assertEqual([g['line'] for g in look['groups']],[3,4]);self.assertEqual(look['stopAt']['line'],5);self.assertTrue(look['complete'])
+  s=self.call('state');self.assertEqual(s['inputCursor'],0);self.assertEqual(s['step'],0)
+ def test_lookahead_groups_pseudo_lines_and_limits(self):
+  self.asm('.text\nmain:\nli $t0,0x12345678\nli $t1,1\nli $t2,2\nli $v0,10\nsyscall\n')
+  look=self.call('state',lookahead=2)['lookahead'];self.assertEqual(look['stop'],'window');self.assertEqual([len(g['events']) for g in look['groups']],[2,1]);self.assertEqual(look['stopAt']['line'],5)
+  self.assertEqual(self.call('state',lookahead=20)['lookahead']['lines'],8)
+  look=self.call('state',lookahead=8)['lookahead'];self.assertEqual(look['stop'],'ended');self.assertIsNone(look['stopAt']);self.assertEqual(len(look['groups']),5);self.assertEqual(self.call('state')['step'],0)
+  self.asm('.text\nmain:\nspin: j spin\n')
+  look=self.call('state',lookahead=8)['lookahead'];self.assertEqual(look['stop'],'instruction-limit');self.assertEqual(len(look['groups'][0]['events']),64);self.assertFalse(look['complete'])
+  self.assertNotIn('lookahead',self.call('state'))
+ def test_line_seek_moves_by_source_line(self):
+  self.asm('.text\nmain:\nli $t0,0x12345678\nli $t1,1\nspin: j spin\n')
+  self.call('source');self.call('source');s=self.call('step');s=self.call('step');self.assertEqual(s['step'],5)
+  self.assertEqual(self.call('line',direction=-1)['step'],4);self.assertEqual(self.call('line',direction=-1)['step'],3);s=self.call('line',direction=-1);self.assertEqual(s['step'],2);self.assertEqual(s['registers'][8]['value'],0x12345678)
+  self.assertEqual(self.call('line',direction=-1)['step'],0);self.assertEqual(self.call('line',direction=-1)['step'],0)
+  self.assertEqual(self.call('line',direction=1)['step'],2);self.assertEqual(self.call('line',direction=1)['step'],3);self.assertEqual(self.call('line',direction=1)['step'],4);self.assertEqual(self.call('line',direction=1)['step'],5);self.assertEqual(self.call('line',direction=1)['step'],5)
 if __name__=='__main__':unittest.main(verbosity=2)

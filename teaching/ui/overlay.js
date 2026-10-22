@@ -1,7 +1,6 @@
 import { hex, escapeHTML } from "./model.js";
 export class OverlayRenderer {
   constructor({
-    getAction,
     getState,
     getEditor,
     getFile,
@@ -11,7 +10,6 @@ export class OverlayRenderer {
     onSource,
   }) {
     Object.assign(this, {
-      getAction,
       getState,
       getEditor,
       getFile,
@@ -75,12 +73,7 @@ export class OverlayRenderer {
     let paths = [],
       labels = [],
       focus = this.getFocus();
-    const scope = document.querySelector("#relation-scope").value,
-      selection = this.getAction?.();
-    if (scope === "focus" && !focus) {
-      this.svg.innerHTML = "";
-      return;
-    }
+    const scope = document.querySelector("#relation-scope").value;
     let colors = {
       read: getComputedStyle(document.body).getPropertyValue("--blue").trim(),
       write: getComputedStyle(document.body)
@@ -88,6 +81,10 @@ export class OverlayRenderer {
         .trim(),
       flow: getComputedStyle(document.body).getPropertyValue("--purple").trim(),
     };
+    if (scope === "focus" && !focus) {
+      this.svg.innerHTML = "";
+      return;
+    }
     let draw = (a, b, type, dashed, label, action) => {
       if (!a || !b) return;
       let n = paths.length,
@@ -109,21 +106,13 @@ export class OverlayRenderer {
       [s.preview, true, "dashed"],
     ]) {
       if (!event || !document.querySelector("#" + key).checked) continue;
-      if (
-        scope === "action" &&
-        (!selection?.action ||
-          selection.layer !== (dashed ? "preview" : "last"))
-      )
-        continue;
       let origin =
           this.codePoint(event.instruction) ||
           this.center(
             document.querySelector(dashed ? "#next-card" : "#last-card"),
           ),
         seen = new Set();
-      for (let a of (scope === "action"
-        ? selection.action.accesses
-        : event.accesses) || []) {
+      for (let a of event.accesses || []) {
         let type = a.write ? "write" : "read";
         if (
           !document.querySelector(type === "write" ? "#writes" : "#reads")

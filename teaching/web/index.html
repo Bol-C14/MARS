@@ -139,7 +139,6 @@
         <div class="overlay-controls">
           <select id="relation-scope" aria-label="连线范围">
             <option value="focus">关注对象</option>
-            <option value="action">当前动作</option>
             <option value="all">全部关系</option>
           </select>
           <label
@@ -155,7 +154,8 @@
           >
         </div>
       </details>
-      <span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
+      <button id="focus-open" title="专注调试：前 1 步与之后的预计路径">◎ 专注</button
+      ><span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
     </footer>
     <svg id="overlay" aria-hidden="true"></svg>
     <div id="tooltip" role="tooltip" hidden></div>

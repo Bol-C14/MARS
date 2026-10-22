@@ -30,6 +30,8 @@ public final class DebugSession {
     stopReason = "";
   private boolean delay;
   private int memoryBase = Memory.dataBaseAddress;
+  /** Source lines of lookahead the client asked for with this request; 0 = none. */
+  private int lookaheadLines = 0;
 
   private record Entry(
     MachineState before,
@@ -410,6 +412,92 @@ public final class DebugSession {
     }
   }
 
+  static final int LOOKAHEAD_INSTRUCTIONS = 64;
+
+  /**
+   * Executes up to {@code lines} source lines ahead on the real core, grouped
+   * like source stepping, then undoes every step in reverse order. Blocked
+   * steps (input, unsupported services, end) stop the walk instead of being
+   * guessed, so the result is exactly what the following steps will do.
+   */
+  public Map<String, Object> lookahead(int lines) throws Exception {
+    lines = Math.max(1, Math.min(8, lines));
+    var done = new ArrayList<Entry>();
+    var groups = new ArrayList<Map<String, Object>>();
+    String stop = "";
+    String current = null;
+    List<Object> events = null;
+    try {
+      while (stop.isEmpty()) {
+        int pc = RegisterFile.getProgramCounter();
+        var ins = instructions.get(pc);
+        String block = blocked(true);
+        if (!block.isEmpty()) stop = block;
+        else if (ins == null) stop = "ended";
+        else if (done.size() >= LOOKAHEAD_INSTRUCTIONS) stop =
+          "instruction-limit";
+        if (!stop.isEmpty()) break;
+        String key = ins.get("file") + ":" + ins.get("line");
+        if (!key.equals(current)) {
+          if (groups.size() == lines) {
+            stop = "window";
+            break;
+          }
+          current = key;
+          events = new ArrayList<>();
+          groups.add(
+            obj(
+              "file",
+              ins.get("file"),
+              "line",
+              ins.get("line"),
+              "address",
+              pc,
+              "events",
+              events
+            )
+          );
+        }
+        Entry e = execute();
+        done.add(e);
+        e.event.put("step", history.position + done.size());
+        events.add(e.event);
+        if (status.equals("error")) stop = "error";
+        else if (status.equals("ended")) stop = "ended";
+      }
+    } finally {
+      for (int i = done.size() - 1; i >= 0; i--) {
+        memoryApply(done.get(i), false);
+        restore(done.get(i).before);
+      }
+    }
+    int pc = RegisterFile.getProgramCounter();
+    if (!done.isEmpty()) pc = ((Number) done
+        .get(done.size() - 1)
+        .event.get("nextPC")).intValue();
+    // A finished program has no next location; errors stop at the faulting step.
+    var at = stop.equals("ended") ? null : instructions.get(pc);
+    // The last group is cut short when the walk stops inside a pseudo-instruction.
+    boolean complete =
+      at == null ||
+      groups.isEmpty() ||
+      !(at.get("file") + ":" + at.get("line")).equals(current);
+    return obj(
+      "lines",
+      lines,
+      "groups",
+      groups,
+      "complete",
+      complete,
+      "stop",
+      stop,
+      "stopAt",
+      at == null
+        ? null
+        : obj("address", pc, "file", at.get("file"), "line", at.get("line"))
+    );
+  }
+
   private boolean step() throws Exception {
     String block = blocked(false);
     if (!block.isEmpty()) {
@@ -441,9 +529,45 @@ public final class DebugSession {
     stopReason = "History #" + history.position;
   }
 
+  /**
+   * History position one source line back or forward, grouping steps the way
+   * lookahead does: consecutive events on the same line that run sequentially
+   * (a pseudo-instruction's expansion) form one line.
+   */
+  private int lineTarget(int direction) {
+    int n = history.position;
+    if (direction < 0) {
+      if (n == 0) return 0;
+      int k = n - 1;
+      while (k > 0 && sameLine(k - 1, k)) k--;
+      return k;
+    }
+    if (n >= history.size()) return n;
+    int m = n + 1;
+    while (m < history.size() && sameLine(m - 1, m)) m++;
+    return m;
+  }
+
+  private boolean sameLine(int a, int b) {
+    var x = history.get(a).event;
+    var y = history.get(b).event;
+    @SuppressWarnings("unchecked")
+    var ix = (Map<String, Object>) x.get("instruction");
+    @SuppressWarnings("unchecked")
+    var iy = (Map<String, Object>) y.get("instruction");
+    return (
+      ix.get("file").equals(iy.get("file")) &&
+      ix.get("line").equals(iy.get("line")) &&
+      ((Number) y.get("pc")).intValue() == ((Number) x.get("pc")).intValue() + 4
+    );
+  }
+
   public Map<String, Object> command(Map<String, Object> request)
     throws Exception {
     String command = request.getOrDefault("command", "state").toString();
+    lookaheadLines = request.get("lookahead") instanceof Number n
+      ? n.intValue()
+      : 0;
     if (command.equals("assemble")) return assemble(request);
     if (program == null) return state(false);
     if (
@@ -455,6 +579,9 @@ public final class DebugSession {
       case "step" -> step();
       case "back" -> seek(Math.max(0, history.position - 1));
       case "seek" -> seek(((Number) request.get("step")).intValue());
+      case "line" -> seek(
+        lineTarget(((Number) request.getOrDefault("direction", 1)).intValue())
+      );
       case "input" -> {
         VirtualIO.current.inputs.add(
           request.getOrDefault("value", "").toString()
@@ -744,6 +871,10 @@ public final class DebugSession {
       delay,
       "diagnostics",
       diagnostics
+    );
+    if (program != null && lookaheadLines > 0) result.put(
+      "lookahead",
+      lookahead(lookaheadLines)
     );
     if (includeProgram) {
       result.put("instructions", instructions.values());

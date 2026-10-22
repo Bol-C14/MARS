@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "esbuild ui/main.js --bundle --format=esm --outfile=web/app.js",
-    "test": "node --test tests/model.test.js tests/actions.test.js"
+    "test": "node --test tests/model.test.js tests/path.test.js tests/beats.test.js"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.0",

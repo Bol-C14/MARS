@@ -3,6 +3,7 @@ import {
   Decoration,
   ViewPlugin,
   GutterMarker,
+  WidgetType,
   gutter,
   keymap,
 } from "@codemirror/view";
@@ -20,8 +21,8 @@ import {
   references,
   buildCFG,
 } from "./model.js";
-import { ActionPlayer } from "./actions.js";
 import { OverlayRenderer } from "./overlay.js";
+import { FocusLens } from "./focus.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
   files = {},
@@ -60,6 +61,73 @@ function lineAddress(line) {
     (i) => i.file === activeFile && i.line === line,
   )?.address;
 }
+// Inline execution values (DESIGN §3.8): what the most recent run of each
+// recently executed line wrote, as of the selected history state.
+const INLINE_LINES = 12;
+let inlineCache = { key: null, map: new Map() };
+function inlineValues() {
+  const key = dirty ? "dirty" : `${state?.programVersion}:${state?.step}`;
+  if (inlineCache.key === key) return inlineCache.map;
+  const map = new Map(),
+    closed = new Set();
+  const events = (state?.trace || []).filter(
+    (e) => !dirty && e.step <= state.step,
+  );
+  let open = null;
+  for (let i = events.length - 1; i >= 0 && map.size <= INLINE_LINES; i--) {
+    const ins = events[i].instruction,
+      line = ins.file + ":" + ins.line;
+    if (line !== open) {
+      if (open) closed.add(open);
+      open = closed.has(line) ? null : line;
+    }
+    if (!open) continue;
+    const writes = map.get(line) || new Map();
+    for (const a of events[i].accesses)
+      if (a.write) {
+        const name = a.kind === "register" ? a.name : `[${hex(a.address)}]`;
+        // Walking backwards, the first write seen per object is its final value.
+        if (!writes.has(name)) {
+          const v =
+            a.kind === "memory" && a.width < 4
+              ? a.value & (2 ** (8 * a.width) - 1)
+              : a.value;
+          writes.set(
+            name,
+            Math.abs(v) >= 10000 || a.kind === "memory" ? hex(v) : String(v),
+          );
+        }
+      }
+    map.set(line, writes);
+  }
+  for (const [line, writes] of map)
+    if (writes.size)
+      map.set(
+        line,
+        [...writes]
+          .reverse()
+          .map(([n, v]) => `${n} = ${v}`)
+          .join("  "),
+      );
+    else map.delete(line);
+  inlineCache = { key, map };
+  return map;
+}
+class InlineValue extends WidgetType {
+  constructor(text) {
+    super();
+    this.text = text;
+  }
+  eq(other) {
+    return other.text === this.text;
+  }
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = "cm-inline-value";
+    span.textContent = this.text;
+    return span;
+  }
+}
 const decorations = ViewPlugin.fromClass(
   class {
     constructor(v) {
@@ -90,6 +158,14 @@ const decorations = ViewPlugin.fromClass(
           if (cls.length)
             ranges.push(
               Decoration.line({ class: cls.join(" ") }).range(l.from),
+            );
+          const inline = inlineValues().get(activeFile + ":" + l.number);
+          if (inline)
+            ranges.push(
+              Decoration.widget({
+                widget: new InlineValue(inline),
+                side: 1,
+              }).range(l.to),
             );
           let text = l.text,
             comment = text.indexOf("#"),
@@ -193,7 +269,6 @@ const editor = new EditorView({
         if (u.docChanged && !loadEditor) {
           files[activeFile] = u.state.doc.toString();
           dirty = true;
-          player.update(null);
           renderTabs();
           updateControls();
           $("banner").textContent =
@@ -218,13 +293,7 @@ const editor = new EditorView({
   }),
   parent: $("editor"),
 });
-const player = new ActionPlayer({
-  onChange: () => overlay.schedule(),
-  onObject: (a) =>
-    a.kind === "memory" ? memoryAt(a.address) : inspectToken(a.name),
-});
 const overlay = new OverlayRenderer({
-  getAction: () => player.selection(),
   getState: () => (dirty ? null : state ? { ...state, ...program } : null),
   getEditor: () => editor,
   getFile: () => activeFile,
@@ -233,6 +302,27 @@ const overlay = new OverlayRenderer({
   onAddress: (a) => memoryAt(a),
   onSource: (a) => gotoAddress(a),
 });
+const lens = new FocusLens({
+  getState: () => (dirty ? null : state),
+  getProgram: () => program,
+  getSource: (file, line) => files[file]?.split("\n")[line - 1],
+  command: (name, extra) => command(name, extra).then((s) => (followPC(), s)),
+  runSource: () => run("source"),
+  // Exactly n machine instructions: one batch, still stopping at breakpoints.
+  runSteps: (n) =>
+    command("run", { limit: n, breakpoints, watches, skipBreakpoint: true }),
+  toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
+  hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
+  isRunning: () => running,
+  isBusy: () => busy,
+  onClose: () => {
+    followPC();
+    overlay.schedule();
+  },
+});
+// Lookahead is only computed while the lens shows it (DESIGN §4).
+const lookahead = () =>
+  lens.isOpen ? { lookahead: lens.lookaheadLines() } : {};
 function tokenAt(pos) {
   let l = editor.state.doc.lineAt(pos),
     col = pos - l.from;
@@ -398,20 +488,18 @@ async function api(body) {
 }
 async function command(name, extra = {}) {
   if (busy) return null;
-  player.stop();
   busy = true;
   updateControls();
   try {
     let s = await api({
       command: name,
       programVersion: state?.programVersion,
+      ...lookahead(),
       ...extra,
     });
     state = s;
     render();
-    player.update(dirty ? null : state, {
-      autoplay: !running && ["step", "source", "over", "out"].includes(name),
-    });
+    lens.update(dirty ? null : state);
     return s;
   } catch (e) {
     notify(e.message);
@@ -436,6 +524,7 @@ async function assemble() {
       data,
       entry: files["main.s"] ? "main.s" : Object.keys(files)[0],
       delay: $("delay").checked,
+      ...lookahead(),
     });
     program = {
       instructions: state.instructions || [],
@@ -454,6 +543,7 @@ async function assemble() {
     notify(state.error || "");
     render();
     followPC();
+    lens.update(state);
   } catch (e) {
     notify(e.message);
   } finally {
@@ -681,7 +771,6 @@ async function memoryAt(address) {
   overlay.schedule();
 }
 function renderCards() {
-  player.update(dirty ? null : state);
   let last = state?.last,
     next = state?.preview;
   $("last-card").innerHTML =
@@ -930,7 +1019,7 @@ async function run(mode = "run", extra = {}) {
   running = true;
   updateControls();
   let first = true;
-  const demonstrate = mode === "run" && !$("fast-run").checked;
+  const demonstrate = mode === "run" && !$("fast-run").checked && !lens.isOpen;
   while (running) {
     let s = await command(mode, {
       limit:
@@ -947,12 +1036,11 @@ async function run(mode = "run", extra = {}) {
       ...extra,
     });
     first = false;
+    // Demonstration pace: one instruction at a time so the PC can be followed.
+    // Step-by-step narration lives in focus mode (DESIGN §3.8).
     if (demonstrate && s?.last) {
       followPC();
-      for (let i = 0; i < player.actions.length && running; i++) {
-        player.seek(i);
-        await new Promise((resolve) => setTimeout(resolve, 650));
-      }
+      await new Promise((resolve) => setTimeout(resolve, 450));
     }
     if (
       !s ||
@@ -966,6 +1054,7 @@ async function run(mode = "run", extra = {}) {
   running = false;
   followPC();
   updateControls();
+  lens.settle();
 }
 async function runUntilWrite(register) {
   await run("run", { watches: [...watches, { register, access: "write" }] });
@@ -1002,6 +1091,7 @@ function editData(name) {
 function openCommands() {
   const commands = [
     ["汇编工程", assemble],
+    ["专注模式", () => openFocus()],
     ["机器单步", () => command("step").then(followPC)],
     ["源码单步", () => run("source")],
     ["跨过调用", () => run("over")],
@@ -1070,10 +1160,15 @@ for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
 $("pause").onclick = () => {
   running = false;
-  player.stop();
   updateControls();
 };
 $("commands").onclick = openCommands;
+function openFocus() {
+  if (dirty || !state || state.status === "empty")
+    return notify("请先汇编，再进入专注模式");
+  lens.open();
+}
+$("focus-open").onclick = openFocus;
 $("theme").onclick = () => {
   document.body.classList.toggle("dark");
   overlay.schedule();
