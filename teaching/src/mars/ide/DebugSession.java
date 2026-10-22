@@ -30,6 +30,10 @@ public final class DebugSession {
     stopReason = "";
   private boolean delay;
   private int memoryBase = Memory.dataBaseAddress;
+  /** Executions per instruction address in history before the cursor (hit counts). */
+  private final Map<Integer, Integer> executed = new HashMap<>();
+  /** Logpoint messages produced by the current request. */
+  private final List<Object> logs = new ArrayList<>();
   /** Source lines of lookahead the client asked for with this request; 0 = none. */
   private int lookaheadLines = 0;
 
@@ -59,6 +63,7 @@ public final class DebugSession {
     throws Exception {
     TraceHooks.active.remove();
     history.clear();
+    executed.clear();
     history.position = 0;
     programVersion++;
     stateVersion++;
@@ -516,12 +521,18 @@ public final class DebugSession {
     }
     Entry e = execute();
     history.append(e);
+    executed.merge(((Number) e.event.get("pc")).intValue(), 1, Integer::sum);
     stateVersion++;
     return true;
   }
 
   public void seek(int target) throws Exception {
     history.seek(target, (entry, forward) -> {
+      executed.merge(
+        ((Number) entry.event.get("pc")).intValue(),
+        forward ? 1 : -1,
+        Integer::sum
+      );
       memoryApply(entry, forward);
       restore(forward ? entry.after : entry.before);
     });
@@ -575,6 +586,7 @@ public final class DebugSession {
       ((Number) request.get("programVersion")).intValue() != programVersion
     ) throw new IllegalArgumentException("Stale program version");
     stopReason = "";
+    logs.clear();
     switch (command) {
       case "step" -> step();
       case "back" -> seek(Math.max(0, history.position - 1));
@@ -619,14 +631,20 @@ public final class DebugSession {
           List.of()
         )) {
           var bp = (Map<String, Object>) item;
-          if (
-            ((Number) bp.get("address")).intValue() == pc &&
-            condition(bp.getOrDefault("condition", "").toString())
-          ) {
-            stopReason =
-              "Breakpoint before " + Integer.toUnsignedString(pc, 16);
-            return;
+          if (((Number) bp.get("address")).intValue() != pc) continue;
+          if (!condition(bp.getOrDefault("condition", "").toString())) continue;
+          // Hit count N: pause before the Nth execution of this instruction since S0.
+          int hit = bp.get("hit") instanceof Number n ? n.intValue() : 0;
+          if (hit > 0 && executed.getOrDefault(pc, 0) + 1 != hit) continue;
+          String log = bp.getOrDefault("log", "").toString();
+          if (!log.isBlank()) {
+            if (logs.size() < 200) logs.add(
+              obj("step", history.position, "address", pc, "text", message(log))
+            );
+            continue;
           }
+          stopReason = "Breakpoint before " + Integer.toUnsignedString(pc, 16);
+          return;
         }
       }
       var ins = instructions.get(pc);
@@ -684,6 +702,25 @@ public final class DebugSession {
       ) return;
     }
     stopReason = "Batch complete";
+  }
+
+  /** Logpoint text with {$reg} as decimal and {$reg:x} as hex. */
+  private String message(String template) {
+    var m = java.util.regex.Pattern.compile("\\{(\\$\\w+)(:x)?\\}").matcher(
+      template
+    );
+    var out = new StringBuilder();
+    while (m.find()) {
+      Register r = RegisterFile.getUserRegister(m.group(1));
+      String v = r == null
+        ? m.group()
+        : m.group(2) != null
+          ? String.format("0x%08x", r.getValueNoNotify())
+          : Integer.toString(r.getValueNoNotify());
+      m.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(v));
+    }
+    m.appendTail(out);
+    return out.toString();
   }
 
   private boolean condition(String text) {
@@ -839,6 +876,8 @@ public final class DebugSession {
       error,
       "stopReason",
       stopReason,
+      "logs",
+      new ArrayList<>(logs),
       "pc",
       RegisterFile.getProgramCounter(),
       "registers",

@@ -106,4 +106,12 @@ class CoreTests(unittest.TestCase):
   self.assertEqual(self.call('line',direction=-1)['step'],4);self.assertEqual(self.call('line',direction=-1)['step'],3);s=self.call('line',direction=-1);self.assertEqual(s['step'],2);self.assertEqual(s['registers'][8]['value'],0x12345678)
   self.assertEqual(self.call('line',direction=-1)['step'],0);self.assertEqual(self.call('line',direction=-1)['step'],0)
   self.assertEqual(self.call('line',direction=1)['step'],2);self.assertEqual(self.call('line',direction=1)['step'],3);self.assertEqual(self.call('line',direction=1)['step'],4);self.assertEqual(self.call('line',direction=1)['step'],5);self.assertEqual(self.call('line',direction=1)['step'],5)
+ def test_hit_count_and_logpoint(self):
+  s=self.asm('.text\nmain:\nli $t0,3\nloop:\naddiu $t0,$t0,-1\nbnez $t0,loop\nnop\nli $v0,10\nsyscall\n');addr=next(i['address'] for i in s['instructions'] if i['line']==5)
+  for _ in range(2):
+   s=self.call('run',breakpoints=[{'address':addr,'hit':3}]);self.assertEqual(s['pc'],addr);self.assertEqual(s['registers'][8]['value'],1);self.assertIn('Breakpoint',s['stopReason'])
+   self.call('seek',step=0)
+  s=self.call('run',breakpoints=[{'address':addr,'log':'t0={$t0} {$t0:x}'}]);self.assertEqual(s['status'],'ended')
+  self.assertEqual([l['text'] for l in s['logs']],['t0=3 0x00000003','t0=2 0x00000002','t0=1 0x00000001'])
+  self.assertEqual(self.call('state')['logs'],[])
 if __name__=='__main__':unittest.main(verbosity=2)

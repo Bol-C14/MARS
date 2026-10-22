@@ -3142,11 +3142,11 @@ function findSharedChunks(a, b, textDiff) {
   return shared;
 }
 var LayerCursor = class {
-  constructor(layer2, skip, minPoint, rank = 0) {
+  constructor(layer2, skip, minPoint, rank2 = 0) {
     this.layer = layer2;
     this.skip = skip;
     this.minPoint = minPoint;
-    this.rank = rank;
+    this.rank = rank2;
   }
   get startSide() {
     return this.value ? this.value.startSide : 0;
@@ -3321,12 +3321,12 @@ var SpanCursor = class {
     this.minActive = findMinIndex(this.active, this.activeTo);
   }
   addActive(trackOpen) {
-    let i = 0, { value, to, rank } = this.cursor;
-    while (i < this.activeRank.length && (rank - this.activeRank[i] || to - this.activeTo[i]) > 0)
+    let i = 0, { value, to, rank: rank2 } = this.cursor;
+    while (i < this.activeRank.length && (rank2 - this.activeRank[i] || to - this.activeTo[i]) > 0)
       i++;
     insert(this.active, i, value);
     insert(this.activeTo, i, to);
-    insert(this.activeRank, i, rank);
+    insert(this.activeRank, i, rank2);
     if (trackOpen)
       insert(trackOpen, i, this.cursor.from);
     this.minActive = findMinIndex(this.active, this.activeTo);
@@ -4101,11 +4101,11 @@ function addRange(from, to, ranges, margin = 0) {
     ranges.push(from, to);
 }
 var BlockWrapper = class _BlockWrapper extends RangeValue {
-  constructor(tagName, attributes, rank) {
+  constructor(tagName, attributes, rank2) {
     super();
     this.tagName = tagName;
     this.attributes = attributes;
-    this.rank = rank;
+    this.rank = rank2;
   }
   eq(other) {
     return other == this || other instanceof _BlockWrapper && this.tagName == other.tagName && attrsEq(this.attributes, other.attributes);
@@ -5810,11 +5810,11 @@ var TilePointer = class {
   }
 };
 var OpenWrapper = class {
-  constructor(from, to, wrapper, rank) {
+  constructor(from, to, wrapper, rank2) {
     this.from = from;
     this.to = to;
     this.wrapper = wrapper;
-    this.rank = rank;
+    this.rank = rank2;
   }
 };
 var TileBuilder = class {
@@ -5997,8 +5997,8 @@ var TileBuilder = class {
         this.wrappers.splice(i, 1);
     for (let cur2 = this.blockWrappers; cur2.value && cur2.from <= this.pos; cur2.next())
       if (cur2.to >= this.pos) {
-        let rank = cur2.rank * 102 + cur2.value.rank;
-        let wrap = new OpenWrapper(cur2.from, cur2.to, cur2.value, rank), i = this.wrappers.length;
+        let rank2 = cur2.rank * 102 + cur2.value.rank;
+        let wrap = new OpenWrapper(cur2.from, cur2.to, cur2.value, rank2), i = this.wrappers.length;
         while (i > 0 && (this.wrappers[i - 1].rank - wrap.rank || this.wrappers[i - 1].to - wrap.to) < 0)
           i--;
         this.wrappers.splice(i, 0, wrap);
@@ -24491,6 +24491,102 @@ var Keymap = class {
   }
 };
 
+// ui/search.js
+function fuzzy(query, text2) {
+  if (!query) return 0;
+  const q = query.toLowerCase(), t2 = text2.toLowerCase();
+  if (t2.startsWith(q)) return 1e3 - t2.length;
+  const at = t2.indexOf(q);
+  if (at >= 0) return 800 - at - t2.length;
+  let score2 = 0, j = 0, run2 = 0;
+  for (const c of q) {
+    const k = t2.indexOf(c, j);
+    if (k < 0) return -1;
+    run2 = k === j ? run2 + 1 : 0;
+    score2 += 10 + run2 * 5 - (k - j);
+    j = k + 1;
+  }
+  return score2;
+}
+var LABEL = /^\s*([A-Za-z_.$][\w.$]*)\s*:/;
+function outline(files2, file, symbols = []) {
+  const out = [];
+  (files2[file] || "").split("\n").forEach((text2, i) => {
+    const m = text2.split("#")[0].match(LABEL);
+    if (!m) return;
+    const s = symbols.find(
+      (x) => x.name === m[1] && (!x.file || x.file === file)
+    );
+    out.push({
+      kind: "symbol",
+      label: m[1],
+      detail: `${s?.data ? "\u6570\u636E" : "\u4EE3\u7801"} \xB7 \u7B2C ${i + 1} \u884C${s ? " \xB7 0x" + (s.address >>> 0).toString(16).padStart(8, "0") : ""}`,
+      file,
+      line: i + 1,
+      symbol: s
+    });
+  });
+  return out;
+}
+var rank = (items, query, key = (x) => x.label) => items.map((x) => ({ x, score: fuzzy(query, key(x)) })).filter((r) => r.score >= 0).sort((a, b) => b.score - a.score).map((r) => r.x);
+function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: activeFile2 = "", commands = [], limit = 50 } = {}) {
+  const query = input.trim();
+  if (query.startsWith(">"))
+    return rank(
+      commands.map((c, i) => ({
+        kind: "command",
+        label: c.label,
+        detail: c.keys || "",
+        index: i
+      })),
+      query.slice(1).trim()
+    ).slice(0, limit);
+  if (query.startsWith("@"))
+    return rank(
+      outline(files2, activeFile2, symbols),
+      query.slice(1).trim()
+    ).slice(0, limit);
+  const line = query.match(/^(?:(.+?))?:(\d+)$/);
+  if (line) {
+    const file = line[1] ? Object.keys(files2).find(
+      (f) => f === line[1] || f.endsWith("/" + line[1])
+    ) : activeFile2;
+    const n = Number(line[2]);
+    const total = file ? files2[file].split("\n").length : 0;
+    return file && n >= 1 && n <= total ? [
+      {
+        kind: "line",
+        label: `${file}:${n}`,
+        detail: files2[file].split("\n")[n - 1].trim(),
+        file,
+        line: n
+      }
+    ] : [];
+  }
+  if (/^0x[0-9a-f]+$/i.test(query)) {
+    const address = Number.parseInt(query, 16) | 0;
+    const named = symbols.find((s) => s.address === address);
+    return [
+      {
+        kind: "address",
+        label: "0x" + (address >>> 0).toString(16).padStart(8, "0"),
+        detail: named ? named.name : "\u5730\u5740",
+        address
+      }
+    ];
+  }
+  const fileItems = Object.keys(files2).map((f) => ({
+    kind: "file",
+    label: f,
+    detail: "\u6587\u4EF6",
+    file: f
+  }));
+  const seen = /* @__PURE__ */ new Set();
+  const symbolItems = Object.keys(files2).flatMap((f) => outline(files2, f, symbols)).filter((x) => !seen.has(x.label + x.file) && seen.add(x.label + x.file)).map((x) => ({ ...x, detail: `${x.file} \xB7 ${x.detail}` }));
+  if (!query) return [...fileItems, ...symbolItems].slice(0, limit);
+  return rank([...fileItems, ...symbolItems], query).slice(0, limit);
+}
+
 // ui/main.js
 var $ = (id2) => document.getElementById(id2);
 var state = null;
@@ -24505,6 +24601,7 @@ var running = false;
 var focus = null;
 var pinned = /* @__PURE__ */ new Set(["$v0", "$sp", "$ra"]);
 var breakpoints = [];
+var debugLog = [];
 var watches = [];
 var exampleList = [];
 var fontSize = 13;
@@ -24513,15 +24610,21 @@ var program = { instructions: [], symbols: [], instructionDocs: {} };
 var fileStates = /* @__PURE__ */ new Map();
 var loadEditor = false;
 var refresh = StateEffect.define();
+function breakpointGlyph(b) {
+  if (!b) return "\xB7";
+  if (!b.enabled) return "\u25CB";
+  if (b.log) return "\u25C6";
+  return b.condition || b.hit ? "\u25C9" : "\u25CF";
+}
 var Dot = class extends GutterMarker {
-  constructor(active) {
+  constructor(breakpoint) {
     super();
-    this.active = active;
+    this.breakpoint = breakpoint;
   }
   toDOM() {
     let e = document.createElement("span");
-    e.className = "break-dot";
-    e.textContent = this.active ? "\u25CF" : "\xB7";
+    e.className = "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "");
+    e.textContent = breakpointGlyph(this.breakpoint);
     return e;
   }
 };
@@ -24645,14 +24748,124 @@ var decorations2 = ViewPlugin.fromClass(
   },
   { decorations: (v) => v.decorations }
 );
+var setPeek = StateEffect.define();
+var PeekWidget = class extends WidgetType {
+  constructor(peek) {
+    super();
+    this.peek = peek;
+  }
+  eq(other) {
+    return other.peek === this.peek;
+  }
+  toDOM() {
+    const { token, refs } = this.peek, box = document.createElement("div");
+    box.className = "cm-peek";
+    box.innerHTML = `<div class="cm-peek-head"><b>${escapeHTML(token)}</b> \xB7 ${refs.length} \u5904\u5F15\u7528<button data-peek-close aria-label="\u5173\u95ED">\xD7</button></div>` + (refs.length ? refs.map(
+      (r, i) => `<button class="cm-peek-row" data-peek="${i}"><span>${escapeHTML(r.file)}:${r.line}</span><small>${escapeHTML(r.type)}</small><code>${escapeHTML(r.text.trim())}</code></button>`
+    ).join("") : '<p class="muted">\u65E0\u9759\u6001\u5F15\u7528\u3002</p>');
+    box.querySelector("[data-peek-close]").onclick = () => closePeek();
+    box.querySelectorAll("[data-peek]").forEach(
+      (b) => b.onclick = () => {
+        const r = refs[Number(b.dataset.peek)];
+        closePeek();
+        gotoSource(r.file, r.line);
+      }
+    );
+    return box;
+  }
+};
+var peekField = StateField.define({
+  create: () => null,
+  update(value, tr) {
+    for (const e of tr.effects) if (e.is(setPeek)) return e.value;
+    return tr.docChanged ? null : value;
+  },
+  provide: (field) => EditorView.decorations.from(
+    field,
+    (peek) => peek ? Decoration.set([
+      Decoration.widget({
+        widget: new PeekWidget(peek),
+        block: true,
+        side: 1
+      }).range(peek.pos)
+    ]) : Decoration.none
+  )
+});
+function peekReferences() {
+  const head = editor.state.selection.main.head, token = tokenAt(head);
+  if (!token) return;
+  editor.dispatch({
+    effects: setPeek.of({
+      token,
+      refs: references(files, token),
+      pos: editor.state.doc.lineAt(head).to
+    })
+  });
+}
+function editorMenu(x, y, pos) {
+  closeMenu();
+  const line = editor.state.doc.lineAt(pos).number, address = lineAddress(line), token = tokenAt(pos), canRun = !dirty && ["paused", "waiting"].includes(state?.status);
+  editor.dispatch({ selection: { anchor: pos } });
+  const items = [
+    [
+      "\u8FD0\u884C\u5230\u6B64\u884C",
+      canRun && address != null,
+      () => run("run", { breakpoints: [...activeBreakpoints(), { address }] })
+    ],
+    ["\u5207\u6362\u65AD\u70B9", address != null, () => toggleBreakpoint(line), "breakpoint"],
+    ["\u7F16\u8F91\u65AD\u70B9\u2026", address != null, () => editBreakpoint(address)],
+    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", !!token, () => inspectToken(token)],
+    ["\u67E5\u770B\u5F15\u7528", !!token, () => peekReferences()]
+  ];
+  const menu = document.createElement("div");
+  menu.id = "context-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = items.map(
+    ([name2, enabled, , action], i) => `<button role="menuitem" data-menu="${i}" ${enabled ? "" : "disabled"}>${escapeHTML(name2)}${action && keys2.find(action) ? `<kbd>${label(keys2.find(action), mac2)}</kbd>` : ""}</button>`
+  ).join("");
+  document.body.appendChild(menu);
+  const r = menu.getBoundingClientRect();
+  menu.style.left = Math.min(x, innerWidth - r.width - 8) + "px";
+  menu.style.top = Math.min(y, innerHeight - r.height - 8) + "px";
+  menu.querySelectorAll("[data-menu]").forEach(
+    (b) => b.onclick = () => {
+      closeMenu();
+      items[Number(b.dataset.menu)][2]();
+    }
+  );
+  menu.querySelector("button:not([disabled])")?.focus();
+  setTimeout(() => {
+    document.addEventListener("pointerdown", closeMenuOutside, true);
+    document.addEventListener("keydown", closeMenuOnEscape, true);
+  });
+}
+function closeMenu() {
+  document.getElementById("context-menu")?.remove();
+  document.removeEventListener("pointerdown", closeMenuOutside, true);
+  document.removeEventListener("keydown", closeMenuOnEscape, true);
+}
+function closeMenuOutside(e) {
+  if (!e.target.closest("#context-menu")) closeMenu();
+}
+function closeMenuOnEscape(e) {
+  if (e.key === "Escape") {
+    e.stopPropagation();
+    closeMenu();
+    editor.focus();
+  }
+}
+function closePeek() {
+  if (editor.state.field(peekField))
+    editor.dispatch({ effects: setPeek.of(null) });
+}
 var breakpointGutter = gutter({
   class: "breakpoints-gutter",
   lineMarker: (v, line) => new Dot(
-    breakpoints.some(
+    breakpoints.find(
       (b) => b.file === activeFile && b.line === v.state.doc.lineAt(line.from).number
     )
   ),
-  initialSpacer: () => new Dot(false),
+  initialSpacer: () => new Dot(null),
   lineMarkerChange: () => true,
   domEventHandlers: {
     mousedown: (v, line, event) => {
@@ -24691,6 +24904,7 @@ var editor = new EditorView({
     extensions: [
       basicSetup,
       decorations2,
+      peekField,
       breakpointGutter,
       autocompletion({ override: [completion] }),
       keymap.of([
@@ -24704,8 +24918,15 @@ var editor = new EditorView({
         {
           key: "Shift-F12",
           run: () => {
-            const token = tokenAt(editor.state.selection.main.head);
-            if (token) showReferences(token);
+            peekReferences();
+            return true;
+          }
+        },
+        {
+          key: "Escape",
+          run: () => {
+            if (!editor.state.field(peekField)) return false;
+            closePeek();
             return true;
           }
         }
@@ -24731,6 +24952,13 @@ var editor = new EditorView({
             let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
             if (pos != null) inspectToken(tokenAt(pos));
           }
+        },
+        contextmenu: (e) => {
+          let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos == null) return false;
+          e.preventDefault();
+          editorMenu(e.clientX, e.clientY, pos);
+          return true;
         }
       })
     ]
@@ -24753,7 +24981,12 @@ var lens = new FocusLens({
   command: (name2, extra) => command2(name2, extra).then((s) => (followPC(), s)),
   runSource: () => run("source"),
   // Exactly n machine instructions: one batch, still stopping at breakpoints.
-  runSteps: (n) => command2("run", { limit: n, breakpoints, watches, skipBreakpoint: true }),
+  runSteps: (n) => command2("run", {
+    limit: n,
+    breakpoints: activeBreakpoints(),
+    watches,
+    skipBreakpoint: true
+  }),
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
@@ -24916,6 +25149,7 @@ async function command2(name2, extra = {}) {
       ...extra
     });
     state = s;
+    appendLogs(s.logs);
     render();
     lens.update(dirty ? null : state);
     return s;
@@ -24956,6 +25190,7 @@ async function assemble() {
         (i) => i.file === b.file && i.line === b.line
       )?.address
     })).filter((b) => b.address != null);
+    debugLog = [];
     notify(state.error || "");
     render();
     followPC();
@@ -25062,7 +25297,8 @@ function setView(v) {
 }
 function setBottom(v) {
   bottom = v;
-  for (let name2 of ["console", "trace", "calls", "problems"])
+  if (v === "logs") $("logs-tab").classList.remove("unread");
+  for (let name2 of ["console", "trace", "calls", "problems", "logs"])
     $(name2).hidden = name2 !== v;
   document.querySelectorAll("[data-bottom]").forEach((b) => b.classList.toggle("selected", b.dataset.bottom === v));
 }
@@ -25189,7 +25425,7 @@ function renderCards() {
 }
 function renderMachine() {
   $("machine").innerHTML = program.instructions.map(
-    (i) => `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpoints.some((b) => b.address === i.address) ? "\u25CF" : "\xB7"}</span><span>${hex(i.address).slice(2)}</span><span>${escapeHTML(i.basic)}</span><small>${escapeHTML(i.file)}:${i.line} \xB7 ${hex(i.binary)} \xB7 ${escapeHTML(i.source?.trim())}</small></div>`
+    (i) => `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${escapeHTML(i.basic)}</span><small>${escapeHTML(i.file)}:${i.line} \xB7 ${hex(i.binary)} \xB7 ${escapeHTML(i.source?.trim())}</small></div>`
   ).join("");
   $("machine").querySelectorAll("[data-instruction]").forEach(
     (e) => e.onclick = (event) => {
@@ -25251,6 +25487,7 @@ function render() {
   renderCards();
   renderTrace();
   renderStops();
+  renderLogs();
   $("output").textContent = state.output;
   $("output").scrollTop = $("output").scrollHeight;
   $("pc").textContent = "PC " + hex(state.pc);
@@ -25283,28 +25520,78 @@ function render() {
   overlay.schedule();
   updateControls();
 }
-function toggleAddressBreakpoint(address, conditional = false) {
+function activeBreakpoints() {
+  return breakpoints.filter((b) => b.enabled).map(({ address, condition, hit, log }) => ({
+    address,
+    condition,
+    hit,
+    log
+  }));
+}
+function breakpointChanged() {
+  renderStops();
+  editor.dispatch({ effects: refresh.of(null) });
+  if (view === "machine") renderMachine();
+}
+function toggleAddressBreakpoint(address, edit = false) {
   let ins = program.instructions.find((i2) => i2.address === address);
   if (!ins) return;
+  if (edit) return editBreakpoint(address);
   let i = breakpoints.findIndex((b) => b.address === address);
-  if (i >= 0 && !conditional) breakpoints.splice(i, 1);
-  else if (conditional)
-    ask("\u65AD\u70B9\u6761\u4EF6\uFF0C\u4F8B\u5982 $t0 == 3", "", (condition) => {
-      breakpoints = breakpoints.filter((b) => b.address !== address);
-      breakpoints.push({ address, file: ins.file, line: ins.line, condition });
-      renderStops();
-      editor.dispatch({ effects: refresh.of(null) });
-    });
+  if (i >= 0) breakpoints.splice(i, 1);
   else
     breakpoints.push({
       address,
       file: ins.file,
       line: ins.line,
-      condition: ""
+      enabled: true,
+      condition: "",
+      hit: 0,
+      log: ""
     });
-  renderStops();
-  editor.dispatch({ effects: refresh.of(null) });
-  if (view === "machine") renderMachine();
+  breakpointChanged();
+}
+function editBreakpoint(address) {
+  let ins = program.instructions.find((i) => i.address === address);
+  if (!ins) return;
+  let b = breakpoints.find((x) => x.address === address) || {
+    address,
+    file: ins.file,
+    line: ins.line,
+    enabled: true,
+    condition: "",
+    hit: 0,
+    log: ""
+  };
+  modal(
+    `\u65AD\u70B9 \xB7 ${ins.file}:${ins.line}`,
+    `<form id="bp-form" class="bp-form">
+      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> \u542F\u7528</label>
+      <label>\u6761\u4EF6<input id="bp-condition" value="${escapeHTML(b.condition)}" placeholder="$t0 == 3\uFF08$\u5BC4\u5B58\u5668 \u4E0E\u6574\u6570\u6BD4\u8F83\uFF09"></label>
+      <label>\u547D\u4E2D\u6B21\u6570<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="\u7B2C N \u6B21\u6267\u884C\u524D\u6682\u505C\uFF1B\u7559\u7A7A\u8868\u793A\u6BCF\u6B21"></label>
+      <label>\u65E5\u5FD7\u6D88\u606F<input id="bp-log" value="${escapeHTML(b.log)}" placeholder="t0 = {$t0}\uFF0C\u5341\u516D\u8FDB\u5236 {$t0:x}\uFF1B\u586B\u5199\u540E\u53EA\u8BB0\u5F55\u4E0D\u6682\u505C"></label>
+      <p class="muted">\u547D\u4E2D\u6B21\u6570\u6309\u4ECE S0 \u8D77\u8FD9\u6761\u6307\u4EE4\u7684\u6267\u884C\u6B21\u6570\u8BA1\u7B97\uFF1B\u56DE\u9000\u540E\u968F\u5386\u53F2\u53D8\u5316\u3002\u65E5\u5FD7\u65AD\u70B9\u7684\u8F93\u51FA\u5728\u5E95\u90E8\u201C\u65E5\u5FD7\u201D\u3002</p>
+      <p><button class="primary">\u4FDD\u5B58</button> <button type="button" id="bp-remove">\u5220\u9664\u65AD\u70B9</button></p>
+    </form>`
+  );
+  $("bp-form").onsubmit = (e) => {
+    e.preventDefault();
+    Object.assign(b, {
+      enabled: $("bp-enabled").checked,
+      condition: $("bp-condition").value.trim(),
+      hit: Math.max(0, Number($("bp-hit").value) || 0),
+      log: $("bp-log").value.trim()
+    });
+    if (!breakpoints.includes(b)) breakpoints.push(b);
+    $("modal").close();
+    breakpointChanged();
+  };
+  $("bp-remove").onclick = () => {
+    breakpoints = breakpoints.filter((x) => x !== b);
+    $("modal").close();
+    breakpointChanged();
+  };
+  $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
   let address = lineAddress(line);
@@ -25314,17 +25601,52 @@ function toggleBreakpoint(line, conditional = false) {
   }
   toggleAddressBreakpoint(address, conditional);
 }
+function appendLogs(logs = []) {
+  if (!logs.length) return;
+  debugLog.push(...logs);
+  if (debugLog.length > 500) debugLog.splice(0, debugLog.length - 500);
+  if (bottom !== "logs") $("logs-tab").classList.add("unread");
+}
+function renderLogs() {
+  $("logs").innerHTML = debugLog.length ? debugLog.map(
+    (l) => `<button class="trace-row" data-log-step="${l.step}"><small>#${l.step} \xB7 ${hex(l.address)}</small> ${escapeHTML(l.text)}</button>`
+  ).join("") : '<p class="muted">\u65E5\u5FD7\u65AD\u70B9\uFF08\u65AD\u70B9 \u270E \u4E2D\u586B\u5199\u201C\u65E5\u5FD7\u6D88\u606F\u201D\uFF09\u547D\u4E2D\u65F6\u5728\u8FD9\u91CC\u8BB0\u5F55\uFF0C\u4E0D\u6682\u505C\u7A0B\u5E8F\u3002</p>';
+  $("logs").querySelectorAll("[data-log-step]").forEach(
+    (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.logStep) }).then(followPC)
+  );
+}
 function renderStops() {
-  $("breakpoints").innerHTML = breakpoints.map(
-    (b, i) => `<button class="bp" data-bp="${i}">\u25CF ${escapeHTML(b.file)}:${b.line}<br>${hex(b.address)} ${escapeHTML(b.condition)}</button>`
-  ).join("");
+  $("breakpoints").innerHTML = breakpoints.map((b, i) => {
+    const details = [
+      b.condition && "\u6761\u4EF6 " + b.condition,
+      b.hit && `\u7B2C ${b.hit} \u6B21`,
+      b.log && "\u65E5\u5FD7 " + b.log
+    ].filter(Boolean);
+    return `<div class="bp-row ${b.enabled ? "" : "off"}">
+        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="\u542F\u7528 ${escapeHTML(b.file)}:${b.line}">
+        <button class="bp" data-bp="${i}">${breakpointGlyph(b)} ${escapeHTML(b.file)}:${b.line}<br><small>${escapeHTML(details.join(" \xB7 ") || hex(b.address))}</small></button>
+        <button data-bp-edit="${i}" aria-label="\u7F16\u8F91\u65AD\u70B9" title="\u7F16\u8F91\u65AD\u70B9">\u270E</button><button data-bp-remove="${i}" aria-label="\u5220\u9664\u65AD\u70B9" title="\u5220\u9664\u65AD\u70B9">\xD7</button>
+      </div>`;
+  }).join("");
   $("breakpoints").querySelectorAll("[data-bp]").forEach(
-    (b) => b.onclick = (e) => {
-      let index = Number(b.dataset.bp);
-      if (e.altKey) {
-        breakpoints.splice(index, 1);
-        renderStops();
-      } else gotoSource(breakpoints[index].file, breakpoints[index].line);
+    (b) => b.onclick = () => {
+      let bp = breakpoints[Number(b.dataset.bp)];
+      gotoSource(bp.file, bp.line);
+    }
+  );
+  $("breakpoints").querySelectorAll("[data-bp-enable]").forEach(
+    (c) => c.onchange = () => {
+      breakpoints[Number(c.dataset.bpEnable)].enabled = c.checked;
+      breakpointChanged();
+    }
+  );
+  $("breakpoints").querySelectorAll("[data-bp-edit]").forEach(
+    (b) => b.onclick = () => editBreakpoint(breakpoints[Number(b.dataset.bpEdit)].address)
+  );
+  $("breakpoints").querySelectorAll("[data-bp-remove]").forEach(
+    (b) => b.onclick = () => {
+      breakpoints.splice(Number(b.dataset.bpRemove), 1);
+      breakpointChanged();
     }
   );
   $("watches").innerHTML = watches.map(
@@ -25346,7 +25668,7 @@ async function run(mode = "run", extra = {}) {
   while (running) {
     let s = await command2(mode, {
       limit: mode === "run" ? demonstrate ? 1 : 150 : mode === "over" || mode === "out" ? 1e5 : 1e3,
-      breakpoints,
+      breakpoints: activeBreakpoints(),
       watches,
       skipBreakpoint: first,
       ...extra
@@ -25397,9 +25719,11 @@ function editData(name2) {
     assemble();
   };
 }
-function openCommands() {
+function commandList() {
   const commands = [
     ["\u6C47\u7F16\u5DE5\u7A0B", assemble, "assemble"],
+    ["\u5FEB\u901F\u6253\u5F00\u6587\u4EF6\uFF0F\u6807\u7B7E\uFF0F\u5730\u5740", () => openPicker(""), "quickOpen"],
+    ["\u8F6C\u5230\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u7B26\u53F7", () => openPicker("@"), "outline"],
     ["\u4E13\u6CE8\u6A21\u5F0F", () => openFocus(), "focus"],
     ["\u673A\u5668\u5355\u6B65", () => command2("step").then(followPC), "step"],
     ["\u6E90\u7801\u5355\u6B65", () => run("source"), "source"],
@@ -25418,7 +25742,7 @@ function openCommands() {
         );
         if (address != null)
           run("run", {
-            breakpoints: [...breakpoints, { address, condition: "" }]
+            breakpoints: [...activeBreakpoints(), { address }]
           });
       }
     ],
@@ -25448,18 +25772,71 @@ function openCommands() {
     ],
     ["syscall \u670D\u52A1\u8868", () => inspectToken("syscall")]
   ];
+  return commands.map(([label2, run2, action]) => ({
+    label: label2,
+    run: run2,
+    keys: action && keys2.find(action) ? label(keys2.find(action), mac2) : ""
+  }));
+}
+function openCommands() {
+  openPicker(">");
+}
+function openPicker(prefix = "") {
+  const commands = commandList();
   modal(
-    "\u547D\u4EE4\u9762\u677F",
-    `<input id="command-filter" placeholder="\u641C\u7D22\u547D\u4EE4\u2026" style="width:100%">${commands.map(([n, , action], i) => `<button class="command-item" data-command="${i}">${n}${action && keys2.find(action) ? `<kbd>${label(keys2.find(action), mac2)}</kbd>` : ""}</button>`).join("")}`
+    prefix === ">" ? "\u547D\u4EE4\u9762\u677F" : "\u5FEB\u901F\u6253\u5F00",
+    `<input id="picker-input" aria-label="\u641C\u7D22" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">\u6587\u4EF6\u6216\u6807\u7B7E\u540D \xB7 @ \u5F53\u524D\u6587\u4EF6\u7B26\u53F7 \xB7 :\u884C\u53F7 \xB7 \u6587\u4EF6:\u884C\u53F7 \xB7 0x \u5730\u5740 \xB7 > \u547D\u4EE4</p>`
   );
-  $("command-filter").oninput = (e) => document.querySelectorAll("[data-command]").forEach((b) => b.hidden = !b.textContent.includes(e.target.value));
-  document.querySelectorAll("[data-command]").forEach(
-    (b) => b.onclick = () => {
-      $("modal").close();
-      commands[Number(b.dataset.command)][1]();
+  const input = $("picker-input");
+  input.value = prefix;
+  let items = [], selected = 0;
+  const choose = (x) => {
+    if (!x) return;
+    $("modal").close();
+    if (x.kind === "command") commands[x.index].run();
+    else if (x.kind === "file") {
+      gotoSource(x.file, 1);
+    } else if (x.kind === "symbol" || x.kind === "line")
+      gotoSource(x.file, x.line);
+    else if (x.kind === "address") {
+      if (program.instructions.some((i) => i.address === x.address))
+        gotoAddress(x.address);
+      else memoryAt(x.address);
     }
-  );
-  $("command-filter").focus();
+  };
+  const render2 = () => {
+    items = quickOpenItems(input.value, {
+      files,
+      symbols: program.symbols,
+      activeFile,
+      commands
+    });
+    selected = Math.max(0, Math.min(selected, items.length - 1));
+    $("picker-list").innerHTML = items.map(
+      (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-pick="${i}">${escapeHTML(x.label)}${x.detail ? `<kbd>${escapeHTML(x.detail)}</kbd>` : ""}</button>`
+    ).join("") || '<p class="muted">\u6CA1\u6709\u5339\u914D\u9879</p>';
+    $("picker-list").querySelectorAll("[data-pick]").forEach(
+      (b) => b.onclick = () => choose(items[Number(b.dataset.pick)])
+    );
+    $("picker-list").querySelector(".selected")?.scrollIntoView({ block: "nearest" });
+  };
+  input.oninput = () => {
+    selected = 0;
+    render2();
+  };
+  input.onkeydown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      selected += e.key === "ArrowDown" ? 1 : -1;
+      render2();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      choose(items[selected]);
+    }
+  };
+  render2();
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
 }
 $("assemble").onclick = assemble;
 $("step").onclick = () => command2("step").then(followPC);
@@ -25610,8 +25987,8 @@ var actions = {
     );
   },
   assemble: () => assemble(),
-  quickOpen: () => $("symbol-search").focus(),
-  outline: () => $("symbol-search").focus(),
+  quickOpen: () => openPicker(""),
+  outline: () => openPicker("@"),
   commands: () => openCommands(),
   focus: () => openFocus(),
   navBack: () => navigate(-1),

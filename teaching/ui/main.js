@@ -7,7 +7,7 @@ import {
   gutter,
   keymap,
 } from "@codemirror/view";
-import { EditorState, StateEffect } from "@codemirror/state";
+import { EditorState, StateEffect, StateField } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { autocompletion } from "@codemirror/autocomplete";
 import {
@@ -24,6 +24,7 @@ import {
 import { OverlayRenderer } from "./overlay.js";
 import { FocusLens } from "./focus.js";
 import { Keymap, label as keyLabel } from "./keymap.js";
+import { quickOpenItems } from "./search.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
   files = {},
@@ -37,6 +38,7 @@ let state = null,
   focus = null,
   pinned = new Set(["$v0", "$sp", "$ra"]),
   breakpoints = [],
+  debugLog = [],
   watches = [],
   exampleList = [],
   fontSize = 13;
@@ -45,15 +47,23 @@ let inspecting = null,
   fileStates = new Map(),
   loadEditor = false;
 const refresh = StateEffect.define();
+// Breakpoint marker: ● plain, ◉ conditional or hit count, ◆ logpoint, ○ disabled.
+function breakpointGlyph(b) {
+  if (!b) return "·";
+  if (!b.enabled) return "○";
+  if (b.log) return "◆";
+  return b.condition || b.hit ? "◉" : "●";
+}
 class Dot extends GutterMarker {
-  constructor(active) {
+  constructor(breakpoint) {
     super();
-    this.active = active;
+    this.breakpoint = breakpoint;
   }
   toDOM() {
     let e = document.createElement("span");
-    e.className = "break-dot";
-    e.textContent = this.active ? "●" : "·";
+    e.className =
+      "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "");
+    e.textContent = breakpointGlyph(this.breakpoint);
     return e;
   }
 }
@@ -206,17 +216,148 @@ const decorations = ViewPlugin.fromClass(
   },
   { decorations: (v) => v.decorations },
 );
+// Peek references (Shift+F12): an inline panel under the line, VS Code style.
+const setPeek = StateEffect.define();
+class PeekWidget extends WidgetType {
+  constructor(peek) {
+    super();
+    this.peek = peek;
+  }
+  eq(other) {
+    return other.peek === this.peek;
+  }
+  toDOM() {
+    const { token, refs } = this.peek,
+      box = document.createElement("div");
+    box.className = "cm-peek";
+    box.innerHTML =
+      `<div class="cm-peek-head"><b>${esc(token)}</b> · ${refs.length} 处引用<button data-peek-close aria-label="关闭">×</button></div>` +
+      (refs.length
+        ? refs
+            .map(
+              (r, i) =>
+                `<button class="cm-peek-row" data-peek="${i}"><span>${esc(r.file)}:${r.line}</span><small>${esc(r.type)}</small><code>${esc(r.text.trim())}</code></button>`,
+            )
+            .join("")
+        : '<p class="muted">无静态引用。</p>');
+    box.querySelector("[data-peek-close]").onclick = () => closePeek();
+    box.querySelectorAll("[data-peek]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          const r = refs[Number(b.dataset.peek)];
+          closePeek();
+          gotoSource(r.file, r.line);
+        }),
+    );
+    return box;
+  }
+}
+const peekField = StateField.define({
+  create: () => null,
+  update(value, tr) {
+    for (const e of tr.effects) if (e.is(setPeek)) return e.value;
+    return tr.docChanged ? null : value;
+  },
+  provide: (field) =>
+    EditorView.decorations.from(field, (peek) =>
+      peek
+        ? Decoration.set([
+            Decoration.widget({
+              widget: new PeekWidget(peek),
+              block: true,
+              side: 1,
+            }).range(peek.pos),
+          ])
+        : Decoration.none,
+    ),
+});
+function peekReferences() {
+  const head = editor.state.selection.main.head,
+    token = tokenAt(head);
+  if (!token) return;
+  editor.dispatch({
+    effects: setPeek.of({
+      token,
+      refs: references(files, token),
+      pos: editor.state.doc.lineAt(head).to,
+    }),
+  });
+}
+// Editor right-click menu: run to here and the line's breakpoint and queries.
+function editorMenu(x, y, pos) {
+  closeMenu();
+  const line = editor.state.doc.lineAt(pos).number,
+    address = lineAddress(line),
+    token = tokenAt(pos),
+    canRun = !dirty && ["paused", "waiting"].includes(state?.status);
+  editor.dispatch({ selection: { anchor: pos } });
+  const items = [
+    [
+      "运行到此行",
+      canRun && address != null,
+      () => run("run", { breakpoints: [...activeBreakpoints(), { address }] }),
+    ],
+    ["切换断点", address != null, () => toggleBreakpoint(line), "breakpoint"],
+    ["编辑断点…", address != null, () => editBreakpoint(address)],
+    ["转到定义／说明", !!token, () => inspectToken(token)],
+    ["查看引用", !!token, () => peekReferences()],
+  ];
+  const menu = document.createElement("div");
+  menu.id = "context-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = items
+    .map(
+      ([name, enabled, , action], i) =>
+        `<button role="menuitem" data-menu="${i}" ${enabled ? "" : "disabled"}>${esc(name)}${action && keys.find(action) ? `<kbd>${keyLabel(keys.find(action), mac)}</kbd>` : ""}</button>`,
+    )
+    .join("");
+  document.body.appendChild(menu);
+  const r = menu.getBoundingClientRect();
+  menu.style.left = Math.min(x, innerWidth - r.width - 8) + "px";
+  menu.style.top = Math.min(y, innerHeight - r.height - 8) + "px";
+  menu.querySelectorAll("[data-menu]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        closeMenu();
+        items[Number(b.dataset.menu)][2]();
+      }),
+  );
+  menu.querySelector("button:not([disabled])")?.focus();
+  setTimeout(() => {
+    document.addEventListener("pointerdown", closeMenuOutside, true);
+    document.addEventListener("keydown", closeMenuOnEscape, true);
+  });
+}
+function closeMenu() {
+  document.getElementById("context-menu")?.remove();
+  document.removeEventListener("pointerdown", closeMenuOutside, true);
+  document.removeEventListener("keydown", closeMenuOnEscape, true);
+}
+function closeMenuOutside(e) {
+  if (!e.target.closest("#context-menu")) closeMenu();
+}
+function closeMenuOnEscape(e) {
+  if (e.key === "Escape") {
+    e.stopPropagation();
+    closeMenu();
+    editor.focus();
+  }
+}
+function closePeek() {
+  if (editor.state.field(peekField))
+    editor.dispatch({ effects: setPeek.of(null) });
+}
 const breakpointGutter = gutter({
   class: "breakpoints-gutter",
   lineMarker: (v, line) =>
     new Dot(
-      breakpoints.some(
+      breakpoints.find(
         (b) =>
           b.file === activeFile &&
           b.line === v.state.doc.lineAt(line.from).number,
       ),
     ),
-  initialSpacer: () => new Dot(false),
+  initialSpacer: () => new Dot(null),
   lineMarkerChange: () => true,
   domEventHandlers: {
     mousedown: (v, line, event) => {
@@ -255,6 +396,7 @@ const editor = new EditorView({
     extensions: [
       basicSetup,
       decorations,
+      peekField,
       breakpointGutter,
       autocompletion({ override: [completion] }),
       keymap.of([
@@ -268,8 +410,15 @@ const editor = new EditorView({
         {
           key: "Shift-F12",
           run: () => {
-            const token = tokenAt(editor.state.selection.main.head);
-            if (token) showReferences(token);
+            peekReferences();
+            return true;
+          },
+        },
+        {
+          key: "Escape",
+          run: () => {
+            if (!editor.state.field(peekField)) return false;
+            closePeek();
             return true;
           },
         },
@@ -297,6 +446,13 @@ const editor = new EditorView({
             if (pos != null) inspectToken(tokenAt(pos));
           }
         },
+        contextmenu: (e) => {
+          let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos == null) return false;
+          e.preventDefault();
+          editorMenu(e.clientX, e.clientY, pos);
+          return true;
+        },
       }),
     ],
   }),
@@ -319,7 +475,12 @@ const lens = new FocusLens({
   runSource: () => run("source"),
   // Exactly n machine instructions: one batch, still stopping at breakpoints.
   runSteps: (n) =>
-    command("run", { limit: n, breakpoints, watches, skipBreakpoint: true }),
+    command("run", {
+      limit: n,
+      breakpoints: activeBreakpoints(),
+      watches,
+      skipBreakpoint: true,
+    }),
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
@@ -507,6 +668,7 @@ async function command(name, extra = {}) {
       ...extra,
     });
     state = s;
+    appendLogs(s.logs);
     render();
     lens.update(dirty ? null : state);
     return s;
@@ -549,6 +711,7 @@ async function assemble() {
         )?.address,
       }))
       .filter((b) => b.address != null);
+    debugLog = [];
     notify(state.error || "");
     render();
     followPC();
@@ -666,7 +829,8 @@ function setView(v) {
 }
 function setBottom(v) {
   bottom = v;
-  for (let name of ["console", "trace", "calls", "problems"])
+  if (v === "logs") $("logs-tab").classList.remove("unread");
+  for (let name of ["console", "trace", "calls", "problems", "logs"])
     $(name).hidden = name !== v;
   document
     .querySelectorAll("[data-bottom]")
@@ -840,7 +1004,7 @@ function renderMachine() {
   $("machine").innerHTML = program.instructions
     .map(
       (i) =>
-        `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpoints.some((b) => b.address === i.address) ? "●" : "·"}</span><span>${hex(i.address).slice(2)}</span><span>${esc(i.basic)}</span><small>${esc(i.file)}:${i.line} · ${hex(i.binary)} · ${esc(i.source?.trim())}</small></div>`,
+        `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${esc(i.basic)}</span><small>${esc(i.file)}:${i.line} · ${hex(i.binary)} · ${esc(i.source?.trim())}</small></div>`,
     )
     .join("");
   $("machine")
@@ -945,6 +1109,7 @@ function render() {
   renderCards();
   renderTrace();
   renderStops();
+  renderLogs();
   $("output").textContent = state.output;
   $("output").scrollTop = $("output").scrollHeight;
   $("pc").textContent = "PC " + hex(state.pc);
@@ -992,28 +1157,82 @@ function render() {
   overlay.schedule();
   updateControls();
 }
-function toggleAddressBreakpoint(address, conditional = false) {
+// Breakpoints carry VS Code's options: enabled, condition, hit count (pause
+// before the Nth execution since S0) and logpoint message (log, don't pause).
+function activeBreakpoints() {
+  return breakpoints
+    .filter((b) => b.enabled)
+    .map(({ address, condition, hit, log }) => ({
+      address,
+      condition,
+      hit,
+      log,
+    }));
+}
+function breakpointChanged() {
+  renderStops();
+  editor.dispatch({ effects: refresh.of(null) });
+  if (view === "machine") renderMachine();
+}
+function toggleAddressBreakpoint(address, edit = false) {
   let ins = program.instructions.find((i) => i.address === address);
   if (!ins) return;
+  if (edit) return editBreakpoint(address);
   let i = breakpoints.findIndex((b) => b.address === address);
-  if (i >= 0 && !conditional) breakpoints.splice(i, 1);
-  else if (conditional)
-    ask("断点条件，例如 $t0 == 3", "", (condition) => {
-      breakpoints = breakpoints.filter((b) => b.address !== address);
-      breakpoints.push({ address, file: ins.file, line: ins.line, condition });
-      renderStops();
-      editor.dispatch({ effects: refresh.of(null) });
-    });
+  if (i >= 0) breakpoints.splice(i, 1);
   else
     breakpoints.push({
       address,
       file: ins.file,
       line: ins.line,
+      enabled: true,
       condition: "",
+      hit: 0,
+      log: "",
     });
-  renderStops();
-  editor.dispatch({ effects: refresh.of(null) });
-  if (view === "machine") renderMachine();
+  breakpointChanged();
+}
+function editBreakpoint(address) {
+  let ins = program.instructions.find((i) => i.address === address);
+  if (!ins) return;
+  let b = breakpoints.find((x) => x.address === address) || {
+    address,
+    file: ins.file,
+    line: ins.line,
+    enabled: true,
+    condition: "",
+    hit: 0,
+    log: "",
+  };
+  modal(
+    `断点 · ${ins.file}:${ins.line}`,
+    `<form id="bp-form" class="bp-form">
+      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> 启用</label>
+      <label>条件<input id="bp-condition" value="${esc(b.condition)}" placeholder="$t0 == 3（$寄存器 与整数比较）"></label>
+      <label>命中次数<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="第 N 次执行前暂停；留空表示每次"></label>
+      <label>日志消息<input id="bp-log" value="${esc(b.log)}" placeholder="t0 = {$t0}，十六进制 {$t0:x}；填写后只记录不暂停"></label>
+      <p class="muted">命中次数按从 S0 起这条指令的执行次数计算；回退后随历史变化。日志断点的输出在底部“日志”。</p>
+      <p><button class="primary">保存</button> <button type="button" id="bp-remove">删除断点</button></p>
+    </form>`,
+  );
+  $("bp-form").onsubmit = (e) => {
+    e.preventDefault();
+    Object.assign(b, {
+      enabled: $("bp-enabled").checked,
+      condition: $("bp-condition").value.trim(),
+      hit: Math.max(0, Number($("bp-hit").value) || 0),
+      log: $("bp-log").value.trim(),
+    });
+    if (!breakpoints.includes(b)) breakpoints.push(b);
+    $("modal").close();
+    breakpointChanged();
+  };
+  $("bp-remove").onclick = () => {
+    breakpoints = breakpoints.filter((x) => x !== b);
+    $("modal").close();
+    breakpointChanged();
+  };
+  $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
   let address = lineAddress(line);
@@ -1023,23 +1242,76 @@ function toggleBreakpoint(line, conditional = false) {
   }
   toggleAddressBreakpoint(address, conditional);
 }
+function appendLogs(logs = []) {
+  if (!logs.length) return;
+  debugLog.push(...logs);
+  if (debugLog.length > 500) debugLog.splice(0, debugLog.length - 500);
+  if (bottom !== "logs") $("logs-tab").classList.add("unread");
+}
+function renderLogs() {
+  $("logs").innerHTML = debugLog.length
+    ? debugLog
+        .map(
+          (l) =>
+            `<button class="trace-row" data-log-step="${l.step}"><small>#${l.step} · ${hex(l.address)}</small> ${esc(l.text)}</button>`,
+        )
+        .join("")
+    : '<p class="muted">日志断点（断点 ✎ 中填写“日志消息”）命中时在这里记录，不暂停程序。</p>';
+  $("logs")
+    .querySelectorAll("[data-log-step]")
+    .forEach(
+      (b) =>
+        (b.onclick = () =>
+          command("seek", { step: Number(b.dataset.logStep) }).then(followPC)),
+    );
+}
 function renderStops() {
   $("breakpoints").innerHTML = breakpoints
-    .map(
-      (b, i) =>
-        `<button class="bp" data-bp="${i}">● ${esc(b.file)}:${b.line}<br>${hex(b.address)} ${esc(b.condition)}</button>`,
-    )
+    .map((b, i) => {
+      const details = [
+        b.condition && "条件 " + b.condition,
+        b.hit && `第 ${b.hit} 次`,
+        b.log && "日志 " + b.log,
+      ].filter(Boolean);
+      return `<div class="bp-row ${b.enabled ? "" : "off"}">
+        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="启用 ${esc(b.file)}:${b.line}">
+        <button class="bp" data-bp="${i}">${breakpointGlyph(b)} ${esc(b.file)}:${b.line}<br><small>${esc(details.join(" · ") || hex(b.address))}</small></button>
+        <button data-bp-edit="${i}" aria-label="编辑断点" title="编辑断点">✎</button><button data-bp-remove="${i}" aria-label="删除断点" title="删除断点">×</button>
+      </div>`;
+    })
     .join("");
   $("breakpoints")
     .querySelectorAll("[data-bp]")
     .forEach(
       (b) =>
-        (b.onclick = (e) => {
-          let index = Number(b.dataset.bp);
-          if (e.altKey) {
-            breakpoints.splice(index, 1);
-            renderStops();
-          } else gotoSource(breakpoints[index].file, breakpoints[index].line);
+        (b.onclick = () => {
+          let bp = breakpoints[Number(b.dataset.bp)];
+          gotoSource(bp.file, bp.line);
+        }),
+    );
+  $("breakpoints")
+    .querySelectorAll("[data-bp-enable]")
+    .forEach(
+      (c) =>
+        (c.onchange = () => {
+          breakpoints[Number(c.dataset.bpEnable)].enabled = c.checked;
+          breakpointChanged();
+        }),
+    );
+  $("breakpoints")
+    .querySelectorAll("[data-bp-edit]")
+    .forEach(
+      (b) =>
+        (b.onclick = () =>
+          editBreakpoint(breakpoints[Number(b.dataset.bpEdit)].address)),
+    );
+  $("breakpoints")
+    .querySelectorAll("[data-bp-remove]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => {
+          breakpoints.splice(Number(b.dataset.bpRemove), 1);
+          breakpointChanged();
         }),
     );
   $("watches").innerHTML = watches
@@ -1074,7 +1346,7 @@ async function run(mode = "run", extra = {}) {
           : mode === "over" || mode === "out"
             ? 100000
             : 1000,
-      breakpoints,
+      breakpoints: activeBreakpoints(),
       watches,
       skipBreakpoint: first,
       ...extra,
@@ -1132,9 +1404,11 @@ function editData(name) {
     assemble();
   };
 }
-function openCommands() {
+function commandList() {
   const commands = [
     ["汇编工程", assemble, "assemble"],
+    ["快速打开文件／标签／地址", () => openPicker(""), "quickOpen"],
+    ["转到当前文件中的符号", () => openPicker("@"), "outline"],
     ["专注模式", () => openFocus(), "focus"],
     ["机器单步", () => command("step").then(followPC), "step"],
     ["源码单步", () => run("source"), "source"],
@@ -1153,7 +1427,7 @@ function openCommands() {
         );
         if (address != null)
           run("run", {
-            breakpoints: [...breakpoints, { address, condition: "" }],
+            breakpoints: [...activeBreakpoints(), { address }],
           });
       },
     ],
@@ -1183,22 +1457,82 @@ function openCommands() {
     ],
     ["syscall 服务表", () => inspectToken("syscall")],
   ];
+  return commands.map(([label, run, action]) => ({
+    label,
+    run,
+    keys: action && keys.find(action) ? keyLabel(keys.find(action), mac) : "",
+  }));
+}
+function openCommands() {
+  openPicker(">");
+}
+// One picker for files, labels, lines, addresses and commands (VS Code's
+// quick open with its > @ : prefixes).
+function openPicker(prefix = "") {
+  const commands = commandList();
   modal(
-    "命令面板",
-    `<input id="command-filter" placeholder="搜索命令…" style="width:100%">${commands.map(([n, , action], i) => `<button class="command-item" data-command="${i}">${n}${action && keys.find(action) ? `<kbd>${keyLabel(keys.find(action), mac)}</kbd>` : ""}</button>`).join("")}`,
+    prefix === ">" ? "命令面板" : "快速打开",
+    `<input id="picker-input" aria-label="搜索" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">文件或标签名 · @ 当前文件符号 · :行号 · 文件:行号 · 0x 地址 · > 命令</p>`,
   );
-  $("command-filter").oninput = (e) =>
-    document
-      .querySelectorAll("[data-command]")
-      .forEach((b) => (b.hidden = !b.textContent.includes(e.target.value)));
-  document.querySelectorAll("[data-command]").forEach(
-    (b) =>
-      (b.onclick = () => {
-        $("modal").close();
-        commands[Number(b.dataset.command)][1]();
-      }),
-  );
-  $("command-filter").focus();
+  const input = $("picker-input");
+  input.value = prefix;
+  let items = [],
+    selected = 0;
+  const choose = (x) => {
+    if (!x) return;
+    $("modal").close();
+    if (x.kind === "command") commands[x.index].run();
+    else if (x.kind === "file") {
+      gotoSource(x.file, 1);
+    } else if (x.kind === "symbol" || x.kind === "line")
+      gotoSource(x.file, x.line);
+    else if (x.kind === "address") {
+      if (program.instructions.some((i) => i.address === x.address))
+        gotoAddress(x.address);
+      else memoryAt(x.address);
+    }
+  };
+  const render = () => {
+    items = quickOpenItems(input.value, {
+      files,
+      symbols: program.symbols,
+      activeFile,
+      commands,
+    });
+    selected = Math.max(0, Math.min(selected, items.length - 1));
+    $("picker-list").innerHTML =
+      items
+        .map(
+          (x, i) =>
+            `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-pick="${i}">${esc(x.label)}${x.detail ? `<kbd>${esc(x.detail)}</kbd>` : ""}</button>`,
+        )
+        .join("") || '<p class="muted">没有匹配项</p>';
+    $("picker-list")
+      .querySelectorAll("[data-pick]")
+      .forEach(
+        (b) => (b.onclick = () => choose(items[Number(b.dataset.pick)])),
+      );
+    $("picker-list")
+      .querySelector(".selected")
+      ?.scrollIntoView({ block: "nearest" });
+  };
+  input.oninput = () => {
+    selected = 0;
+    render();
+  };
+  input.onkeydown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      selected += e.key === "ArrowDown" ? 1 : -1;
+      render();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      choose(items[selected]);
+    }
+  };
+  render();
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
 }
 $("assemble").onclick = assemble;
 $("step").onclick = () => command("step").then(followPC);
@@ -1358,8 +1692,8 @@ const actions = {
     );
   },
   assemble: () => assemble(),
-  quickOpen: () => $("symbol-search").focus(),
-  outline: () => $("symbol-search").focus(),
+  quickOpen: () => openPicker(""),
+  outline: () => openPicker("@"),
   commands: () => openCommands(),
   focus: () => openFocus(),
   navBack: () => navigate(-1),

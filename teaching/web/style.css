@@ -1131,3 +1131,120 @@ body.focusing #tooltip {
     Menlo,
     monospace;
 }
+#picker-list {
+  max-height: 55vh;
+  overflow: auto;
+  margin-top: 6px;
+}
+#picker-list .command-item.selected {
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+}
+.picker-help {
+  font-size: 11px;
+  margin: 8px 0 0;
+}
+.cm-peek {
+  margin: 4px 0 6px 0;
+  border: 1px solid var(--accent);
+  border-left-width: 3px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+  font-family: var(--font);
+  max-height: 220px;
+  overflow: auto;
+}
+.cm-peek-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.cm-peek-head button {
+  margin-left: auto;
+  padding: 0 6px;
+}
+.cm-peek-row {
+  display: grid;
+  grid-template-columns: 110px 90px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border-radius: 0;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.cm-peek-row small {
+  color: var(--muted);
+}
+.cm-peek-row code {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  padding-left: 10px;
+}
+.bp-row .bp {
+  padding-left: 6px;
+}
+.bp-row.off .bp {
+  color: var(--muted);
+}
+.bp-row > button:not(.bp) {
+  padding: 2px 6px;
+  color: var(--muted);
+}
+.cm-gutterElement .break-dot.off {
+  color: var(--muted);
+}
+.bp-form {
+  display: grid;
+  gap: 10px;
+  min-width: min(440px, 80vw);
+}
+.bp-form label:not(:first-child) {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.bp-form input:not([type="checkbox"]) {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+}
+#logs-tab.unread::after {
+  content: " •";
+  color: var(--orange);
+}
+#context-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 200px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+#context-menu button {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+}
+#context-menu kbd {
+  color: var(--muted);
+  font:
+    11px ui-monospace,
+    Menlo,
+    monospace;
+}
