@@ -154,7 +154,7 @@ export function beatModel(
         ? `${op} 要求地址是 ${width} 的倍数，否则触发地址异常。`
         : "按字节访问不需要对齐。";
     if (rs && imm !== 0) {
-      beat(at([fresh(hex(rs.value)), off]), `读出基址 ${base}。`, {
+      beat(at([fresh(hex(rs.value)), off]), `取基址 ${base} 的值。`, {
         ...reading([rs]),
         why: `地址 = 基址寄存器 + 16 位有符号偏移（${imm}）。`,
       });
@@ -162,7 +162,7 @@ export function beatModel(
         why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}。${align}`,
       });
     } else if (rs)
-      beat(at([fresh(hex(addr))]), `读出基址 ${base}，就是地址。`, {
+      beat(at([fresh(hex(addr))]), `取基址 ${base} 的值，它就是地址。`, {
         ...reading([rs]),
         why: `偏移为 0，地址就是 ${base} 的值。${align}`,
       });
@@ -195,7 +195,7 @@ export function beatModel(
         " ← ",
         ...expr(fresh(show(rs.value, asHex)), fresh(show(rt.value, asHex))),
       ],
-      `读出 ${rs.name} 和 ${rt.name}。`,
+      `取 ${rs.name} 和 ${rt.name} 的值。`,
       reading([rs, rt]),
     );
     if (res)
@@ -211,7 +211,7 @@ export function beatModel(
     template = [dest, " ← ", dim(rs.name), ` ${sym} ${k}`];
     beat(
       [dest, " ← ", fresh(show(rs.value, logical)), ` ${sym} ${k}`],
-      `读出 ${rs.name}。`,
+      `取 ${rs.name} 的值。`,
       reading([rs]),
     );
     if (res)
@@ -249,7 +249,7 @@ export function beatModel(
         ` ${sym} `,
         variable ? fresh(amount) : String(sa),
       ],
-      `读出 ${rt.name}${variable ? " 和移位量" : ""}。`,
+      `取 ${rt.name}${variable ? " 和移位量" : ""} 的值。`,
       reading(variable && rs ? [rt, rs] : [rt]),
     );
     if (res)
@@ -281,7 +281,7 @@ export function beatModel(
       division
         ? ["LO, HI ← ", fresh(rs.value), " ÷ ", fresh(rt.value)]
         : ["HI:LO ← ", acc, fresh(rs.value), " × ", fresh(rt.value)],
-      `读出 ${rs.name} 和 ${rt.name}。`,
+      `取 ${rs.name} 和 ${rt.name} 的值。`,
       reading([rs, rt]),
     );
     if (division && rt.value === 0)
@@ -332,7 +332,7 @@ export function beatModel(
     if (src)
       beat(
         [dest, " ← ", fresh(show(src.value))],
-        `读出 ${op === "mfhi" ? "HI" : "LO"}。`,
+        `取 ${op === "mfhi" ? "HI" : "LO"} 的值。`,
         reading([src]),
       );
     writeBack(dest);
@@ -341,7 +341,7 @@ export function beatModel(
     template = [dest.toUpperCase(), " ← ", dim(rs.name)];
     beat(
       [dest.toUpperCase(), " ← ", fresh(show(rs.value))],
-      `读出 ${rs.name}。`,
+      `取 ${rs.name} 的值。`,
       reading([rs]),
     );
     const a = written(dest);
@@ -365,7 +365,7 @@ export function beatModel(
         " ← ",
         fresh(show(rs.value)),
       ],
-      "读出条件和数据。",
+      "取条件和数据的值。",
       reading([rt, rs]),
     );
     beat(
@@ -390,7 +390,7 @@ export function beatModel(
     );
     beat(
       [dest, " ← ", fresh(width === 4 ? show(mem.value) : byteHex(raw, width))],
-      `读出 ${width} 字节。`,
+      `从内存取 ${width} 字节。`,
       {
         lit: [{ id: id(mem), mode: "read", width }],
         tokens: [
@@ -450,7 +450,7 @@ export function beatModel(
           fresh(width === 4 ? show(src.value) : byteHex(value, width)),
         ],
         width === 4
-          ? `读出 ${src.name}。`
+          ? `取 ${src.name} 的值。`
           : `取 ${src.name} 的低 ${8 * width} 位。`,
         {
           ...reading([src]),
@@ -511,7 +511,7 @@ export function beatModel(
           " → 跳到 ",
           label,
         ],
-        "读出要比较的两个寄存器。",
+        "取要比较的两个寄存器的值。",
         reading([rs, rt]),
       );
       beat(
@@ -530,7 +530,7 @@ export function beatModel(
       template = ["若 ", dim(rs.name), ` ${cond} → 跳到 `, label];
       beat(
         ["若 ", fresh(rs.value), ` ${cond} → 跳到 `, label],
-        `读出 ${rs.name}。`,
+        `取 ${rs.name} 的值。`,
         reading([rs]),
       );
       beat(
@@ -589,7 +589,7 @@ export function beatModel(
   } else if (/^(jr|jalr)$/.test(op) && rs) {
     const back = op === "jr" && rs.name === "$ra";
     template = ["跳到 ", dim(rs.name), " 中的地址"];
-    beat(["跳到 ", fresh(hex(rs.value))], `读出 ${rs.name}。`, {
+    beat(["跳到 ", fresh(hex(rs.value))], `取 ${rs.name} 的值。`, {
       ...reading([rs]),
       why: back
         ? "$ra 保存着 jal 留下的返回地址。"
@@ -637,7 +637,7 @@ export function beatModel(
           " = ",
           fresh(show(a.value)),
         ]),
-        "读出参数。",
+        "取参数的值。",
         reading(params),
       );
     if (event.status === "waiting-input")
@@ -733,4 +733,245 @@ export function beatModel(
 
 function unique(list) {
   return [...new Map(list.map((a) => [id(a), a])).values()];
+}
+
+// Every beat answers "why?" (2026-10-22 trial, B2). Hand-written derivations
+// above cover common instructions; for every other beat — and for
+// instructions never seen before — the answer is generated from facts: the
+// operand's role in the encoding, which earlier step produced the value, which
+// later step uses the result, and how the next PC was chosen.
+const LOADS = new Set([0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x30]);
+const STORES = new Set([0x28, 0x29, 0x2a, 0x2b, 0x2e, 0x38]);
+
+function roleOf(ins, number, name) {
+  const bits = ins.binary | 0,
+    opcode = bits >>> 26,
+    rs = (bits >>> 21) & 31,
+    rt = (bits >>> 16) & 31,
+    rd = (bits >>> 11) & 31;
+  if (ins.op === "syscall") {
+    if (name === "$v0")
+      return " syscall 的服务编号（syscall 按 $v0 决定做什么）";
+    if (/^\$a[0-3]$/.test(name)) return " syscall 服务的参数";
+    return " syscall 服务用到的寄存器";
+  }
+  if (name === "hi" || name === "lo")
+    return `${name.toUpperCase()} 寄存器（乘除法结果的存放处）`;
+  if (LOADS.has(opcode) && number === rs)
+    return "基址（rs 字段：地址 = 基址 + 偏移）";
+  if (STORES.has(opcode) && number === rs)
+    return "基址（rs 字段：地址 = 基址 + 偏移）";
+  if (STORES.has(opcode) && number === rt) return "要存进内存的值（rt 字段）";
+  if (ins.flow === "branch")
+    return number === rs
+      ? "比较的第一个对象（rs 字段）"
+      : "比较的第二个对象（rt 字段）";
+  if (
+    ins.flow === "indirect" ||
+    (opcode === 0 && (bits & 63) === 9 && number === rs)
+  )
+    return "跳转目标地址（rs 字段）";
+  if (opcode === 0) {
+    if (number === rs && number === rt)
+      return "两个源操作数（rs 和 rt 字段都是它）";
+    if (number === rs) return "第一个源操作数（rs 字段）";
+    if (number === rt) return "第二个源操作数（rt 字段）";
+    if (number === rd) return "目标（rd 字段）";
+  }
+  if (number === rs) return "源操作数（rs 字段）";
+  if (number === rt) return "操作数（rt 字段）";
+  return "这条指令用到的一个寄存器";
+}
+
+function destField(ins, number) {
+  const bits = ins.binary | 0,
+    opcode = bits >>> 26;
+  if (number === ((bits >>> 11) & 31) && opcode === 0)
+    return "rd 字段指定的目标";
+  if (number === ((bits >>> 16) & 31) && opcode !== 0)
+    return "rt 字段指定的目标";
+  if (number === 31 && (opcode === 3 || ins.flow === "call"))
+    return "调用指令固定写 $ra";
+  return "";
+}
+
+const touches = (a, id) => {
+  if (id.startsWith("reg:"))
+    return a.kind === "register" && a.name === id.slice(4);
+  const address = Number(id.slice(4));
+  return (
+    a.kind === "memory" && address >= a.address && address < a.address + a.width
+  );
+};
+
+export function completeWhys(
+  model,
+  event,
+  {
+    before = [],
+    after = [],
+    instructions = [],
+    symbols = [],
+    explanations = {},
+    delay = false,
+  } = {},
+) {
+  if (!event?.instruction || !model?.beats) return model;
+  const ins = event.instruction;
+  // A step is named by its source line (the pseudo-instruction a student
+  // wrote, not its expansion), without the line's comment.
+  const place = (e) => {
+    const i = e.instruction,
+      line =
+        instructions.find(
+          (x) => x.file === i.file && x.line === i.line && x.source,
+        )?.source ||
+        i.source ||
+        i.basic ||
+        i.op;
+    return `第 ${e.step} 步（${i.file}:${i.line} \`${line.split("#")[0].trim().replace(/\s+/g, " ")}\`）`;
+  };
+  const where = (address) => {
+    const s = symbols.find((x) => x.address === address && !x.data);
+    if (s) return s.name;
+    const i = instructions.find((x) => x.address === address);
+    return i ? `${i.file} 第 ${i.line} 行` : hex(address);
+  };
+  const writer = (id) => {
+    for (let k = before.length - 1; k >= 0; k--)
+      if ((before[k].accesses || []).some((a) => a.write && touches(a, id)))
+        return before[k];
+    return null;
+  };
+  const reader = (id) =>
+    after.find((e) =>
+      (e.accesses || []).some((a) => !a.write && touches(a, id)),
+    ) || null;
+  const access = (id) => (event.accesses || []).find((a) => touches(a, id));
+  const rule = () =>
+    explanations[ins.op] || ins.description || "按这条指令的定义计算。";
+
+  // provenanceOnly: the beat already explains its rule (a hand-written
+  // derivation); add only where its inputs came from and where results go.
+  const generate = (b, provenanceOnly = false) => {
+    const reads = b.tokens.filter(
+      (t) => t.kind === "read" && t.from !== "code",
+    );
+    const writes = b.lit.filter((l) => l.mode === "write");
+    const flow = b.tokens.find((t) => t.to === "next");
+    const parts = [];
+    for (const t of reads) {
+      const a = access(t.from);
+      if (!a) continue;
+      const w = writer(t.from);
+      if (a.kind === "register") {
+        if (a.name === "$zero") {
+          if (!provenanceOnly) parts.push("$zero 恒为 0，读它总是得到 0。");
+          continue;
+        }
+        if (provenanceOnly) {
+          if (w) parts.push(`${a.name} 的值来自${place(w)}。`);
+          continue;
+        }
+        parts.push(
+          `${a.name} 在这里是${roleOf(ins, a.number, a.name)}。` +
+            (w
+              ? `它现在的值来自${place(w)}。`
+              : "最近的执行记录里没有写过它，这是它的初始值或更早写入的值。"),
+        );
+      } else {
+        parts.push(
+          (provenanceOnly
+            ? ""
+            : `从内存 ${hex(a.address)} 取 ${a.width} 字节。`) +
+            (w
+              ? `这里的内容是${place(w)}写进去的。`
+              : "最近的执行记录里没有写过这里，内容是程序加载时就有的数据（例如 .data 里的初值）。"),
+        );
+      }
+    }
+    for (const l of writes) {
+      const a = access(l.id);
+      if (!a) continue;
+      const r = reader(l.id);
+      const field = a.kind === "register" ? destField(ins, a.number) : "";
+      const what = provenanceOnly
+        ? ""
+        : a.kind === "register"
+          ? `结果写进 ${a.name}${field ? `（${field}）` : ""}。`
+          : `结果写进内存 ${hex(a.address)} 起的 ${a.width} 字节。`;
+      parts.push(
+        what +
+          (r
+            ? `之后${place(r)}会读取它。`
+            : "在窗口里之后的步骤不会再读取它。"),
+      );
+    }
+    if (provenanceOnly) return parts.join("");
+    if (flow && event.nextPC != null) {
+      const sequential = event.nextPC === ins.address + 4;
+      parts.push(
+        sequential
+          ? "没有发生跳转：PC 加 4，执行紧挨着的下一条指令。"
+          : `PC 被改成 ${hex(event.nextPC)}，所以下一条是 ${where(event.nextPC)}。`,
+      );
+      if (delay && ins.flow !== "next")
+        parts.push("已开启延迟分支：跳转前会先执行紧跟在后面的那一条。");
+    }
+    if (!parts.length) {
+      if (event.output && event.service != null)
+        parts.push(
+          `syscall ${event.service} 把结果写到控制台；程序的输出只在这一刻产生。`,
+        );
+      else parts.push(`指令 ${ins.op} 的规则：${rule()}`);
+    }
+    return parts.join("");
+  };
+  return {
+    ...model,
+    beats: model.beats.map((b) =>
+      b.why
+        ? { ...b, why: [b.why, generate(b, true)].filter(Boolean).join(" ") }
+        : { ...b, why: generate(b) },
+    ),
+  };
+}
+
+// Adjacent memory bytes of one step become one object (trial B4): shown as
+// text when printable, with the raw bytes kept alongside.
+export function groupBytes(objects) {
+  const out = [];
+  for (const o of objects) {
+    const prev = out.at(-1);
+    if (
+      o.kind === "memory" &&
+      prev?.kind === "memory" &&
+      prev.address + prev.width === o.address &&
+      prev.write === o.write
+    ) {
+      prev.width += o.width;
+      prev.ids.push(o.id);
+      prev.bytes.push(...bytesOf(o));
+      continue;
+    }
+    out.push(
+      o.kind === "memory"
+        ? { ...o, ids: [o.id], bytes: bytesOf(o) }
+        : { ...o, ids: [o.id] },
+    );
+  }
+  for (const o of out)
+    if (o.kind === "memory" && o.bytes.length > 1)
+      o.text = o.bytes.every((b) => b === 0 || (b >= 32 && b < 127) || b === 10)
+        ? JSON.stringify(String.fromCharCode(...o.bytes.filter((b) => b !== 0)))
+        : null;
+  return out;
+}
+
+// Little-endian bytes of a recorded value (MARS's fixed byte order here).
+function bytesOf(o) {
+  return Array.from(
+    { length: o.width },
+    (_, i) => ((o.value ?? o.after) >>> (8 * i)) & 255,
+  );
 }

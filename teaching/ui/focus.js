@@ -1,6 +1,6 @@
-import { hex, escapeHTML as esc } from "./model.js";
+import { hex, escapeHTML as esc, explanations } from "./model.js";
 import { layoutPath } from "./path.js";
-import { beatModel } from "./beats.js";
+import { beatModel, completeWhys, groupBytes } from "./beats.js";
 // Focus mode (DESIGN §3.7): a floating lens over a blurred IDE that narrates
 // the completed step and the predicted path. It owns its own state panel and
 // draws every arrow inside itself; machine state only moves through `host`.
@@ -30,7 +30,7 @@ export class FocusLens {
         <header id="focus-head">
           <strong>专注</strong><span id="focus-where"></span>
           <label>范围 <select id="focus-range" aria-label="预计范围"><option value="auto">自动</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} 行</option>`).join("")}</select></label>
-          <span id="focus-keys">↑↓ 行 · ←→ 拍 · Tab 选步 · Enter 运行到 · ? 推导 · Esc 退出</span>
+          <span id="focus-keys">↑↓ 查看 · ⇧↑ 后退一行 · ⇧↓ 执行一行 · ←→ 逐步解释 · Enter 运行到选中 · ? 为什么 · Esc 退出</span>
           <button id="focus-close" aria-label="退出专注模式">×</button>
         </header>
         <div id="focus-body">
@@ -39,11 +39,11 @@ export class FocusLens {
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="拍"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="解释进度"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div class="focus-controls">
-            <button id="focus-prev">◀ 上一拍</button><button id="focus-next">下一拍 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button>
+            <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button>
           </div>
           <div id="focus-why-text" hidden></div>
           <form id="focus-input" hidden><label for="focus-input-value">程序在等待输入</label><input id="focus-input-value" autocomplete="off" /><button>提交</button><span>提交后按 ↓ 继续</span></form>
@@ -73,7 +73,11 @@ export class FocusLens {
     };
     window.addEventListener("keydown", (e) => this.key(e), true);
     window.addEventListener("keyup", (e) => {
-      if (this.isOpen && this.holding && /^Arrow(Up|Down)$/.test(e.key)) {
+      if (
+        this.isOpen &&
+        this.holding &&
+        /^(Arrow(Up|Down)|Shift)$/.test(e.key)
+      ) {
         this.holding = false;
         this.autoplay();
       }
@@ -135,6 +139,11 @@ export class FocusLens {
       mode: this.mode === "auto" ? "auto" : "fixed",
       lines: this.lookaheadLines(),
     });
+    // Recent history plus the predicted steps: where values came from and go.
+    this.timeline = [
+      ...(state.trace || []).filter((e) => e.step <= state.step),
+      ...this.layout.steps.filter((s) => s.predicted).flatMap((s) => s.events),
+    ];
     this.models = new Map(
       this.layout.steps.map((s) => [
         s.index,
@@ -163,7 +172,16 @@ export class FocusLens {
   // their beats are shown in order under the line's own source text.
   stepModel(step, state, program) {
     const options = { delay: state.delay, ...program };
-    const parts = step.events.map((e) => beatModel(e, options));
+    const parts = step.events.map((e) =>
+      completeWhys(beatModel(e, options), e, {
+        before: this.timeline.filter((x) => x.step < e.step),
+        after: this.timeline.filter((x) => x.step > e.step),
+        instructions: program.instructions,
+        symbols: program.symbols,
+        explanations,
+        delay: state.delay,
+      }),
+    );
     if (parts.length === 1) return parts[0];
     const beats = parts.flatMap((p, i) =>
       p.beats.map((b) => ({
@@ -244,6 +262,15 @@ export class FocusLens {
     this.render();
     this.autoplay();
   }
+  // Look at another step of the window without executing anything.
+  moveSelection(delta, wrap = false) {
+    const order = this.layout?.steps.map((s) => s.index) || [];
+    if (!order.length) return;
+    let i = order.indexOf(this.selected) + delta;
+    if (wrap) i = (i + order.length) % order.length;
+    else i = Math.max(0, Math.min(order.length - 1, i));
+    if (order[i] !== this.selected) this.select(order[i]);
+  }
   toggleWhy() {
     this.whyOpen = !this.whyOpen;
     document
@@ -267,9 +294,15 @@ export class FocusLens {
     if (e.key === "Escape") {
       handled();
       this.close();
+    } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && !e.shiftKey) {
+      // Plain arrows only look: move the selection through the window (2026-10-22
+      // trial: students expected arrows to browse, not to run the machine).
+      handled();
+      this.moveSelection(e.key === "ArrowUp" ? -1 : 1);
     } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       handled();
-      // Holding a key repeats at the OS rate; keep it to about 8 lines a second.
+      // Shift+arrow moves time. Holding repeats at the OS rate; keep it to
+      // about 8 lines a second.
       const now = performance.now();
       if (e.repeat) {
         // Holding: no narration and nothing in flight until the key is released.
@@ -292,12 +325,7 @@ export class FocusLens {
       this.seekBeat(this.beat + (e.key === "ArrowLeft" ? -1 : 1));
     } else if (e.key === "Tab") {
       handled();
-      const order = this.layout?.steps.map((s) => s.index) || [];
-      const i = order.indexOf(this.selected);
-      if (order.length)
-        this.select(
-          order[(i + (e.shiftKey ? -1 : 1) + order.length) % order.length],
-        );
+      this.moveSelection(e.shiftKey ? -1 : 1, true);
     } else if (e.key === "Enter") {
       handled();
       if (this.selected > 0) {
@@ -353,7 +381,7 @@ export class FocusLens {
                 <code>${esc(this.host.getSource(line.file, line.line)?.trim() || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "▾" : "▸"} ${machine.length} 条</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">未走：${hint.kind === "taken" ? "→ " + esc(hint.label) : "顺序执行 " + esc(hint.label)}</div>` : ""}`;
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "这次不跳到 " + esc(hint.label) : "这次不顺序执行到 " + esc(hint.label)}</div>` : ""}`;
             })
             .join("");
           // Staircase: one row per segment in visit order, alternating columns,
@@ -404,7 +432,7 @@ export class FocusLens {
     const at = s.at?.line ? `（第 ${s.at.line} 行）` : "";
     const text =
       s.reason === "window"
-        ? `之后${at}超出范围`
+        ? `下面还有：${s.at?.line ? `第 ${s.at.line} 行起` : "更多"}（不在窗口内）`
         : `之后：${stopText[s.reason] || "无法预计 · " + s.reason}${at}`;
     return `<div class="fstop" data-anchor="stop">${esc(text)}${s.complete ? "" : " · 该行只预计了一部分"}</div>`;
   }
@@ -471,7 +499,7 @@ export class FocusLens {
     $("focus-dots").innerHTML = m.beats
       .map(
         (_, i) =>
-          `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="第 ${i + 1} 拍"></button>`,
+          `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="第 ${i + 1} 条解释"></button>`,
       )
       .join("");
     $("focus-dots")
@@ -485,8 +513,9 @@ export class FocusLens {
     $("focus-why-text").hidden = !(this.whyOpen && b?.why);
     $("focus-why-text").textContent = b?.why || "";
 
-    const objects = this.objectValues(),
+    const objects = groupBytes(this.objectValues()),
       lit = new Map((b?.lit || []).map((l) => [l.id, l.mode]));
+    const litMode = (o) => o.ids.map((id) => lit.get(id)).find(Boolean);
     const shown = objects.slice(0, 12);
     const value = (o, n) =>
       o.kind === "memory" && o.width < 4
@@ -501,13 +530,25 @@ export class FocusLens {
       `<div class="fobj-title">涉及对象</div>` +
       shown
         .map((o) => {
+          const grouped = o.kind === "memory" && o.bytes.length > 1;
           const label =
-            o.kind === "register" ? o.name : `[${hex(o.address)}]·${o.width}B`;
-          const v =
-            o.touched && o.write && o.before !== o.after
+            o.kind === "register"
+              ? o.name
+              : `[${hex(o.address)}${grouped ? "…" : ""}]·${o.width}B`;
+          const v = grouped
+            ? (o.text ?? `${o.bytes.length} 字节`)
+            : o.touched && o.write && o.before !== o.after
               ? `${value(o, o.before)} → ${value(o, o.after)}`
               : value(o, o.value);
-          return `<div class="fobj ${lit.has(o.id) ? "lit-" + lit.get(o.id) : ""} ${o.touched ? "touched" : ""}" data-obj="${o.id}"><span>${esc(label)}</span><span>${esc(v)}</span></div>`;
+          // The raw form stays visible, small and grey, under the readable one.
+          const raw = grouped
+            ? `<small class="fraw">${o.bytes
+                .slice(0, 16)
+                .map((x) => x.toString(16).padStart(2, "0"))
+                .join(" ")}${o.bytes.length > 16 ? " …" : ""}</small>`
+            : "";
+          const mode = litMode(o);
+          return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${esc(label)}</span><span>${esc(v)}</span>${raw}</div>`;
         })
         .join("") +
       (objects.length > 12
@@ -530,7 +571,7 @@ export class FocusLens {
           : document.querySelector('#focus-path [data-anchor="stop"]');
     } else
       el = document.querySelector(
-        `#focus-objects [data-obj="${CSS.escape(id)}"]`,
+        `#focus-objects [data-obj~="${id.replace(/"/g, '\\"')}"]`,
       );
     if (!el) return null;
     const r = el.getBoundingClientRect();

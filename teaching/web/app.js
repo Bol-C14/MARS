@@ -23304,7 +23304,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
   const addressing = (at, base2, off, addr, width) => {
     const align = width > 1 ? `${op} \u8981\u6C42\u5730\u5740\u662F ${width} \u7684\u500D\u6570\uFF0C\u5426\u5219\u89E6\u53D1\u5730\u5740\u5F02\u5E38\u3002` : "\u6309\u5B57\u8282\u8BBF\u95EE\u4E0D\u9700\u8981\u5BF9\u9F50\u3002";
     if (rs && imm !== 0) {
-      beat(at([fresh(hex(rs.value)), off]), `\u8BFB\u51FA\u57FA\u5740 ${base2}\u3002`, {
+      beat(at([fresh(hex(rs.value)), off]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\u3002`, {
         ...reading([rs]),
         why: `\u5730\u5740 = \u57FA\u5740\u5BC4\u5B58\u5668 + 16 \u4F4D\u6709\u7B26\u53F7\u504F\u79FB\uFF08${imm}\uFF09\u3002`
       });
@@ -23312,7 +23312,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}\u3002${align}`
       });
     } else if (rs)
-      beat(at([fresh(hex(addr))]), `\u8BFB\u51FA\u57FA\u5740 ${base2}\uFF0C\u5C31\u662F\u5730\u5740\u3002`, {
+      beat(at([fresh(hex(addr))]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\uFF0C\u5B83\u5C31\u662F\u5730\u5740\u3002`, {
         ...reading([rs]),
         why: `\u504F\u79FB\u4E3A 0\uFF0C\u5730\u5740\u5C31\u662F ${base2} \u7684\u503C\u3002${align}`
       });
@@ -23340,7 +23340,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         " \u2190 ",
         ...expr(fresh(show(rs.value, asHex)), fresh(show(rt.value, asHex)))
       ],
-      `\u8BFB\u51FA ${rs.name} \u548C ${rt.name}\u3002`,
+      `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
       reading([rs, rt])
     );
     if (res)
@@ -23353,7 +23353,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = [dest, " \u2190 ", dim(rs.name), ` ${sym} ${k}`];
     beat(
       [dest, " \u2190 ", fresh(show(rs.value, logical)), ` ${sym} ${k}`],
-      `\u8BFB\u51FA ${rs.name}\u3002`,
+      `\u53D6 ${rs.name} \u7684\u503C\u3002`,
       reading([rs])
     );
     if (res)
@@ -23388,7 +23388,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ` ${sym} `,
         variable ? fresh(amount) : String(sa)
       ],
-      `\u8BFB\u51FA ${rt.name}${variable ? " \u548C\u79FB\u4F4D\u91CF" : ""}\u3002`,
+      `\u53D6 ${rt.name}${variable ? " \u548C\u79FB\u4F4D\u91CF" : ""} \u7684\u503C\u3002`,
       reading(variable && rs ? [rt, rs] : [rt])
     );
     if (res)
@@ -23401,7 +23401,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = division ? ["LO, HI \u2190 ", dim(rs.name), " \xF7 ", dim(rt.name)] : ["HI:LO \u2190 ", acc, dim(rs.name), " \xD7 ", dim(rt.name)];
     beat(
       division ? ["LO, HI \u2190 ", fresh(rs.value), " \xF7 ", fresh(rt.value)] : ["HI:LO \u2190 ", acc, fresh(rs.value), " \xD7 ", fresh(rt.value)],
-      `\u8BFB\u51FA ${rs.name} \u548C ${rt.name}\u3002`,
+      `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
       reading([rs, rt])
     );
     if (division && rt.value === 0)
@@ -23441,7 +23441,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (src)
       beat(
         [dest, " \u2190 ", fresh(show(src.value))],
-        `\u8BFB\u51FA ${op === "mfhi" ? "HI" : "LO"}\u3002`,
+        `\u53D6 ${op === "mfhi" ? "HI" : "LO"} \u7684\u503C\u3002`,
         reading([src])
       );
     writeBack(dest);
@@ -23450,7 +23450,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = [dest.toUpperCase(), " \u2190 ", dim(rs.name)];
     beat(
       [dest.toUpperCase(), " \u2190 ", fresh(show(rs.value))],
-      `\u8BFB\u51FA ${rs.name}\u3002`,
+      `\u53D6 ${rs.name} \u7684\u503C\u3002`,
       reading([rs])
     );
     const a = written(dest);
@@ -23472,7 +23472,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         " \u2190 ",
         fresh(show(rs.value))
       ],
-      "\u8BFB\u51FA\u6761\u4EF6\u548C\u6570\u636E\u3002",
+      "\u53D6\u6761\u4EF6\u548C\u6570\u636E\u7684\u503C\u3002",
       reading([rt, rs])
     );
     beat(
@@ -23493,7 +23493,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     );
     beat(
       [dest, " \u2190 ", fresh(width === 4 ? show(mem.value) : byteHex(raw, width))],
-      `\u8BFB\u51FA ${width} \u5B57\u8282\u3002`,
+      `\u4ECE\u5185\u5B58\u53D6 ${width} \u5B57\u8282\u3002`,
       {
         lit: [{ id: id(mem), mode: "read", width }],
         tokens: [
@@ -23541,7 +23541,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           `${unit}[ ${hex(addr)} ] \u2190 `,
           fresh(width === 4 ? show(src.value) : byteHex(value, width))
         ],
-        width === 4 ? `\u8BFB\u51FA ${src.name}\u3002` : `\u53D6 ${src.name} \u7684\u4F4E ${8 * width} \u4F4D\u3002`,
+        width === 4 ? `\u53D6 ${src.name} \u7684\u503C\u3002` : `\u53D6 ${src.name} \u7684\u4F4E ${8 * width} \u4F4D\u3002`,
         {
           ...reading([src]),
           why: width === 4 ? `${src.name} = ${show(src.value)}\u3002` : `${src.name} = ${hex(src.value)}\uFF0C\u53EA\u4FDD\u7559\u4F4E ${8 * width} \u4F4D ${byteHex(value, width)}\uFF0C\u5176\u4F59\u4F4D\u4E22\u5F03\u3002`
@@ -23592,7 +23592,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           " \u2192 \u8DF3\u5230 ",
           label2
         ],
-        "\u8BFB\u51FA\u8981\u6BD4\u8F83\u7684\u4E24\u4E2A\u5BC4\u5B58\u5668\u3002",
+        "\u53D6\u8981\u6BD4\u8F83\u7684\u4E24\u4E2A\u5BC4\u5B58\u5668\u7684\u503C\u3002",
         reading([rs, rt])
       );
       beat(
@@ -23611,7 +23611,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       template = ["\u82E5 ", dim(rs.name), ` ${cond} \u2192 \u8DF3\u5230 `, label2];
       beat(
         ["\u82E5 ", fresh(rs.value), ` ${cond} \u2192 \u8DF3\u5230 `, label2],
-        `\u8BFB\u51FA ${rs.name}\u3002`,
+        `\u53D6 ${rs.name} \u7684\u503C\u3002`,
         reading([rs])
       );
       beat(
@@ -23667,7 +23667,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
   } else if (/^(jr|jalr)$/.test(op) && rs) {
     const back = op === "jr" && rs.name === "$ra";
     template = ["\u8DF3\u5230 ", dim(rs.name), " \u4E2D\u7684\u5730\u5740"];
-    beat(["\u8DF3\u5230 ", fresh(hex(rs.value))], `\u8BFB\u51FA ${rs.name}\u3002`, {
+    beat(["\u8DF3\u5230 ", fresh(hex(rs.value))], `\u53D6 ${rs.name} \u7684\u503C\u3002`, {
       ...reading([rs]),
       why: back ? "$ra \u4FDD\u5B58\u7740 jal \u7559\u4E0B\u7684\u8FD4\u56DE\u5730\u5740\u3002" : "\u76EE\u6807\u5728\u8FD0\u884C\u65F6\u7531\u5BC4\u5B58\u5668\u51B3\u5B9A\u3002"
     });
@@ -23711,7 +23711,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           " = ",
           fresh(show(a.value))
         ]),
-        "\u8BFB\u51FA\u53C2\u6570\u3002",
+        "\u53D6\u53C2\u6570\u7684\u503C\u3002",
         reading(params)
       );
     if (event.status === "waiting-input")
@@ -23805,6 +23805,176 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
 function unique(list) {
   return [...new Map(list.map((a) => [id(a), a])).values()];
 }
+var LOADS = /* @__PURE__ */ new Set([32, 33, 34, 35, 36, 37, 38, 48]);
+var STORES = /* @__PURE__ */ new Set([40, 41, 42, 43, 46, 56]);
+function roleOf(ins, number2, name2) {
+  const bits = ins.binary | 0, opcode = bits >>> 26, rs = bits >>> 21 & 31, rt = bits >>> 16 & 31, rd = bits >>> 11 & 31;
+  if (ins.op === "syscall") {
+    if (name2 === "$v0")
+      return " syscall \u7684\u670D\u52A1\u7F16\u53F7\uFF08syscall \u6309 $v0 \u51B3\u5B9A\u505A\u4EC0\u4E48\uFF09";
+    if (/^\$a[0-3]$/.test(name2)) return " syscall \u670D\u52A1\u7684\u53C2\u6570";
+    return " syscall \u670D\u52A1\u7528\u5230\u7684\u5BC4\u5B58\u5668";
+  }
+  if (name2 === "hi" || name2 === "lo")
+    return `${name2.toUpperCase()} \u5BC4\u5B58\u5668\uFF08\u4E58\u9664\u6CD5\u7ED3\u679C\u7684\u5B58\u653E\u5904\uFF09`;
+  if (LOADS.has(opcode) && number2 === rs)
+    return "\u57FA\u5740\uFF08rs \u5B57\u6BB5\uFF1A\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
+  if (STORES.has(opcode) && number2 === rs)
+    return "\u57FA\u5740\uFF08rs \u5B57\u6BB5\uFF1A\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
+  if (STORES.has(opcode) && number2 === rt) return "\u8981\u5B58\u8FDB\u5185\u5B58\u7684\u503C\uFF08rt \u5B57\u6BB5\uFF09";
+  if (ins.flow === "branch")
+    return number2 === rs ? "\u6BD4\u8F83\u7684\u7B2C\u4E00\u4E2A\u5BF9\u8C61\uFF08rs \u5B57\u6BB5\uFF09" : "\u6BD4\u8F83\u7684\u7B2C\u4E8C\u4E2A\u5BF9\u8C61\uFF08rt \u5B57\u6BB5\uFF09";
+  if (ins.flow === "indirect" || opcode === 0 && (bits & 63) === 9 && number2 === rs)
+    return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740\uFF08rs \u5B57\u6BB5\uFF09";
+  if (opcode === 0) {
+    if (number2 === rs && number2 === rt)
+      return "\u4E24\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rs \u548C rt \u5B57\u6BB5\u90FD\u662F\u5B83\uFF09";
+    if (number2 === rs) return "\u7B2C\u4E00\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rs \u5B57\u6BB5\uFF09";
+    if (number2 === rt) return "\u7B2C\u4E8C\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rt \u5B57\u6BB5\uFF09";
+    if (number2 === rd) return "\u76EE\u6807\uFF08rd \u5B57\u6BB5\uFF09";
+  }
+  if (number2 === rs) return "\u6E90\u64CD\u4F5C\u6570\uFF08rs \u5B57\u6BB5\uFF09";
+  if (number2 === rt) return "\u64CD\u4F5C\u6570\uFF08rt \u5B57\u6BB5\uFF09";
+  return "\u8FD9\u6761\u6307\u4EE4\u7528\u5230\u7684\u4E00\u4E2A\u5BC4\u5B58\u5668";
+}
+function destField(ins, number2) {
+  const bits = ins.binary | 0, opcode = bits >>> 26;
+  if (number2 === (bits >>> 11 & 31) && opcode === 0)
+    return "rd \u5B57\u6BB5\u6307\u5B9A\u7684\u76EE\u6807";
+  if (number2 === (bits >>> 16 & 31) && opcode !== 0)
+    return "rt \u5B57\u6BB5\u6307\u5B9A\u7684\u76EE\u6807";
+  if (number2 === 31 && (opcode === 3 || ins.flow === "call"))
+    return "\u8C03\u7528\u6307\u4EE4\u56FA\u5B9A\u5199 $ra";
+  return "";
+}
+var touches = (a, id2) => {
+  if (id2.startsWith("reg:"))
+    return a.kind === "register" && a.name === id2.slice(4);
+  const address = Number(id2.slice(4));
+  return a.kind === "memory" && address >= a.address && address < a.address + a.width;
+};
+function completeWhys(model, event, {
+  before = [],
+  after = [],
+  instructions = [],
+  symbols = [],
+  explanations: explanations2 = {},
+  delay = false
+} = {}) {
+  if (!event?.instruction || !model?.beats) return model;
+  const ins = event.instruction;
+  const place = (e) => {
+    const i = e.instruction, line = instructions.find(
+      (x) => x.file === i.file && x.line === i.line && x.source
+    )?.source || i.source || i.basic || i.op;
+    return `\u7B2C ${e.step} \u6B65\uFF08${i.file}:${i.line} \`${line.split("#")[0].trim().replace(/\s+/g, " ")}\`\uFF09`;
+  };
+  const where = (address) => {
+    const s = symbols.find((x) => x.address === address && !x.data);
+    if (s) return s.name;
+    const i = instructions.find((x) => x.address === address);
+    return i ? `${i.file} \u7B2C ${i.line} \u884C` : hex(address);
+  };
+  const writer = (id2) => {
+    for (let k = before.length - 1; k >= 0; k--)
+      if ((before[k].accesses || []).some((a) => a.write && touches(a, id2)))
+        return before[k];
+    return null;
+  };
+  const reader = (id2) => after.find(
+    (e) => (e.accesses || []).some((a) => !a.write && touches(a, id2))
+  ) || null;
+  const access = (id2) => (event.accesses || []).find((a) => touches(a, id2));
+  const rule = () => explanations2[ins.op] || ins.description || "\u6309\u8FD9\u6761\u6307\u4EE4\u7684\u5B9A\u4E49\u8BA1\u7B97\u3002";
+  const generate = (b, provenanceOnly = false) => {
+    const reads = b.tokens.filter(
+      (t2) => t2.kind === "read" && t2.from !== "code"
+    );
+    const writes = b.lit.filter((l) => l.mode === "write");
+    const flow = b.tokens.find((t2) => t2.to === "next");
+    const parts = [];
+    for (const t2 of reads) {
+      const a = access(t2.from);
+      if (!a) continue;
+      const w = writer(t2.from);
+      if (a.kind === "register") {
+        if (a.name === "$zero") {
+          if (!provenanceOnly) parts.push("$zero \u6052\u4E3A 0\uFF0C\u8BFB\u5B83\u603B\u662F\u5F97\u5230 0\u3002");
+          continue;
+        }
+        if (provenanceOnly) {
+          if (w) parts.push(`${a.name} \u7684\u503C\u6765\u81EA${place(w)}\u3002`);
+          continue;
+        }
+        parts.push(
+          `${a.name} \u5728\u8FD9\u91CC\u662F${roleOf(ins, a.number, a.name)}\u3002` + (w ? `\u5B83\u73B0\u5728\u7684\u503C\u6765\u81EA${place(w)}\u3002` : "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u5B83\uFF0C\u8FD9\u662F\u5B83\u7684\u521D\u59CB\u503C\u6216\u66F4\u65E9\u5199\u5165\u7684\u503C\u3002")
+        );
+      } else {
+        parts.push(
+          (provenanceOnly ? "" : `\u4ECE\u5185\u5B58 ${hex(a.address)} \u53D6 ${a.width} \u5B57\u8282\u3002`) + (w ? `\u8FD9\u91CC\u7684\u5185\u5BB9\u662F${place(w)}\u5199\u8FDB\u53BB\u7684\u3002` : "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u8FD9\u91CC\uFF0C\u5185\u5BB9\u662F\u7A0B\u5E8F\u52A0\u8F7D\u65F6\u5C31\u6709\u7684\u6570\u636E\uFF08\u4F8B\u5982 .data \u91CC\u7684\u521D\u503C\uFF09\u3002")
+        );
+      }
+    }
+    for (const l of writes) {
+      const a = access(l.id);
+      if (!a) continue;
+      const r = reader(l.id);
+      const field = a.kind === "register" ? destField(ins, a.number) : "";
+      const what = provenanceOnly ? "" : a.kind === "register" ? `\u7ED3\u679C\u5199\u8FDB ${a.name}${field ? `\uFF08${field}\uFF09` : ""}\u3002` : `\u7ED3\u679C\u5199\u8FDB\u5185\u5B58 ${hex(a.address)} \u8D77\u7684 ${a.width} \u5B57\u8282\u3002`;
+      parts.push(
+        what + (r ? `\u4E4B\u540E${place(r)}\u4F1A\u8BFB\u53D6\u5B83\u3002` : "\u5728\u7A97\u53E3\u91CC\u4E4B\u540E\u7684\u6B65\u9AA4\u4E0D\u4F1A\u518D\u8BFB\u53D6\u5B83\u3002")
+      );
+    }
+    if (provenanceOnly) return parts.join("");
+    if (flow && event.nextPC != null) {
+      const sequential = event.nextPC === ins.address + 4;
+      parts.push(
+        sequential ? "\u6CA1\u6709\u53D1\u751F\u8DF3\u8F6C\uFF1APC \u52A0 4\uFF0C\u6267\u884C\u7D27\u6328\u7740\u7684\u4E0B\u4E00\u6761\u6307\u4EE4\u3002" : `PC \u88AB\u6539\u6210 ${hex(event.nextPC)}\uFF0C\u6240\u4EE5\u4E0B\u4E00\u6761\u662F ${where(event.nextPC)}\u3002`
+      );
+      if (delay && ins.flow !== "next")
+        parts.push("\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u8DF3\u8F6C\u524D\u4F1A\u5148\u6267\u884C\u7D27\u8DDF\u5728\u540E\u9762\u7684\u90A3\u4E00\u6761\u3002");
+    }
+    if (!parts.length) {
+      if (event.output && event.service != null)
+        parts.push(
+          `syscall ${event.service} \u628A\u7ED3\u679C\u5199\u5230\u63A7\u5236\u53F0\uFF1B\u7A0B\u5E8F\u7684\u8F93\u51FA\u53EA\u5728\u8FD9\u4E00\u523B\u4EA7\u751F\u3002`
+        );
+      else parts.push(`\u6307\u4EE4 ${ins.op} \u7684\u89C4\u5219\uFF1A${rule()}`);
+    }
+    return parts.join("");
+  };
+  return {
+    ...model,
+    beats: model.beats.map(
+      (b) => b.why ? { ...b, why: [b.why, generate(b, true)].filter(Boolean).join(" ") } : { ...b, why: generate(b) }
+    )
+  };
+}
+function groupBytes(objects) {
+  const out = [];
+  for (const o of objects) {
+    const prev = out.at(-1);
+    if (o.kind === "memory" && prev?.kind === "memory" && prev.address + prev.width === o.address && prev.write === o.write) {
+      prev.width += o.width;
+      prev.ids.push(o.id);
+      prev.bytes.push(...bytesOf(o));
+      continue;
+    }
+    out.push(
+      o.kind === "memory" ? { ...o, ids: [o.id], bytes: bytesOf(o) } : { ...o, ids: [o.id] }
+    );
+  }
+  for (const o of out)
+    if (o.kind === "memory" && o.bytes.length > 1)
+      o.text = o.bytes.every((b) => b === 0 || b >= 32 && b < 127 || b === 10) ? JSON.stringify(String.fromCharCode(...o.bytes.filter((b) => b !== 0))) : null;
+  return out;
+}
+function bytesOf(o) {
+  return Array.from(
+    { length: o.width },
+    (_, i) => (o.value ?? o.after) >>> 8 * i & 255
+  );
+}
 
 // ui/focus.js
 var stopText = {
@@ -23831,7 +24001,7 @@ var FocusLens = class {
         <header id="focus-head">
           <strong>\u4E13\u6CE8</strong><span id="focus-where"></span>
           <label>\u8303\u56F4 <select id="focus-range" aria-label="\u9884\u8BA1\u8303\u56F4"><option value="auto">\u81EA\u52A8</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} \u884C</option>`).join("")}</select></label>
-          <span id="focus-keys">\u2191\u2193 \u884C \xB7 \u2190\u2192 \u62CD \xB7 Tab \u9009\u6B65 \xB7 Enter \u8FD0\u884C\u5230 \xB7 ? \u63A8\u5BFC \xB7 Esc \u9000\u51FA</span>
+          <span id="focus-keys">\u2191\u2193 \u67E5\u770B \xB7 \u21E7\u2191 \u540E\u9000\u4E00\u884C \xB7 \u21E7\u2193 \u6267\u884C\u4E00\u884C \xB7 \u2190\u2192 \u9010\u6B65\u89E3\u91CA \xB7 Enter \u8FD0\u884C\u5230\u9009\u4E2D \xB7 ? \u4E3A\u4EC0\u4E48 \xB7 Esc \u9000\u51FA</span>
           <button id="focus-close" aria-label="\u9000\u51FA\u4E13\u6CE8\u6A21\u5F0F">\xD7</button>
         </header>
         <div id="focus-body">
@@ -23840,11 +24010,11 @@ var FocusLens = class {
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="\u62CD"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="\u89E3\u91CA\u8FDB\u5EA6"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div class="focus-controls">
-            <button id="focus-prev">\u25C0 \u4E0A\u4E00\u62CD</button><button id="focus-next">\u4E0B\u4E00\u62CD \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
+            <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
           </div>
           <div id="focus-why-text" hidden></div>
           <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u6309 \u2193 \u7EE7\u7EED</span></form>
@@ -23873,7 +24043,7 @@ var FocusLens = class {
     };
     window.addEventListener("keydown", (e) => this.key(e), true);
     window.addEventListener("keyup", (e) => {
-      if (this.isOpen && this.holding && /^Arrow(Up|Down)$/.test(e.key)) {
+      if (this.isOpen && this.holding && /^(Arrow(Up|Down)|Shift)$/.test(e.key)) {
         this.holding = false;
         this.autoplay();
       }
@@ -23931,6 +24101,10 @@ var FocusLens = class {
       mode: this.mode === "auto" ? "auto" : "fixed",
       lines: this.lookaheadLines()
     });
+    this.timeline = [
+      ...(state2.trace || []).filter((e) => e.step <= state2.step),
+      ...this.layout.steps.filter((s) => s.predicted).flatMap((s) => s.events)
+    ];
     this.models = new Map(
       this.layout.steps.map((s) => [
         s.index,
@@ -23955,7 +24129,16 @@ var FocusLens = class {
   // their beats are shown in order under the line's own source text.
   stepModel(step, state2, program2) {
     const options = { delay: state2.delay, ...program2 };
-    const parts = step.events.map((e) => beatModel(e, options));
+    const parts = step.events.map(
+      (e) => completeWhys(beatModel(e, options), e, {
+        before: this.timeline.filter((x) => x.step < e.step),
+        after: this.timeline.filter((x) => x.step > e.step),
+        instructions: program2.instructions,
+        symbols: program2.symbols,
+        explanations,
+        delay: state2.delay
+      })
+    );
     if (parts.length === 1) return parts[0];
     const beats = parts.flatMap(
       (p, i) => p.beats.map((b) => ({
@@ -24033,6 +24216,15 @@ var FocusLens = class {
     this.render();
     this.autoplay();
   }
+  // Look at another step of the window without executing anything.
+  moveSelection(delta, wrap = false) {
+    const order = this.layout?.steps.map((s) => s.index) || [];
+    if (!order.length) return;
+    let i = order.indexOf(this.selected) + delta;
+    if (wrap) i = (i + order.length) % order.length;
+    else i = Math.max(0, Math.min(order.length - 1, i));
+    if (order[i] !== this.selected) this.select(order[i]);
+  }
   toggleWhy() {
     this.whyOpen = !this.whyOpen;
     document.getElementById("focus-why").setAttribute("aria-expanded", this.whyOpen);
@@ -24053,6 +24245,9 @@ var FocusLens = class {
     if (e.key === "Escape") {
       handled();
       this.close();
+    } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && !e.shiftKey) {
+      handled();
+      this.moveSelection(e.key === "ArrowUp" ? -1 : 1);
     } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       handled();
       const now = performance.now();
@@ -24076,12 +24271,7 @@ var FocusLens = class {
       this.seekBeat(this.beat + (e.key === "ArrowLeft" ? -1 : 1));
     } else if (e.key === "Tab") {
       handled();
-      const order = this.layout?.steps.map((s) => s.index) || [];
-      const i = order.indexOf(this.selected);
-      if (order.length)
-        this.select(
-          order[(i + (e.shiftKey ? -1 : 1) + order.length) % order.length]
-        );
+      this.moveSelection(e.shiftKey ? -1 : 1, true);
     } else if (e.key === "Enter") {
       handled();
       if (this.selected > 0) {
@@ -24125,7 +24315,7 @@ var FocusLens = class {
                 <code>${escapeHTML(this.host.getSource(line.file, line.line)?.trim() || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "\u25BE" : "\u25B8"} ${machine.length} \u6761</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">\u672A\u8D70\uFF1A${hint.kind === "taken" ? "\u2192 " + escapeHTML(hint.label) : "\u987A\u5E8F\u6267\u884C " + escapeHTML(hint.label)}</div>` : ""}`;
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "\u8FD9\u6B21\u4E0D\u8DF3\u5230 " + escapeHTML(hint.label) : "\u8FD9\u6B21\u4E0D\u987A\u5E8F\u6267\u884C\u5230 " + escapeHTML(hint.label)}</div>` : ""}`;
       }).join("");
       return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${n % 2 + 1};grid-row:${n + 1}"><div class="fseg-head">${head}</div>${rows}</div>`;
     }).join("") + this.stopNote();
@@ -24156,7 +24346,7 @@ var FocusLens = class {
     const s = this.layout.stop;
     if (!s.reason) return "";
     const at = s.at?.line ? `\uFF08\u7B2C ${s.at.line} \u884C\uFF09` : "";
-    const text2 = s.reason === "window" ? `\u4E4B\u540E${at}\u8D85\u51FA\u8303\u56F4` : `\u4E4B\u540E\uFF1A${stopText[s.reason] || "\u65E0\u6CD5\u9884\u8BA1 \xB7 " + s.reason}${at}`;
+    const text2 = s.reason === "window" ? `\u4E0B\u9762\u8FD8\u6709\uFF1A${s.at?.line ? `\u7B2C ${s.at.line} \u884C\u8D77` : "\u66F4\u591A"}\uFF08\u4E0D\u5728\u7A97\u53E3\u5185\uFF09` : `\u4E4B\u540E\uFF1A${stopText[s.reason] || "\u65E0\u6CD5\u9884\u8BA1 \xB7 " + s.reason}${at}`;
     return `<div class="fstop" data-anchor="stop">${escapeHTML(text2)}${s.complete ? "" : " \xB7 \u8BE5\u884C\u53EA\u9884\u8BA1\u4E86\u4E00\u90E8\u5206"}</div>`;
   }
   // Values of every object the window touches, as of the selected step:
@@ -24205,7 +24395,7 @@ var FocusLens = class {
     ).join("");
     $2("focus-caption").textContent = b ? b.caption : m.beats.length ? "\u2192 \u4E0B\u4E00\u62CD\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C" : "";
     $2("focus-dots").innerHTML = m.beats.map(
-      (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="\u7B2C ${i + 1} \u62CD"></button>`
+      (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="\u7B2C ${i + 1} \u6761\u89E3\u91CA"></button>`
     ).join("");
     $2("focus-dots").querySelectorAll("[data-beat]").forEach(
       (d) => d.onclick = () => this.seekBeat(Number(d.dataset.beat))
@@ -24215,13 +24405,17 @@ var FocusLens = class {
     $2("focus-why").disabled = !b?.why;
     $2("focus-why-text").hidden = !(this.whyOpen && b?.why);
     $2("focus-why-text").textContent = b?.why || "";
-    const objects = this.objectValues(), lit = new Map((b?.lit || []).map((l) => [l.id, l.mode]));
+    const objects = groupBytes(this.objectValues()), lit = new Map((b?.lit || []).map((l) => [l.id, l.mode]));
+    const litMode = (o) => o.ids.map((id2) => lit.get(id2)).find(Boolean);
     const shown = objects.slice(0, 12);
     const value = (o, n) => o.kind === "memory" && o.width < 4 ? "0x" + (n >>> 0 & 2 ** (8 * o.width) - 1).toString(16).padStart(2 * o.width, "0") : Math.abs(n) >= 1e4 || o.kind === "memory" ? hex(n) : String(n);
     $2("focus-objects").innerHTML = `<div class="fobj-title">\u6D89\u53CA\u5BF9\u8C61</div>` + shown.map((o) => {
-      const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}]\xB7${o.width}B`;
-      const v = o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value);
-      return `<div class="fobj ${lit.has(o.id) ? "lit-" + lit.get(o.id) : ""} ${o.touched ? "touched" : ""}" data-obj="${o.id}"><span>${escapeHTML(label2)}</span><span>${escapeHTML(v)}</span></div>`;
+      const grouped = o.kind === "memory" && o.bytes.length > 1;
+      const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}${grouped ? "\u2026" : ""}]\xB7${o.width}B`;
+      const v = grouped ? o.text ?? `${o.bytes.length} \u5B57\u8282` : o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value);
+      const raw = grouped ? `<small class="fraw">${o.bytes.slice(0, 16).map((x) => x.toString(16).padStart(2, "0")).join(" ")}${o.bytes.length > 16 ? " \u2026" : ""}</small>` : "";
+      const mode = litMode(o);
+      return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${escapeHTML(label2)}</span><span>${escapeHTML(v)}</span>${raw}</div>`;
     }).join("") + (objects.length > 12 ? `<div class="fmore">\u53E6\u6709 ${objects.length - 12} \u4E2A\u5BF9\u8C61</div>` : "");
     this.draw(animate ? b : null);
   }
@@ -24236,7 +24430,7 @@ var FocusLens = class {
       el = next != null ? this.rowOf(next) : document.querySelector('#focus-path [data-anchor="stop"]');
     } else
       el = document.querySelector(
-        `#focus-objects [data-obj="${CSS.escape(id2)}"]`
+        `#focus-objects [data-obj~="${id2.replace(/"/g, '\\"')}"]`
       );
     if (!el) return null;
     const r = el.getBoundingClientRect();

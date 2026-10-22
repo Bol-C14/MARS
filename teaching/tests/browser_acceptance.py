@@ -224,12 +224,25 @@ def scenario(r, page, mod):
     template = page.locator("#focus-eq").inner_text()
     r.until("(t) => document.getElementById('focus-eq').textContent !== t", template)
     r.check("fill-in beats play", True)
+    # Every beat answers "why": the last beat (write-back) too (trial B2).
+    r.until("() => document.querySelector('.fdot.now') && [...document.querySelectorAll('.fdot')].at(-1).classList.contains('now')", timeout=10000)
+    page.keyboard.press("?")
+    why = page.locator("#focus-why-text")
+    r.check("final beat has a why", why.is_visible() and len(why.inner_text()) > 10, why.inner_text())
+    page.keyboard.press("?")
     before = state()["step"]
+    # Plain arrows only look (trial B1): the selection moves, the machine does not.
     page.keyboard.press("ArrowDown")
-    r.until("(n) => window.marsIDE.state.step > n", before)
+    page.wait_for_timeout(300)
+    r.check("plain ↓ selects without executing",
+            state()["step"] == before and "预计" in page.locator("#focus-tag").inner_text())
     page.keyboard.press("ArrowUp")
+    r.check("plain ↑ returns to the completed step", page.locator("#focus-tag").inner_text() == "刚完成")
+    page.keyboard.press("Shift+ArrowDown")
+    r.until("(n) => window.marsIDE.state.step > n", before)
+    page.keyboard.press("Shift+ArrowUp")
     r.until("(n) => window.marsIDE.state.step === n", before)
-    r.check("lens arrow keys move by source line", True)
+    r.check("Shift+↑/↓ move by source line", True)
     page.keyboard.press("Tab")
     page.keyboard.press("Tab")
     r.check("Tab selects a predicted step", "预计" in page.locator("#focus-tag").inner_text())
@@ -239,7 +252,7 @@ def scenario(r, page, mod):
     # Holding ↓: OS auto-repeat arrives as keydown events with repeat set.
     held = r.js("""async () => {
         const start = window.marsIDE.state.step, tokens = [];
-        const send = (type, repeat) => window.dispatchEvent(new KeyboardEvent(type, { key: 'ArrowDown', repeat, bubbles: true }));
+        const send = (type, repeat) => window.dispatchEvent(new KeyboardEvent(type, { key: 'ArrowDown', shiftKey: true, repeat, bubbles: true }));
         send('keydown', false);
         for (let i = 0; i < 25; i++) { await new Promise(r => setTimeout(r, 40)); send('keydown', true); tokens.push(document.querySelectorAll('.ftoken').length) }
         await new Promise(r => setTimeout(r, 300));

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { beatModel } from "../ui/beats.js";
+import { beatModel, completeWhys, groupBytes } from "../ui/beats.js";
 
 const r = (number, name, value) => ({ kind: "register", number, name, value, before: value, write: false });
 const w = (number, name, before, value) => ({ kind: "register", number, name, before, value, write: true });
@@ -98,4 +98,53 @@ test("errors add a final beat; blocked previews explain they will not run", () =
   assert.equal(e.beats.at(-1).caption, "Runtime exception: address not word-aligned");
   const ended = beatModel({ instruction: I("addu", 0), status: "ended", accesses: [] });
   assert.deepEqual([lines(ended), ended.summary], [["程序已结束"], "程序已结束"]);
+});
+
+const at = (step, instruction, accesses, extra = {}) => ({ step, instruction, accesses, nextPC: instruction.address + 4, ...extra });
+
+test("generated whys name the operand's role, its producer and its next reader", () => {
+  const ins = I("addu", R(0, 8, 9, 10, 0, 33), { address: 0x400010, line: 5, source: "addu $t2, $t0, $t1" });
+  const e = at(5, ins, [r(8, "$t0", 7), r(9, "$t1", 5), w(10, "$t2", 0, 12)]);
+  const producer = at(3, I("li", R(9, 0, 8) | 7, { line: 3, source: "li $t0, 7" }), [w(8, "$t0", 0, 7)]);
+  const consumer = at(8, I("move", R(0, 10, 0, 4, 0, 33), { line: 8, source: "move $a0, $t2" }), [r(10, "$t2", 12), w(4, "$a0", 0, 12)]);
+  const m = completeWhys(beatModel(e), e, { before: [producer], after: [consumer] });
+  assert.ok(m.beats.every((b) => b.why), "every beat answers why");
+  assert.match(m.beats[0].why, /\$t0 在这里是第一个源操作数（rs 字段）。它现在的值来自第 3 步（main.s:3 `li \$t0, 7`）/);
+  assert.match(m.beats[0].why, /\$t1 在这里是第二个源操作数（rt 字段）。最近的执行记录里没有写过它/);
+  assert.match(m.beats[2].why, /结果写进 \$t2（rd 字段指定的目标）。之后第 8 步（main.s:8 `move \$a0, \$t2`）会读取它/);
+  const alone = completeWhys(beatModel(e), e, {});
+  assert.match(alone.beats[2].why, /在窗口里之后的步骤不会再读取它/);
+});
+
+test("hand-written derivations are kept; unknown instructions still get facts", () => {
+  const e = at(1, I("lb", R(32, 5, 10)), [r(5, "$a1", 0x10010010), m(0x10010010, 1, 0xf0), w(10, "$t2", 0, -16)]);
+  const before = beatModel(e).beats.map((b) => b.why);
+  const after = completeWhys(beatModel(e), e, {}).beats.map((b) => b.why);
+  before.forEach((why, i) => why && assert.ok(after[i].startsWith(why)));
+  assert.ok(after.every(Boolean));
+  const odd = at(2, I("teq", R(0, 8, 9, 0, 0, 52), { description: "Trap if equal" }), [r(8, "$t0", 1), r(9, "$t1", 2)]);
+  const oddModel = completeWhys(beatModel(odd), odd, { explanations: {} });
+  assert.match(oddModel.beats[0].why, /\$t0 在这里是第一个源操作数（rs 字段）/);
+  const flow = at(3, I("j", R(2) | 0x100010, { flow: "jump", target: 0x400040, address: 0x400000 }), [], { nextPC: 0x400040 });
+  const jm = completeWhys(beatModel(flow, { symbols: [{ name: "loop", address: 0x400040 }] }), flow, { symbols: [{ name: "loop", address: 0x400040 }] });
+  assert.match(jm.beats.at(-1).why, /目标|PC 被改成 0x00400040，所以下一条是 loop/);
+});
+
+test("memory reads explain where the bytes came from", () => {
+  const e = at(9, I("lw", R(35, 4, 8)), [r(4, "$a0", 0x100), m(0x100, 4, 7), w(8, "$t0", 0, 7)]);
+  const store = at(4, I("sw", R(43, 4, 9), { line: 4, source: "sw $t1, 0($a0)" }), [r(4, "$a0", 0x100), r(9, "$t1", 7), m(0x100, 4, 7, true, 0)]);
+  const reasons = completeWhys(beatModel(e), e, { before: [store] }).beats.map((b) => b.why).join(" ");
+  assert.match(reasons, /这里的内容是第 4 步（main.s:4 `sw \$t1, 0\(\$a0\)`）写进去的/);
+});
+
+test("adjacent bytes merge into one object with readable text and raw bytes", () => {
+  const objs = [
+    { id: "reg:$a0", kind: "register", name: "$a0", value: 0x10010000, write: false },
+    ...[72, 105, 0].map((b, i) => ({ id: "mem:" + (0x10010000 + i), kind: "memory", address: 0x10010000 + i, width: 1, value: b, after: b, write: false })),
+    { id: "mem:268500996", kind: "memory", address: 0x10010004, width: 1, value: 0xff, after: 0xff, write: false },
+  ];
+  const g = groupBytes(objs);
+  assert.deepEqual(g.map((o) => [o.kind, o.width, o.ids.length]), [["register", undefined, 1], ["memory", 3, 3], ["memory", 1, 1]]);
+  assert.equal(g[1].text, '"Hi"');
+  assert.deepEqual(g[1].bytes, [72, 105, 0]);
 });

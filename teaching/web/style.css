@@ -1314,3 +1314,14 @@ body.focusing #tooltip {
     transition: none;
   }
 }
+.fobj.group {
+  flex-wrap: wrap;
+}
+.fobj .fraw {
+  flex-basis: 100%;
+  color: var(--muted);
+  opacity: 0.75;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
