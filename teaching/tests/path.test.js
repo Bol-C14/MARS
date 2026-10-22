@@ -130,3 +130,10 @@ test("empty input yields an empty layout", () => {
   const p = layoutPath();
   assert.deepEqual([p.steps, p.segments, p.edges, p.hints], [[], [], [], []]);
 });
+
+test("the completed step includes the whole pseudo-instruction line from history", () => {
+  const A = ins(0x00, 1, "lui"), B = ins(0x04, 1, "ori"), C = ins(0x08, 2);
+  const history = [{ ...ev(A, 4), pc: 0, step: 1 }, { ...ev(B, 8), pc: 4, step: 2 }];
+  const p = layoutPath({ last: history[1], history, lookahead: look([[C, 0xc]]), instructions: [A, B, C], mode: "fixed" });
+  assert.deepEqual(p.steps[0].events.map((e) => e.instruction.op), ["lui", "ori"]);
+});

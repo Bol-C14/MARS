@@ -2,7 +2,7 @@
 Playwright against a private local server. Run from the repository root after
 `sh teaching/scripts/build.sh`:  python3 teaching/tests/browser_acceptance.py
 Exit 0 = all checks passed, 1 = a check failed, 2 = no usable browser."""
-import glob, json, os, pathlib, socket, subprocess, sys, time
+import glob, json, os, pathlib, re, socket, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 try:
@@ -128,6 +128,22 @@ def scenario(r, page, mod):
 
     # --- M2.5: inline values ---
     r.check("inline execution values", page.locator(".cm-inline-value").count() > 0)
+
+    # --- Trial C: read-only radix switch; code never changes (C2) ---
+    code_before = r.js("() => window.marsIDE.editor.state.doc.toString()")
+    for mode, prefix in (("hex", "0x"), ("bin", "0b"), ("dec", "0d"), ("ascii", "'")):
+        page.select_option("#radix", mode)
+        cell = page.locator('[data-register="$t0"] span').nth(1).inner_text()
+        r.check(f"radix {mode} shows {prefix}", cell.startswith(prefix), cell)
+    r.check("memory header names the cell radix", "字符" in page.locator("#mem-radix").inner_text())
+    r.check("radix never rewrites code", r.js("() => window.marsIDE.editor.state.doc.toString()") == code_before)
+    page.select_option("#radix", "auto")
+    # C3: register names, not numbers, wherever machine statements appear.
+    shown = page.locator("#last-card").inner_text() + page.locator("#next-card").inner_text() + page.locator("#trace").inner_text()
+    r.check("machine statements use register names", not re.search(r"\$\d", shown), shown[:200])
+    # C5: delay-slot nops are dimmed and say why.
+    slot = page.locator(".cm-line.delay-nop").first
+    r.check("delay-slot nop is marked", slot.count() > 0 and "延迟槽占位" in (slot.get_attribute("title") or ""))
 
     # --- Trial A: running is visible; demo follows across files and says so ---
     page.keyboard.press("Shift+F5")

@@ -202,3 +202,29 @@ export function buildCFG(instructions, delay = false) {
   }
   return blocks;
 }
+
+// Code and comment of one source line; "#" inside a string is not a comment.
+export function splitComment(line) {
+  let quote = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quote) {
+      if (c === "\\") i++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "#")
+      return {
+        code: line.slice(0, i).trim(),
+        comment: line.slice(i + 1).trim(),
+      };
+  }
+  return { code: line.trim(), comment: "" };
+}
+
+// Machine statements as MARS prints them use register numbers ($2); show the
+// names students see everywhere else ($v0) (trial C3).
+export function nameRegisters(text) {
+  return String(text ?? "").replace(/\$(\d+)\b/g, (m, n) =>
+    Number(n) < 32 ? "$" + registerNames[Number(n)] : m,
+  );
+}

@@ -1,6 +1,8 @@
-import { hex, escapeHTML as esc, explanations } from "./model.js";
+import { hex, escapeHTML as esc, explanations, splitComment } from "./model.js";
 import { layoutPath } from "./path.js";
-import { beatModel, completeWhys, groupBytes } from "./beats.js";
+import { beatModel, completeWhys, groupBytes, lineSummary } from "./beats.js";
+import { formatValue, addressRegisters } from "./radix.js";
+import { glossify } from "./glossary.js";
 // Focus mode (DESIGN §3.7): a floating lens over a blurred IDE that narrates
 // the completed step and the predicted path. It owns its own state panel and
 // draws every arrow inside itself; machine state only moves through `host`.
@@ -42,6 +44,7 @@ export class FocusLens {
           <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="解释进度"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
+          <div id="focus-note" hidden></div>
           <div class="focus-controls">
             <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button>
           </div>
@@ -132,6 +135,7 @@ export class FocusLens {
     const program = this.host.getProgram();
     this.layout = layoutPath({
       last: state.last,
+      history: state.trace,
       lookahead: state.lookahead,
       instructions: program.instructions,
       symbols: program.symbols,
@@ -172,6 +176,27 @@ export class FocusLens {
   // their beats are shown in order under the line's own source text.
   stepModel(step, state, program) {
     const options = { delay: state.delay, ...program };
+    const context = (from, to) => ({
+      before: this.timeline.filter((x) => x.step < from),
+      after: this.timeline.filter((x) => x.step > to),
+      instructions: program.instructions,
+      symbols: program.symbols,
+      explanations,
+      delay: state.delay,
+    });
+    // A pseudo-instruction line shows its net effect unless expanded (C3).
+    if (step.events.length > 1 && !this.expanded.has(step.address)) {
+      const summary = lineSummary(step.events, {
+        source: splitComment(this.host.getSource(step.file, step.line) || "")
+          .code,
+        ...program,
+      });
+      return completeWhys(
+        summary,
+        summary.event,
+        context(step.events[0].step, step.events.at(-1).step),
+      );
+    }
     const parts = step.events.map((e) =>
       completeWhys(beatModel(e, options), e, {
         before: this.timeline.filter((x) => x.step < e.step),
@@ -378,7 +403,7 @@ export class FocusLens {
               return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}">
                 <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "删除断点" : "设置断点"}">${bp ? "●" : "○"}</button>
                 <span class="fln">${line.line}</span>
-                <code>${esc(this.host.getSource(line.file, line.line)?.trim() || machine[0]?.basic || "")}</code>
+                <code>${esc(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "▾" : "▸"} ${machine.length} 条</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
               </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "这次不跳到 " + esc(hint.label) : "这次不顺序执行到 " + esc(hint.label)}</div>` : ""}`;
@@ -420,7 +445,11 @@ export class FocusLens {
             this.expanded.has(a)
               ? this.expanded.delete(a)
               : this.expanded.add(a);
-            this.render();
+            // Expanding switches that line between its net effect and the
+            // per-instruction explanation, so its beats are rebuilt.
+            this.stop();
+            this.beat = 0;
+            this.update(this.host.getState());
           }),
       );
     this.renderBeat(false);
@@ -481,21 +510,26 @@ export class FocusLens {
       ? `预计 +${step.index + 1}`
       : "刚完成";
     $("focus-tag").className = step.predicted ? "pred" : "done";
-    $("focus-src").textContent =
-      `${step.file}:${step.line}  ${this.host.getSource(step.file, step.line)?.trim() || ""}`;
+    const source = splitComment(
+      this.host.getSource(step.file, step.line) || "",
+    );
+    $("focus-src").textContent = `${step.file}:${step.line}  ${source.code}`;
+    // Intent comes from the program's author, never from the IDE (C1).
+    $("focus-note").hidden = !source.comment;
+    $("focus-note").textContent = source.comment
+      ? "作者注释：" + source.comment
+      : "";
     const parts = b ? b.eq : m.template;
     $("focus-eq").innerHTML = parts
       .map((p) =>
         typeof p === "string"
           ? esc(p)
-          : `<span class="${p.c}">${esc(p.t)}</span>`,
+          : `<span class="${p.c || ""}">${this.number(p)}</span>`,
       )
       .join("");
-    $("focus-caption").textContent = b
-      ? b.caption
-      : m.beats.length
-        ? "→ 下一拍逐个代入真实值"
-        : "";
+    $("focus-caption").innerHTML = glossify(
+      b ? b.caption : m.beats.length ? "→ 下一条解释逐个代入真实值" : "",
+    );
     $("focus-dots").innerHTML = m.beats
       .map(
         (_, i) =>
@@ -511,21 +545,25 @@ export class FocusLens {
     $("focus-next").disabled = this.beat >= m.beats.length;
     $("focus-why").disabled = !b?.why;
     $("focus-why-text").hidden = !(this.whyOpen && b?.why);
-    $("focus-why-text").textContent = b?.why || "";
+    $("focus-why-text").innerHTML = glossify(b?.why || "");
 
     const objects = groupBytes(this.objectValues()),
       lit = new Map((b?.lit || []).map((l) => [l.id, l.mode]));
     const litMode = (o) => o.ids.map((id) => lit.get(id)).find(Boolean);
     const shown = objects.slice(0, 12);
-    const value = (o, n) =>
-      o.kind === "memory" && o.width < 4
-        ? "0x" +
-          ((n >>> 0) & (2 ** (8 * o.width) - 1))
-            .toString(16)
-            .padStart(2 * o.width, "0")
-        : Math.abs(n) >= 10000 || o.kind === "memory"
-          ? hex(n)
-          : String(n);
+    const value = (o, n) => {
+      const f = formatValue(n, {
+        radix: this.host.getRadix(),
+        width: o.kind === "memory" ? Math.min(4, o.width) : 4,
+        kind:
+          o.kind === "memory"
+            ? "bits"
+            : addressRegisters.has(o.name)
+              ? "address"
+              : "value",
+      });
+      return f.text + (f.note ? " " + f.note : "");
+    };
     $("focus-objects").innerHTML =
       `<div class="fobj-title">涉及对象</div>` +
       shown
@@ -555,6 +593,21 @@ export class FocusLens {
         ? `<div class="fmore">另有 ${objects.length - 12} 个对象</div>`
         : "");
     this.draw(animate ? b : null);
+  }
+
+  // A number part in the chosen radix; the character reading stays faint.
+  number(p, html = true) {
+    if (!p.num) return html ? esc(p.t) : p.t;
+    const f = formatValue(p.v, {
+      radix: this.host.getRadix(),
+      width: p.w,
+      kind: p.k,
+    });
+    if (!html) return f.text;
+    return (
+      esc(f.text) +
+      (f.note ? `<span class="value-note">${esc(f.note)}</span>` : "")
+    );
   }
 
   // ---- drawing inside the lens ----
@@ -692,7 +745,7 @@ export class FocusLens {
     body.querySelectorAll(".ftoken").forEach((x) => x.remove());
     const el = document.createElement("div");
     el.className = "ftoken";
-    el.textContent = t.label;
+    el.textContent = t.value ? this.number(t.value, false) : t.label;
     el.style.background = color;
     body.appendChild(el);
     const w = el.offsetWidth / 2,

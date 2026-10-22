@@ -44,7 +44,9 @@
         <option value="450" selected>中</option>
         <option value="150">快</option></select
       ><button id="pause" title="暂停 · F6" disabled>Ⅱ 暂停</button
-      ><label><input type="checkbox" id="delay" />延迟分支</label
+      ><label
+        title="延迟分支：开启后，跳转或分支指令后面紧跟的那一条无论是否跳转都会先执行（MIPS 硬件的真实行为）。修改后需要重新汇编。"
+        ><input type="checkbox" id="delay" />延迟分支</label
       ><span id="status" class="status" role="status" aria-live="polite"
         >未汇编</span
       >
@@ -136,7 +138,8 @@
         </div>
         <div id="registers"></div>
         <div class="section-title">
-          MEMORY <button id="stack">栈</button><button id="data">数据</button>
+          MEMORY <button id="stack">栈</button><button id="data">数据</button
+          ><small id="mem-radix" class="mem-radix"></small>
         </div>
         <form id="memory-form">
           <input
@@ -174,6 +177,11 @@
         title="专注调试：前 1 步与之后的预计路径 · Cmd/Ctrl+K F"
       >
         ◎ 专注</button
+      ><label
+        class="radix-switch"
+        title="寄存器、内存、地址和专注模式里的数值显示方式（不改动代码）"
+        >数值
+        <select id="radix" aria-label="数值显示方式"></select></label
       ><span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
     </footer>
     <svg id="overlay" aria-hidden="true"></svg>

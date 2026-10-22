@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { beatModel, completeWhys, groupBytes } from "../ui/beats.js";
+import { beatModel, completeWhys, groupBytes, lineSummary } from "../ui/beats.js";
 
 const r = (number, name, value) => ({ kind: "register", number, name, value, before: value, write: false });
 const w = (number, name, before, value) => ({ kind: "register", number, name, before, value, write: true });
@@ -147,4 +147,27 @@ test("adjacent bytes merge into one object with readable text and raw bytes", ()
   assert.deepEqual(g.map((o) => [o.kind, o.width, o.ids.length]), [["register", undefined, 1], ["memory", 3, 3], ["memory", 1, 1]]);
   assert.equal(g[1].text, '"Hi"');
   assert.deepEqual(g[1].bytes, [72, 105, 0]);
+});
+
+test("output is linked to the argument that produced it and its writer", () => {
+  const e = at(60, I("syscall", 12, { line: 41 }), [r(2, "$v0", 11), r(4, "$a0", 72)], { service: 11, output: "H" });
+  const load = at(57, I("lbu", R(36, 16, 8), { line: 21, source: "lbu $t0, 0($s0)" }), [w(4, "$a0", 0, 72)]);
+  const why = completeWhys(beatModel(e), e, { before: [load] }).beats.find((b) => b.eq.some((p) => p.t === '"H"'))?.why || "";
+  assert.match(why, /控制台在这一步多了 "H"。这个 syscall 用到的 \$a0 等于 72，是第 57 步（main.s:21 `lbu \$t0, 0\(\$s0\)`）写入的/);
+});
+
+test("a pseudo-instruction line is summarized by its net effect", () => {
+  const lui = at(1, I("lui", R(15, 0, 1) | 0x1001, { address: 0x400000, line: 7, basic: "lui $at,0x00001001", source: "la $a0, values" }), [w(1, "$at", 0, 0x10010000)]);
+  const ori = at(2, I("ori", R(13, 1, 4), { address: 0x400004, line: 7, basic: "ori $a0,$at,0x00000000" }), [r(1, "$at", 0x10010000), w(4, "$a0", 0, 0x10010000)]);
+  const m = lineSummary([lui, ori], { source: "la $a0, values" });
+  assert.deepEqual(m.beats.map((b) => b.eq.map((p) => (typeof p === "string" ? p : p.t)).join("")), ["$a0 = 0x10010000 ✓"]);
+  assert.match(m.beats[0].why, /伪指令，展开为：lui \$at,0x00001001；ori \$a0,\$at,0x00000000/);
+  assert.deepEqual(m.objects.map((o) => [o.id, o.before, o.after]), [["reg:$a0", 0, 0x10010000]]);
+  assert.equal(m.template[0], "la $a0, values");
+  const blt = [
+    at(3, I("slt", R(0, 8, 9, 1, 0, 42), { address: 0x400010, line: 9, basic: "slt $at,$t0,$t1" }), [r(8, "$t0", 1), r(9, "$t1", 2), w(1, "$at", 0, 1)]),
+    at(4, I("bne", R(5, 1, 0) | 3, { address: 0x400014, line: 9, flow: "branch", target: 0x400024, basic: "bne $at,$zero,0x00000003" }), [r(1, "$at", 1), r(0, "$zero", 0)], { nextPC: 0x400024 }),
+  ];
+  const b = lineSummary(blt, { source: "blt $t0, $t1, done", symbols: [{ name: "done", address: 0x400024 }] });
+  assert.deepEqual(b.beats.map((x) => x.eq.map((p) => (typeof p === "string" ? p : p.t)).join("")), ["$t0 = 1，$t1 = 2", "下一条 = done ✓"]);
 });

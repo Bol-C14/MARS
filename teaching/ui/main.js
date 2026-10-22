@@ -20,11 +20,15 @@ import {
   role,
   references,
   buildCFG,
+  splitComment,
+  nameRegisters,
 } from "./model.js";
 import { OverlayRenderer } from "./overlay.js";
 import { FocusLens } from "./focus.js";
 import { Keymap, label as keyLabel } from "./keymap.js";
 import { quickOpenItems } from "./search.js";
+import { formatValue, RADIXES, addressRegisters } from "./radix.js";
+import { termsIn } from "./glossary.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
   files = {},
@@ -76,8 +80,37 @@ function lineAddress(line) {
 // recently executed line wrote, as of the selected history state.
 const INLINE_LINES = 12;
 let inlineCache = { key: null, map: new Map() };
+// A nop right after a branch or jump keeps the program correct when delayed
+// branching is on; otherwise it does nothing. Shown dimmed with its reason (C5).
+const DELAY_NOP =
+  "延迟槽占位：开启“延迟分支”时，跳转或分支后面紧跟的这一条总会先执行，放 nop 可以保证程序在两种设置下都正确。关闭时它什么也不做。";
+let delayCache = { program: null, lines: new Set() };
+function delaySlots() {
+  if (delayCache.program === program.instructions) return delayCache.lines;
+  const by = new Map(program.instructions.map((i) => [i.address, i])),
+    lines = new Set();
+  for (const i of program.instructions)
+    if (
+      i.op === "nop" &&
+      by.get(i.address - 4)?.flow !== "next" &&
+      by.has(i.address - 4)
+    )
+      lines.add(i.file + ":" + i.line);
+  delayCache = { program: program.instructions, lines };
+  return lines;
+}
+// Global read-only radix (C2), remembered per viewer.
+let radix = "auto";
+try {
+  radix = localStorage.getItem("radix") || "auto";
+} catch {}
+const fmt = (n, width = 4, kind = "value") =>
+  formatValue(n, { radix, width, kind });
+const regKind = (name) => (addressRegisters.has(name) ? "address" : "value");
 function inlineValues() {
-  const key = dirty ? "dirty" : `${state?.programVersion}:${state?.step}`;
+  const key = dirty
+    ? "dirty"
+    : `${state?.programVersion}:${state?.step}:${radix}`;
   if (inlineCache.key === key) return inlineCache.map;
   const map = new Map(),
     closed = new Set();
@@ -99,14 +132,11 @@ function inlineValues() {
         const name = a.kind === "register" ? a.name : `[${hex(a.address)}]`;
         // Walking backwards, the first write seen per object is its final value.
         if (!writes.has(name)) {
-          const v =
-            a.kind === "memory" && a.width < 4
-              ? a.value & (2 ** (8 * a.width) - 1)
-              : a.value;
-          writes.set(
-            name,
-            Math.abs(v) >= 10000 || a.kind === "memory" ? hex(v) : String(v),
-          );
+          const f =
+            a.kind === "memory"
+              ? fmt(a.value, a.width, "bits")
+              : fmt(a.value, 4, regKind(a.name));
+          writes.set(name, f.text + (f.note ? " " + f.note : ""));
         }
       }
     map.set(line, writes);
@@ -166,9 +196,14 @@ const decorations = ViewPlugin.fromClass(
             state.preview.instruction.line === l.number
           )
             cls.push("next-line");
+          const slot = delaySlots().has(activeFile + ":" + l.number);
+          if (slot) cls.push("delay-nop");
           if (cls.length)
             ranges.push(
-              Decoration.line({ class: cls.join(" ") }).range(l.from),
+              Decoration.line({
+                class: cls.join(" "),
+                attributes: slot ? { title: DELAY_NOP } : {},
+              }).range(l.from),
             );
           const inline = inlineValues().get(activeFile + ":" + l.number);
           if (inline)
@@ -484,6 +519,7 @@ const lens = new FocusLens({
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
+  getRadix: () => radix,
   submitInput: (value) => submitInput(value),
   isBusy: () => busy,
   onClose: () => {
@@ -519,18 +555,29 @@ function valueHTML(n) {
 function summary(token) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${esc(token)}</b> ${hex(regValue(token))}<p>${esc(role(token))}</p><small>当前快照 S${state?.step ?? 0} · Cmd/Ctrl＋点击固定</small>`;
+    return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>当前快照 S${state?.step ?? 0} · Cmd/Ctrl＋点击固定</small>`;
   if (token === "syscall") {
     let n = regValue("$v0"),
       s = services[n];
     return `<b>syscall ${n} · ${s?.[0] || "未支持服务"}</b><p>参数 ${s?.[1].join(", ") || "无"}；结果 ${s?.[2].join(", ") || "无"}</p>`;
   }
-  if (explanations[token] || program.instructionDocs[token])
-    return `<b>${esc(token)}</b><p>${esc(explanations[token] || program.instructionDocs[token].description)}</p><small>指令／汇编器说明</small>`;
+  if (explanations[token] || program.instructionDocs[token]) {
+    const text =
+      explanations[token] || program.instructionDocs[token].description;
+    return `<b>${esc(token)}</b><p>${esc(text)}</p>${definitions(text)}<small>指令／汇编器说明</small>`;
+  }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
     return `<b>${esc(token)}</b><p>符号地址 ${hex(symbol.address)}</p><small>Cmd/Ctrl＋点击跳转定义</small>`;
   return `<b>${esc(token)}</b><p>点击查询地址或源码引用</p>`;
+}
+// Term definitions under a tooltip (it moves with the pointer, so its words
+// cannot be hovered themselves).
+function definitions(text) {
+  const terms = termsIn(text);
+  return terms.length
+    ? `<dl class="defs">${terms.map(([t, d]) => `<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("")}</dl>`
+    : "";
 }
 function hover(e) {
   let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }),
@@ -647,6 +694,37 @@ function notify(message) {
   $("banner").textContent = message;
   $("banner").className = message ? "visible" : "";
 }
+// Every instruction the backend reports is shown with register names (C3).
+function named(s) {
+  const fix = (i) => {
+    if (i?.basic && !i.named) {
+      i.basic = nameRegisters(i.basic);
+      i.named = true;
+    }
+  };
+  (s.instructions || []).forEach(fix);
+  for (const e of [
+    s.last,
+    s.preview,
+    ...(s.trace || []),
+    ...(s.calls || []),
+    ...(s.lookahead?.groups || []).flatMap((g) => g.events),
+  ])
+    fix(e?.instruction);
+  return s;
+}
+// The line a student wrote for an instruction (a pseudo-instruction's
+// expansion carries no source of its own), without its comment.
+function sourceOf(ins) {
+  if (!ins) return "";
+  const line =
+    program.instructions.find(
+      (i) => i.file === ins.file && i.line === ins.line && i.source,
+    )?.source ||
+    ins.source ||
+    "";
+  return splitComment(line).code || ins.basic;
+}
 async function api(body) {
   let r = await fetch("/api", {
       method: "POST",
@@ -655,7 +733,7 @@ async function api(body) {
     }),
     s = await r.json();
   if (!r.ok || !s.protocol) throw Error(s.error || "执行服务未返回状态");
-  return s;
+  return named(s);
 }
 async function command(name, extra = {}) {
   if (busy) return null;
@@ -1048,7 +1126,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name}: ${r.value} · 点击查看"><span class="name">${r.name}</span><span>${hex(r.value).slice(2)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)} · 点击查看"><span class="name">${r.name}</span><span>${esc(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -1068,10 +1146,18 @@ function renderMemory() {
   for (let i = 0; i < state.memory.length; i += 8) {
     let bytes = state.memory.slice(i, i + 8);
     rows.push(
-      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)}">${b.value == null ? "??" : b.value.toString(16).padStart(2, "0")}</span>`).join("")}<span class="ascii">${bytes.map((b) => (b.value >= 32 && b.value < 127 ? esc(String.fromCharCode(b.value)) : ".")).join("")}</span></div>`,
+      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)} · ${b.value == null ? "" : esc(formatValue(b.value, { radix: radix === "auto" ? "hex" : radix, width: 1, kind: "bits" }).text)}">${b.value == null ? "??" : esc(memoryCell(b.value))}</span>`).join("")}<span class="ascii">${bytes.map((b) => (b.value >= 32 && b.value < 127 ? esc(String.fromCharCode(b.value)) : ".")).join("")}</span></div>`,
     );
   }
   $("memory").innerHTML = rows.join("");
+  $("memory").dataset.radix = radix;
+  $("mem-radix").textContent = {
+    auto: "单元 0x",
+    hex: "单元 0x",
+    dec: "单元 0d",
+    bin: "单元 0b",
+    ascii: "单元 字符",
+  }[radix];
   $("memory")
     .querySelectorAll("[data-byte]")
     .forEach((e) => {
@@ -1080,6 +1166,16 @@ function renderMemory() {
         if (k.key === "Enter") e.click();
       };
     });
+}
+// Memory cells are too narrow for prefixes; the panel header shows the radix.
+function memoryCell(v) {
+  if (radix === "dec") return String(v);
+  if (radix === "bin") return v.toString(2).padStart(8, "0");
+  if (radix === "ascii")
+    return v >= 32 && v < 127
+      ? String.fromCharCode(v)
+      : formatValue(v, { radix: "ascii", width: 1 }).text.slice(1, -1);
+  return v.toString(16).padStart(2, "0");
 }
 function inspectByte(address) {
   focus = "mem:" + address;
@@ -1105,15 +1201,16 @@ function renderCards() {
   let last = state?.last,
     next = state?.preview;
   $("last-card").innerHTML =
-    `<small>刚完成 ${last ? "#" + last.step : ""} · 实线</small><b>${esc(last?.instruction?.basic || "尚无执行记录")}</b>`;
+    `<small>刚完成 ${last ? "#" + last.step : ""} · 实线</small><b>${esc(last?.instruction ? sourceOf(last.instruction) : "尚无执行记录")}</b>`;
   $("next-card").innerHTML =
-    `<small>即将执行 ${next?.instruction ? "#" + next.step : ""} · 虚线 ${next?.status === "waiting-input" ? "· 等待输入" : ""}</small><b>${esc(next?.instruction?.basic || "—")}</b>`;
+    `<small>即将执行 ${next?.instruction ? "#" + next.step : ""} · 虚线 ${next?.status === "waiting-input" ? "· 等待输入" : ""}</small><b>${esc(next?.instruction ? sourceOf(next.instruction) : "—")}</b>`;
   for (let [id, e] of [
     ["last-card", last],
     ["next-card", next],
   ]) {
+    // The machine instruction actually executed is one hover away.
     $(id).title = e?.instruction
-      ? `${e.instruction.file}:${e.instruction.line} · ${hex(e.pc)}`
+      ? `${e.instruction.file}:${e.instruction.line} · ${hex(e.pc)}\n实际执行：${e.instruction.basic}`
       : "";
     $(id).onclick = () => {
       if (e?.instruction) {
@@ -1730,6 +1827,18 @@ for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
 $("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
+$("radix").innerHTML = RADIXES.map(
+  ([value, label]) =>
+    `<option value="${value}" ${value === radix ? "selected" : ""}>${label}</option>`,
+).join("");
+$("radix").onchange = () => {
+  radix = $("radix").value;
+  try {
+    localStorage.setItem("radix", radix);
+  } catch {}
+  render();
+  lens.update(dirty ? null : state);
+};
 function openFocus() {
   if (dirty || !state || state.status === "empty")
     return notify("请先汇编，再进入专注模式");

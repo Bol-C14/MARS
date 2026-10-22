@@ -20606,8 +20606,8 @@ function asSource(source) {
 var startCompletionEffect = /* @__PURE__ */ StateEffect.define();
 var closeCompletionEffect = /* @__PURE__ */ StateEffect.define();
 var FuzzyMatcher = class {
-  constructor(pattern) {
-    this.pattern = pattern;
+  constructor(pattern2) {
+    this.pattern = pattern2;
     this.chars = [];
     this.folded = [];
     this.any = [];
@@ -20615,14 +20615,14 @@ var FuzzyMatcher = class {
     this.byWord = [];
     this.score = 0;
     this.matched = [];
-    for (let p = 0; p < pattern.length; ) {
-      let char = codePointAt2(pattern, p), size = codePointSize2(char);
+    for (let p = 0; p < pattern2.length; ) {
+      let char = codePointAt2(pattern2, p), size = codePointSize2(char);
       this.chars.push(char);
-      let part = pattern.slice(p, p + size), upper = part.toUpperCase();
+      let part = pattern2.slice(p, p + size), upper = part.toUpperCase();
       this.folded.push(codePointAt2(upper == part ? part.toLowerCase() : upper, 0));
       p += size;
     }
-    this.astral = pattern.length != this.chars.length;
+    this.astral = pattern2.length != this.chars.length;
   }
   ret(score2, matched) {
     this.score = score2;
@@ -20723,11 +20723,11 @@ var FuzzyMatcher = class {
   }
 };
 var StrictMatcher = class {
-  constructor(pattern) {
-    this.pattern = pattern;
+  constructor(pattern2) {
+    this.pattern = pattern2;
     this.matched = [];
     this.score = 0;
-    this.folded = pattern.toLowerCase();
+    this.folded = pattern2.toLowerCase();
   }
   match(word) {
     if (word.length < this.pattern.length)
@@ -21146,8 +21146,8 @@ function sortOptions(active, state2) {
           addOption(new Option(option, a.source, getMatch ? getMatch(option) : [], 1e9 - options.length));
         }
       } else {
-        let pattern = state2.sliceDoc(a.from, a.to), match;
-        let matcher = conf.filterStrict ? new StrictMatcher(pattern) : new FuzzyMatcher(pattern);
+        let pattern2 = state2.sliceDoc(a.from, a.to), match;
+        let matcher = conf.filterStrict ? new StrictMatcher(pattern2) : new FuzzyMatcher(pattern2);
         for (let option of a.result.options)
           if (match = matcher.match(option.label)) {
             let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
@@ -22856,6 +22856,28 @@ function buildCFG(instructions, delay = false) {
   }
   return blocks;
 }
+function splitComment(line) {
+  let quote = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quote) {
+      if (c === "\\") i++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "#")
+      return {
+        code: line.slice(0, i).trim(),
+        comment: line.slice(i + 1).trim()
+      };
+  }
+  return { code: line.trim(), comment: "" };
+}
+function nameRegisters(text2) {
+  return String(text2 ?? "").replace(
+    /\$(\d+)\b/g,
+    (m, n) => Number(n) < 32 ? "$" + registerNames[Number(n)] : m
+  );
+}
 
 // ui/overlay.js
 var OverlayRenderer = class {
@@ -23055,6 +23077,7 @@ function lastTransfer(step, before, delay) {
 }
 function layoutPath({
   last: last2 = null,
+  history: history2 = [],
   lookahead: lookahead2 = null,
   instructions = [],
   symbols = [],
@@ -23091,8 +23114,17 @@ function layoutPath({
     events,
     block: owner.get(events[0].instruction.address) ?? null
   });
-  if (last2?.instruction)
-    addStep(-1, false, last2.instruction.file, last2.instruction.line, [last2]);
+  if (last2?.instruction) {
+    const done = [last2];
+    const byStep = new Map(history2.map((e) => [e.step, e]));
+    for (let e = byStep.get(last2.step - 1); e; e = byStep.get(e.step - 1)) {
+      const next = done[0];
+      if (e.instruction.file !== next.instruction.file || e.instruction.line !== next.instruction.line || e.pc + 4 !== next.pc)
+        break;
+      done.unshift(e);
+    }
+    addStep(-1, false, last2.instruction.file, last2.instruction.line, done);
+  }
   const groups = lookahead2?.groups || [];
   const cap = mode === "auto" ? 8 : Math.max(1, Math.min(8, lines));
   let decisions = 0, truncated = false;
@@ -23187,9 +23219,17 @@ function layoutPath({
 }
 
 // ui/beats.js
-var dim = (t2) => ({ t: String(t2), c: "dim" });
-var fresh = (t2) => ({ t: String(t2), c: "fresh" });
-var ok = (t2) => ({ t: String(t2), c: "ok" });
+var N = (v, w = 4, k = "value") => ({
+  num: true,
+  t: k === "value" ? show(v) : w < 4 ? byteHex(v, w) : hex(v),
+  v,
+  w,
+  k
+});
+var styled = (c) => (t2) => t2 && typeof t2 === "object" && t2.num ? { ...t2, c } : { t: String(t2), c };
+var dim = styled("dim");
+var fresh = styled("fresh");
+var ok = styled("ok");
 var text = (parts) => parts.map((p) => typeof p === "string" ? p : p.t).join("");
 var id = (a) => a.kind === "register" ? "reg:" + a.name : "mem:" + a.address;
 var masked = (n, width) => width < 4 ? n & 2 ** (8 * width) - 1 : n;
@@ -23294,37 +23334,58 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       from: id(a),
       to: "code",
       label: show(a.value),
-      kind: "read"
+      kind: "read",
+      value: N(a.value, a.width || 4, a.kind === "memory" ? "bits" : "value")
     }))
   });
   const writing = (a, label2 = show(a.value)) => ({
     lit: [{ id: id(a), mode: "write" }],
-    tokens: [{ from: "code", to: id(a), label: label2, kind: "write" }]
+    tokens: [
+      {
+        from: "code",
+        to: id(a),
+        label: label2,
+        kind: "write",
+        value: N(
+          a.kind === "memory" ? masked(a.value, a.width) : a.value,
+          a.width || 4,
+          /^0x/.test(label2) ? "bits" : "value"
+        )
+      }
+    ]
   });
   const addressing = (at, base2, off, addr, width) => {
     const align = width > 1 ? `${op} \u8981\u6C42\u5730\u5740\u662F ${width} \u7684\u500D\u6570\uFF0C\u5426\u5219\u89E6\u53D1\u5730\u5740\u5F02\u5E38\u3002` : "\u6309\u5B57\u8282\u8BBF\u95EE\u4E0D\u9700\u8981\u5BF9\u9F50\u3002";
     if (rs && imm !== 0) {
-      beat(at([fresh(hex(rs.value)), off]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\u3002`, {
+      beat(at([fresh(N(rs.value, 4, "bits")), off]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\u3002`, {
         ...reading([rs]),
         why: `\u5730\u5740 = \u57FA\u5740\u5BC4\u5B58\u5668 + 16 \u4F4D\u6709\u7B26\u53F7\u504F\u79FB\uFF08${imm}\uFF09\u3002`
       });
-      beat(at([fresh(hex(addr))]), "\u5F97\u5230\u5730\u5740\u3002", {
+      beat(at([fresh(N(addr, 4, "bits"))]), "\u5F97\u5230\u5730\u5740\u3002", {
         why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}\u3002${align}`
       });
     } else if (rs)
-      beat(at([fresh(hex(addr))]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\uFF0C\u5B83\u5C31\u662F\u5730\u5740\u3002`, {
-        ...reading([rs]),
-        why: `\u504F\u79FB\u4E3A 0\uFF0C\u5730\u5740\u5C31\u662F ${base2} \u7684\u503C\u3002${align}`
-      });
-    else beat(at([fresh(hex(addr))]), "\u5F97\u5230\u5730\u5740\u3002", { why: align });
+      beat(
+        at([fresh(N(addr, 4, "bits"))]),
+        `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\uFF0C\u5B83\u5C31\u662F\u5730\u5740\u3002`,
+        {
+          ...reading([rs]),
+          why: `\u504F\u79FB\u4E3A 0\uFF0C\u5730\u5740\u5C31\u662F ${base2} \u7684\u503C\u3002${align}`
+        }
+      );
+    else beat(at([fresh(N(addr, 4, "bits"))]), "\u5F97\u5230\u5730\u5740\u3002", { why: align });
   };
   const writeBack = (dest, value, asHex, why) => {
     const a = written(dest);
     if (a)
-      beat([dest, " = ", ok(show(a.value, asHex)), " \u2713"], `\u5199\u56DE ${dest}\u3002`, {
-        ...writing(a, show(a.value, asHex)),
-        why
-      });
+      beat(
+        [dest, " = ", ok(N(a.value, 4, asHex ? "bits" : "value")), " \u2713"],
+        `\u5199\u56DE ${dest}\u3002`,
+        {
+          ...writing(a, show(a.value, asHex)),
+          why
+        }
+      );
     else if (dest === "$zero")
       beat([dest, " = ", ok("0"), " \u2713"], "$zero \u6052\u4E3A 0\uFF0C\u7ED3\u679C\u88AB\u4E22\u5F03\u3002", {
         why: "\u5199\u5165 $zero \u4E0D\u4EA7\u751F\u6548\u679C\u3002"
@@ -23338,37 +23399,57 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       [
         dest,
         " \u2190 ",
-        ...expr(fresh(show(rs.value, asHex)), fresh(show(rt.value, asHex)))
+        ...expr(
+          fresh(N(rs.value, 4, asHex ? "bits" : "value")),
+          fresh(N(rt.value, 4, asHex ? "bits" : "value"))
+        )
       ],
       `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
       reading([rs, rt])
     );
     if (res)
-      beat([dest, " \u2190 ", fresh(show(res.value, asHex))], "\u8BA1\u7B97\u3002", {
-        why: rule
-      });
+      beat(
+        [dest, " \u2190 ", fresh(N(res.value, 4, asHex ? "bits" : "value"))],
+        "\u8BA1\u7B97\u3002",
+        {
+          why: rule
+        }
+      );
     writeBack(dest, res?.value, asHex);
   } else if (immediateOps[op] && rs) {
     const [sym, rule, logical] = immediateOps[op], dest = name2(rtN), res = written(dest), k = logical ? hex(uimm) : String(imm);
     template = [dest, " \u2190 ", dim(rs.name), ` ${sym} ${k}`];
     beat(
-      [dest, " \u2190 ", fresh(show(rs.value, logical)), ` ${sym} ${k}`],
+      [
+        dest,
+        " \u2190 ",
+        fresh(N(rs.value, 4, logical ? "bits" : "value")),
+        ` ${sym} ${k}`
+      ],
       `\u53D6 ${rs.name} \u7684\u503C\u3002`,
       reading([rs])
     );
     if (res)
-      beat([dest, " \u2190 ", fresh(show(res.value, logical))], "\u8BA1\u7B97\u3002", {
-        why: rule
-      });
+      beat(
+        [dest, " \u2190 ", fresh(N(res.value, 4, logical ? "bits" : "value"))],
+        "\u8BA1\u7B97\u3002",
+        {
+          why: rule
+        }
+      );
     writeBack(dest, res?.value, logical);
   } else if (op === "lui") {
     const dest = name2(rtN);
     template = [dest, " \u2190 ", dim(hex(uimm)), " << 16"];
     const res = written(dest);
     if (res)
-      beat([dest, " \u2190 ", fresh(hex(res.value))], "\u7ACB\u5373\u6570\u653E\u5230\u9AD8 16 \u4F4D\u3002", {
-        why: `${hex(uimm)} \u5DE6\u79FB 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u8865 0\u3002\u5E38\u4E0E ori \u7EC4\u5408\u88C5\u5165 32 \u4F4D\u5E38\u6570\uFF08la / li \u5C55\u5F00\uFF09\u3002`
-      });
+      beat(
+        [dest, " \u2190 ", fresh(N(res.value, 4, "bits"))],
+        "\u7ACB\u5373\u6570\u653E\u5230\u9AD8 16 \u4F4D\u3002",
+        {
+          why: `${hex(uimm)} \u5DE6\u79FB 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u8865 0\u3002\u5E38\u4E0E ori \u7EC4\u5408\u88C5\u5165 32 \u4F4D\u5E38\u6570\uFF08la / li \u5C55\u5F00\uFF09\u3002`
+        }
+      );
     writeBack(dest, res?.value, true);
   } else if (shiftOps[op] && rt) {
     const [sym, rule] = shiftOps[op], dest = name2(rdN), variable = op.endsWith("v"), res = written(dest);
@@ -23384,15 +23465,15 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       [
         dest,
         " \u2190 ",
-        fresh(hex(rt.value)),
+        fresh(N(rt.value, 4, "bits")),
         ` ${sym} `,
-        variable ? fresh(amount) : String(sa)
+        variable ? fresh(N(amount)) : String(sa)
       ],
       `\u53D6 ${rt.name}${variable ? " \u548C\u79FB\u4F4D\u91CF" : ""} \u7684\u503C\u3002`,
       reading(variable && rs ? [rt, rs] : [rt])
     );
     if (res)
-      beat([dest, " \u2190 ", fresh(hex(res.value))], "\u79FB\u4F4D\u3002", {
+      beat([dest, " \u2190 ", fresh(N(res.value, 4, "bits"))], "\u79FB\u4F4D\u3002", {
         why: rule + (variable && rs ? ` ${rs.name} = ${rs.value}\uFF0C\u4F4E 5 \u4F4D\u4E3A ${amount}\u3002` : "")
       });
     writeBack(dest, res?.value, true);
@@ -23400,7 +23481,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     const H = written("hi"), L = written("lo"), division = op.startsWith("div"), acc = op.startsWith("madd") ? "HI:LO + " : op.startsWith("msub") ? "HI:LO \u2212 " : "";
     template = division ? ["LO, HI \u2190 ", dim(rs.name), " \xF7 ", dim(rt.name)] : ["HI:LO \u2190 ", acc, dim(rs.name), " \xD7 ", dim(rt.name)];
     beat(
-      division ? ["LO, HI \u2190 ", fresh(rs.value), " \xF7 ", fresh(rt.value)] : ["HI:LO \u2190 ", acc, fresh(rs.value), " \xD7 ", fresh(rt.value)],
+      division ? ["LO, HI \u2190 ", fresh(N(rs.value)), " \xF7 ", fresh(N(rt.value))] : ["HI:LO \u2190 ", acc, fresh(N(rs.value)), " \xD7 ", fresh(N(rt.value))],
       `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
       reading([rs, rt])
     );
@@ -23413,14 +23494,14 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       const big = (n) => unsigned ? BigInt(n >>> 0) : BigInt(n | 0);
       const p64 = "0x" + ((big(H.value) << 32n | BigInt(L.value >>> 0)) & (1n << 64n) - 1n).toString(16).padStart(16, "0");
       beat(
-        division ? ["\u5546 ", fresh(L.value), "\uFF0C\u4F59\u6570 ", fresh(H.value)] : ["HI:LO \u2190 ", fresh(p64)],
+        division ? ["\u5546 ", fresh(N(L.value)), "\uFF0C\u4F59\u6570 ", fresh(N(H.value))] : ["HI:LO \u2190 ", fresh(p64)],
         division ? "\u6574\u6570\u9664\u6CD5\u3002" : "\u5F97\u5230 64 \u4F4D\u4E58\u79EF\u3002",
         {
           why: division ? `\u5546\u653E\u5165 LO\uFF0C\u4F59\u6570\u653E\u5165 HI\u3002${unsigned ? "\u6309\u65E0\u7B26\u53F7\u6570\u8BA1\u7B97\u3002" : "\u5546\u5411 0 \u53D6\u6574\uFF0C\u4F59\u6570\u4E0E\u88AB\u9664\u6570\u540C\u53F7\u3002"}` : `${unsigned ? "\u6309\u65E0\u7B26\u53F7\u6570" : "\u6309\u6709\u7B26\u53F7\u6570"}\u76F8\u4E58\uFF0C\u7ED3\u679C\u6709 64 \u4F4D\uFF1A\u9AD8 32 \u4F4D\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u8FDB LO\u3002`
         }
       );
       beat(
-        ["HI = ", ok(show(H.value)), "\uFF0CLO = ", ok(show(L.value)), " \u2713"],
+        ["HI = ", ok(N(H.value)), "\uFF0CLO = ", ok(N(L.value)), " \u2713"],
         "\u5199\u5165 HI \u548C LO\u3002",
         {
           lit: [
@@ -23440,7 +23521,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = [dest, " \u2190 ", dim(op === "mfhi" ? "HI" : "LO")];
     if (src)
       beat(
-        [dest, " \u2190 ", fresh(show(src.value))],
+        [dest, " \u2190 ", fresh(N(src.value))],
         `\u53D6 ${op === "mfhi" ? "HI" : "LO"} \u7684\u503C\u3002`,
         reading([src])
       );
@@ -23449,14 +23530,14 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     const dest = op === "mthi" ? "hi" : "lo";
     template = [dest.toUpperCase(), " \u2190 ", dim(rs.name)];
     beat(
-      [dest.toUpperCase(), " \u2190 ", fresh(show(rs.value))],
+      [dest.toUpperCase(), " \u2190 ", fresh(N(rs.value))],
       `\u53D6 ${rs.name} \u7684\u503C\u3002`,
       reading([rs])
     );
     const a = written(dest);
     if (a)
       beat(
-        [dest.toUpperCase(), " = ", ok(show(a.value)), " \u2713"],
+        [dest.toUpperCase(), " = ", ok(N(a.value)), " \u2713"],
         `\u5199\u5165 ${dest.toUpperCase()}\u3002`,
         writing(a)
       );
@@ -23466,11 +23547,11 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     beat(
       [
         "\u82E5 ",
-        fresh(rt.value),
+        fresh(N(rt.value)),
         ` ${cond} 0\uFF1A`,
         dest,
         " \u2190 ",
-        fresh(show(rs.value))
+        fresh(N(rs.value))
       ],
       "\u53D6\u6761\u4EF6\u548C\u6570\u636E\u7684\u503C\u3002",
       reading([rt, rs])
@@ -23492,7 +23573,17 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       width
     );
     beat(
-      [dest, " \u2190 ", fresh(width === 4 ? show(mem.value) : byteHex(raw, width))],
+      [
+        dest,
+        " \u2190 ",
+        fresh(
+          N(
+            width === 4 ? mem.value : raw,
+            width,
+            width === 4 ? "value" : "bits"
+          )
+        )
+      ],
       `\u4ECE\u5185\u5B58\u53D6 ${width} \u5B57\u8282\u3002`,
       {
         lit: [{ id: id(mem), mode: "read", width }],
@@ -23511,7 +23602,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (width < 4 && res) {
       const top2 = raw >>> 8 * width - 1;
       beat(
-        [dest, " \u2190 ", fresh(show(res.value))],
+        [dest, " \u2190 ", fresh(N(res.value))],
         signed ? `\u6269\u6210 32 \u4F4D\uFF1A\u6700\u9AD8\u4F4D\u662F ${top2}\uFF0C${top2 ? "\u8865 1" : "\u8865 0"}\u3002` : "\u6269\u6210 32 \u4F4D\uFF1A\u9AD8\u4F4D\u8865 0\u3002",
         {
           why: signed ? `${op} \u505A\u7B26\u53F7\u6269\u5C55\uFF1A${byteHex(raw, width)} \u7684\u6700\u9AD8\u4F4D\u4E3A ${top2}\uFF0C\u9AD8\u4F4D\u5168\u90E8\u8865 ${top2} \u2192 ${hex(res.value)} = ${res.value}\u3002\u82E5\u7528 ${op}u \u5219\u8865 0\uFF0C\u5F97\u5230 ${raw}\u3002` : `${op} \u505A\u96F6\u6269\u5C55\uFF1A\u9AD8\u4F4D\u8865 0 \u2192 ${hex(res.value)} = ${res.value}\u3002\u82E5\u7528 ${op.slice(0, -1)} \u5219\u6309\u6700\u9AD8\u4F4D\u8865\u9F50\u3002`
@@ -23539,7 +23630,13 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       beat(
         [
           `${unit}[ ${hex(addr)} ] \u2190 `,
-          fresh(width === 4 ? show(src.value) : byteHex(value, width))
+          fresh(
+            N(
+              width === 4 ? src.value : value,
+              width,
+              width === 4 ? "value" : "bits"
+            )
+          )
         ],
         width === 4 ? `\u53D6 ${src.name} \u7684\u503C\u3002` : `\u53D6 ${src.name} \u7684\u4F4E ${8 * width} \u4F4D\u3002`,
         {
@@ -23550,7 +23647,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     beat(
       [
         `${unit}[ ${hex(addr)} ] = `,
-        ok(width === 4 ? show(value) : byteHex(value, width)),
+        ok(N(value, width, width === 4 ? "value" : "bits")),
         " \u2713"
       ],
       `\u5199\u5165 ${width} \u5B57\u8282\u3002`,
@@ -23586,9 +23683,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       beat(
         [
           "\u82E5 ",
-          fresh(rs.value),
+          fresh(N(rs.value)),
           ` ${sym} `,
-          fresh(rt.value),
+          fresh(N(rt.value)),
           " \u2192 \u8DF3\u5230 ",
           label2
         ],
@@ -23610,7 +23707,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       taken = test(rs.value);
       template = ["\u82E5 ", dim(rs.name), ` ${cond} \u2192 \u8DF3\u5230 `, label2];
       beat(
-        ["\u82E5 ", fresh(rs.value), ` ${cond} \u2192 \u8DF3\u5230 `, label2],
+        ["\u82E5 ", fresh(N(rs.value)), ` ${cond} \u2192 \u8DF3\u5230 `, label2],
         `\u53D6 ${rs.name} \u7684\u503C\u3002`,
         reading([rs])
       );
@@ -23627,7 +23724,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     }
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(hex(ra.value)), " \u2713"], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
+      beat(["$ra = ", ok(N(ra.value, 4, "bits")), " \u2713"], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
         ...writing(ra, hex(ra.value)),
         why: "\u94FE\u63A5\u5206\u652F\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u5199 $ra\u3002"
       });
@@ -23652,10 +23749,14 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = op === "jal" ? ["$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1B\u8DF3\u5230 ", label2] : ["\u8DF3\u5230 ", label2];
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(hex(ra.value)), "\uFF1B\u8DF3\u5230 ", label2], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
-        ...writing(ra, hex(ra.value)),
-        why: `\u8FD4\u56DE\u5730\u5740\u662F${delay ? "\u5EF6\u8FDF\u69FD\u4E4B\u540E" : "\u4E0B\u4E00\u6761"}\u6307\u4EE4 ${where(ra.value)}\uFF0C\u51FD\u6570\u7528 jr $ra \u56DE\u5230\u8FD9\u91CC\u3002`
-      });
+      beat(
+        ["$ra = ", ok(N(ra.value, 4, "bits")), "\uFF1B\u8DF3\u5230 ", label2],
+        "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002",
+        {
+          ...writing(ra, hex(ra.value)),
+          why: `\u8FD4\u56DE\u5730\u5740\u662F${delay ? "\u5EF6\u8FDF\u69FD\u4E4B\u540E" : "\u4E0B\u4E00\u6761"}\u6307\u4EE4 ${where(ra.value)}\uFF0C\u51FD\u6570\u7528 jr $ra \u56DE\u5230\u8FD9\u91CC\u3002`
+        }
+      );
     beat(
       ["\u4E0B\u4E00\u6761 = ", ok(label2), " \u2713"],
       op === "jal" ? "\u8FDB\u5165\u51FD\u6570\u3002" : "\u8DF3\u8F6C\u3002",
@@ -23667,14 +23768,14 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
   } else if (/^(jr|jalr)$/.test(op) && rs) {
     const back = op === "jr" && rs.name === "$ra";
     template = ["\u8DF3\u5230 ", dim(rs.name), " \u4E2D\u7684\u5730\u5740"];
-    beat(["\u8DF3\u5230 ", fresh(hex(rs.value))], `\u53D6 ${rs.name} \u7684\u503C\u3002`, {
+    beat(["\u8DF3\u5230 ", fresh(N(rs.value, 4, "bits"))], `\u53D6 ${rs.name} \u7684\u503C\u3002`, {
       ...reading([rs]),
       why: back ? "$ra \u4FDD\u5B58\u7740 jal \u7559\u4E0B\u7684\u8FD4\u56DE\u5730\u5740\u3002" : "\u76EE\u6807\u5728\u8FD0\u884C\u65F6\u7531\u5BC4\u5B58\u5668\u51B3\u5B9A\u3002"
     });
     const link = op === "jalr" ? writes.find((a) => a.number === rdN) : null;
     if (link)
       beat(
-        [link.name, " = ", ok(hex(link.value)), " \u2713"],
+        [link.name, " = ", ok(N(link.value, 4, "bits")), " \u2713"],
         "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002",
         writing(link, hex(link.value))
       );
@@ -23698,7 +23799,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = ["syscall\uFF08", dim("$v0"), "\uFF09"];
     if (v0)
       beat(
-        ["syscall ", fresh(n), ` \xB7 ${title}`],
+        ["syscall ", fresh(N(n)), ` \xB7 ${title}`],
         "\u6309 $v0 \u9009\u62E9\u670D\u52A1\u3002",
         reading([v0])
       );
@@ -23709,7 +23810,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           i ? "\uFF0C" : "",
           a.name,
           " = ",
-          fresh(show(a.value))
+          fresh(N(a.value))
         ]),
         "\u53D6\u53C2\u6570\u7684\u503C\u3002",
         reading(params)
@@ -23718,7 +23819,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       beat([fresh("\u7B49\u5F85\u8F93\u5165")], "\u7ED3\u679C\u5C1A\u672A\u4EA7\u751F\uFF0C\u8BF7\u5728\u63A7\u5236\u53F0\u63D0\u4EA4\u8F93\u5165\u3002");
     for (const a of writes)
       beat(
-        [a.name, " = ", ok(show(a.value)), " \u2713"],
+        [a.name, " = ", ok(N(a.value)), " \u2713"],
         `\u670D\u52A1\u7ED3\u679C\u5199\u5165 ${a.name}\u3002`,
         writing(a)
       );
@@ -23750,7 +23851,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           i ? "\uFF0C" : "",
           a.name,
           " = ",
-          fresh(show(a.value))
+          fresh(N(a.value))
         ]),
         "\u8BFB\u53D6\u3002",
         reading(reads)
@@ -23760,7 +23861,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         [
           a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
           " = ",
-          ok(show(masked(a.value, a.width ?? 4))),
+          ok(N(masked(a.value, a.width ?? 4))),
           " \u2713"
         ],
         "\u5199\u5165\u3002",
@@ -23935,11 +24036,17 @@ function completeWhys(model, event, {
         parts.push("\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u8DF3\u8F6C\u524D\u4F1A\u5148\u6267\u884C\u7D27\u8DDF\u5728\u540E\u9762\u7684\u90A3\u4E00\u6761\u3002");
     }
     if (!parts.length) {
-      if (event.output && event.service != null)
-        parts.push(
-          `syscall ${event.service} \u628A\u7ED3\u679C\u5199\u5230\u63A7\u5236\u53F0\uFF1B\u7A0B\u5E8F\u7684\u8F93\u51FA\u53EA\u5728\u8FD9\u4E00\u523B\u4EA7\u751F\u3002`
+      if (event.output && event.service != null) {
+        const args = (event.accesses || []).filter(
+          (x) => x.kind === "register" && !x.write && x.name !== "$v0"
         );
-      else parts.push(`\u6307\u4EE4 ${ins.op} \u7684\u89C4\u5219\uFF1A${rule()}`);
+        parts.push(
+          `\u63A7\u5236\u53F0\u5728\u8FD9\u4E00\u6B65\u591A\u4E86 ${JSON.stringify(event.output)}\u3002` + args.map((x) => {
+            const w = writer("reg:" + x.name);
+            return `\u8FD9\u4E2A syscall \u7528\u5230\u7684 ${x.name} \u7B49\u4E8E ${show(x.value)}${w ? `\uFF0C\u662F${place(w)}\u5199\u5165\u7684` : ""}\u3002`;
+          }).join("")
+        );
+      } else parts.push(`\u6307\u4EE4 ${ins.op} \u7684\u89C4\u5219\uFF1A${rule()}`);
     }
     return parts.join("");
   };
@@ -23974,6 +24081,196 @@ function bytesOf(o) {
     { length: o.width },
     (_, i) => (o.value ?? o.after) >>> 8 * i & 255
   );
+}
+function lineSummary(events, { source = "", instructions = [], symbols = [] } = {}) {
+  const first = events[0], last2 = events.at(-1);
+  const where = (address) => {
+    const s = symbols.find((x) => x.address === address && !x.data);
+    if (s) return s.name;
+    const i = instructions.find((x) => x.address === address);
+    return i ? `\u7B2C ${i.line} \u884C` : hex(address);
+  };
+  const written = /* @__PURE__ */ new Set(), reads = /* @__PURE__ */ new Map(), writes = /* @__PURE__ */ new Map(), firstBefore = /* @__PURE__ */ new Map();
+  for (const e of events)
+    for (const a of e.accesses || []) {
+      const key = id(a);
+      if (!a.write && !written.has(key) && a.name !== "$zero" && a.name !== "$at" && !reads.has(key))
+        reads.set(key, a);
+      if (a.write) {
+        if (!written.has(key)) firstBefore.set(key, a.before);
+        written.add(key);
+        if (a.name !== "$at") writes.set(key, a);
+      }
+    }
+  const expansion = events.map((e) => e.instruction.basic).join("\uFF1B");
+  const beats = [];
+  const R = [...reads.values()], W = [...writes.values()];
+  if (R.length)
+    beats.push({
+      eq: R.flatMap((a, i) => [
+        i ? "\uFF0C" : "",
+        a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
+        " = ",
+        fresh(N(a.value, a.width || 4, a.kind === "memory" ? "bits" : "value"))
+      ]),
+      caption: `\u53D6 ${R.map((a) => a.name || hex(a.address)).join("\u3001")} \u7684\u503C\u3002`,
+      lit: R.map((a) => ({ id: id(a), mode: "read" })),
+      tokens: R.map((a) => ({
+        from: id(a),
+        to: "code",
+        label: show(a.value),
+        kind: "read",
+        value: N(a.value, a.width || 4)
+      })),
+      why: ""
+    });
+  if (W.length)
+    beats.push({
+      eq: [
+        ...W.flatMap((a, i) => [
+          i ? "\uFF0C" : "",
+          a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
+          " = ",
+          ok(
+            N(
+              a.kind === "memory" ? masked(a.value, a.width) : a.value,
+              a.width || 4,
+              a.kind === "memory" ? "bits" : "value"
+            )
+          )
+        ]),
+        " \u2713"
+      ],
+      caption: `\u8FD9\u4E00\u884C\u7684\u7ED3\u679C\uFF08\u4F2A\u6307\u4EE4\uFF0C\u6C47\u7F16\u65F6\u6362\u6210 ${events.length} \u6761\u673A\u5668\u6307\u4EE4\uFF09\u3002`,
+      lit: W.map((a) => ({ id: id(a), mode: "write" })),
+      tokens: W.map((a) => ({
+        from: "code",
+        to: id(a),
+        label: show(a.value),
+        kind: "write",
+        value: N(a.value, a.width || 4)
+      })),
+      why: `\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A${expansion}\u3002\u5728\u4EE3\u7801\u8DEF\u5F84\u91CC\u70B9 \u25B8 \u53EF\u4EE5\u9010\u6761\u67E5\u770B\u6BCF\u4E00\u6B65\u3002`
+    });
+  const jumped = last2.nextPC != null && last2.nextPC !== last2.instruction.address + 4;
+  if (jumped || !beats.length)
+    beats.push({
+      eq: ["\u4E0B\u4E00\u6761 = ", ok(where(last2.nextPC)), " \u2713"],
+      caption: jumped ? "\u8DF3\u8F6C\u3002" : "\u987A\u5E8F\u6267\u884C\u3002",
+      lit: [],
+      tokens: [
+        {
+          from: "code",
+          to: "next",
+          label: jumped ? "\u8DF3\u8F6C" : "PC+4",
+          kind: "flow"
+        }
+      ],
+      why: beats.length ? "" : `\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A${expansion}\u3002`
+    });
+  const accesses2 = [...R, ...W];
+  return {
+    template: [
+      source || first.instruction.source?.trim() || first.instruction.basic
+    ],
+    beats,
+    summary: beats.at(-1) ? text(beats.at(-1).eq).replace(/ ✓$/, "") : "",
+    objects: accesses2.map((a) => ({
+      id: id(a),
+      kind: a.kind,
+      name: a.name,
+      address: a.address,
+      width: a.width,
+      before: a.write ? firstBefore.get(id(a)) : a.value,
+      after: a.value,
+      read: !a.write,
+      write: !!a.write
+    })),
+    // A single event standing for the whole line, for completeWhys.
+    event: {
+      ...first,
+      accesses: accesses2,
+      nextPC: last2.nextPC,
+      output: events.map((e) => e.output || "").join(""),
+      instruction: { ...first.instruction, source }
+    }
+  };
+}
+
+// ui/radix.js
+var RADIXES = [
+  ["auto", "\u81EA\u52A8"],
+  ["hex", "HEX"],
+  ["dec", "DEC"],
+  ["bin", "BIN"],
+  ["ascii", "ASCII"]
+];
+var printable = (b) => b >= 32 && b < 127;
+var escapeByte = (b) => printable(b) ? String.fromCharCode(b) : b === 0 ? "\\0" : b === 10 ? "\\n" : b === 9 ? "\\t" : "\\x" + b.toString(16).padStart(2, "0");
+function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = {}) {
+  const bits = 8 * width, unsigned = width < 4 ? (n & 2 ** bits - 1) >>> 0 : n >>> 0, signed = width < 4 ? unsigned << 32 - bits >> 32 - bits : n | 0;
+  const hex2 = "0x" + unsigned.toString(16).padStart(2 * width, "0");
+  const bin = (all) => {
+    const digits = unsigned.toString(2).padStart(bits, "0");
+    const shown = all ? digits : digits.replace(/^(?:0000)+(?=.{4})/, "");
+    return "0b" + shown.replace(/(.{4})(?=.)/g, "$1_");
+  };
+  const dec2 = "0d" + (kind === "address" ? unsigned : signed);
+  const bytes = Array.from(
+    { length: width },
+    (_, i) => unsigned >>> 8 * i & 255
+  );
+  let shownBytes = bytes;
+  while (shownBytes.length > 1 && shownBytes.at(-1) === 0)
+    shownBytes = shownBytes.slice(0, -1);
+  const ascii = "'" + shownBytes.map(escapeByte).join("") + "'";
+  const mode = radix2 === "auto" ? kind === "value" && Math.abs(signed) < 1e4 ? "dec" : "hex" : radix2;
+  const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
+  const note = mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
+  return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
+}
+var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
+
+// ui/glossary.js
+var glossary = {
+  \u4F2A\u6307\u4EE4: "\u6C47\u7F16\u5668\u63D0\u4F9B\u7684\u4FBF\u6377\u5199\u6CD5\u3002\u6C47\u7F16\u65F6\u4F1A\u6362\u6210\u4E00\u6761\u6216\u591A\u6761\u771F\u6B63\u7684\u673A\u5668\u6307\u4EE4\u3002",
+  \u673A\u5668\u6307\u4EE4: "CPU \u771F\u6B63\u6267\u884C\u7684\u6307\u4EE4\uFF0C\u6BCF\u6761 32 \u4F4D\u3002",
+  \u5EF6\u8FDF\u5206\u652F: "MIPS \u7684\u4E00\u79CD\u6267\u884C\u65B9\u5F0F\uFF1A\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\uFF0C\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\u3002",
+  \u5EF6\u8FDF\u69FD: "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\uFF0C\u7D27\u8DDF\u5728\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u3001\u603B\u4F1A\u88AB\u6267\u884C\u7684\u90A3\u4E2A\u4F4D\u7F6E\u3002",
+  \u7B26\u53F7\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF1B\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002",
+  \u96F6\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002",
+  \u5C0F\u7AEF\u5E8F: "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002",
+  \u8865\u7801: "\u6709\u7B26\u53F7\u6574\u6570\u7684\u4E8C\u8FDB\u5236\u8868\u793A\uFF1A\u8D1F\u6570 \u2212x \u5B58\u6210 2\xB3\xB2 \u2212 x\u3002\u4F8B\u5982 \u22122 \u5B58\u6210 0xfffffffe\u3002",
+  NUL: "\u503C\u4E3A 0 \u7684\u5B57\u8282\u3002",
+  \u7ACB\u5373\u6570: "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002",
+  \u57FA\u5740: "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002",
+  \u504F\u79FB: "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002",
+  \u5BC4\u5B58\u5668: "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\u3002",
+  syscall: "\u8BF7\u6C42\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u63D0\u4F9B\u670D\u52A1\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u7531 $v0 \u9009\u62E9\u54EA\u79CD\u670D\u52A1\u3002",
+  \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002",
+  \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\uFF0C\u4F8B\u5982\u8BFB 4 \u5B57\u8282\u65F6\u5730\u5740\u662F 4 \u7684\u500D\u6570\u3002",
+  \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002",
+  "rs \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E00\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 25\u201321 \u4F4D\uFF09\u3002",
+  "rt \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E8C\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 20\u201316 \u4F4D\uFF09\u3002",
+  "rd \u5B57\u6BB5": "R \u578B\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u76EE\u6807\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 15\u201311 \u4F4D\uFF09\u3002"
+};
+var pattern = new RegExp(
+  Object.keys(glossary).sort((a, b) => b.length - a.length).map((t2) => t2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
+  "g"
+);
+function glossify(text2) {
+  const seen = /* @__PURE__ */ new Set();
+  return escapeHTML(text2).replace(pattern, (term) => {
+    if (seen.has(term)) return term;
+    seen.add(term);
+    return `<abbr class="term" title="${escapeHTML(glossary[term])}">${term}</abbr>`;
+  });
+}
+function termsIn(text2) {
+  return [...new Set(String(text2).match(pattern) || [])].map((t2) => [
+    t2,
+    glossary[t2]
+  ]);
 }
 
 // ui/focus.js
@@ -24013,6 +24310,7 @@ var FocusLens = class {
           <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="\u89E3\u91CA\u8FDB\u5EA6"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
+          <div id="focus-note" hidden></div>
           <div class="focus-controls">
             <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
           </div>
@@ -24094,6 +24392,7 @@ var FocusLens = class {
     const program2 = this.host.getProgram();
     this.layout = layoutPath({
       last: state2.last,
+      history: state2.trace,
       lookahead: state2.lookahead,
       instructions: program2.instructions,
       symbols: program2.symbols,
@@ -24129,6 +24428,25 @@ var FocusLens = class {
   // their beats are shown in order under the line's own source text.
   stepModel(step, state2, program2) {
     const options = { delay: state2.delay, ...program2 };
+    const context = (from, to) => ({
+      before: this.timeline.filter((x) => x.step < from),
+      after: this.timeline.filter((x) => x.step > to),
+      instructions: program2.instructions,
+      symbols: program2.symbols,
+      explanations,
+      delay: state2.delay
+    });
+    if (step.events.length > 1 && !this.expanded.has(step.address)) {
+      const summary2 = lineSummary(step.events, {
+        source: splitComment(this.host.getSource(step.file, step.line) || "").code,
+        ...program2
+      });
+      return completeWhys(
+        summary2,
+        summary2.event,
+        context(step.events[0].step, step.events.at(-1).step)
+      );
+    }
     const parts = step.events.map(
       (e) => completeWhys(beatModel(e, options), e, {
         before: this.timeline.filter((x) => x.step < e.step),
@@ -24312,7 +24630,7 @@ var FocusLens = class {
         return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}">
                 <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "\u5220\u9664\u65AD\u70B9" : "\u8BBE\u7F6E\u65AD\u70B9"}">${bp ? "\u25CF" : "\u25CB"}</button>
                 <span class="fln">${line.line}</span>
-                <code>${escapeHTML(this.host.getSource(line.file, line.line)?.trim() || machine[0]?.basic || "")}</code>
+                <code>${escapeHTML(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "\u25BE" : "\u25B8"} ${machine.length} \u6761</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
               </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "\u8FD9\u6B21\u4E0D\u8DF3\u5230 " + escapeHTML(hint.label) : "\u8FD9\u6B21\u4E0D\u987A\u5E8F\u6267\u884C\u5230 " + escapeHTML(hint.label)}</div>` : ""}`;
@@ -24337,7 +24655,9 @@ var FocusLens = class {
       (b) => b.onclick = () => {
         const a = Number(b.dataset.expand);
         this.expanded.has(a) ? this.expanded.delete(a) : this.expanded.add(a);
-        this.render();
+        this.stop();
+        this.beat = 0;
+        this.update(this.host.getState());
       }
     );
     this.renderBeat(false);
@@ -24388,12 +24708,19 @@ var FocusLens = class {
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
     $2("focus-tag").textContent = step.predicted ? `\u9884\u8BA1 +${step.index + 1}` : "\u521A\u5B8C\u6210";
     $2("focus-tag").className = step.predicted ? "pred" : "done";
-    $2("focus-src").textContent = `${step.file}:${step.line}  ${this.host.getSource(step.file, step.line)?.trim() || ""}`;
+    const source = splitComment(
+      this.host.getSource(step.file, step.line) || ""
+    );
+    $2("focus-src").textContent = `${step.file}:${step.line}  ${source.code}`;
+    $2("focus-note").hidden = !source.comment;
+    $2("focus-note").textContent = source.comment ? "\u4F5C\u8005\u6CE8\u91CA\uFF1A" + source.comment : "";
     const parts = b ? b.eq : m.template;
     $2("focus-eq").innerHTML = parts.map(
-      (p) => typeof p === "string" ? escapeHTML(p) : `<span class="${p.c}">${escapeHTML(p.t)}</span>`
+      (p) => typeof p === "string" ? escapeHTML(p) : `<span class="${p.c || ""}">${this.number(p)}</span>`
     ).join("");
-    $2("focus-caption").textContent = b ? b.caption : m.beats.length ? "\u2192 \u4E0B\u4E00\u62CD\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C" : "";
+    $2("focus-caption").innerHTML = glossify(
+      b ? b.caption : m.beats.length ? "\u2192 \u4E0B\u4E00\u6761\u89E3\u91CA\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C" : ""
+    );
     $2("focus-dots").innerHTML = m.beats.map(
       (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="\u7B2C ${i + 1} \u6761\u89E3\u91CA"></button>`
     ).join("");
@@ -24404,11 +24731,18 @@ var FocusLens = class {
     $2("focus-next").disabled = this.beat >= m.beats.length;
     $2("focus-why").disabled = !b?.why;
     $2("focus-why-text").hidden = !(this.whyOpen && b?.why);
-    $2("focus-why-text").textContent = b?.why || "";
+    $2("focus-why-text").innerHTML = glossify(b?.why || "");
     const objects = groupBytes(this.objectValues()), lit = new Map((b?.lit || []).map((l) => [l.id, l.mode]));
     const litMode = (o) => o.ids.map((id2) => lit.get(id2)).find(Boolean);
     const shown = objects.slice(0, 12);
-    const value = (o, n) => o.kind === "memory" && o.width < 4 ? "0x" + (n >>> 0 & 2 ** (8 * o.width) - 1).toString(16).padStart(2 * o.width, "0") : Math.abs(n) >= 1e4 || o.kind === "memory" ? hex(n) : String(n);
+    const value = (o, n) => {
+      const f = formatValue(n, {
+        radix: this.host.getRadix(),
+        width: o.kind === "memory" ? Math.min(4, o.width) : 4,
+        kind: o.kind === "memory" ? "bits" : addressRegisters.has(o.name) ? "address" : "value"
+      });
+      return f.text + (f.note ? " " + f.note : "");
+    };
     $2("focus-objects").innerHTML = `<div class="fobj-title">\u6D89\u53CA\u5BF9\u8C61</div>` + shown.map((o) => {
       const grouped = o.kind === "memory" && o.bytes.length > 1;
       const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}${grouped ? "\u2026" : ""}]\xB7${o.width}B`;
@@ -24418,6 +24752,17 @@ var FocusLens = class {
       return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${escapeHTML(label2)}</span><span>${escapeHTML(v)}</span>${raw}</div>`;
     }).join("") + (objects.length > 12 ? `<div class="fmore">\u53E6\u6709 ${objects.length - 12} \u4E2A\u5BF9\u8C61</div>` : "");
     this.draw(animate ? b : null);
+  }
+  // A number part in the chosen radix; the character reading stays faint.
+  number(p, html = true) {
+    if (!p.num) return html ? escapeHTML(p.t) : p.t;
+    const f = formatValue(p.v, {
+      radix: this.host.getRadix(),
+      width: p.w,
+      kind: p.k
+    });
+    if (!html) return f.text;
+    return escapeHTML(f.text) + (f.note ? `<span class="value-note">${escapeHTML(f.note)}</span>` : "");
   }
   // ---- drawing inside the lens ----
   anchor(id2, side) {
@@ -24523,7 +24868,7 @@ var FocusLens = class {
     body.querySelectorAll(".ftoken").forEach((x) => x.remove());
     const el = document.createElement("div");
     el.className = "ftoken";
-    el.textContent = t2.label;
+    el.textContent = t2.value ? this.number(t2.value, false) : t2.label;
     el.style.background = color;
     body.appendChild(el);
     const w = el.offsetWidth / 2, h = el.offsetHeight / 2;
@@ -24762,12 +25107,12 @@ function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: a
   }
   if (/^0x[0-9a-f]+$/i.test(query)) {
     const address = Number.parseInt(query, 16) | 0;
-    const named = symbols.find((s) => s.address === address);
+    const named2 = symbols.find((s) => s.address === address);
     return [
       {
         kind: "address",
         label: "0x" + (address >>> 0).toString(16).padStart(8, "0"),
-        detail: named ? named.name : "\u5730\u5740",
+        detail: named2 ? named2.name : "\u5730\u5740",
         address
       }
     ];
@@ -24832,8 +25177,26 @@ function lineAddress(line) {
 }
 var INLINE_LINES = 12;
 var inlineCache = { key: null, map: /* @__PURE__ */ new Map() };
+var DELAY_NOP = "\u5EF6\u8FDF\u69FD\u5360\u4F4D\uFF1A\u5F00\u542F\u201C\u5EF6\u8FDF\u5206\u652F\u201D\u65F6\uFF0C\u8DF3\u8F6C\u6216\u5206\u652F\u540E\u9762\u7D27\u8DDF\u7684\u8FD9\u4E00\u6761\u603B\u4F1A\u5148\u6267\u884C\uFF0C\u653E nop \u53EF\u4EE5\u4FDD\u8BC1\u7A0B\u5E8F\u5728\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u90FD\u6B63\u786E\u3002\u5173\u95ED\u65F6\u5B83\u4EC0\u4E48\u4E5F\u4E0D\u505A\u3002";
+var delayCache = { program: null, lines: /* @__PURE__ */ new Set() };
+function delaySlots() {
+  if (delayCache.program === program.instructions) return delayCache.lines;
+  const by = new Map(program.instructions.map((i) => [i.address, i])), lines = /* @__PURE__ */ new Set();
+  for (const i of program.instructions)
+    if (i.op === "nop" && by.get(i.address - 4)?.flow !== "next" && by.has(i.address - 4))
+      lines.add(i.file + ":" + i.line);
+  delayCache = { program: program.instructions, lines };
+  return lines;
+}
+var radix = "auto";
+try {
+  radix = localStorage.getItem("radix") || "auto";
+} catch {
+}
+var fmt = (n, width = 4, kind = "value") => formatValue(n, { radix, width, kind });
+var regKind = (name2) => addressRegisters.has(name2) ? "address" : "value";
 function inlineValues() {
-  const key = dirty ? "dirty" : `${state?.programVersion}:${state?.step}`;
+  const key = dirty ? "dirty" : `${state?.programVersion}:${state?.step}:${radix}`;
   if (inlineCache.key === key) return inlineCache.map;
   const map = /* @__PURE__ */ new Map(), closed = /* @__PURE__ */ new Set();
   const events = (state?.trace || []).filter(
@@ -24852,11 +25215,8 @@ function inlineValues() {
       if (a.write) {
         const name2 = a.kind === "register" ? a.name : `[${hex(a.address)}]`;
         if (!writes.has(name2)) {
-          const v = a.kind === "memory" && a.width < 4 ? a.value & 2 ** (8 * a.width) - 1 : a.value;
-          writes.set(
-            name2,
-            Math.abs(v) >= 1e4 || a.kind === "memory" ? hex(v) : String(v)
-          );
+          const f = a.kind === "memory" ? fmt(a.value, a.width, "bits") : fmt(a.value, 4, regKind(a.name));
+          writes.set(name2, f.text + (f.note ? " " + f.note : ""));
         }
       }
     map.set(line, writes);
@@ -24905,9 +25265,14 @@ var decorations2 = ViewPlugin.fromClass(
             cls.push("last-line");
           if (!dirty && state?.preview?.instruction?.file === activeFile && state.preview.instruction.line === l.number)
             cls.push("next-line");
+          const slot = delaySlots().has(activeFile + ":" + l.number);
+          if (slot) cls.push("delay-nop");
           if (cls.length)
             ranges.push(
-              Decoration.line({ class: cls.join(" ") }).range(l.from)
+              Decoration.line({
+                class: cls.join(" "),
+                attributes: slot ? { title: DELAY_NOP } : {}
+              }).range(l.from)
             );
           const inline = inlineValues().get(activeFile + ":" + l.number);
           if (inline)
@@ -25187,6 +25552,7 @@ var lens = new FocusLens({
   toggleBreakpoint: (address) => toggleAddressBreakpoint(address),
   hasBreakpoint: (address) => breakpoints.some((b) => b.address === address),
   isRunning: () => running,
+  getRadix: () => radix,
   submitInput: (value) => submitInput(value),
   isBusy: () => busy,
   onClose: () => {
@@ -25214,17 +25580,23 @@ function valueHTML(n) {
 function summary(token) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${escapeHTML(token)}</b> ${hex(regValue(token))}<p>${escapeHTML(role(token))}</p><small>\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 Cmd/Ctrl\uFF0B\u70B9\u51FB\u56FA\u5B9A</small>`;
+    return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 Cmd/Ctrl\uFF0B\u70B9\u51FB\u56FA\u5B9A</small>`;
   if (token === "syscall") {
     let n = regValue("$v0"), s = services[n];
     return `<b>syscall ${n} \xB7 ${s?.[0] || "\u672A\u652F\u6301\u670D\u52A1"}</b><p>\u53C2\u6570 ${s?.[1].join(", ") || "\u65E0"}\uFF1B\u7ED3\u679C ${s?.[2].join(", ") || "\u65E0"}</p>`;
   }
-  if (explanations[token] || program.instructionDocs[token])
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(explanations[token] || program.instructionDocs[token].description)}</p><small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+  if (explanations[token] || program.instructionDocs[token]) {
+    const text2 = explanations[token] || program.instructionDocs[token].description;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${definitions(text2)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+  }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
     return `<b>${escapeHTML(token)}</b><p>\u7B26\u53F7\u5730\u5740 ${hex(symbol.address)}</p><small>Cmd/Ctrl\uFF0B\u70B9\u51FB\u8DF3\u8F6C\u5B9A\u4E49</small>`;
   return `<b>${escapeHTML(token)}</b><p>\u70B9\u51FB\u67E5\u8BE2\u5730\u5740\u6216\u6E90\u7801\u5F15\u7528</p>`;
+}
+function definitions(text2) {
+  const terms = termsIn(text2);
+  return terms.length ? `<dl class="defs">${terms.map(([t2, d]) => `<dt>${escapeHTML(t2)}</dt><dd>${escapeHTML(d)}</dd>`).join("")}</dl>` : "";
 }
 function hover(e) {
   let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }), token = pos == null ? "" : tokenAt(pos);
@@ -25326,6 +25698,31 @@ function notify(message) {
   $("banner").textContent = message;
   $("banner").className = message ? "visible" : "";
 }
+function named(s) {
+  const fix = (i) => {
+    if (i?.basic && !i.named) {
+      i.basic = nameRegisters(i.basic);
+      i.named = true;
+    }
+  };
+  (s.instructions || []).forEach(fix);
+  for (const e of [
+    s.last,
+    s.preview,
+    ...s.trace || [],
+    ...s.calls || [],
+    ...(s.lookahead?.groups || []).flatMap((g) => g.events)
+  ])
+    fix(e?.instruction);
+  return s;
+}
+function sourceOf(ins) {
+  if (!ins) return "";
+  const line = program.instructions.find(
+    (i) => i.file === ins.file && i.line === ins.line && i.source
+  )?.source || ins.source || "";
+  return splitComment(line).code || ins.basic;
+}
 async function api(body) {
   let r = await fetch("/api", {
     method: "POST",
@@ -25333,7 +25730,7 @@ async function api(body) {
     body: JSON.stringify(body)
   }), s = await r.json();
   if (!r.ok || !s.protocol) throw Error(s.error || "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001");
-  return s;
+  return named(s);
 }
 async function command2(name2, extra = {}) {
   if (busy) return null;
@@ -25653,7 +26050,8 @@ function renderRegisters() {
   $("registers").innerHTML = state.registers.filter(
     (r) => filter === "all" || filter === "pinned" ? filter === "all" || pinned.has(r.name) : related.has(r.name) || pinned.has(r.name)
   ).map(
-    (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name}: ${r.value} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span>${hex(r.value).slice(2)}</span></div>`
+    (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
+${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span>${escapeHTML(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`
   ).join("");
   $("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -25670,16 +26068,31 @@ function renderMemory() {
   for (let i = 0; i < state.memory.length; i += 8) {
     let bytes = state.memory.slice(i, i + 8);
     rows.push(
-      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)}">${b.value == null ? "??" : b.value.toString(16).padStart(2, "0")}</span>`).join("")}<span class="ascii">${bytes.map((b) => b.value >= 32 && b.value < 127 ? escapeHTML(String.fromCharCode(b.value)) : ".").join("")}</span></div>`
+      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)} \xB7 ${b.value == null ? "" : escapeHTML(formatValue(b.value, { radix: radix === "auto" ? "hex" : radix, width: 1, kind: "bits" }).text)}">${b.value == null ? "??" : escapeHTML(memoryCell(b.value))}</span>`).join("")}<span class="ascii">${bytes.map((b) => b.value >= 32 && b.value < 127 ? escapeHTML(String.fromCharCode(b.value)) : ".").join("")}</span></div>`
     );
   }
   $("memory").innerHTML = rows.join("");
+  $("memory").dataset.radix = radix;
+  $("mem-radix").textContent = {
+    auto: "\u5355\u5143 0x",
+    hex: "\u5355\u5143 0x",
+    dec: "\u5355\u5143 0d",
+    bin: "\u5355\u5143 0b",
+    ascii: "\u5355\u5143 \u5B57\u7B26"
+  }[radix];
   $("memory").querySelectorAll("[data-byte]").forEach((e) => {
     e.onclick = () => inspectByte(Number(e.dataset.byte));
     e.onkeydown = (k) => {
       if (k.key === "Enter") e.click();
     };
   });
+}
+function memoryCell(v) {
+  if (radix === "dec") return String(v);
+  if (radix === "bin") return v.toString(2).padStart(8, "0");
+  if (radix === "ascii")
+    return v >= 32 && v < 127 ? String.fromCharCode(v) : formatValue(v, { radix: "ascii", width: 1 }).text.slice(1, -1);
+  return v.toString(16).padStart(2, "0");
 }
 function inspectByte(address) {
   focus = "mem:" + address;
@@ -25702,13 +26115,14 @@ async function memoryAt(address) {
 }
 function renderCards() {
   let last2 = state?.last, next = state?.preview;
-  $("last-card").innerHTML = `<small>\u521A\u5B8C\u6210 ${last2 ? "#" + last2.step : ""} \xB7 \u5B9E\u7EBF</small><b>${escapeHTML(last2?.instruction?.basic || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55")}</b>`;
-  $("next-card").innerHTML = `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction?.basic || "\u2014")}</b>`;
+  $("last-card").innerHTML = `<small>\u521A\u5B8C\u6210 ${last2 ? "#" + last2.step : ""} \xB7 \u5B9E\u7EBF</small><b>${escapeHTML(last2?.instruction ? sourceOf(last2.instruction) : "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55")}</b>`;
+  $("next-card").innerHTML = `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction ? sourceOf(next.instruction) : "\u2014")}</b>`;
   for (let [id2, e] of [
     ["last-card", last2],
     ["next-card", next]
   ]) {
-    $(id2).title = e?.instruction ? `${e.instruction.file}:${e.instruction.line} \xB7 ${hex(e.pc)}` : "";
+    $(id2).title = e?.instruction ? `${e.instruction.file}:${e.instruction.line} \xB7 ${hex(e.pc)}
+\u5B9E\u9645\u6267\u884C\uFF1A${e.instruction.basic}` : "";
     $(id2).onclick = () => {
       if (e?.instruction) {
         gotoSource(e.instruction.file, e.instruction.line);
@@ -26193,6 +26607,18 @@ for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
 $("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
+$("radix").innerHTML = RADIXES.map(
+  ([value, label2]) => `<option value="${value}" ${value === radix ? "selected" : ""}>${label2}</option>`
+).join("");
+$("radix").onchange = () => {
+  radix = $("radix").value;
+  try {
+    localStorage.setItem("radix", radix);
+  } catch {
+  }
+  render();
+  lens.update(dirty ? null : state);
+};
 function openFocus() {
   if (dirty || !state || state.status === "empty")
     return notify("\u8BF7\u5148\u6C47\u7F16\uFF0C\u518D\u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F");

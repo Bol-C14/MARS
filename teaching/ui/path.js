@@ -49,6 +49,7 @@ function lastTransfer(step, before, delay) {
 
 export function layoutPath({
   last = null,
+  history = [],
   lookahead = null,
   instructions = [],
   symbols = [],
@@ -91,8 +92,24 @@ export function layoutPath({
       events,
       block: owner.get(events[0].instruction.address) ?? null,
     });
-  if (last?.instruction)
-    addStep(-1, false, last.instruction.file, last.instruction.line, [last]);
+  // The completed step is the whole source line that just ran: a
+  // pseudo-instruction's earlier machine instructions come from history,
+  // grouped like source stepping (same line, sequential PCs).
+  if (last?.instruction) {
+    const done = [last];
+    const byStep = new Map(history.map((e) => [e.step, e]));
+    for (let e = byStep.get(last.step - 1); e; e = byStep.get(e.step - 1)) {
+      const next = done[0];
+      if (
+        e.instruction.file !== next.instruction.file ||
+        e.instruction.line !== next.instruction.line ||
+        e.pc + 4 !== next.pc
+      )
+        break;
+      done.unshift(e);
+    }
+    addStep(-1, false, last.instruction.file, last.instruction.line, done);
+  }
 
   // Window range: fixed N lines, or (auto) the rest of the current block plus
   // the path it leads into, up to that path's own control decision.

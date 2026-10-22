@@ -3,9 +3,20 @@ import { hex, registerNames, services } from "./model.js";
 // template, then beats that each substitute one recorded value. Values come
 // only from the event's accesses; nothing here executes or predicts.
 
-const dim = (t) => ({ t: String(t), c: "dim" });
-const fresh = (t) => ({ t: String(t), c: "fresh" });
-const ok = (t) => ({ t: String(t), c: "ok" });
+// A number in an equation keeps its raw value, width and kind next to the
+// default text, so read-only views can show it in the chosen radix (C2).
+const N = (v, w = 4, k = "value") => ({
+  num: true,
+  t: k === "value" ? show(v) : w < 4 ? byteHex(v, w) : hex(v),
+  v,
+  w,
+  k,
+});
+const styled = (c) => (t) =>
+  t && typeof t === "object" && t.num ? { ...t, c } : { t: String(t), c };
+const dim = styled("dim");
+const fresh = styled("fresh");
+const ok = styled("ok");
 const text = (parts) =>
   parts.map((p) => (typeof p === "string" ? p : p.t)).join("");
 const id = (a) =>
@@ -140,11 +151,24 @@ export function beatModel(
       to: "code",
       label: show(a.value),
       kind: "read",
+      value: N(a.value, a.width || 4, a.kind === "memory" ? "bits" : "value"),
     })),
   });
   const writing = (a, label = show(a.value)) => ({
     lit: [{ id: id(a), mode: "write" }],
-    tokens: [{ from: "code", to: id(a), label, kind: "write" }],
+    tokens: [
+      {
+        from: "code",
+        to: id(a),
+        label,
+        kind: "write",
+        value: N(
+          a.kind === "memory" ? masked(a.value, a.width) : a.value,
+          a.width || 4,
+          /^0x/.test(label) ? "bits" : "value",
+        ),
+      },
+    ],
   });
   // Base + offset → effective address. With a zero offset the base already is
   // the address, so one beat says both instead of repeating the same line.
@@ -154,28 +178,36 @@ export function beatModel(
         ? `${op} 要求地址是 ${width} 的倍数，否则触发地址异常。`
         : "按字节访问不需要对齐。";
     if (rs && imm !== 0) {
-      beat(at([fresh(hex(rs.value)), off]), `取基址 ${base} 的值。`, {
+      beat(at([fresh(N(rs.value, 4, "bits")), off]), `取基址 ${base} 的值。`, {
         ...reading([rs]),
         why: `地址 = 基址寄存器 + 16 位有符号偏移（${imm}）。`,
       });
-      beat(at([fresh(hex(addr))]), "得到地址。", {
+      beat(at([fresh(N(addr, 4, "bits"))]), "得到地址。", {
         why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}。${align}`,
       });
     } else if (rs)
-      beat(at([fresh(hex(addr))]), `取基址 ${base} 的值，它就是地址。`, {
-        ...reading([rs]),
-        why: `偏移为 0，地址就是 ${base} 的值。${align}`,
-      });
-    else beat(at([fresh(hex(addr))]), "得到地址。", { why: align });
+      beat(
+        at([fresh(N(addr, 4, "bits"))]),
+        `取基址 ${base} 的值，它就是地址。`,
+        {
+          ...reading([rs]),
+          why: `偏移为 0，地址就是 ${base} 的值。${align}`,
+        },
+      );
+    else beat(at([fresh(N(addr, 4, "bits"))]), "得到地址。", { why: align });
   };
   // Final beat for a register result, or the explicit discard to $zero.
   const writeBack = (dest, value, asHex, why) => {
     const a = written(dest);
     if (a)
-      beat([dest, " = ", ok(show(a.value, asHex)), " ✓"], `写回 ${dest}。`, {
-        ...writing(a, show(a.value, asHex)),
-        why,
-      });
+      beat(
+        [dest, " = ", ok(N(a.value, 4, asHex ? "bits" : "value")), " ✓"],
+        `写回 ${dest}。`,
+        {
+          ...writing(a, show(a.value, asHex)),
+          why,
+        },
+      );
     else if (dest === "$zero")
       beat([dest, " = ", ok("0"), " ✓"], "$zero 恒为 0，结果被丢弃。", {
         why: "写入 $zero 不产生效果。",
@@ -193,15 +225,22 @@ export function beatModel(
       [
         dest,
         " ← ",
-        ...expr(fresh(show(rs.value, asHex)), fresh(show(rt.value, asHex))),
+        ...expr(
+          fresh(N(rs.value, 4, asHex ? "bits" : "value")),
+          fresh(N(rt.value, 4, asHex ? "bits" : "value")),
+        ),
       ],
       `取 ${rs.name} 和 ${rt.name} 的值。`,
       reading([rs, rt]),
     );
     if (res)
-      beat([dest, " ← ", fresh(show(res.value, asHex))], "计算。", {
-        why: rule,
-      });
+      beat(
+        [dest, " ← ", fresh(N(res.value, 4, asHex ? "bits" : "value"))],
+        "计算。",
+        {
+          why: rule,
+        },
+      );
     writeBack(dest, res?.value, asHex);
   } else if (immediateOps[op] && rs) {
     const [sym, rule, logical] = immediateOps[op],
@@ -210,23 +249,36 @@ export function beatModel(
       k = logical ? hex(uimm) : String(imm);
     template = [dest, " ← ", dim(rs.name), ` ${sym} ${k}`];
     beat(
-      [dest, " ← ", fresh(show(rs.value, logical)), ` ${sym} ${k}`],
+      [
+        dest,
+        " ← ",
+        fresh(N(rs.value, 4, logical ? "bits" : "value")),
+        ` ${sym} ${k}`,
+      ],
       `取 ${rs.name} 的值。`,
       reading([rs]),
     );
     if (res)
-      beat([dest, " ← ", fresh(show(res.value, logical))], "计算。", {
-        why: rule,
-      });
+      beat(
+        [dest, " ← ", fresh(N(res.value, 4, logical ? "bits" : "value"))],
+        "计算。",
+        {
+          why: rule,
+        },
+      );
     writeBack(dest, res?.value, logical);
   } else if (op === "lui") {
     const dest = name(rtN);
     template = [dest, " ← ", dim(hex(uimm)), " << 16"];
     const res = written(dest);
     if (res)
-      beat([dest, " ← ", fresh(hex(res.value))], "立即数放到高 16 位。", {
-        why: `${hex(uimm)} 左移 16 位，低 16 位补 0。常与 ori 组合装入 32 位常数（la / li 展开）。`,
-      });
+      beat(
+        [dest, " ← ", fresh(N(res.value, 4, "bits"))],
+        "立即数放到高 16 位。",
+        {
+          why: `${hex(uimm)} 左移 16 位，低 16 位补 0。常与 ori 组合装入 32 位常数（la / li 展开）。`,
+        },
+      );
     writeBack(dest, res?.value, true);
   } else if (shiftOps[op] && rt) {
     const [sym, rule] = shiftOps[op],
@@ -245,15 +297,15 @@ export function beatModel(
       [
         dest,
         " ← ",
-        fresh(hex(rt.value)),
+        fresh(N(rt.value, 4, "bits")),
         ` ${sym} `,
-        variable ? fresh(amount) : String(sa),
+        variable ? fresh(N(amount)) : String(sa),
       ],
       `取 ${rt.name}${variable ? " 和移位量" : ""} 的值。`,
       reading(variable && rs ? [rt, rs] : [rt]),
     );
     if (res)
-      beat([dest, " ← ", fresh(hex(res.value))], "移位。", {
+      beat([dest, " ← ", fresh(N(res.value, 4, "bits"))], "移位。", {
         why:
           rule +
           (variable && rs
@@ -279,8 +331,8 @@ export function beatModel(
       : ["HI:LO ← ", acc, dim(rs.name), " × ", dim(rt.name)];
     beat(
       division
-        ? ["LO, HI ← ", fresh(rs.value), " ÷ ", fresh(rt.value)]
-        : ["HI:LO ← ", acc, fresh(rs.value), " × ", fresh(rt.value)],
+        ? ["LO, HI ← ", fresh(N(rs.value)), " ÷ ", fresh(N(rt.value))]
+        : ["HI:LO ← ", acc, fresh(N(rs.value)), " × ", fresh(N(rt.value))],
       `取 ${rs.name} 和 ${rt.name} 的值。`,
       reading([rs, rt]),
     );
@@ -298,7 +350,7 @@ export function beatModel(
           .padStart(16, "0");
       beat(
         division
-          ? ["商 ", fresh(L.value), "，余数 ", fresh(H.value)]
+          ? ["商 ", fresh(N(L.value)), "，余数 ", fresh(N(H.value))]
           : ["HI:LO ← ", fresh(p64)],
         division ? "整数除法。" : "得到 64 位乘积。",
         {
@@ -308,7 +360,7 @@ export function beatModel(
         },
       );
       beat(
-        ["HI = ", ok(show(H.value)), "，LO = ", ok(show(L.value)), " ✓"],
+        ["HI = ", ok(N(H.value)), "，LO = ", ok(N(L.value)), " ✓"],
         "写入 HI 和 LO。",
         {
           lit: [
@@ -331,7 +383,7 @@ export function beatModel(
     template = [dest, " ← ", dim(op === "mfhi" ? "HI" : "LO")];
     if (src)
       beat(
-        [dest, " ← ", fresh(show(src.value))],
+        [dest, " ← ", fresh(N(src.value))],
         `取 ${op === "mfhi" ? "HI" : "LO"} 的值。`,
         reading([src]),
       );
@@ -340,14 +392,14 @@ export function beatModel(
     const dest = op === "mthi" ? "hi" : "lo";
     template = [dest.toUpperCase(), " ← ", dim(rs.name)];
     beat(
-      [dest.toUpperCase(), " ← ", fresh(show(rs.value))],
+      [dest.toUpperCase(), " ← ", fresh(N(rs.value))],
       `取 ${rs.name} 的值。`,
       reading([rs]),
     );
     const a = written(dest);
     if (a)
       beat(
-        [dest.toUpperCase(), " = ", ok(show(a.value)), " ✓"],
+        [dest.toUpperCase(), " = ", ok(N(a.value)), " ✓"],
         `写入 ${dest.toUpperCase()}。`,
         writing(a),
       );
@@ -359,11 +411,11 @@ export function beatModel(
     beat(
       [
         "若 ",
-        fresh(rt.value),
+        fresh(N(rt.value)),
         ` ${cond} 0：`,
         dest,
         " ← ",
-        fresh(show(rs.value)),
+        fresh(N(rs.value)),
       ],
       "取条件和数据的值。",
       reading([rt, rs]),
@@ -389,7 +441,17 @@ export function beatModel(
       width,
     );
     beat(
-      [dest, " ← ", fresh(width === 4 ? show(mem.value) : byteHex(raw, width))],
+      [
+        dest,
+        " ← ",
+        fresh(
+          N(
+            width === 4 ? mem.value : raw,
+            width,
+            width === 4 ? "value" : "bits",
+          ),
+        ),
+      ],
       `从内存取 ${width} 字节。`,
       {
         lit: [{ id: id(mem), mode: "read", width }],
@@ -411,7 +473,7 @@ export function beatModel(
     if (width < 4 && res) {
       const top = raw >>> (8 * width - 1);
       beat(
-        [dest, " ← ", fresh(show(res.value))],
+        [dest, " ← ", fresh(N(res.value))],
         signed
           ? `扩成 32 位：最高位是 ${top}，${top ? "补 1" : "补 0"}。`
           : "扩成 32 位：高位补 0。",
@@ -447,7 +509,13 @@ export function beatModel(
       beat(
         [
           `${unit}[ ${hex(addr)} ] ← `,
-          fresh(width === 4 ? show(src.value) : byteHex(value, width)),
+          fresh(
+            N(
+              width === 4 ? src.value : value,
+              width,
+              width === 4 ? "value" : "bits",
+            ),
+          ),
         ],
         width === 4
           ? `取 ${src.name} 的值。`
@@ -463,7 +531,7 @@ export function beatModel(
     beat(
       [
         `${unit}[ ${hex(addr)} ] = `,
-        ok(width === 4 ? show(value) : byteHex(value, width)),
+        ok(N(value, width, width === 4 ? "value" : "bits")),
         " ✓",
       ],
       `写入 ${width} 字节。`,
@@ -505,9 +573,9 @@ export function beatModel(
       beat(
         [
           "若 ",
-          fresh(rs.value),
+          fresh(N(rs.value)),
           ` ${sym} `,
-          fresh(rt.value),
+          fresh(N(rt.value)),
           " → 跳到 ",
           label,
         ],
@@ -529,7 +597,7 @@ export function beatModel(
       taken = test(rs.value);
       template = ["若 ", dim(rs.name), ` ${cond} → 跳到 `, label];
       beat(
-        ["若 ", fresh(rs.value), ` ${cond} → 跳到 `, label],
+        ["若 ", fresh(N(rs.value)), ` ${cond} → 跳到 `, label],
         `取 ${rs.name} 的值。`,
         reading([rs]),
       );
@@ -546,7 +614,7 @@ export function beatModel(
     }
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(hex(ra.value)), " ✓"], "保存返回地址。", {
+      beat(["$ra = ", ok(N(ra.value, 4, "bits")), " ✓"], "保存返回地址。", {
         ...writing(ra, hex(ra.value)),
         why: "链接分支无论是否跳转都写 $ra。",
       });
@@ -574,10 +642,14 @@ export function beatModel(
       op === "jal" ? ["$ra ← 返回地址；跳到 ", label] : ["跳到 ", label];
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(hex(ra.value)), "；跳到 ", label], "保存返回地址。", {
-        ...writing(ra, hex(ra.value)),
-        why: `返回地址是${delay ? "延迟槽之后" : "下一条"}指令 ${where(ra.value)}，函数用 jr $ra 回到这里。`,
-      });
+      beat(
+        ["$ra = ", ok(N(ra.value, 4, "bits")), "；跳到 ", label],
+        "保存返回地址。",
+        {
+          ...writing(ra, hex(ra.value)),
+          why: `返回地址是${delay ? "延迟槽之后" : "下一条"}指令 ${where(ra.value)}，函数用 jr $ra 回到这里。`,
+        },
+      );
     beat(
       ["下一条 = ", ok(label), " ✓"],
       op === "jal" ? "进入函数。" : "跳转。",
@@ -589,7 +661,7 @@ export function beatModel(
   } else if (/^(jr|jalr)$/.test(op) && rs) {
     const back = op === "jr" && rs.name === "$ra";
     template = ["跳到 ", dim(rs.name), " 中的地址"];
-    beat(["跳到 ", fresh(hex(rs.value))], `取 ${rs.name} 的值。`, {
+    beat(["跳到 ", fresh(N(rs.value, 4, "bits"))], `取 ${rs.name} 的值。`, {
       ...reading([rs]),
       why: back
         ? "$ra 保存着 jal 留下的返回地址。"
@@ -598,7 +670,7 @@ export function beatModel(
     const link = op === "jalr" ? writes.find((a) => a.number === rdN) : null;
     if (link)
       beat(
-        [link.name, " = ", ok(hex(link.value)), " ✓"],
+        [link.name, " = ", ok(N(link.value, 4, "bits")), " ✓"],
         "保存返回地址。",
         writing(link, hex(link.value)),
       );
@@ -624,7 +696,7 @@ export function beatModel(
     template = ["syscall（", dim("$v0"), "）"];
     if (v0)
       beat(
-        ["syscall ", fresh(n), ` · ${title}`],
+        ["syscall ", fresh(N(n)), ` · ${title}`],
         "按 $v0 选择服务。",
         reading([v0]),
       );
@@ -635,7 +707,7 @@ export function beatModel(
           i ? "，" : "",
           a.name,
           " = ",
-          fresh(show(a.value)),
+          fresh(N(a.value)),
         ]),
         "取参数的值。",
         reading(params),
@@ -644,7 +716,7 @@ export function beatModel(
       beat([fresh("等待输入")], "结果尚未产生，请在控制台提交输入。");
     for (const a of writes)
       beat(
-        [a.name, " = ", ok(show(a.value)), " ✓"],
+        [a.name, " = ", ok(N(a.value)), " ✓"],
         `服务结果写入 ${a.name}。`,
         writing(a),
       );
@@ -677,7 +749,7 @@ export function beatModel(
           i ? "，" : "",
           a.name,
           " = ",
-          fresh(show(a.value)),
+          fresh(N(a.value)),
         ]),
         "读取。",
         reading(reads),
@@ -687,7 +759,7 @@ export function beatModel(
         [
           a.kind === "register" ? a.name : `内存[${hex(a.address)}]`,
           " = ",
-          ok(show(masked(a.value, a.width ?? 4))),
+          ok(N(masked(a.value, a.width ?? 4))),
           " ✓",
         ],
         "写入。",
@@ -919,11 +991,22 @@ export function completeWhys(
         parts.push("已开启延迟分支：跳转前会先执行紧跟在后面的那一条。");
     }
     if (!parts.length) {
-      if (event.output && event.service != null)
-        parts.push(
-          `syscall ${event.service} 把结果写到控制台；程序的输出只在这一刻产生。`,
+      if (event.output && event.service != null) {
+        // Link the visible effect to the values that produced it (C1): facts
+        // only — which registers the service read and which step wrote them.
+        const args = (event.accesses || []).filter(
+          (x) => x.kind === "register" && !x.write && x.name !== "$v0",
         );
-      else parts.push(`指令 ${ins.op} 的规则：${rule()}`);
+        parts.push(
+          `控制台在这一步多了 ${JSON.stringify(event.output)}。` +
+            args
+              .map((x) => {
+                const w = writer("reg:" + x.name);
+                return `这个 syscall 用到的 ${x.name} 等于 ${show(x.value)}${w ? `，是${place(w)}写入的` : ""}。`;
+              })
+              .join(""),
+        );
+      } else parts.push(`指令 ${ins.op} 的规则：${rule()}`);
     }
     return parts.join("");
   };
@@ -974,4 +1057,138 @@ function bytesOf(o) {
     { length: o.width },
     (_, i) => ((o.value ?? o.after) >>> (8 * i)) & 255,
   );
+}
+
+// One source line that expanded to several machine instructions, explained
+// by its net effect (trial C3): values it read from outside the line, the
+// final results (the assembler's $at is an intermediate), and where execution
+// goes next. The per-instruction beats are shown only when expanded.
+export function lineSummary(
+  events,
+  { source = "", instructions = [], symbols = [] } = {},
+) {
+  const first = events[0],
+    last = events.at(-1);
+  const where = (address) => {
+    const s = symbols.find((x) => x.address === address && !x.data);
+    if (s) return s.name;
+    const i = instructions.find((x) => x.address === address);
+    return i ? `第 ${i.line} 行` : hex(address);
+  };
+  const written = new Set(),
+    reads = new Map(),
+    writes = new Map(),
+    firstBefore = new Map();
+  for (const e of events)
+    for (const a of e.accesses || []) {
+      const key = id(a);
+      if (
+        !a.write &&
+        !written.has(key) &&
+        a.name !== "$zero" &&
+        a.name !== "$at" &&
+        !reads.has(key)
+      )
+        reads.set(key, a);
+      if (a.write) {
+        if (!written.has(key)) firstBefore.set(key, a.before);
+        written.add(key);
+        if (a.name !== "$at") writes.set(key, a);
+      }
+    }
+  const expansion = events.map((e) => e.instruction.basic).join("；");
+  const beats = [];
+  const R = [...reads.values()],
+    W = [...writes.values()];
+  if (R.length)
+    beats.push({
+      eq: R.flatMap((a, i) => [
+        i ? "，" : "",
+        a.kind === "register" ? a.name : `内存[${hex(a.address)}]`,
+        " = ",
+        fresh(N(a.value, a.width || 4, a.kind === "memory" ? "bits" : "value")),
+      ]),
+      caption: `取 ${R.map((a) => a.name || hex(a.address)).join("、")} 的值。`,
+      lit: R.map((a) => ({ id: id(a), mode: "read" })),
+      tokens: R.map((a) => ({
+        from: id(a),
+        to: "code",
+        label: show(a.value),
+        kind: "read",
+        value: N(a.value, a.width || 4),
+      })),
+      why: "",
+    });
+  if (W.length)
+    beats.push({
+      eq: [
+        ...W.flatMap((a, i) => [
+          i ? "，" : "",
+          a.kind === "register" ? a.name : `内存[${hex(a.address)}]`,
+          " = ",
+          ok(
+            N(
+              a.kind === "memory" ? masked(a.value, a.width) : a.value,
+              a.width || 4,
+              a.kind === "memory" ? "bits" : "value",
+            ),
+          ),
+        ]),
+        " ✓",
+      ],
+      caption: `这一行的结果（伪指令，汇编时换成 ${events.length} 条机器指令）。`,
+      lit: W.map((a) => ({ id: id(a), mode: "write" })),
+      tokens: W.map((a) => ({
+        from: "code",
+        to: id(a),
+        label: show(a.value),
+        kind: "write",
+        value: N(a.value, a.width || 4),
+      })),
+      why: `这一行是伪指令，展开为：${expansion}。在代码路径里点 ▸ 可以逐条查看每一步。`,
+    });
+  const jumped =
+    last.nextPC != null && last.nextPC !== last.instruction.address + 4;
+  if (jumped || !beats.length)
+    beats.push({
+      eq: ["下一条 = ", ok(where(last.nextPC)), " ✓"],
+      caption: jumped ? "跳转。" : "顺序执行。",
+      lit: [],
+      tokens: [
+        {
+          from: "code",
+          to: "next",
+          label: jumped ? "跳转" : "PC+4",
+          kind: "flow",
+        },
+      ],
+      why: beats.length ? "" : `这一行是伪指令，展开为：${expansion}。`,
+    });
+  const accesses = [...R, ...W];
+  return {
+    template: [
+      source || first.instruction.source?.trim() || first.instruction.basic,
+    ],
+    beats,
+    summary: beats.at(-1) ? text(beats.at(-1).eq).replace(/ ✓$/, "") : "",
+    objects: accesses.map((a) => ({
+      id: id(a),
+      kind: a.kind,
+      name: a.name,
+      address: a.address,
+      width: a.width,
+      before: a.write ? firstBefore.get(id(a)) : a.value,
+      after: a.value,
+      read: !a.write,
+      write: !!a.write,
+    })),
+    // A single event standing for the whole line, for completeWhys.
+    event: {
+      ...first,
+      accesses,
+      nextPC: last.nextPC,
+      output: events.map((e) => e.output || "").join(""),
+      instruction: { ...first.instruction, source },
+    },
+  };
 }
