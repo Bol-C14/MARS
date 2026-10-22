@@ -1,6 +1,7 @@
 import { hex, escapeHTML } from "./model.js";
 export class OverlayRenderer {
   constructor({
+    getAction,
     getState,
     getEditor,
     getFile,
@@ -10,6 +11,7 @@ export class OverlayRenderer {
     onSource,
   }) {
     Object.assign(this, {
+      getAction,
       getState,
       getEditor,
       getFile,
@@ -19,6 +21,7 @@ export class OverlayRenderer {
       onSource,
     });
     this.svg = document.querySelector("#overlay");
+    document.querySelector("#relation-scope").onchange = () => this.schedule();
     window.addEventListener("resize", () => this.schedule());
     document.addEventListener("scroll", () => this.schedule(), true);
     new ResizeObserver(() => this.schedule()).observe(
@@ -72,6 +75,12 @@ export class OverlayRenderer {
     let paths = [],
       labels = [],
       focus = this.getFocus();
+    const scope = document.querySelector("#relation-scope").value,
+      selection = this.getAction?.();
+    if (scope === "focus" && !focus) {
+      this.svg.innerHTML = "";
+      return;
+    }
     let colors = {
       read: getComputedStyle(document.body).getPropertyValue("--blue").trim(),
       write: getComputedStyle(document.body)
@@ -100,13 +109,21 @@ export class OverlayRenderer {
       [s.preview, true, "dashed"],
     ]) {
       if (!event || !document.querySelector("#" + key).checked) continue;
+      if (
+        scope === "action" &&
+        (!selection?.action ||
+          selection.layer !== (dashed ? "preview" : "last"))
+      )
+        continue;
       let origin =
           this.codePoint(event.instruction) ||
           this.center(
             document.querySelector(dashed ? "#next-card" : "#last-card"),
           ),
         seen = new Set();
-      for (let a of event.accesses || []) {
+      for (let a of (scope === "action"
+        ? selection.action.accesses
+        : event.accesses) || []) {
         let type = a.write ? "write" : "read";
         if (
           !document.querySelector(type === "write" ? "#writes" : "#reads")
@@ -117,7 +134,7 @@ export class OverlayRenderer {
         let k = type + name;
         if (seen.has(k)) continue;
         seen.add(k);
-        if (focus && focus !== name) continue;
+        if (scope === "focus" && focus !== name) continue;
         let target = this.center(
           a.kind === "register"
             ? document.querySelector(`[data-register="${a.name}"]`)
@@ -155,7 +172,7 @@ export class OverlayRenderer {
       if (
         document.querySelector("#flows").checked &&
         event.nextPC != null &&
-        !focus
+        scope === "all"
       ) {
         let targetIns = s.instructions?.find((i) => i.address === event.nextPC),
           target = this.codePoint(targetIns);

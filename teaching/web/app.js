@@ -545,9 +545,9 @@ var PartialTextCursor = class {
     if (skip > limit)
       skip = limit;
     limit -= skip;
-    let { value } = this.cursor.next(skip);
-    this.pos += (value.length + skip) * dir;
-    this.value = value.length <= limit ? value : dir < 0 ? value.slice(value.length - limit) : value.slice(0, limit);
+    let { value: value2 } = this.cursor.next(skip);
+    this.pos += (value2.length + skip) * dir;
+    this.value = value2.length <= limit ? value2 : dir < 0 ? value2.slice(value2.length - limit) : value2.slice(0, limit);
     this.done = !this.value;
     return this;
   }
@@ -570,7 +570,7 @@ var LineCursor = class {
     this.done = false;
   }
   next(skip = 0) {
-    let { done, lineBreak, value } = this.inner.next(skip);
+    let { done, lineBreak, value: value2 } = this.inner.next(skip);
     if (done && this.afterBreak) {
       this.value = "";
       this.afterBreak = false;
@@ -585,7 +585,7 @@ var LineCursor = class {
         this.next();
       }
     } else {
-      this.value = value;
+      this.value = value2;
       this.afterBreak = false;
     }
     return this;
@@ -1063,16 +1063,16 @@ function addSection(sections, len, ins, forceJoin = false) {
   } else
     sections.push(len, ins);
 }
-function addInsert(values, sections, value) {
-  if (value.length == 0)
+function addInsert(values, sections, value2) {
+  if (value2.length == 0)
     return;
   let index = sections.length - 2 >> 1;
   if (index < values.length) {
-    values[values.length - 1] = values[values.length - 1].append(value);
+    values[values.length - 1] = values[values.length - 1].append(value2);
   } else {
     while (values.length < index)
       values.push(Text.empty);
-    values.push(value);
+    values.push(value2);
   }
 }
 function iterChanges(desc, f, individual) {
@@ -1517,8 +1517,8 @@ var Facet = class _Facet {
   /**
   Returns an extension that adds the given value to this facet.
   */
-  of(value) {
-    return new FacetProvider([], this, 0, value);
+  of(value2) {
+    return new FacetProvider([], this, 0, value2);
   }
   /**
   Create an extension that computes a value for the facet from a
@@ -1553,11 +1553,11 @@ function sameArray(a, b) {
   return a == b || a.length == b.length && a.every((e, i) => e === b[i]);
 }
 var FacetProvider = class {
-  constructor(dependencies, facet, type, value) {
+  constructor(dependencies, facet, type, value2) {
     this.dependencies = dependencies;
     this.facet = facet;
     this.type = type;
-    this.value = value;
+    this.value = value2;
     this.id = nextID++;
   }
   dynamicSlot(addresses) {
@@ -1634,12 +1634,12 @@ function dynamicFacetSlot(addresses, facet, providers) {
   function get(state2) {
     let values = [];
     for (let i = 0; i < providerAddrs.length; i++) {
-      let value = getAddr(state2, providerAddrs[i]);
+      let value2 = getAddr(state2, providerAddrs[i]);
       if (providerTypes[i] == 2)
-        for (let val of value)
+        for (let val of value2)
           values.push(val);
       else
-        values.push(value);
+        values.push(value2);
     }
     return facet.combine(values);
   }
@@ -1653,10 +1653,10 @@ function dynamicFacetSlot(addresses, facet, providers) {
     update(state2, tr) {
       if (!ensureAll(state2, dynamic))
         return 0;
-      let value = get(state2);
-      if (facet.compare(value, state2.values[idx]))
+      let value2 = get(state2);
+      if (facet.compare(value2, state2.values[idx]))
         return 0;
-      state2.values[idx] = value;
+      state2.values[idx] = value2;
       return 1;
     },
     reconfigure(state2, oldState) {
@@ -1666,12 +1666,12 @@ function dynamicFacetSlot(addresses, facet, providers) {
         state2.values[idx] = oldValue;
         return 0;
       }
-      let value = get(state2);
-      if (facet.compare(value, oldValue)) {
+      let value2 = get(state2);
+      if (facet.compare(value2, oldValue)) {
         state2.values[idx] = oldValue;
         return 0;
       }
-      state2.values[idx] = value;
+      state2.values[idx] = value2;
       return 1;
     }
   };
@@ -1711,10 +1711,10 @@ var StateField = class _StateField {
       },
       update: (state2, tr) => {
         let oldVal = state2.values[idx];
-        let value = this.updateF(oldVal, tr);
-        if (this.compareF(oldVal, value))
+        let value2 = this.updateF(oldVal, tr);
+        if (this.compareF(oldVal, value2))
           return 0;
-        state2.values[idx] = value;
+        state2.values[idx] = value2;
         return 1;
       },
       reconfigure: (state2, oldState) => {
@@ -1750,8 +1750,8 @@ var StateField = class _StateField {
   }
 };
 var Prec_ = { lowest: 4, low: 3, default: 2, high: 1, highest: 0 };
-function prec(value) {
-  return (ext) => new PrecExtension(ext, value);
+function prec(value2) {
+  return (ext) => new PrecExtension(ext, value2);
 }
 var Prec = {
   /**
@@ -1868,8 +1868,8 @@ var Configuration = class _Configuration {
         if (sameArray(oldProviders, providers)) {
           staticValues.push(oldState.facet(facet));
         } else {
-          let value = facet.combine(providers.map((p) => p.value));
-          staticValues.push(oldState && facet.compare(value, oldState.facet(facet)) ? oldState.facet(facet) : value);
+          let value2 = facet.combine(providers.map((p) => p.value));
+          staticValues.push(oldState && facet.compare(value2, oldState.facet(facet)) ? oldState.facet(facet) : value2);
         }
       } else {
         for (let p of providers) {
@@ -1970,9 +1970,9 @@ var Annotation = class {
   /**
   @internal
   */
-  constructor(type, value) {
+  constructor(type, value2) {
     this.type = type;
-    this.value = value;
+    this.value = value2;
   }
   /**
   Define a new type of annotation.
@@ -1985,8 +1985,8 @@ var AnnotationType = class {
   /**
   Create an instance of this annotation.
   */
-  of(value) {
-    return new Annotation(this, value);
+  of(value2) {
+    return new Annotation(this, value2);
   }
 };
 var StateEffectType = class {
@@ -2000,17 +2000,17 @@ var StateEffectType = class {
   Create a [state effect](https://codemirror.net/6/docs/ref/#state.StateEffect) instance of this
   type.
   */
-  of(value) {
-    return new StateEffect(this, value);
+  of(value2) {
+    return new StateEffect(this, value2);
   }
 };
 var StateEffect = class _StateEffect {
   /**
   @internal
   */
-  constructor(type, value) {
+  constructor(type, value2) {
     this.type = type;
-    this.value = value;
+    this.value = value2;
   }
   /**
   Map this effect through a position mapping. Will return
@@ -2213,13 +2213,13 @@ function filterTransaction(tr) {
   let state2 = tr.startState;
   let result = true;
   for (let filter of state2.facet(changeFilter)) {
-    let value = filter(tr);
-    if (value === false) {
+    let value2 = filter(tr);
+    if (value2 === false) {
       result = false;
       break;
     }
-    if (Array.isArray(value))
-      result = result === true ? value : joinRanges(result, value);
+    if (Array.isArray(value2))
+      result = result === true ? value2 : joinRanges(result, value2);
   }
   if (result !== true) {
     let changes, back;
@@ -2255,8 +2255,8 @@ function extendTransaction(tr) {
   return spec == tr ? tr : Transaction.create(state2, tr.changes, tr.selection, spec.effects, spec.annotations, spec.scrollIntoView);
 }
 var none = [];
-function asArray(value) {
-  return value == null ? none : Array.isArray(value) ? value : [value];
+function asArray(value2) {
+  return value2 == null ? none : Array.isArray(value2) ? value2 : [value2];
 }
 var CharCategory = /* @__PURE__ */ (function(CharCategory2) {
   CharCategory2[CharCategory2["Word"] = 0] = "Word";
@@ -2457,9 +2457,9 @@ var EditorState = class _EditorState {
     };
     if (fields)
       for (let prop in fields) {
-        let value = fields[prop];
-        if (value instanceof StateField && this.config.address[value.id] != null)
-          result[prop] = value.spec.toJSON(this.field(fields[prop]), this);
+        let value2 = fields[prop];
+        if (value2 instanceof StateField && this.config.address[value2.id] != null)
+          result[prop] = value2.spec.toJSON(this.field(fields[prop]), this);
       }
     return result;
   }
@@ -2476,8 +2476,8 @@ var EditorState = class _EditorState {
     if (fields)
       for (let prop in fields) {
         if (Object.prototype.hasOwnProperty.call(json, prop)) {
-          let field = fields[prop], value = json[prop];
-          fieldInit.push(field.init((state2) => field.spec.fromJSON(value, state2)));
+          let field = fields[prop], value2 = json[prop];
+          fieldInit.push(field.init((state2) => field.spec.fromJSON(value2, state2)));
         }
       }
     return _EditorState.create({
@@ -2633,12 +2633,12 @@ function combineConfig(configs, defaults3, combine = {}) {
   let result = {};
   for (let config2 of configs)
     for (let key of Object.keys(config2)) {
-      let value = config2[key], current = result[key];
+      let value2 = config2[key], current = result[key];
       if (current === void 0)
-        result[key] = value;
-      else if (current === value || value === void 0) ;
+        result[key] = value2;
+      else if (current === value2 || value2 === void 0) ;
       else if (Object.hasOwnProperty.call(combine, key))
-        result[key] = combine[key](current, value);
+        result[key] = combine[key](current, value2);
       else
         throw new Error("Config merge conflict for field " + key);
     }
@@ -2672,26 +2672,26 @@ function cmpVal(a, b) {
   return a == b || a.constructor == b.constructor && a.eq(b);
 }
 var Range = class _Range {
-  constructor(from, to, value) {
+  constructor(from, to, value2) {
     this.from = from;
     this.to = to;
-    this.value = value;
+    this.value = value2;
   }
   /**
   @internal
   */
-  static create(from, to, value) {
-    return new _Range(from, to, value);
+  static create(from, to, value2) {
+    return new _Range(from, to, value2);
   }
 };
 function cmpRange(a, b) {
   return a.from - b.from || a.value.startSide - b.value.startSide;
 }
 var Chunk = class _Chunk {
-  constructor(from, to, value, maxPoint) {
+  constructor(from, to, value2, maxPoint) {
     this.from = from;
     this.to = to;
-    this.value = value;
+    this.value = value2;
     this.maxPoint = maxPoint;
   }
   get length() {
@@ -2720,7 +2720,7 @@ var Chunk = class _Chunk {
         return false;
   }
   map(offset, changes, basePos, baseSide, spill) {
-    let value = [], from = [], to = [], newPos = -1, maxPoint = -1;
+    let value2 = [], from = [], to = [], newPos = -1, maxPoint = -1;
     iter: for (let i = 0; i < this.value.length; i++) {
       let val = this.value[i], curFrom = this.from[i] + offset, curTo = this.to[i] + offset, newFrom, newTo;
       if (curFrom == curTo) {
@@ -2746,28 +2746,28 @@ var Chunk = class _Chunk {
       if (val.point)
         maxPoint = Math.max(maxPoint, newTo - newFrom);
       if ((newFrom - basePos || val.startSide - baseSide) >= 0) {
-        value.push(val);
+        value2.push(val);
         from.push(newFrom - newPos);
         to.push(newTo - newPos);
         basePos = newTo;
         baseSide = val.endSide;
       } else {
         if (newFrom == newTo) {
-          for (let i2 = value.length; i2 > 0; i2--) {
-            if ((newFrom - (to[i2 - 1] + newPos) || val.startSide - value[i2 - 1].endSide) >= 0) {
-              value.splice(i2, 0, val);
+          for (let i2 = value2.length; i2 > 0; i2--) {
+            if ((newFrom - (to[i2 - 1] + newPos) || val.startSide - value2[i2 - 1].endSide) >= 0) {
+              value2.splice(i2, 0, val);
               from.splice(i2, 0, newFrom - newPos);
               to.splice(i2, 0, newTo - newPos);
               continue iter;
             }
-            if ((newFrom - (from[i2 - 1] + newPos) || val.endSide - value[i2 - 1].startSide) > 0)
+            if ((newFrom - (from[i2 - 1] + newPos) || val.endSide - value2[i2 - 1].startSide) > 0)
               break;
           }
         }
         spill(newFrom, newTo, val);
       }
     }
-    return { mapped: value.length ? new _Chunk(from, to, value, maxPoint) : null, pos: newPos };
+    return { mapped: value2.length ? new _Chunk(from, to, value2, maxPoint) : null, pos: newPos };
   }
 };
 var RangeSet = class _RangeSet {
@@ -2852,10 +2852,10 @@ var RangeSet = class _RangeSet {
       return this;
     let chunks = [], chunkPos = [], maxPoint = -1;
     let spilled;
-    let spill = (from, to, value) => {
+    let spill = (from, to, value2) => {
       if (!spilled)
         spilled = new RangeSetBuilder();
-      spilled.addRange(from, to, value, false);
+      spilled.addRange(from, to, value2, false);
     };
     for (let i = 0; i < this.chunk.length; i++) {
       let start = this.chunkPos[i], chunk = this.chunk[i];
@@ -3056,22 +3056,22 @@ var RangeSetBuilder = class _RangeSetBuilder {
   Add a range. Ranges should be added in sorted (by `from` and
   `value.startSide`) order.
   */
-  add(from, to, value) {
-    this.addRange(from, to, value, true);
+  add(from, to, value2) {
+    this.addRange(from, to, value2, true);
   }
   /**
   @internal
   */
-  addRange(from, to, value, strict) {
-    if (!this.addInner(from, to, value, strict))
-      (this.nextLayer || (this.nextLayer = new _RangeSetBuilder())).addRange(from, to, value, strict);
+  addRange(from, to, value2, strict) {
+    if (!this.addInner(from, to, value2, strict))
+      (this.nextLayer || (this.nextLayer = new _RangeSetBuilder())).addRange(from, to, value2, strict);
   }
   /**
   @internal
   */
-  addInner(from, to, value, strict) {
-    let diff = from - this.lastTo || value.startSide - this.last.endSide;
-    if (strict && diff <= 0 && (from - this.lastFrom || value.startSide - this.last.startSide) < 0)
+  addInner(from, to, value2, strict) {
+    let diff = from - this.lastTo || value2.startSide - this.last.endSide;
+    if (strict && diff <= 0 && (from - this.lastFrom || value2.startSide - this.last.startSide) < 0)
       throw new Error("Ranges must be added sorted by `from` position and `startSide`");
     if (diff < 0)
       return false;
@@ -3081,11 +3081,11 @@ var RangeSetBuilder = class _RangeSetBuilder {
       this.chunkStart = from;
     this.from.push(from - this.chunkStart);
     this.to.push(to - this.chunkStart);
-    this.last = value;
+    this.last = value2;
     this.lastFrom = from;
     this.lastTo = to;
-    this.value.push(value);
-    if (value.point)
+    this.value.push(value2);
+    if (value2.point)
       this.maxPoint = Math.max(this.maxPoint, to - from);
     return true;
   }
@@ -3321,10 +3321,10 @@ var SpanCursor = class {
     this.minActive = findMinIndex(this.active, this.activeTo);
   }
   addActive(trackOpen) {
-    let i = 0, { value, to, rank } = this.cursor;
+    let i = 0, { value: value2, to, rank } = this.cursor;
     while (i < this.activeRank.length && (rank - this.activeRank[i] || to - this.activeTo[i]) > 0)
       i++;
-    insert(this.active, i, value);
+    insert(this.active, i, value2);
     insert(this.activeTo, i, to);
     insert(this.activeRank, i, rank);
     if (trackOpen)
@@ -3445,15 +3445,15 @@ function remove(array, index) {
     array[i] = array[i + 1];
   array.pop();
 }
-function insert(array, index, value) {
+function insert(array, index, value2) {
   for (let i = array.length - 1; i >= index; i--)
     array[i + 1] = array[i];
-  array[index] = value;
+  array[index] = value2;
 }
-function findMinIndex(value, array) {
+function findMinIndex(value2, array) {
   let found = -1, foundPos = 1e9;
   for (let i = 0; i < array.length; i++)
-    if ((array[i] - foundPos || value[i].endSide - value[found].endSide) < 0) {
+    if ((array[i] - foundPos || value2[i].endSide - value2[found].endSide) < 0) {
       found = i;
       foundPos = array[i];
     }
@@ -3505,18 +3505,18 @@ var StyleModule = class {
       let local = [], isAt = /^@(\w+)\b/.exec(selectors[0]), keyframes = isAt && isAt[1] == "keyframes";
       if (isAt && spec2 == null) return target.push(selectors[0] + ";");
       for (let prop in spec2) {
-        let value = spec2[prop];
+        let value2 = spec2[prop];
         if (/&/.test(prop)) {
           render2(
             prop.split(/,\s*/).map((part) => selectors.map((sel) => part.replace(/&/, sel))).reduce((a, b) => a.concat(b)),
-            value,
+            value2,
             target
           );
-        } else if (value && typeof value == "object") {
+        } else if (value2 && typeof value2 == "object") {
           if (!isAt) throw new RangeError("The value of a property (" + prop + ") should be a primitive value.");
-          render2(splitSelector(prop), value, local, keyframes);
-        } else if (value != null) {
-          local.push(prop.replace(/_.*/, "").replace(/[A-Z]/g, (l) => "-" + l.toLowerCase()) + ": " + value + ";");
+          render2(splitSelector(prop), value2, local, keyframes);
+        } else if (value2 != null) {
+          local.push(prop.replace(/_.*/, "").replace(/[A-Z]/g, (l) => "-" + l.toLowerCase()) + ": " + value2 + ";");
         }
       }
       if (local.length || keyframes) {
@@ -3733,9 +3733,9 @@ function crelt() {
   var i = 1, next = arguments[1];
   if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
     for (var name2 in next) if (Object.prototype.hasOwnProperty.call(next, name2)) {
-      var value = next[name2];
-      if (typeof value == "string") elt.setAttribute(name2, value);
-      else if (value != null) elt[name2] = value;
+      var value2 = next[name2];
+      if (typeof value2 == "string") elt.setAttribute(name2, value2);
+      else if (value2 != null) elt[name2] = value2;
     }
     i++;
   }
@@ -3820,11 +3820,11 @@ function setAttrs(dom, attrs) {
       dom.removeAttribute(name2);
   }
   for (let name2 in attrs) {
-    let value = attrs[name2];
+    let value2 = attrs[name2];
     if (name2 == "style")
-      dom.style.cssText = value;
-    else if (dom.getAttribute(name2) != value)
-      dom.setAttribute(name2, value);
+      dom.style.cssText = value2;
+    else if (dom.getAttribute(name2) != value2)
+      dom.setAttribute(name2, value2);
   }
 }
 function updateAttrs(dom, prev, attrs) {
@@ -6062,13 +6062,13 @@ var TextStream = class {
   }
   next(maxLen) {
     if (this.textOff == this.text.length) {
-      let { value, lineBreak, done } = this.cursor.next(this.skipCount);
+      let { value: value2, lineBreak, done } = this.cursor.next(this.skipCount);
       this.skipCount = 0;
       if (done)
         throw new Error("Ran out of text content when drawing inline views");
-      this.text = value;
-      let len = this.textOff = Math.min(maxLen, value.length);
-      return lineBreak ? null : value.slice(0, len);
+      this.text = value2;
+      let len = this.textOff = Math.min(maxLen, value2.length);
+      return lineBreak ? null : value2.slice(0, len);
     }
     let end = Math.min(this.text.length, this.textOff + maxLen);
     let chars = this.text.slice(this.textOff, end);
@@ -6407,17 +6407,17 @@ function widgetFlags(deco) {
   return flags;
 }
 var lineBaseAttrs = { class: "cm-line" };
-function addLineDeco(value, deco) {
+function addLineDeco(value2, deco) {
   let attrs = deco.spec.attributes, cls = deco.spec.class;
   if (!attrs && !cls)
-    return value;
-  if (!value)
-    value = { class: "cm-line" };
+    return value2;
+  if (!value2)
+    value2 = { class: "cm-line" };
   if (attrs)
-    combineAttrs(attrs, value);
+    combineAttrs(attrs, value2);
   if (cls)
-    value.class += " " + cls;
-  return value;
+    value2.class += " " + cls;
+  return value2;
 }
 function getMarks(ptr) {
   let found = [];
@@ -7266,7 +7266,7 @@ function skipAtomicRanges(atoms, pos, bias) {
   for (; ; ) {
     let moved = 0;
     for (let set of atoms) {
-      set.between(pos - 1, pos + 1, (from, to, value) => {
+      set.between(pos - 1, pos + 1, (from, to, value2) => {
         if (pos > from && pos < to) {
           let side = moved || bias || (pos - from < to - pos ? -1 : 1);
           pos = side < 0 ? from : to;
@@ -8826,8 +8826,8 @@ var HeightMap = class _HeightMap {
   get outdated() {
     return (this.flags & 2) > 0;
   }
-  set outdated(value) {
-    this.flags = (value ? 2 : 0) | this.flags & -3;
+  set outdated(value2) {
+    this.flags = (value2 ? 2 : 0) | this.flags & -3;
   }
   setHeight(height) {
     if (this.height != height) {
@@ -9043,15 +9043,15 @@ var HeightMapGap = class _HeightMapGap extends HeightMap {
       return new BlockInfo(from, length, top2 + perLine * line, perLine, 0);
     }
   }
-  lineAt(value, type, oracle, top2, offset) {
+  lineAt(value2, type, oracle, top2, offset) {
     if (type == QueryType.ByHeight)
-      return this.blockAt(value, oracle, top2, offset);
+      return this.blockAt(value2, oracle, top2, offset);
     if (type == QueryType.ByPosNoHeight) {
-      let { from, to } = oracle.doc.lineAt(value);
+      let { from, to } = oracle.doc.lineAt(value2);
       return new BlockInfo(from, to - from, 0, 0, 0);
     }
     let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
-    let line = oracle.doc.lineAt(value), lineHeight = perLine + line.length * perChar;
+    let line = oracle.doc.lineAt(value2), lineHeight = perLine + line.length * perChar;
     let linesAbove = line.number - firstLine;
     let lineTop = top2 + perLine * linesAbove + perChar * (line.from - offset - linesAbove);
     return new BlockInfo(line.from, line.length, Math.max(top2, Math.min(lineTop, top2 + this.height - lineHeight)), lineHeight, 0);
@@ -9152,10 +9152,10 @@ var HeightMapBranch = class extends HeightMap {
     let mid = top2 + this.left.height;
     return height < mid ? this.left.blockAt(height, oracle, top2, offset) : this.right.blockAt(height, oracle, mid, offset + this.left.length + this.break);
   }
-  lineAt(value, type, oracle, top2, offset) {
+  lineAt(value2, type, oracle, top2, offset) {
     let rightTop = top2 + this.left.height, rightOffset = offset + this.left.length + this.break;
-    let left = type == QueryType.ByHeight ? value < rightTop : value < rightOffset;
-    let base2 = left ? this.left.lineAt(value, type, oracle, top2, offset) : this.right.lineAt(value, type, oracle, rightTop, rightOffset);
+    let left = type == QueryType.ByHeight ? value2 < rightTop : value2 < rightOffset;
+    let base2 = left ? this.left.lineAt(value2, type, oracle, top2, offset) : this.right.lineAt(value2, type, oracle, rightTop, rightOffset);
     if (this.break || (left ? base2.to < rightOffset : base2.from > rightOffset))
       return base2;
     let subQuery = type == QueryType.ByPosNoHeight ? QueryType.ByPosNoHeight : QueryType.ByPos;
@@ -11996,9 +11996,9 @@ var CachedOrder = class _CachedOrder {
 };
 function attrsFromFacet(view2, facet, base2) {
   for (let sources = view2.state.facet(facet), i = sources.length - 1; i >= 0; i--) {
-    let source = sources[i], value = typeof source == "function" ? source(view2) : source;
-    if (value)
-      combineAttrs(value, base2);
+    let source = sources[i], value2 = typeof source == "function" ? source(view2) : source;
+    if (value2)
+      combineAttrs(value2, base2);
   }
   return base2;
 }
@@ -13331,10 +13331,10 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
     }
   }
 });
-function setLeftStyle(elt, value) {
+function setLeftStyle(elt, value2) {
   let current = parseInt(elt.style.left, 10);
-  if (isNaN(current) || Math.abs(value - current) > 1)
-    elt.style.left = value + "px";
+  if (isNaN(current) || Math.abs(value2 - current) > 1)
+    elt.style.left = value2 + "px";
 }
 var baseTheme = /* @__PURE__ */ EditorView.baseTheme({
   ".cm-tooltip": {
@@ -13447,17 +13447,17 @@ var HoverTooltipHost = class _HoverTooltipHost {
       (_a2 = t2.destroy) === null || _a2 === void 0 ? void 0 : _a2.call(t2);
   }
   passProp(name2) {
-    let value = void 0;
+    let value2 = void 0;
     for (let view2 of this.manager.tooltipViews) {
       let given = view2[name2];
       if (given !== void 0) {
-        if (value === void 0)
-          value = given;
-        else if (value !== given)
+        if (value2 === void 0)
+          value2 = given;
+        else if (value2 !== given)
           return void 0;
       }
     }
-    return value;
+    return value2;
   }
   get offset() {
     return this.passProp("offset");
@@ -13548,9 +13548,9 @@ var HoverPlugin = class {
   }
   activateHover(view2, pos, side, locked) {
     let open = this.source(view2, pos, side);
-    let done = (value) => {
-      if (value && !(Array.isArray(value) && !value.length)) {
-        let tooltips = Array.isArray(value) ? value : [value];
+    let done = (value2) => {
+      if (value2 && !(Array.isArray(value2) && !value2.length)) {
+        let tooltips = Array.isArray(value2) ? value2 : [value2];
         if (locked)
           this.locked.set(tooltips, locked);
         view2.dispatch({ effects: this.setHover.of(tooltips) });
@@ -13641,19 +13641,19 @@ function hoverTooltip(source, options = {}) {
     create() {
       return [];
     },
-    update(value, tr) {
-      let lock = locked.get(value);
-      if (value.length) {
+    update(value2, tr) {
+      let lock = locked.get(value2);
+      if (value2.length) {
         if (options.hideOnChange && (tr.docChanged || tr.selection))
-          value = [];
+          value2 = [];
         else if (lock && lock(tr))
-          value = [];
+          value2 = [];
         else if (options.hideOn)
-          value = value.filter((v) => !options.hideOn(tr, v));
+          value2 = value2.filter((v) => !options.hideOn(tr, v));
       }
-      if (tr.docChanged && value.length) {
+      if (tr.docChanged && value2.length) {
         let mapped = [];
-        for (let tooltip of value) {
+        for (let tooltip of value2) {
           let newPos = tr.changes.mapPos(tooltip.pos, -1, MapMode.TrackDel);
           if (newPos != null) {
             let copy = Object.assign(/* @__PURE__ */ Object.create(null), tooltip);
@@ -13663,19 +13663,19 @@ function hoverTooltip(source, options = {}) {
             mapped.push(copy);
           }
         }
-        value = mapped;
+        value2 = mapped;
       }
       for (let effect of tr.effects) {
         if (effect.is(setHover)) {
-          value = effect.value;
+          value2 = effect.value;
           lock = void 0;
         }
         if (effect.is(closeHoverTooltipEffect) && !effect.value || effect.value == hoverState)
-          value = [];
+          value2 = [];
       }
-      if (value.length && lock)
-        locked.set(value, lock);
-      return value;
+      if (value2.length && lock)
+        locked.set(value2, lock);
+      return value2;
     },
     provide: (f) => showHoverTooltip.from(f)
   });
@@ -13798,8 +13798,8 @@ var panelPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
   }
 }, {
   provide: (plugin) => EditorView.scrollMargins.of((view2) => {
-    let value = view2.plugin(plugin);
-    return value && { top: value.top.scrollMargin(), bottom: value.bottom.scrollMargin() };
+    let value2 = view2.plugin(plugin);
+    return value2 && { top: value2.top.scrollMargin(), bottom: value2.bottom.scrollMargin() };
   })
 });
 var PanelGroup = class {
@@ -14171,10 +14171,10 @@ var gutterView = /* @__PURE__ */ ViewPlugin.fromClass(class {
   }
 }, {
   provide: (plugin) => EditorView.scrollMargins.of((view2) => {
-    let value = view2.plugin(plugin);
-    if (!value || value.gutters.length == 0 || !value.fixed)
+    let value2 = view2.plugin(plugin);
+    if (!value2 || value2.gutters.length == 0 || !value2.fixed)
       return null;
-    let before = value.dom.offsetWidth * view2.scaleX, after = value.domAfter ? value.domAfter.offsetWidth * view2.scaleX : 0;
+    let before = value2.dom.offsetWidth * view2.scaleX, after = value2.domAfter ? value2.domAfter.offsetWidth * view2.scaleX : 0;
     return view2.textDirection == Direction.LTR ? { left: before, right: after } : { right: before, left: after };
   })
 });
@@ -14496,10 +14496,10 @@ var NodeProp = class {
 NodeProp.closedBy = new NodeProp({ deserialize: (str) => str.split(" ") });
 NodeProp.openedBy = new NodeProp({ deserialize: (str) => str.split(" ") });
 NodeProp.group = new NodeProp({ deserialize: (str) => str.split(" ") });
-NodeProp.isolate = new NodeProp({ deserialize: (value) => {
-  if (value && value != "rtl" && value != "ltr" && value != "auto")
-    throw new RangeError("Invalid value for isolate: " + value);
-  return value || "auto";
+NodeProp.isolate = new NodeProp({ deserialize: (value2) => {
+  if (value2 && value2 != "rtl" && value2 != "ltr" && value2 != "auto")
+    throw new RangeError("Invalid value for isolate: " + value2);
+  return value2 || "auto";
 } });
 NodeProp.contextHash = new NodeProp({ perNode: true });
 NodeProp.lookAhead = new NodeProp({ perNode: true });
@@ -14644,8 +14644,8 @@ var Tree = class _Tree {
     this.props = null;
     if (props && props.length) {
       this.props = /* @__PURE__ */ Object.create(null);
-      for (let [prop, value] of props)
-        this.props[typeof prop == "number" ? prop : prop.id] = value;
+      for (let [prop, value2] of props)
+        this.props[typeof prop == "number" ? prop : prop.id] = value2;
     }
   }
   /**
@@ -16248,9 +16248,9 @@ function tagHighlighter(tags2, options) {
 function highlightTags(highlighters, tags2) {
   let result = null;
   for (let highlighter of highlighters) {
-    let value = highlighter.style(tags2);
-    if (value)
-      result = result ? result + " " + value : value;
+    let value2 = highlighter.style(tags2);
+    if (value2)
+      result = result ? result + " " + value2 : value2;
   }
   return result;
 }
@@ -17136,13 +17136,13 @@ var LanguageState = class _LanguageState {
 };
 Language.state = /* @__PURE__ */ StateField.define({
   create: LanguageState.init,
-  update(value, tr) {
+  update(value2, tr) {
     for (let e of tr.effects)
       if (e.is(Language.setState))
         return e.value;
     if (tr.startState.facet(language) != tr.state.facet(language))
       return LanguageState.init(tr.state);
-    return value.apply(tr);
+    return value2.apply(tr);
   }
 });
 var requestIdle = (callback) => {
@@ -17557,9 +17557,9 @@ function syntaxFolding(state2, start, end) {
       break;
     let prop = cur2.type.prop(foldNodeProp);
     if (prop && (cur2.to < tree.length - 50 || tree.length == state2.doc.length || !isUnfinished(cur2))) {
-      let value = prop(cur2, state2);
-      if (value && value.from <= end && value.from >= start && value.to > end)
-        found = value;
+      let value2 = prop(cur2, state2);
+      if (value2 && value2.from <= end && value2.from >= start && value2.to > end)
+        found = value2;
     }
   }
   return found;
@@ -17613,9 +17613,9 @@ var foldState = /* @__PURE__ */ StateField.define({
     }
     if (rangesToFold.length) {
       let { preparePlaceholder } = tr.state.facet(foldConfig);
-      let decorations3 = rangesToFold.map((value) => {
-        let widget = !preparePlaceholder ? foldWidget : Decoration.replace({ widget: new PreparedFoldWidget(preparePlaceholder(tr.state, value)) });
-        return widget.range(value.from, value.to);
+      let decorations3 = rangesToFold.map((value2) => {
+        let widget = !preparePlaceholder ? foldWidget : Decoration.replace({ widget: new PreparedFoldWidget(preparePlaceholder(tr.state, value2)) });
+        return widget.range(value2.from, value2.to);
       });
       folded = folded.update({ add: decorations3 });
     }
@@ -17631,12 +17631,12 @@ var foldState = /* @__PURE__ */ StateField.define({
     });
     return ranges;
   },
-  fromJSON(value) {
-    if (!Array.isArray(value) || value.length % 2)
+  fromJSON(value2) {
+    if (!Array.isArray(value2) || value2.length % 2)
       throw new RangeError("Invalid JSON for fold state");
     let ranges = [];
-    for (let i = 0; i < value.length; ) {
-      let from = value[i++], to = value[i++];
+    for (let i = 0; i < value2.length; ) {
+      let from = value2[i++], to = value2[i++];
       if (typeof from != "number" || typeof to != "number")
         throw new RangeError("Invalid JSON for fold state");
       ranges.push(foldWidget.range(from, to));
@@ -17773,9 +17773,9 @@ var foldWidget = /* @__PURE__ */ Decoration.replace({ widget: /* @__PURE__ */ ne
   }
 }() });
 var PreparedFoldWidget = class extends WidgetType {
-  constructor(value) {
+  constructor(value2) {
     super();
-    this.value = value;
+    this.value = value2;
   }
   eq(other) {
     return this.value == other.value;
@@ -18242,19 +18242,19 @@ function createTokenType(extra, tagStr) {
   for (let name3 of tagStr.split(" ")) {
     let found = [];
     for (let part of name3.split(".")) {
-      let value = extra[part] || tags[part];
-      if (!value) {
+      let value2 = extra[part] || tags[part];
+      if (!value2) {
         warnForPart(part, `Unknown highlighting tag ${part}`);
-      } else if (typeof value == "function") {
+      } else if (typeof value2 == "function") {
         if (!found.length)
           warnForPart(part, `Modifier ${part} used at start of tag`);
         else
-          found = found.map(value);
+          found = found.map(value2);
       } else {
         if (found.length)
           warnForPart(part, `Tag ${part} used as modifier`);
         else
-          found = Array.isArray(value) ? value : [value];
+          found = Array.isArray(value2) ? value2 : [value2];
       }
     }
     for (let tag of found)
@@ -18485,8 +18485,8 @@ var historyField_ = /* @__PURE__ */ StateField.define({
       state2 = state2.isolate();
     return state2;
   },
-  toJSON(value) {
-    return { done: value.done.map((e) => e.toJSON()), undone: value.undone.map((e) => e.toJSON()) };
+  toJSON(value2) {
+    return { done: value2.done.map((e) => e.toJSON()), undone: value2.undone.map((e) => e.toJSON()) };
   },
   fromJSON(json) {
     return new HistoryState(json.done.map(HistEvent.fromJSON), json.undone.map(HistEvent.fromJSON));
@@ -20053,14 +20053,14 @@ var searchState = /* @__PURE__ */ StateField.define({
   create(state2) {
     return new SearchState(defaultQuery(state2).create(), null);
   },
-  update(value, tr) {
+  update(value2, tr) {
     for (let effect of tr.effects) {
       if (effect.is(setSearchQuery))
-        value = new SearchState(effect.value.create(), value.panel);
+        value2 = new SearchState(effect.value.create(), value2.panel);
       else if (effect.is(togglePanel))
-        value = new SearchState(value.query, effect.value ? createSearchPanel : null);
+        value2 = new SearchState(value2.query, effect.value ? createSearchPanel : null);
     }
-    return value;
+    return value2;
   },
   provide: (f) => showPanel.from(f, (val) => val.panel)
 });
@@ -21242,7 +21242,7 @@ var CompletionState = class _CompletionState {
     let { state: state2 } = tr, conf = state2.facet(completionConfig);
     let sources = conf.override || state2.languageDataAt("autocomplete", cur(state2)).map(asSource);
     let active = sources.map((source) => {
-      let value = this.active.find((s) => s.source == source) || new ActiveSource(
+      let value2 = this.active.find((s) => s.source == source) || new ActiveSource(
         source,
         this.active.some(
           (a) => a.state != 0
@@ -21250,7 +21250,7 @@ var CompletionState = class _CompletionState {
         ) ? 1 : 0
         /* State.Inactive */
       );
-      return value.update(tr, conf);
+      return value2.update(tr, conf);
     });
     if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
       active = this.active;
@@ -21331,36 +21331,36 @@ var ActiveSource = class _ActiveSource {
     return this.state == 1;
   }
   update(tr, conf) {
-    let type = getUpdateType(tr, conf), value = this;
+    let type = getUpdateType(tr, conf), value2 = this;
     if (type & 8 || type & 16 && this.touches(tr))
-      value = new _ActiveSource(
-        value.source,
+      value2 = new _ActiveSource(
+        value2.source,
         0
         /* State.Inactive */
       );
-    if (type & 4 && value.state == 0)
-      value = new _ActiveSource(
+    if (type & 4 && value2.state == 0)
+      value2 = new _ActiveSource(
         this.source,
         1
         /* State.Pending */
       );
-    value = value.updateFor(tr, type);
+    value2 = value2.updateFor(tr, type);
     for (let effect of tr.effects) {
       if (effect.is(startCompletionEffect))
-        value = new _ActiveSource(value.source, 1, effect.value);
+        value2 = new _ActiveSource(value2.source, 1, effect.value);
       else if (effect.is(closeCompletionEffect))
-        value = new _ActiveSource(
-          value.source,
+        value2 = new _ActiveSource(
+          value2.source,
           0
           /* State.Inactive */
         );
       else if (effect.is(setActiveEffect)) {
         for (let active of effect.value)
-          if (active.source == value.source)
-            value = active;
+          if (active.source == value2.source)
+            value2 = active;
       }
     }
-    return value;
+    return value2;
   }
   updateFor(tr, type) {
     return this.map(tr.changes);
@@ -21436,8 +21436,8 @@ var completionState = /* @__PURE__ */ StateField.define({
   create() {
     return CompletionState.start();
   },
-  update(value, tr) {
-    return value.update(tr);
+  update(value2, tr) {
+    return value2.update(tr);
   },
   provide: (f) => [
     showTooltip.from(f, (val) => val.tooltip),
@@ -21805,8 +21805,8 @@ var defaults2 = {
   stringPrefixes: []
 };
 var closeBracketEffect = /* @__PURE__ */ StateEffect.define({
-  map(value, mapping) {
-    let mapped = mapping.mapPos(value, -1, MapMode.TrackAfter);
+  map(value2, mapping) {
+    let mapped = mapping.mapPos(value2, -1, MapMode.TrackAfter);
     return mapped == null ? void 0 : mapped;
   }
 });
@@ -21818,16 +21818,16 @@ var bracketState = /* @__PURE__ */ StateField.define({
   create() {
     return RangeSet.empty;
   },
-  update(value, tr) {
-    value = value.map(tr.changes);
+  update(value2, tr) {
+    value2 = value2.map(tr.changes);
     if (tr.selection) {
       let line = tr.state.doc.lineAt(tr.selection.main.head);
-      value = value.update({ filter: (from) => from >= line.from && from <= line.to });
+      value2 = value2.update({ filter: (from) => from >= line.from && from <= line.to });
     }
     for (let effect of tr.effects)
       if (effect.is(closeBracketEffect))
-        value = value.update({ add: [closedBracket.range(effect.value, effect.value + 1)] });
-    return value;
+        value2 = value2.update({ add: [closedBracket.range(effect.value, effect.value + 1)] });
+    return value2;
   }
 });
 function closeBrackets() {
@@ -22179,28 +22179,28 @@ var lintState = /* @__PURE__ */ StateField.define({
   create() {
     return new LintState(Decoration.none, null, null);
   },
-  update(value, tr) {
-    if (tr.docChanged && value.diagnostics.size) {
-      let mapped = value.diagnostics.map(tr.changes), selected = null, panel = value.panel;
-      if (value.selected) {
-        let selPos = tr.changes.mapPos(value.selected.from, 1);
-        selected = findDiagnostic(mapped, value.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
+  update(value2, tr) {
+    if (tr.docChanged && value2.diagnostics.size) {
+      let mapped = value2.diagnostics.map(tr.changes), selected = null, panel = value2.panel;
+      if (value2.selected) {
+        let selPos = tr.changes.mapPos(value2.selected.from, 1);
+        selected = findDiagnostic(mapped, value2.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
       }
       if (!mapped.size && panel && tr.state.facet(lintConfig).autoPanel)
         panel = null;
-      value = new LintState(mapped, panel, selected);
+      value2 = new LintState(mapped, panel, selected);
     }
     for (let effect of tr.effects) {
       if (effect.is(setDiagnosticsEffect)) {
-        let panel = !tr.state.facet(lintConfig).autoPanel ? value.panel : effect.value.length ? LintPanel.open : null;
-        value = LintState.init(effect.value, panel, tr.state);
+        let panel = !tr.state.facet(lintConfig).autoPanel ? value2.panel : effect.value.length ? LintPanel.open : null;
+        value2 = LintState.init(effect.value, panel, tr.state);
       } else if (effect.is(togglePanel2)) {
-        value = new LintState(value.diagnostics, effect.value ? LintPanel.open : null, value.selected);
+        value2 = new LintState(value2.diagnostics, effect.value ? LintPanel.open : null, value2.selected);
       } else if (effect.is(movePanelSelection)) {
-        value = new LintState(value.diagnostics, value.panel, effect.value);
+        value2 = new LintState(value2.diagnostics, value2.panel, effect.value);
       }
     }
-    return value;
+    return value2;
   },
   provide: (f) => [
     showPanel.from(f, (val) => val.panel),
@@ -22857,9 +22857,256 @@ function buildCFG(instructions, delay = false) {
   return blocks;
 }
 
+// ui/actions.js
+var value = (n) => `${n} (${hex(n)})`;
+var object = (a) => a.kind === "register" ? a.name : `[${hex(a.address)}] \xB7 ${a.width} \u5B57\u8282`;
+function explain(event) {
+  if (!event?.instruction) return [];
+  const actions = [], accesses2 = event.accesses || [];
+  const add2 = (title, detail, entries = [], kind = "read") => actions.push({ title, detail, accesses: entries, kind });
+  const reads = accesses2.filter((a) => a.kind === "register" && !a.write);
+  const unique = [...new Map(reads.map((a) => [a.name, a])).values()];
+  if (event.service != null)
+    add2(
+      "\u9009\u62E9\u670D\u52A1",
+      `syscall ${event.service} \xB7 ${{ 1: "\u8F93\u51FA\u6574\u6570", 4: "\u8F93\u51FA\u5B57\u7B26\u4E32", 5: "\u8BFB\u53D6\u6574\u6570", 8: "\u8BFB\u53D6\u5B57\u7B26\u4E32", 9: "\u7533\u8BF7\u5806\u5185\u5B58", 10: "\u7ED3\u675F\u7A0B\u5E8F", 11: "\u8F93\u51FA\u5B57\u7B26", 12: "\u8BFB\u53D6\u5B57\u7B26", 13: "\u6253\u5F00\u6587\u4EF6", 14: "\u8BFB\u53D6\u6587\u4EF6", 15: "\u5199\u5165\u6587\u4EF6", 16: "\u5173\u95ED\u6587\u4EF6", 17: "\u5E26\u8FD4\u56DE\u7801\u9000\u51FA" }[event.service] || "\u7CFB\u7EDF\u670D\u52A1"}`,
+      unique
+    );
+  else if (unique.length)
+    add2(
+      "\u8BFB\u53D6\u64CD\u4F5C\u6570",
+      unique.map((a) => `${a.name} = ${value(a.value)}`).join("\uFF1B"),
+      unique
+    );
+  const bits = event.instruction.binary, rs = bits >>> 21 & 31, rt = bits >>> 16 & 31;
+  const reg = (n) => reads.find((a) => a.number === n);
+  const x = reg(rs), y = reg(rt), imm = bits << 16 >> 16;
+  const result = accesses2.find((a) => a.kind === "register" && a.write);
+  const symbols = {
+    add: "+",
+    addu: "+",
+    sub: "\u2212",
+    subu: "\u2212",
+    and: "&",
+    or: "|",
+    xor: "^",
+    slt: "<",
+    sltu: "< (\u65E0\u7B26\u53F7)"
+  };
+  const opName = event.instruction.op;
+  if (result && x && symbols[opName] && y)
+    add2(
+      "\u8BA1\u7B97",
+      `${x.name} (${x.value}) ${symbols[opName]} ${y.name} (${y.value}) = ${value(result.value)}`,
+      [x, y],
+      "compute"
+    );
+  if (result && x && ["addi", "addiu"].includes(opName))
+    add2(
+      "\u8BA1\u7B97",
+      `${x.name} (${x.value}) + (${imm}) = ${value(result.value)}`,
+      [x],
+      "compute"
+    );
+  if (x && y && ["beq", "bne"].includes(opName))
+    add2(
+      "\u5224\u65AD\u6761\u4EF6",
+      `${x.name} (${x.value}) ${opName === "beq" ? "==" : "\u2260"} ${y.name} (${y.value}) \u2192 ${(opName === "beq" ? x.value === y.value : x.value !== y.value) ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}`,
+      [x, y],
+      "compute"
+    );
+  const mem = accesses2.find((a) => a.kind === "memory");
+  const op = event.instruction.op;
+  if (mem && /^(lb|lbu|lh|lhu|lw|sb|sh|sw)$/.test(op)) {
+    const bits2 = event.instruction.binary, base2 = bits2 >>> 21 & 31, offset = bits2 << 16 >> 16;
+    const r = reads.find((a) => a.number === base2);
+    if (r)
+      add2(
+        "\u8BA1\u7B97\u5730\u5740",
+        `${r.name} ${hex(r.value)} + (${offset}) = ${hex(r.value + offset | 0)}`,
+        [r],
+        "compute"
+      );
+  }
+  let group = [];
+  const flush = () => {
+    if (!group.length) return;
+    const a = group[0];
+    add2(
+      a.write ? "\u5199\u5165" : "\u8BFB\u53D6\u5185\u5B58",
+      group.map(
+        (x2) => `${object(x2)}: ${x2.write ? value(x2.before) + " \u2192 " : ""}${value(x2.value)}`
+      ).join("\uFF1B"),
+      group,
+      a.write ? "write" : "read"
+    );
+    group = [];
+  };
+  for (const a of accesses2) {
+    if (a.kind === "register" && !a.write) continue;
+    if (group.length && (group[0].kind !== a.kind || group[0].write !== a.write || group.length >= 8))
+      flush();
+    group.push(a);
+  }
+  flush();
+  if (event.output) add2("\u7A0B\u5E8F\u8F93\u51FA", JSON.stringify(event.output), [], "effect");
+  if (event.status === "waiting-input")
+    add2("\u7B49\u5F85\u8F93\u5165", "\u7ED3\u679C\u5C1A\u672A\u4EA7\u751F\u3002\u8BF7\u5728\u63A7\u5236\u53F0\u63D0\u4EA4\u8F93\u5165\u3002", [], "effect");
+  if (event.error) add2("\u6267\u884C\u5F02\u5E38", event.error, [], "effect");
+  if (event.nextPC != null)
+    add2(
+      "\u6267\u884C\u4F4D\u7F6E",
+      `\u4E0B\u4E00\u6761 PC = ${hex(event.nextPC)}${event.instruction.flow === "branch" ? " \xB7 \u6839\u636E\u672C\u6B21\u6BD4\u8F83\u4E0E\u5EF6\u8FDF\u5206\u652F\u8BBE\u7F6E" : ""}`,
+      [],
+      "flow"
+    );
+  return actions;
+}
+var ActionPlayer = class {
+  constructor({ onChange, onObject }) {
+    this.onChange = onChange;
+    this.onObject = onObject;
+    this.index = -1;
+    this.layer = "last";
+    document.querySelector(".execution-strip").insertAdjacentHTML(
+      "afterend",
+      `<section id="action-player" aria-label="\u6307\u4EE4\u52A8\u4F5C\u89E3\u91CA">
+      <div class="action-toolbar"><strong>\u8FD9\u4E00\u6B65\u53D1\u751F\u4E86\u4EC0\u4E48</strong><button id="action-toggle" aria-expanded="true" hidden>\u6536\u8D77\u89E3\u91CA</button><select hidden id="action-layer" aria-label="\u89E3\u91CA\u6B65\u9AA4"><option value="last">\u5DF2\u6267\u884C \xB7 \u5B9E\u7EBF</option><option value="preview">\u4E0B\u4E00\u6B65\u9884\u8BA1 \xB7 \u865A\u7EBF</option></select><span id="action-status"></span></div>
+      <div id="action-body"><div id="action-summary"></div><details id="action-advanced"><summary>\u67E5\u770B\u52A8\u4F5C\u7EC6\u8282</summary><div class="action-toolbar"><button id="action-prev">\u4E0A\u4E00\u52A8\u4F5C</button><button id="action-play">\u64AD\u653E\u89E3\u91CA</button><button id="action-next">\u4E0B\u4E00\u52A8\u4F5C</button><select id="action-speed" aria-label="\u64AD\u653E\u901F\u5EA6"><option value="1200">\u6162\u901F</option><option value="700" selected>\u6807\u51C6</option><option value="350">\u5FEB\u901F</option></select><label><input id="action-auto" type="checkbox">\u5355\u6B65\u540E\u64AD\u653E</label></div><div id="action-steps" aria-label="\u52A8\u4F5C\u5217\u8868"></div></details><div id="action-detail" tabindex="0" aria-live="polite"></div></div></section>`
+    );
+    const $2 = (id) => document.getElementById(id);
+    $2("action-layer").onchange = () => {
+      this.stop();
+      this.layer = $2("action-layer").value;
+      this.selectEvent();
+    };
+    $2("action-prev").onclick = () => this.seek(Math.max(0, this.index - 1));
+    $2("action-next").onclick = () => this.seek(Math.min(this.actions.length - 1, this.index + 1));
+    $2("action-play").onclick = () => this.timer ? this.stop() : this.play();
+    $2("action-speed").onchange = () => {
+      if (this.timer) {
+        this.stop();
+        this.play();
+      }
+    };
+    $2("action-toggle").onclick = () => {
+      const b = $2("action-body");
+      b.hidden = !b.hidden;
+      $2("action-toggle").textContent = b.hidden ? "\u5C55\u5F00\u89E3\u91CA" : "\u6536\u8D77\u89E3\u91CA";
+      $2("action-toggle").setAttribute("aria-expanded", !b.hidden);
+      if (b.hidden) this.stop();
+      this.onChange();
+    };
+    this.motion = matchMedia("(prefers-reduced-motion: reduce)");
+    this.motion.addEventListener("change", () => {
+      if (this.motion.matches) this.stop();
+    });
+  }
+  update(state2, { autoplay = false } = {}) {
+    const key = JSON.stringify([
+      state2?.programVersion,
+      state2?.last,
+      state2?.preview
+    ]);
+    if (key === this.key) {
+      if (autoplay && document.getElementById("action-auto").checked && !this.motion.matches && !document.getElementById("action-body").hidden) {
+        this.layer = "last";
+        this.selectEvent();
+        this.play();
+      }
+      return;
+    }
+    this.stop();
+    this.key = key;
+    this.state = state2;
+    this.layer = state2?.last ? "last" : "preview";
+    this.selectEvent();
+    if (autoplay && document.getElementById("action-auto").checked && !this.motion.matches && !document.getElementById("action-body").hidden)
+      this.play();
+  }
+  selectEvent() {
+    this.event = this.state?.[this.layer];
+    this.actions = explain(this.event);
+    this.index = 0;
+    document.getElementById("action-layer").value = this.layer;
+    this.render();
+  }
+  stop() {
+    clearTimeout(this.timer);
+    this.timer = null;
+    document.getElementById("action-play").textContent = "\u64AD\u653E\u89E3\u91CA";
+  }
+  seek(i) {
+    this.stop();
+    this.index = i;
+    this.render();
+  }
+  play() {
+    if (!this.actions.length) return;
+    this.index = this.index >= this.actions.length - 1 ? 0 : Math.max(0, this.index);
+    const tick = () => {
+      this.render();
+      document.getElementById("action-play").textContent = "\u6682\u505C\u89E3\u91CA";
+      this.timer = setTimeout(
+        () => {
+          if (this.index >= this.actions.length - 1) {
+            this.stop();
+            return;
+          }
+          this.index++;
+          tick();
+        },
+        Number(document.getElementById("action-speed").value)
+      );
+    };
+    tick();
+  }
+  selection() {
+    return document.getElementById("action-body").hidden ? null : { layer: this.layer, action: this.actions?.[this.index] };
+  }
+  render() {
+    const $2 = (id) => document.getElementById(id), a = this.actions[this.index], preview = this.layer === "preview";
+    $2("action-status").textContent = `${preview ? "\u5373\u5C06\u6267\u884C" : "\u521A\u521A\u6267\u884C \xB7 \u4E0B\u65B9\u4E3A\u8FC7\u7A0B\u56DE\u653E"}${a ? " \xB7 \u52A8\u4F5C " + (this.index + 1) + "/" + this.actions.length : ""}`;
+    $2("action-summary").textContent = this.event?.instruction ? `${this.event.instruction.source?.trim() || this.event.instruction.basic} \xB7 ${this.event.instruction.file}:${this.event.instruction.line}` : "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55";
+    $2("action-steps").innerHTML = this.actions.map(
+      (x, i) => `<button data-action-index="${i}" aria-pressed="${i === this.index}" class="${i === this.index ? "selected" : ""}">${i + 1} ${escapeHTML(x.title)}</button>`
+    ).join("");
+    $2("action-steps").querySelectorAll("button").forEach(
+      (b) => b.onclick = () => this.seek(Number(b.dataset.actionIndex))
+    );
+    $2("action-detail").className = `action-detail ${a?.kind || ""} ${preview ? "predicted" : ""}`;
+    $2("action-detail").innerHTML = a ? `<strong>${escapeHTML(a.title)}</strong><p>${escapeHTML(a.detail)}</p><div>${a.accesses.map((x, i) => `<button data-object="${i}">${escapeHTML(object(x))} \u2197</button>`).join("")}</div>` : `<p>${escapeHTML(
+      this.actions.filter((x) => x.kind === "write" || x.kind === "effect").map((x) => x.detail).join("\uFF1B") || "\u9009\u62E9\u4E00\u4E2A\u52A8\u4F5C\u67E5\u770B\uFF1B\u64AD\u653E\u548C\u56DE\u770B\u4E0D\u4F1A\u91CD\u65B0\u6267\u884C\u6307\u4EE4\u3002"
+    )}</p>`;
+    $2("action-detail").querySelectorAll("[data-object]").forEach(
+      (b) => b.onclick = () => this.onObject(a.accesses[Number(b.dataset.object)])
+    );
+    $2("action-prev").disabled = this.index <= 0;
+    $2("action-next").disabled = !this.actions.length || this.index >= this.actions.length - 1;
+    $2("action-play").disabled = !this.actions.length;
+    const detail = $2("action-detail");
+    detail.getAnimations().forEach((x) => x.cancel());
+    if (!this.motion.matches)
+      detail.animate([{ opacity: 0.45 }, { opacity: 1 }], { duration: 180 });
+    document.querySelectorAll(".atom-read,.atom-write").forEach((el) => el.classList.remove("atom-read", "atom-write"));
+    for (const access of a?.accesses || []) {
+      const nodes = access.kind === "register" ? [...document.querySelectorAll("[data-register]")].filter(
+        (el) => el.dataset.register === access.name
+      ) : [...document.querySelectorAll("[data-byte]")].filter(
+        (el) => Number(el.dataset.byte) >= access.address && Number(el.dataset.byte) < access.address + access.width
+      );
+      nodes.forEach(
+        (el) => el.classList.add(access.write ? "atom-write" : "atom-read")
+      );
+    }
+    this.onChange();
+  }
+};
+
 // ui/overlay.js
 var OverlayRenderer = class {
   constructor({
+    getAction,
     getState,
     getEditor,
     getFile,
@@ -22869,6 +23116,7 @@ var OverlayRenderer = class {
     onSource
   }) {
     Object.assign(this, {
+      getAction,
       getState,
       getEditor,
       getFile,
@@ -22878,6 +23126,7 @@ var OverlayRenderer = class {
       onSource
     });
     this.svg = document.querySelector("#overlay");
+    document.querySelector("#relation-scope").onchange = () => this.schedule();
     window.addEventListener("resize", () => this.schedule());
     document.addEventListener("scroll", () => this.schedule(), true);
     new ResizeObserver(() => this.schedule()).observe(
@@ -22928,6 +23177,11 @@ var OverlayRenderer = class {
       return;
     }
     let paths = [], labels = [], focus2 = this.getFocus();
+    const scope = document.querySelector("#relation-scope").value, selection = this.getAction?.();
+    if (scope === "focus" && !focus2) {
+      this.svg.innerHTML = "";
+      return;
+    }
     let colors = {
       read: getComputedStyle(document.body).getPropertyValue("--blue").trim(),
       write: getComputedStyle(document.body).getPropertyValue("--orange").trim(),
@@ -22951,10 +23205,12 @@ var OverlayRenderer = class {
       [s.preview, true, "dashed"]
     ]) {
       if (!event || !document.querySelector("#" + key).checked) continue;
+      if (scope === "action" && (!selection?.action || selection.layer !== (dashed ? "preview" : "last")))
+        continue;
       let origin = this.codePoint(event.instruction) || this.center(
         document.querySelector(dashed ? "#next-card" : "#last-card")
       ), seen = /* @__PURE__ */ new Set();
-      for (let a of event.accesses || []) {
+      for (let a of (scope === "action" ? selection.action.accesses : event.accesses) || []) {
         let type = a.write ? "write" : "read";
         if (!document.querySelector(type === "write" ? "#writes" : "#reads").checked)
           continue;
@@ -22962,7 +23218,7 @@ var OverlayRenderer = class {
         let k = type + name2;
         if (seen.has(k)) continue;
         seen.add(k);
-        if (focus2 && focus2 !== name2) continue;
+        if (scope === "focus" && focus2 !== name2) continue;
         let target = this.center(
           a.kind === "register" ? document.querySelector(`[data-register="${a.name}"]`) : document.querySelector(`[data-byte="${a.address}"]`)
         );
@@ -22987,7 +23243,7 @@ var OverlayRenderer = class {
         );
         if (paths.length >= 35) break;
       }
-      if (document.querySelector("#flows").checked && event.nextPC != null && !focus2) {
+      if (document.querySelector("#flows").checked && event.nextPC != null && scope === "all") {
         let targetIns = s.instructions?.find((i) => i.address === event.nextPC), target = this.codePoint(targetIns);
         if (!target) target = this.center(document.querySelector("#location"));
         draw(
@@ -23164,6 +23420,7 @@ var editor = new EditorView({
         if (u.docChanged && !loadEditor) {
           files[activeFile] = u.state.doc.toString();
           dirty = true;
+          player.update(null);
           renderTabs();
           updateControls();
           $("banner").textContent = "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C";
@@ -23187,7 +23444,12 @@ var editor = new EditorView({
   }),
   parent: $("editor")
 });
+var player = new ActionPlayer({
+  onChange: () => overlay.schedule(),
+  onObject: (a) => a.kind === "memory" ? memoryAt(a.address) : inspectToken(a.name)
+});
 var overlay = new OverlayRenderer({
+  getAction: () => player.selection(),
   getState: () => dirty ? null : state ? { ...state, ...program } : null,
   getEditor: () => editor,
   getFile: () => activeFile,
@@ -23258,16 +23520,16 @@ function inspectToken(token) {
   if (token.startsWith("$") || token === "hi" || token === "lo") {
     focus = token;
     pinned.add(token);
-    let value = regValue(token), last2 = state?.lastWriters?.[token];
+    let value2 = regValue(token), last2 = state?.lastWriters?.[token];
     showContext(
-      `<h3>${escapeHTML(token)} <small class="muted">\u5BC4\u5B58\u5668</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value)}<p class="muted">\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 \u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : "\u521D\u59CB\u72B6\u6001"}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button><button id="pin">${pinned.has(token) ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A"}</button><button id="point">\u4F5C\u4E3A\u5730\u5740\u67E5\u770B</button><button id="last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165</button><button id="next-write">\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165</button></div>`
+      `<h3>${escapeHTML(token)} <small class="muted">\u5BC4\u5B58\u5668</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value2)}<p class="muted">\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 \u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : "\u521D\u59CB\u72B6\u6001"}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button><button id="pin">${pinned.has(token) ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A"}</button><button id="point">\u4F5C\u4E3A\u5730\u5740\u67E5\u770B</button><button id="last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165</button><button id="next-write">\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165</button></div>`
     );
     $("refs").onclick = () => showReferences(token);
     $("pin").onclick = () => {
       pinned.has(token) ? pinned.delete(token) : pinned.add(token);
       renderRegisters();
     };
-    $("point").onclick = () => memoryAt(value);
+    $("point").onclick = () => memoryAt(value2);
     $("last-write").onclick = () => command2("seek", { step: last2 });
     $("next-write").onclick = () => runUntilWrite(token);
     renderRegisters();
@@ -23338,6 +23600,7 @@ async function api(body) {
 }
 async function command2(name2, extra = {}) {
   if (busy) return null;
+  player.stop();
   busy = true;
   updateControls();
   try {
@@ -23348,6 +23611,9 @@ async function command2(name2, extra = {}) {
     });
     state = s;
     render();
+    player.update(dirty ? null : state, {
+      autoplay: !running && ["step", "source", "over", "out"].includes(name2)
+    });
     return s;
   } catch (e) {
     notify(e.message);
@@ -23510,10 +23776,7 @@ function renderSymbols() {
   $("symbols").querySelectorAll("button").forEach((b) => b.onclick = () => inspectToken(b.dataset.symbol));
 }
 function accesses() {
-  return [
-    ...state?.last?.accesses || [],
-    ...state?.preview?.accesses || []
-  ];
+  return state?.last?.accesses || state?.preview?.accesses || [];
 }
 function renderRegisters() {
   if (!state) return;
@@ -23554,10 +23817,10 @@ function renderMemory() {
 }
 function inspectByte(address) {
   focus = "mem:" + address;
-  let value = state.memory.find((b) => b.address === address)?.value, last2 = state.lastWriters["mem:" + address];
+  let value2 = state.memory.find((b) => b.address === address)?.value, last2 = state.lastWriters["mem:" + address];
   inspecting = null;
   showContext(
-    `<h3>\u5185\u5B58 ${hex(address)}</h3><p>\u5730\u5740\u5BF9\u5E94\u7684\u5185\u5BB9 \xB7 1 \u5B57\u8282</p>${value == null ? "<p>\u4E0D\u53EF\u8BBF\u95EE</p>" : valueHTML(value)}<button id="watch-memory">\u5728\u6B64\u5730\u5740\u8BBE\u7F6E\u5199\u5165\u89C2\u5BDF\u70B9</button><button id="memory-last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : ""}</button>`
+    `<h3>\u5185\u5B58 ${hex(address)}</h3><p>\u5730\u5740\u5BF9\u5E94\u7684\u5185\u5BB9 \xB7 1 \u5B57\u8282</p>${value2 == null ? "<p>\u4E0D\u53EF\u8BBF\u95EE</p>" : valueHTML(value2)}<button id="watch-memory">\u5728\u6B64\u5730\u5740\u8BBE\u7F6E\u5199\u5165\u89C2\u5BDF\u70B9</button><button id="memory-last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : ""}</button>`
   );
   $("memory-last-write").onclick = () => command2("seek", { step: last2 });
   $("watch-memory").onclick = () => {
@@ -23572,6 +23835,7 @@ async function memoryAt(address) {
   overlay.schedule();
 }
 function renderCards() {
+  player.update(dirty ? null : state);
   let last2 = state?.last, next = state?.preview;
   $("last-card").innerHTML = `<small>\u521A\u5B8C\u6210 ${last2 ? "#" + last2.step : ""} \xB7 \u5B9E\u7EBF</small><b>${escapeHTML(last2?.instruction?.basic || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55")}</b>`;
   $("next-card").innerHTML = `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction?.basic || "\u2014")}</b>`;
@@ -23743,15 +24007,23 @@ async function run(mode = "run", extra = {}) {
   running = true;
   updateControls();
   let first = true;
+  const demonstrate = mode === "run" && !$("fast-run").checked;
   while (running) {
     let s = await command2(mode, {
-      limit: mode === "run" ? 150 : mode === "over" || mode === "out" ? 1e5 : 1e3,
+      limit: mode === "run" ? demonstrate ? 1 : 150 : mode === "over" || mode === "out" ? 1e5 : 1e3,
       breakpoints,
       watches,
       skipBreakpoint: first,
       ...extra
     });
     first = false;
+    if (demonstrate && s?.last) {
+      followPC();
+      for (let i = 0; i < player.actions.length && running; i++) {
+        player.seek(i);
+        await new Promise((resolve) => setTimeout(resolve, 650));
+      }
+    }
     if (!s || s.status !== "paused" || s.stopReason !== "Batch complete" || mode !== "run")
       break;
     await new Promise((r) => setTimeout(r, 0));
@@ -23763,10 +24035,10 @@ async function run(mode = "run", extra = {}) {
 async function runUntilWrite(register) {
   await run("run", { watches: [...watches, { register, access: "write" }] });
 }
-function ask(title, value, callback) {
+function ask(title, value2, callback) {
   modal(
     title,
-    `<form id="ask-form"><input id="ask-value" style="width:100%" value="${escapeHTML(value)}" autofocus><p><button class="primary">\u786E\u5B9A</button></p></form>`
+    `<form id="ask-form"><input id="ask-value" style="width:100%" value="${escapeHTML(value2)}" autofocus><p><button class="primary">\u786E\u5B9A</button></p></form>`
   );
   $("ask-form").onsubmit = (e) => {
     e.preventDefault();
@@ -23859,6 +24131,7 @@ for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
 $("pause").onclick = () => {
   running = false;
+  player.stop();
   updateControls();
 };
 $("commands").onclick = openCommands;
@@ -23894,14 +24167,14 @@ document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => setVie
 document.querySelectorAll("[data-bottom]").forEach((b) => b.onclick = () => setBottom(b.dataset.bottom));
 $("input-form").onsubmit = async (e) => {
   e.preventDefault();
-  let value = $("stdin").value;
+  let value2 = $("stdin").value;
   $("stdin").value = "";
-  await command2("input", { value });
+  await command2("input", { value: value2 });
 };
 $("memory-form").onsubmit = (e) => {
   e.preventDefault();
-  let text = $("address").value, s = program.symbols.find((s2) => s2.name === text), value = s ? s.address : Number(text);
-  if (Number.isFinite(value)) memoryAt(value);
+  let text = $("address").value, s = program.symbols.find((s2) => s2.name === text), value2 = s ? s.address : Number(text);
+  if (Number.isFinite(value2)) memoryAt(value2);
   else notify("\u8BF7\u8F93\u5165\u6709\u6548\u5730\u5740\u6216\u6807\u7B7E");
 };
 $("stack").onclick = () => memoryAt(regValue("$sp") - 16);
@@ -23921,11 +24194,11 @@ $("add-watch").onclick = () => {
   );
   $("watch-form").onsubmit = (e) => {
     e.preventDefault();
-    let value = $("watch-target").value, access = $("watch-access").value;
-    if (value.startsWith("$"))
-      watches.push({ register: canonicalReg(value), access });
-    else if (Number.isFinite(Number(value)))
-      watches.push({ address: Number(value) | 0, access });
+    let value2 = $("watch-target").value, access = $("watch-access").value;
+    if (value2.startsWith("$"))
+      watches.push({ register: canonicalReg(value2), access });
+    else if (Number.isFinite(Number(value2)))
+      watches.push({ address: Number(value2) | 0, access });
     $("modal").close();
     renderStops();
   };

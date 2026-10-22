@@ -755,3 +755,129 @@ input:focus-visible {
 .values .bits {
   font-size: 10px;
 }
+/* A stable explanation surface, separate from committed machine state. */
+#action-player {
+  flex-shrink: 0;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  padding: 6px 12px;
+  max-height: 285px;
+  overflow: auto;
+}
+.action-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+#action-status {
+  font-size: 10px;
+  opacity: 0.75;
+}
+#action-summary {
+  font: 12px monospace;
+  padding: 7px 0;
+}
+#action-steps {
+  display: flex;
+  gap: 4px;
+  overflow: auto;
+  padding: 6px 0;
+}
+#action-steps button {
+  white-space: nowrap;
+  font-size: 11px;
+}
+#action-steps button.selected {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+.action-detail {
+  border-left: 3px solid var(--line);
+  padding: 6px 10px;
+  font-size: 12px;
+  max-height: 105px;
+  overflow: auto;
+}
+.action-detail.read {
+  border-color: var(--blue);
+}
+.action-detail.write {
+  border-color: var(--orange);
+}
+.action-detail.flow {
+  border-color: var(--purple);
+}
+.action-detail.predicted {
+  border-left-style: dashed;
+}
+.action-detail p {
+  margin: 4px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
+.action-detail button {
+  font-size: 10px;
+  margin: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .action-detail {
+    animation: action-reveal 0.18s ease-out;
+  }
+}
+@keyframes action-reveal {
+  from {
+    opacity: 0.45;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-height: 850px) {
+  .bottom {
+    height: 145px;
+  }
+  #action-player {
+    max-height: 245px;
+  }
+}
+#action-advanced {
+  margin: 4px 0;
+}
+#action-advanced summary,
+.overlay-settings summary {
+  cursor: pointer;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.overlay-settings .overlay-controls {
+  position: absolute;
+  bottom: 38px;
+  left: 12px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  z-index: 10;
+}
+#action-status {
+  margin-left: auto;
+}
+#action-summary {
+  font-size: 13px;
+}
+#action-detail {
+  min-height: 62px;
+}
+.atom-read {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+.atom-write {
+  outline: 3px double var(--orange);
+  outline-offset: -3px;
+  background: color-mix(in srgb, var(--orange) 18%, var(--panel)) !important;
+}

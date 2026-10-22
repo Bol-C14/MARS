@@ -20,6 +20,7 @@ import {
   references,
   buildCFG,
 } from "./model.js";
+import { ActionPlayer } from "./actions.js";
 import { OverlayRenderer } from "./overlay.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
@@ -192,6 +193,7 @@ const editor = new EditorView({
         if (u.docChanged && !loadEditor) {
           files[activeFile] = u.state.doc.toString();
           dirty = true;
+          player.update(null);
           renderTabs();
           updateControls();
           $("banner").textContent =
@@ -216,7 +218,13 @@ const editor = new EditorView({
   }),
   parent: $("editor"),
 });
+const player = new ActionPlayer({
+  onChange: () => overlay.schedule(),
+  onObject: (a) =>
+    a.kind === "memory" ? memoryAt(a.address) : inspectToken(a.name),
+});
 const overlay = new OverlayRenderer({
+  getAction: () => player.selection(),
   getState: () => (dirty ? null : state ? { ...state, ...program } : null),
   getEditor: () => editor,
   getFile: () => activeFile,
@@ -390,6 +398,7 @@ async function api(body) {
 }
 async function command(name, extra = {}) {
   if (busy) return null;
+  player.stop();
   busy = true;
   updateControls();
   try {
@@ -400,6 +409,9 @@ async function command(name, extra = {}) {
     });
     state = s;
     render();
+    player.update(dirty ? null : state, {
+      autoplay: !running && ["step", "source", "over", "out"].includes(name),
+    });
     return s;
   } catch (e) {
     notify(e.message);
@@ -598,10 +610,7 @@ function renderSymbols() {
     .forEach((b) => (b.onclick = () => inspectToken(b.dataset.symbol)));
 }
 function accesses() {
-  return [
-    ...(state?.last?.accesses || []),
-    ...(state?.preview?.accesses || []),
-  ];
+  return state?.last?.accesses || state?.preview?.accesses || [];
 }
 function renderRegisters() {
   if (!state) return;
@@ -672,6 +681,7 @@ async function memoryAt(address) {
   overlay.schedule();
 }
 function renderCards() {
+  player.update(dirty ? null : state);
   let last = state?.last,
     next = state?.preview;
   $("last-card").innerHTML =
@@ -920,11 +930,14 @@ async function run(mode = "run", extra = {}) {
   running = true;
   updateControls();
   let first = true;
+  const demonstrate = mode === "run" && !$("fast-run").checked;
   while (running) {
     let s = await command(mode, {
       limit:
         mode === "run"
-          ? 150
+          ? demonstrate
+            ? 1
+            : 150
           : mode === "over" || mode === "out"
             ? 100000
             : 1000,
@@ -934,6 +947,13 @@ async function run(mode = "run", extra = {}) {
       ...extra,
     });
     first = false;
+    if (demonstrate && s?.last) {
+      followPC();
+      for (let i = 0; i < player.actions.length && running; i++) {
+        player.seek(i);
+        await new Promise((resolve) => setTimeout(resolve, 650));
+      }
+    }
     if (
       !s ||
       s.status !== "paused" ||
@@ -1050,6 +1070,7 @@ for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () => run(mode);
 $("pause").onclick = () => {
   running = false;
+  player.stop();
   updateControls();
 };
 $("commands").onclick = openCommands;

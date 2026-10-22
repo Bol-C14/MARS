@@ -30,9 +30,10 @@
       ><button id="step" title="F7">→ 单步</button
       ><button id="source">源码步</button
       ><button id="over" title="F8">跨过</button><button id="out">跳出</button
-      ><button id="run" class="run" title="F9">▶ 运行</button
+      ><button id="run" class="run" title="F9">▶ 播放</button
       ><button id="pause" disabled>Ⅱ 暂停</button
       ><label><input type="checkbox" id="delay" />延迟分支</label
+      ><label><input type="checkbox" id="fast-run" />快速运行</label
       ><span id="status" class="status">未汇编</span>
     </nav>
     <div id="banner" role="status"></div>
@@ -114,7 +115,7 @@
           REGISTERS
           <select id="reg-filter" aria-label="寄存器过滤">
             <option value="related">本步相关</option>
-            <option value="all">全部</option>
+            <option value="all" selected>全部</option>
             <option value="pinned">已固定</option>
           </select>
         </div>
@@ -133,18 +134,27 @@
       </aside>
     </div>
     <footer>
-      <div class="overlay-controls">
-        <label><input type="checkbox" id="solid" checked />实线 · 刚完成</label
-        ><label
-          ><input type="checkbox" id="dashed" checked />虚线 · 下一步</label
-        ><label class="read"
-          ><input type="checkbox" id="reads" checked />读取</label
-        ><label class="write"
-          ><input type="checkbox" id="writes" checked />写入</label
-        ><label class="flow"
-          ><input type="checkbox" id="flows" checked />控制流</label
-        >
-      </div>
+      <details class="overlay-settings">
+        <summary>连线设置</summary>
+        <div class="overlay-controls">
+          <select id="relation-scope" aria-label="连线范围">
+            <option value="focus">关注对象</option>
+            <option value="action">当前动作</option>
+            <option value="all">全部关系</option>
+          </select>
+          <label
+            ><input type="checkbox" id="solid" checked />实线 · 刚完成</label
+          ><label
+            ><input type="checkbox" id="dashed" checked />虚线 · 下一步</label
+          ><label class="read"
+            ><input type="checkbox" id="reads" checked />读取</label
+          ><label class="write"
+            ><input type="checkbox" id="writes" checked />写入</label
+          ><label class="flow"
+            ><input type="checkbox" id="flows" checked />控制流</label
+          >
+        </div>
+      </details>
       <span id="pc">PC —</span><span id="engine">MARS 4.5 · local core</span>
     </footer>
     <svg id="overlay" aria-hidden="true"></svg>
