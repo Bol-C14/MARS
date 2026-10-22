@@ -1,5 +1,5 @@
 """Compare observable results against the pinned, unmodified upstream CLI."""
-import json,pathlib,subprocess,tempfile,time,statistics
+import json,pathlib,subprocess,tempfile,time,statistics,platform
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 UPSTREAM=ROOT/'teaching/build/upstream'
 p=subprocess.Popen(['java','-Djava.awt.headless=true','-cp','teaching/build/classes','mars.ide.Stdio'],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
@@ -31,7 +31,7 @@ call('assemble',files=files,entry='main.s');call('step');times=[]
 for _ in range(40):
  t=time.perf_counter();s=call('state');times.append((time.perf_counter()-t)*1000);assert s['step']==1 and s['registers'][8]['value']==1
 p.terminate();p.wait()
-report={'upstream':'ac3d34ea65c3b8349c4f6c00306bade9e3fec5c9','cases':results,'stateAndPreviewMs':{'median':statistics.median(times),'p95':sorted(times)[37]},'transport':'local JSON-lines; Java 25; macOS arm64; not browser paint latency'}
+report={'upstream':'ac3d34ea65c3b8349c4f6c00306bade9e3fec5c9','cases':results,'stateAndPreviewMs':{'median':statistics.median(times),'p95':sorted(times)[37]},'transport':'local JSON-lines; not browser paint latency','environment':{'os':platform.system(),'architecture':platform.machine(),'java':subprocess.run(['java','-version'],capture_output=True,text=True,check=True).stderr.splitlines()[0]}}
 (ROOT/'teaching/test-results').mkdir(exist_ok=True)
 (ROOT/'teaching/test-results/differential.json').write_text(json.dumps(report,indent=2))
 print(json.dumps(report,indent=2))

@@ -48,3 +48,13 @@ test("glossary marks the first use of each term and escapes the rest", () => {
   assert.match(html, /&lt;la&gt;/);
   assert.match(html, /title="汇编器提供的便捷写法/);
 });
+
+test("raw memory bytes use unsigned decimal while signed values keep their meaning", () => {
+  for (const n of [0, 127, 128, 254, 255]) {
+    assert.equal(f(n, { radix: "dec", width: 1, kind: "bits" }), `0d${n}`);
+  }
+  assert.equal(f(0xfffe, { radix: "dec", width: 2, kind: "bits" }), "0d65534");
+  assert.equal(f(-1, { radix: "dec", kind: "bits" }), "0d4294967295");
+  assert.equal(f(254, { radix: "dec", width: 1 }), "0d-2");
+  assert.equal(f(-2, { radix: "dec" }), "0d-2");
+});

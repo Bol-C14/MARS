@@ -145,7 +145,7 @@ test("adjacent bytes merge into one object with readable text and raw bytes", ()
   ];
   const g = groupBytes(objs);
   assert.deepEqual(g.map((o) => [o.kind, o.width, o.ids.length]), [["register", undefined, 1], ["memory", 3, 3], ["memory", 1, 1]]);
-  assert.equal(g[1].text, '"Hi"');
+  assert.equal(g[1].text, JSON.stringify("Hi\0"));
   assert.deepEqual(g[1].bytes, [72, 105, 0]);
 });
 
@@ -170,4 +170,16 @@ test("a pseudo-instruction line is summarized by its net effect", () => {
   ];
   const b = lineSummary(blt, { source: "blt $t0, $t1, done", symbols: [{ name: "done", address: 0x400024 }] });
   assert.deepEqual(b.beats.map((x) => x.eq.map((p) => (typeof p === "string" ? p : p.t)).join("")), ["$t0 = 1，$t1 = 2", "下一条 = done ✓"]);
+});
+
+test("grouped bytes preserve interior and trailing NUL rather than joining strings", () => {
+  const bytes = [65, 0, 66, 0];
+  const objects = bytes.map((value, i) => ({
+    id: `mem:${4096 + i}`, kind: "memory", address: 4096 + i,
+    width: 1, value, write: false,
+  }));
+  const [group] = groupBytes(objects);
+  assert.equal(group.text, JSON.stringify("A\0B\0"));
+  assert.deepEqual(group.bytes, bytes);
+  assert.deepEqual(objects.map(o => o.value), bytes);
 });

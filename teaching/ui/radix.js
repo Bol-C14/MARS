@@ -38,7 +38,9 @@ export function formatValue(
     const shown = all ? digits : digits.replace(/^(?:0000)+(?=.{4})/, "");
     return "0b" + shown.replace(/(.{4})(?=.)/g, "$1_");
   };
-  const dec = "0d" + (kind === "address" ? unsigned : signed);
+  // Raw bytes and masks are unsigned bit patterns, not signed operands.
+  // Keep DEC consistent between memory cells, tooltips and the focus lens.
+  const dec = "0d" + (kind === "value" ? signed : unsigned);
   const bytes = Array.from(
     { length: width },
     (_, i) => (unsigned >>> (8 * i)) & 255,

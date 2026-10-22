@@ -236,6 +236,8 @@ def scenario(r, page, mod):
     page.keyboard.press("f")
     r.until("() => !document.getElementById('focus-lens').hidden && document.querySelectorAll('.fseg').length > 0")
     r.check("focus mode via Cmd/Ctrl+K F", True)
+    r.check("focus input hint describes automatic resume, not browsing arrows",
+            page.locator("#focus-input span").text_content() == "提交后继续被中断的操作")
     r.check("lens shows touched objects", page.locator(".fobj").count() > 0)
     template = page.locator("#focus-eq").inner_text()
     r.until("(t) => document.getElementById('focus-eq').textContent !== t", template)

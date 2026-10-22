@@ -1043,10 +1043,12 @@ export function groupBytes(objects) {
         : { ...o, ids: [o.id] },
     );
   }
+  // This is a byte view, not a syscall string: NUL stays visible, including
+  // inside a buffer. Removing it would incorrectly turn A\0B into AB.
   for (const o of out)
     if (o.kind === "memory" && o.bytes.length > 1)
       o.text = o.bytes.every((b) => b === 0 || (b >= 32 && b < 127) || b === 10)
-        ? JSON.stringify(String.fromCharCode(...o.bytes.filter((b) => b !== 0)))
+        ? JSON.stringify(String.fromCharCode(...o.bytes))
         : null;
   return out;
 }

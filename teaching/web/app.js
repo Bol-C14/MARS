@@ -24073,7 +24073,7 @@ function groupBytes(objects) {
   }
   for (const o of out)
     if (o.kind === "memory" && o.bytes.length > 1)
-      o.text = o.bytes.every((b) => b === 0 || b >= 32 && b < 127 || b === 10) ? JSON.stringify(String.fromCharCode(...o.bytes.filter((b) => b !== 0))) : null;
+      o.text = o.bytes.every((b) => b === 0 || b >= 32 && b < 127 || b === 10) ? JSON.stringify(String.fromCharCode(...o.bytes)) : null;
   return out;
 }
 function bytesOf(o) {
@@ -24215,7 +24215,7 @@ function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = 
     const shown = all ? digits : digits.replace(/^(?:0000)+(?=.{4})/, "");
     return "0b" + shown.replace(/(.{4})(?=.)/g, "$1_");
   };
-  const dec2 = "0d" + (kind === "address" ? unsigned : signed);
+  const dec2 = "0d" + (kind === "value" ? signed : unsigned);
   const bytes = Array.from(
     { length: width },
     (_, i) => unsigned >>> 8 * i & 255
@@ -24315,7 +24315,7 @@ var FocusLens = class {
             <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
           </div>
           <div id="focus-why-text" hidden></div>
-          <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u6309 \u2193 \u7EE7\u7EED</span></form>
+          <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C</span></form>
         </div>
       </section>`
     );

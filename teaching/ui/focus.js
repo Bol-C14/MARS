@@ -49,7 +49,7 @@ export class FocusLens {
             <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button>
           </div>
           <div id="focus-why-text" hidden></div>
-          <form id="focus-input" hidden><label for="focus-input-value">程序在等待输入</label><input id="focus-input-value" autocomplete="off" /><button>提交</button><span>提交后按 ↓ 继续</span></form>
+          <form id="focus-input" hidden><label for="focus-input-value">程序在等待输入</label><input id="focus-input-value" autocomplete="off" /><button>提交</button><span>提交后继续被中断的操作</span></form>
         </div>
       </section>`,
     );
