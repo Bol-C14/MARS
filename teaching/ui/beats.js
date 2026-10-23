@@ -237,7 +237,9 @@ export function beatModel(
     if (res)
       beat(
         [dest, " ← ", fresh(N(res.value, 4, asHex ? "bits" : "value"))],
-        "计算。",
+        /^sltu?$/.test(op)
+          ? `${rs.value} ${sym} ${rt.value} ${res.value ? "为真" : "为假"}，所以结果是 ${res.value}。`
+          : "计算。",
         {
           why: rule,
         },
@@ -262,7 +264,9 @@ export function beatModel(
     if (res)
       beat(
         [dest, " ← ", fresh(N(res.value, 4, logical ? "bits" : "value"))],
-        "计算。",
+        /^sltiu?$/.test(op)
+          ? `${rs.value} ${sym} ${k} ${res.value ? "为真" : "为假"}，所以结果是 ${res.value}。`
+          : "计算。",
         {
           why: rule,
         },
@@ -588,9 +592,9 @@ export function beatModel(
           fresh(taken ? "成立" : "不成立"),
           taken ? ` → 跳到 ${label}` : " → 继续下一条",
         ],
-        "比较结果。",
+        `条件 ${rs.value} ${sym} ${rt.value} ${taken ? "成立" : "不成立"}。`,
         {
-          why: `${op} ${op === "beq" ? "在两数相等" : "在两数不等"}时跳转。目标在汇编时已算好：PC+4 + (${imm})×4 = ${hex(target)}。`,
+          why: `${op} ${op === "beq" ? "在两数相等" : "在两数不等"}时跳转。跳转目标 ${label}（${hex(target)}）在汇编时就已写进这条指令（存的是相对下一条指令的距离 ${imm} 条）。`,
         },
       );
     } else if (compareZero[op] && rs) {
@@ -607,9 +611,9 @@ export function beatModel(
           fresh(taken ? "成立" : "不成立"),
           taken ? ` → 跳到 ${label}` : " → 继续下一条",
         ],
-        "比较结果。",
+        `条件 ${rs.value} ${cond} ${taken ? "成立" : "不成立"}。`,
         {
-          why: `${op} 把 ${rs.name} 当作有符号数与 0 比较。目标 = PC+4 + (${imm})×4 = ${hex(target)}。`,
+          why: `${op} 把 ${rs.name} 当作有符号数与 0 比较。跳转目标 ${label}（${hex(target)}）在汇编时就已写进这条指令（存的是相对下一条指令的距离 ${imm} 条）。`,
         },
       );
     }
@@ -656,7 +660,7 @@ export function beatModel(
       op === "jal" ? "进入函数。" : "跳转。",
       {
         tokens: [{ from: "code", to: "next", label, kind: "flow" }],
-        why: `目标 = (PC+4) 的高 4 位 | 指令中的 26 位 × 4 = ${hex(ins.target)}。${delay ? "开启延迟分支时先执行延迟槽。" : ""}`,
+        why: `跳转目标 ${label}（${hex(ins.target)}）在汇编时就已写进这条指令。${delay ? "开启延迟分支时先执行延迟槽。" : ""}`,
       },
     );
   } else if (/^(jr|jalr)$/.test(op) && rs) {
@@ -830,29 +834,24 @@ function roleOf(ins, number, name) {
   }
   if (name === "hi" || name === "lo")
     return `${name.toUpperCase()} 寄存器（乘除法结果的存放处）`;
-  if (LOADS.has(opcode) && number === rs)
-    return "基址（rs 字段：地址 = 基址 + 偏移）";
-  if (STORES.has(opcode) && number === rs)
-    return "基址（rs 字段：地址 = 基址 + 偏移）";
-  if (STORES.has(opcode) && number === rt) return "要存进内存的值（rt 字段）";
+  if (LOADS.has(opcode) && number === rs) return "基址（地址 = 基址 + 偏移）";
+  if (STORES.has(opcode) && number === rs) return "基址（地址 = 基址 + 偏移）";
+  if (STORES.has(opcode) && number === rt) return "要存进内存的值";
   if (ins.flow === "branch")
-    return number === rs
-      ? "比较的第一个对象（rs 字段）"
-      : "比较的第二个对象（rt 字段）";
+    return number === rs ? "比较的第一个对象" : "比较的第二个对象";
   if (
     ins.flow === "indirect" ||
     (opcode === 0 && (bits & 63) === 9 && number === rs)
   )
-    return "跳转目标地址（rs 字段）";
+    return "跳转目标地址";
   if (opcode === 0) {
-    if (number === rs && number === rt)
-      return "两个源操作数（rs 和 rt 字段都是它）";
-    if (number === rs) return "第一个源操作数（rs 字段）";
-    if (number === rt) return "第二个源操作数（rt 字段）";
-    if (number === rd) return "目标（rd 字段）";
+    if (number === rs && number === rt) return "两个源操作数（两个位置都是它）";
+    if (number === rs) return "第一个源操作数";
+    if (number === rt) return "第二个源操作数";
+    if (number === rd) return "目标";
   }
-  if (number === rs) return "源操作数（rs 字段）";
-  if (number === rt) return "操作数（rt 字段）";
+  if (number === rs) return "源操作数";
+  if (number === rt) return "操作数";
   return "这条指令用到的一个寄存器";
 }
 
@@ -860,9 +859,9 @@ function destField(ins, number) {
   const bits = ins.binary | 0,
     opcode = bits >>> 26;
   if (number === ((bits >>> 11) & 31) && opcode === 0)
-    return "rd 字段指定的目标";
+    return "这条指令写明的目标寄存器";
   if (number === ((bits >>> 16) & 31) && opcode !== 0)
-    return "rt 字段指定的目标";
+    return "这条指令写明的目标寄存器";
   if (number === 31 && (opcode === 3 || ins.flow === "call"))
     return "调用指令固定写 $ra";
   return "";
@@ -985,8 +984,8 @@ export function completeWhys(
       const sequential = event.nextPC === ins.address + 4;
       parts.push(
         sequential
-          ? "没有发生跳转：PC 加 4，执行紧挨着的下一条指令。"
-          : `PC 被改成 ${hex(event.nextPC)}，所以下一条是 ${where(event.nextPC)}。`,
+          ? "没有发生跳转：PC（下一条要执行的指令地址）加 4，执行紧挨着的下一条指令。"
+          : `下一条要执行的指令地址（PC）变成 ${hex(event.nextPC)}，也就是 ${where(event.nextPC)}。`,
       );
       if (delay && ins.flow !== "next")
         parts.push("已开启延迟分支：跳转前会先执行紧跟在后面的那一条。");

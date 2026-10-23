@@ -23219,6 +23219,13 @@ function layoutPath({
 }
 
 // ui/radix.js
+var RADIX_HELP = {
+  auto: "\u81EA\u52A8\uFF1A\u770B\u8D77\u6765\u50CF\u5730\u5740\u7684\u503C\uFF08\u843D\u5728\u4EE3\u7801\u3001\u6570\u636E\u6216\u6808\u7684\u8303\u56F4\u5185\uFF09\u7528\u5341\u516D\u8FDB\u5236\uFF0C\u5176\u4F59\u7528\u5341\u8FDB\u5236\u3002\u540C\u4E00\u4E2A\u503C\u4E0D\u4F1A\u56E0\u4E3A\u53D8\u5927\u800C\u6362\u5199\u6CD5\u3002",
+  hex: "HEX\uFF1A\u5341\u516D\u8FDB\u5236\uFF0C\u524D\u7F00 0x\u3002\u6BCF\u4E00\u4F4D\u8868\u793A 0\u201315\uFF08a\u2013f \u8868\u793A 10\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u662F\u4E00\u4E2A\u5B57\u8282\u3002",
+  dec: "DEC\uFF1A\u5341\u8FDB\u5236\uFF0C\u524D\u7F00 0d\u3002\u666E\u901A\u6570\u503C\u6309\u6709\u7B26\u53F7\u6570\u8BFB\uFF08\u53EF\u4EE5\u662F\u8D1F\u6570\uFF09\uFF1B\u539F\u59CB\u5B57\u8282\u548C\u5730\u5740\u6309\u65E0\u7B26\u53F7\u6570\u8BFB\u3002",
+  bin: "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002",
+  ascii: "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\u4E0D\u80FD\u663E\u793A\u7684\u5B57\u8282\u5199\u6210 \\0\u3001\\n\u3001\\xNN\u3002"
+};
 var RADIXES = [
   ["auto", "\u81EA\u52A8"],
   ["hex", "HEX"],
@@ -23245,10 +23252,13 @@ function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = 
   while (shownBytes.length > 1 && shownBytes.at(-1) === 0)
     shownBytes = shownBytes.slice(0, -1);
   const ascii = "'" + shownBytes.map(escapeByte).join("") + "'";
-  const mode = radix2 === "auto" ? kind === "value" && Math.abs(signed) < 1e4 ? "dec" : "hex" : radix2;
+  const mode = radix2 === "auto" ? kind === "address" || width === 4 && looksLikeAddress(unsigned) ? "hex" : "dec" : radix2;
   const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
   const note = mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
   return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
+}
+function looksLikeAddress(u) {
+  return u >= 4194304 && u < 2147483648;
 }
 var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
 
@@ -23444,7 +23454,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (res)
       beat(
         [dest, " \u2190 ", fresh(N(res.value, 4, asHex ? "bits" : "value"))],
-        "\u8BA1\u7B97\u3002",
+        /^sltu?$/.test(op) ? `${rs.value} ${sym} ${rt.value} ${res.value ? "\u4E3A\u771F" : "\u4E3A\u5047"}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F ${res.value}\u3002` : "\u8BA1\u7B97\u3002",
         {
           why: rule
         }
@@ -23466,7 +23476,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (res)
       beat(
         [dest, " \u2190 ", fresh(N(res.value, 4, logical ? "bits" : "value"))],
-        "\u8BA1\u7B97\u3002",
+        /^sltiu?$/.test(op) ? `${rs.value} ${sym} ${k} ${res.value ? "\u4E3A\u771F" : "\u4E3A\u5047"}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F ${res.value}\u3002` : "\u8BA1\u7B97\u3002",
         {
           why: rule
         }
@@ -23731,9 +23741,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
           taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
         ],
-        "\u6BD4\u8F83\u7ED3\u679C\u3002",
+        `\u6761\u4EF6 ${rs.value} ${sym} ${rt.value} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
         {
-          why: `${op} ${op === "beq" ? "\u5728\u4E24\u6570\u76F8\u7B49" : "\u5728\u4E24\u6570\u4E0D\u7B49"}\u65F6\u8DF3\u8F6C\u3002\u76EE\u6807\u5728\u6C47\u7F16\u65F6\u5DF2\u7B97\u597D\uFF1APC+4 + (${imm})\xD74 = ${hex(target)}\u3002`
+          why: `${op} ${op === "beq" ? "\u5728\u4E24\u6570\u76F8\u7B49" : "\u5728\u4E24\u6570\u4E0D\u7B49"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
         }
       );
     } else if (compareZero[op] && rs) {
@@ -23750,9 +23760,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
           taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
         ],
-        "\u6BD4\u8F83\u7ED3\u679C\u3002",
+        `\u6761\u4EF6 ${rs.value} ${cond} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
         {
-          why: `${op} \u628A ${rs.name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u76EE\u6807 = PC+4 + (${imm})\xD74 = ${hex(target)}\u3002`
+          why: `${op} \u628A ${rs.name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
         }
       );
     }
@@ -23796,7 +23806,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       op === "jal" ? "\u8FDB\u5165\u51FD\u6570\u3002" : "\u8DF3\u8F6C\u3002",
       {
         tokens: [{ from: "code", to: "next", label: label2, kind: "flow" }],
-        why: `\u76EE\u6807 = (PC+4) \u7684\u9AD8 4 \u4F4D | \u6307\u4EE4\u4E2D\u7684 26 \u4F4D \xD7 4 = ${hex(ins.target)}\u3002${delay ? "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002" : ""}`
+        why: `\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(ins.target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002${delay ? "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002" : ""}`
       }
     );
   } else if (/^(jr|jalr)$/.test(op) && rs) {
@@ -23952,32 +23962,29 @@ function roleOf(ins, number2, name2) {
   }
   if (name2 === "hi" || name2 === "lo")
     return `${name2.toUpperCase()} \u5BC4\u5B58\u5668\uFF08\u4E58\u9664\u6CD5\u7ED3\u679C\u7684\u5B58\u653E\u5904\uFF09`;
-  if (LOADS.has(opcode) && number2 === rs)
-    return "\u57FA\u5740\uFF08rs \u5B57\u6BB5\uFF1A\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
-  if (STORES.has(opcode) && number2 === rs)
-    return "\u57FA\u5740\uFF08rs \u5B57\u6BB5\uFF1A\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
-  if (STORES.has(opcode) && number2 === rt) return "\u8981\u5B58\u8FDB\u5185\u5B58\u7684\u503C\uFF08rt \u5B57\u6BB5\uFF09";
+  if (LOADS.has(opcode) && number2 === rs) return "\u57FA\u5740\uFF08\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
+  if (STORES.has(opcode) && number2 === rs) return "\u57FA\u5740\uFF08\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
+  if (STORES.has(opcode) && number2 === rt) return "\u8981\u5B58\u8FDB\u5185\u5B58\u7684\u503C";
   if (ins.flow === "branch")
-    return number2 === rs ? "\u6BD4\u8F83\u7684\u7B2C\u4E00\u4E2A\u5BF9\u8C61\uFF08rs \u5B57\u6BB5\uFF09" : "\u6BD4\u8F83\u7684\u7B2C\u4E8C\u4E2A\u5BF9\u8C61\uFF08rt \u5B57\u6BB5\uFF09";
+    return number2 === rs ? "\u6BD4\u8F83\u7684\u7B2C\u4E00\u4E2A\u5BF9\u8C61" : "\u6BD4\u8F83\u7684\u7B2C\u4E8C\u4E2A\u5BF9\u8C61";
   if (ins.flow === "indirect" || opcode === 0 && (bits & 63) === 9 && number2 === rs)
-    return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740\uFF08rs \u5B57\u6BB5\uFF09";
+    return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740";
   if (opcode === 0) {
-    if (number2 === rs && number2 === rt)
-      return "\u4E24\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rs \u548C rt \u5B57\u6BB5\u90FD\u662F\u5B83\uFF09";
-    if (number2 === rs) return "\u7B2C\u4E00\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rs \u5B57\u6BB5\uFF09";
-    if (number2 === rt) return "\u7B2C\u4E8C\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08rt \u5B57\u6BB5\uFF09";
-    if (number2 === rd) return "\u76EE\u6807\uFF08rd \u5B57\u6BB5\uFF09";
+    if (number2 === rs && number2 === rt) return "\u4E24\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08\u4E24\u4E2A\u4F4D\u7F6E\u90FD\u662F\u5B83\uFF09";
+    if (number2 === rs) return "\u7B2C\u4E00\u4E2A\u6E90\u64CD\u4F5C\u6570";
+    if (number2 === rt) return "\u7B2C\u4E8C\u4E2A\u6E90\u64CD\u4F5C\u6570";
+    if (number2 === rd) return "\u76EE\u6807";
   }
-  if (number2 === rs) return "\u6E90\u64CD\u4F5C\u6570\uFF08rs \u5B57\u6BB5\uFF09";
-  if (number2 === rt) return "\u64CD\u4F5C\u6570\uFF08rt \u5B57\u6BB5\uFF09";
+  if (number2 === rs) return "\u6E90\u64CD\u4F5C\u6570";
+  if (number2 === rt) return "\u64CD\u4F5C\u6570";
   return "\u8FD9\u6761\u6307\u4EE4\u7528\u5230\u7684\u4E00\u4E2A\u5BC4\u5B58\u5668";
 }
 function destField(ins, number2) {
   const bits = ins.binary | 0, opcode = bits >>> 26;
   if (number2 === (bits >>> 11 & 31) && opcode === 0)
-    return "rd \u5B57\u6BB5\u6307\u5B9A\u7684\u76EE\u6807";
+    return "\u8FD9\u6761\u6307\u4EE4\u5199\u660E\u7684\u76EE\u6807\u5BC4\u5B58\u5668";
   if (number2 === (bits >>> 16 & 31) && opcode !== 0)
-    return "rt \u5B57\u6BB5\u6307\u5B9A\u7684\u76EE\u6807";
+    return "\u8FD9\u6761\u6307\u4EE4\u5199\u660E\u7684\u76EE\u6807\u5BC4\u5B58\u5668";
   if (number2 === 31 && (opcode === 3 || ins.flow === "call"))
     return "\u8C03\u7528\u6307\u4EE4\u56FA\u5B9A\u5199 $ra";
   return "";
@@ -24064,7 +24071,7 @@ function completeWhys(model, event, {
     if (flow && event.nextPC != null) {
       const sequential = event.nextPC === ins.address + 4;
       parts.push(
-        sequential ? "\u6CA1\u6709\u53D1\u751F\u8DF3\u8F6C\uFF1APC \u52A0 4\uFF0C\u6267\u884C\u7D27\u6328\u7740\u7684\u4E0B\u4E00\u6761\u6307\u4EE4\u3002" : `PC \u88AB\u6539\u6210 ${hex(event.nextPC)}\uFF0C\u6240\u4EE5\u4E0B\u4E00\u6761\u662F ${where(event.nextPC)}\u3002`
+        sequential ? "\u6CA1\u6709\u53D1\u751F\u8DF3\u8F6C\uFF1APC\uFF08\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF09\u52A0 4\uFF0C\u6267\u884C\u7D27\u6328\u7740\u7684\u4E0B\u4E00\u6761\u6307\u4EE4\u3002" : `\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF08PC\uFF09\u53D8\u6210 ${hex(event.nextPC)}\uFF0C\u4E5F\u5C31\u662F ${where(event.nextPC)}\u3002`
       );
       if (delay && ins.flow !== "next")
         parts.push("\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u8DF3\u8F6C\u524D\u4F1A\u5148\u6267\u884C\u7D27\u8DDF\u5728\u540E\u9762\u7684\u90A3\u4E00\u6761\u3002");
@@ -24252,6 +24259,10 @@ var glossary = {
   \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002",
   \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\uFF0C\u4F8B\u5982\u8BFB 4 \u5B57\u8282\u65F6\u5730\u5740\u662F 4 \u7684\u500D\u6570\u3002",
   \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002",
+  PC: "\u7A0B\u5E8F\u8BA1\u6570\u5668\uFF1A\u4FDD\u5B58\u201C\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u7684\u5730\u5740\u201D\u3002\u6BCF\u6267\u884C\u4E00\u6761\u6307\u4EE4\u901A\u5E38\u52A0 4\uFF1B\u8DF3\u8F6C\u5C31\u662F\u628A\u5B83\u6539\u6210\u522B\u7684\u5730\u5740\u3002",
+  \u5B57\u7B26\u7F16\u7801: "\u7528\u6570\u5B57\u8868\u793A\u5B57\u7B26\u7684\u7EA6\u5B9A\uFF1A\u6BCF\u4E2A\u5B57\u7B26\u5BF9\u5E94\u4E00\u4E2A\u7F16\u53F7\uFF0C\u5185\u5B58\u91CC\u5B58\u7684\u662F\u7F16\u53F7\u3002",
+  ASCII: "\u6700\u5E38\u7528\u7684\u5B57\u7B26\u7F16\u7801\u8868\uFF1A0\u2013127 \u5404\u5BF9\u5E94\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 48 \u662F 0\u300165 \u662F A\u3001104 \u662F h\u300110 \u662F\u6362\u884C\u3002",
+  \u5341\u516D\u8FDB\u5236: "\u4EE5 16 \u4E3A\u57FA\u6570\u7684\u5199\u6CD5\uFF0C\u524D\u7F00 0x\uFF1B\u6BCF\u4F4D\u662F 0\u20139 \u6216 a\u2013f\uFF0C\u4E24\u4F4D\u6B63\u597D\u8868\u793A\u4E00\u4E2A\u5B57\u8282\u3002",
   "rs \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E00\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 25\u201321 \u4F4D\uFF09\u3002",
   "rt \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E8C\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 20\u201316 \u4F4D\uFF09\u3002",
   "rd \u5B57\u6BB5": "R \u578B\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u76EE\u6807\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 15\u201311 \u4F4D\uFF09\u3002"
@@ -24300,7 +24311,7 @@ var FocusLens = class {
         <header id="focus-head">
           <strong>\u4E13\u6CE8</strong><span id="focus-where"></span>
           <label>\u8303\u56F4 <select id="focus-range" aria-label="\u9884\u8BA1\u8303\u56F4"><option value="auto">\u81EA\u52A8</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} \u884C</option>`).join("")}</select></label>
-          <span id="focus-keys">\u2191\u2193 \u67E5\u770B \xB7 \u21E7\u2191 \u540E\u9000\u4E00\u884C \xB7 \u21E7\u2193 \u6267\u884C\u4E00\u884C \xB7 \u2190\u2192 \u9010\u6B65\u89E3\u91CA \xB7 Enter \u8FD0\u884C\u5230\u9009\u4E2D \xB7 ? \u4E3A\u4EC0\u4E48 \xB7 Esc \u9000\u51FA</span>
+          <span id="focus-keys">\u2191\u2193 \u67E5\u770B \xB7 \u21E7\u2191 \u540E\u9000\u4E00\u884C \xB7 \u21E7\u2193 \u6267\u884C\u4E00\u884C \xB7 \u2190\u2192 \u9010\u6761\u89E3\u91CA \xB7 Enter \u6267\u884C\u5230\u9009\u4E2D\u7684\u8FD9\u4E00\u6B65 \xB7 ? \u4E3A\u4EC0\u4E48 \xB7 Esc \u9000\u51FA</span>
           <button id="focus-close" aria-label="\u9000\u51FA\u4E13\u6CE8\u6A21\u5F0F">\xD7</button>
         </header>
         <div id="focus-body">
@@ -24309,7 +24320,7 @@ var FocusLens = class {
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="\u89E3\u91CA\u8FDB\u5EA6"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="\u89E3\u91CA\u8FDB\u5EA6"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
@@ -24594,8 +24605,8 @@ var FocusLens = class {
       this.moveSelection(e.shiftKey ? -1 : 1, true);
     } else if (e.key === "Enter") {
       handled();
-      if (this.selected > 0) {
-        const n = this.layout.steps.filter((s) => s.predicted && s.index < this.selected).reduce((sum, s) => sum + s.events.length, 0);
+      if (this.selected >= 0) {
+        const n = this.layout.steps.filter((s) => s.predicted && s.index <= this.selected).reduce((sum, s) => sum + s.events.length, 0);
         this.host.runSteps(n);
       }
     } else if (e.key === "?") {
@@ -24606,7 +24617,7 @@ var FocusLens = class {
   // ---- rendering ----
   render() {
     const $2 = (id2) => document.getElementById(id2), state2 = this.host.getState(), L = this.layout;
-    $2("focus-where").textContent = state2 ? `S${state2.step} \xB7 ${hex(state2.pc)}` : "";
+    $2("focus-where").textContent = state2 ? `\u5DF2\u6267\u884C ${state2.step} \u6B65 \xB7 \u4E0B\u4E00\u6761 ${hex(state2.pc)}` : "";
     const waiting = state2?.status === "waiting";
     if ($2("focus-input").hidden === waiting) {
       $2("focus-input").hidden = !waiting;
@@ -24723,6 +24734,7 @@ var FocusLens = class {
     $2("focus-caption").innerHTML = glossify(
       b ? b.caption : m.beats.length ? "\u2192 \u4E0B\u4E00\u6761\u89E3\u91CA\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C" : ""
     );
+    $2("focus-progress").textContent = m.beats.length ? `\u7B2C ${this.beat}/${m.beats.length} \u6761` : "";
     $2("focus-dots").innerHTML = m.beats.map(
       (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="\u7B2C ${i + 1} \u6761\u89E3\u91CA"></button>`
     ).join("");
@@ -25177,6 +25189,14 @@ function lineAddress(line) {
     (i) => i.file === activeFile && i.line === line
   )?.address;
 }
+function breakableAddress(line) {
+  const own = lineAddress(line);
+  if (own != null) return { address: own, line };
+  const text2 = editor.state.doc.line(line).text.split("#")[0];
+  if (!/^\s*[A-Za-z_.$][\w.$]*\s*:/.test(text2)) return null;
+  const next = program.instructions.filter((i) => i.file === activeFile && i.line > line).sort((a, b) => a.line - b.line || a.address - b.address)[0];
+  return next ? { address: next.address, line: next.line, label: true } : null;
+}
 var INLINE_LINES = 12;
 var inlineCache = { key: null, map: /* @__PURE__ */ new Map() };
 var DELAY_NOP = "\u5EF6\u8FDF\u69FD\u5360\u4F4D\uFF1A\u5F00\u542F\u201C\u5EF6\u8FDF\u5206\u652F\u201D\u65F6\uFF0C\u8DF3\u8F6C\u6216\u5206\u652F\u540E\u9762\u7D27\u8DDF\u7684\u8FD9\u4E00\u6761\u603B\u4F1A\u5148\u6267\u884C\uFF0C\u653E nop \u53EF\u4EE5\u4FDD\u8BC1\u7A0B\u5E8F\u5728\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u90FD\u6B63\u786E\u3002\u5173\u95ED\u65F6\u5B83\u4EC0\u4E48\u4E5F\u4E0D\u505A\u3002";
@@ -25241,10 +25261,13 @@ var InlineValue = class extends WidgetType {
   eq(other) {
     return other.text === this.text;
   }
+  // Long results are cut with an ellipsis; the whole text is on hover
+  // (round-2 trial: values ran off the right edge).
   toDOM() {
     const span = document.createElement("span");
     span.className = "cm-inline-value";
-    span.textContent = this.text;
+    span.textContent = this.text.length > 48 ? this.text.slice(0, 47) + "\u2026" : this.text;
+    span.title = this.text;
     return span;
   }
 };
@@ -25328,6 +25351,22 @@ var PeekWidget = class extends WidgetType {
       (r, i) => `<button class="cm-peek-row" data-peek="${i}"><span>${escapeHTML(r.file)}:${r.line}</span><small>${escapeHTML(r.type)}</small><code>${escapeHTML(r.text.trim())}</code></button>`
     ).join("") : '<p class="muted">\u65E0\u9759\u6001\u5F15\u7528\u3002</p>');
     box.querySelector("[data-peek-close]").onclick = () => closePeek();
+    box.addEventListener("keydown", (e) => {
+      const rows = [...box.querySelectorAll("[data-peek]")], i = rows.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        rows[Math.max(
+          0,
+          Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1))
+        )]?.focus();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closePeek();
+        editor.focus();
+      }
+    });
     box.querySelectorAll("[data-peek]").forEach(
       (b) => b.onclick = () => {
         const r = refs[Number(b.dataset.peek)];
@@ -25365,10 +25404,14 @@ function peekReferences() {
       pos: editor.state.doc.lineAt(head).to
     })
   });
+  requestAnimationFrame(
+    () => editor.dom.querySelector(".cm-peek-row")?.focus({ preventScroll: true })
+  );
 }
 function editorMenu(x, y, pos) {
   closeMenu();
-  const line = editor.state.doc.lineAt(pos).number, address = lineAddress(line), token = tokenAt(pos), canRun = !dirty && ["paused", "waiting"].includes(state?.status);
+  $("tooltip").hidden = true;
+  const line = editor.state.doc.lineAt(pos).number, address = breakableAddress(line)?.address ?? null, token = tokenAt(pos), canRun = !dirty && ["paused", "waiting"].includes(state?.status);
   editor.dispatch({ selection: { anchor: pos } });
   const items = [
     [
@@ -25696,9 +25739,14 @@ function modal(title, html) {
   $("modal-content").innerHTML = `<h3>${escapeHTML(title)}</h3>${html}`;
   if (!$("modal").open) $("modal").showModal();
 }
-function notify(message) {
+function notify(message, { transient = false } = {}) {
   $("banner").textContent = message;
   $("banner").className = message ? "visible" : "";
+  clearTimeout(notify.timer);
+  if (transient && message)
+    notify.timer = setTimeout(() => {
+      if ($("banner").textContent === message) notify("");
+    }, 4e3);
 }
 function named(s) {
   const fix = (i) => {
@@ -25986,7 +26034,7 @@ function statusInfo() {
   if (reason.startsWith("History"))
     return {
       kind: "paused",
-      text: `\u56DE\u653E\u5386\u53F2 \xB7 \u7B2C ${state.step} / ${state.historyLength} \u6B65`,
+      text: `\u56DE\u653E\u5386\u53F2 \xB7 \u5DF2\u6267\u884C ${state.step} / ${state.historyLength} \u6B65`,
       at: next
     };
   if (!state.step && next)
@@ -26200,7 +26248,7 @@ function render() {
   renderLogs();
   renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
-  $("location").textContent = `S${state.step} \xB7 ${hex(state.pc)}`;
+  $("location").textContent = `\u5DF2\u6267\u884C ${state.step} \u6B65 \xB7 \u4E0B\u4E00\u6761 ${hex(state.pc)}`;
   $("history-info").textContent = `${state.step} / ${state.historyLength} \u6B65`;
   $("calls").innerHTML = state.calls.map(
     (c) => `<button class="trace-row" data-call="${c.step}">#${c.step} ${escapeHTML(c.instruction.basic)} \u2192 \u8FD4\u56DE ${hex(c.return)}</button>`
@@ -26302,12 +26350,19 @@ function editBreakpoint(address) {
   $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
-  let address = lineAddress(line);
-  if (address == null) {
-    notify("\u6B64\u884C\u6CA1\u6709\u5DF2\u6C47\u7F16\u6307\u4EE4\u3002\u5148\u6C47\u7F16\uFF0C\u6216\u5728\u5B9E\u9645\u6307\u4EE4\u89C6\u56FE\u8BBE\u7F6E\u65AD\u70B9\u3002");
+  const at = breakableAddress(line);
+  if (!at) {
+    notify(
+      dirty ? "\u4EE3\u7801\u6539\u8FC7\u4E86\uFF0C\u5148\u6C47\u7F16\u518D\u8BBE\u65AD\u70B9\u3002" : "\u8FD9\u4E00\u884C\u6CA1\u6709\u53EF\u6267\u884C\u7684\u6307\u4EE4\uFF08\u7A7A\u884C\u3001\u6CE8\u91CA\u6216\u6570\u636E\uFF09\uFF0C\u65AD\u70B9\u8981\u8BBE\u5728\u6709\u6307\u4EE4\u7684\u884C\u3002",
+      { transient: true }
+    );
     return;
   }
-  toggleAddressBreakpoint(address, conditional);
+  if (at.label)
+    notify(`\u65AD\u70B9\u8BBE\u5728\u8FD9\u4E2A\u6807\u7B7E\u4E0B\u9762\u7684\u7B2C\u4E00\u6761\u6307\u4EE4\uFF08\u7B2C ${at.line} \u884C\uFF09\u3002`, {
+      transient: true
+    });
+  toggleAddressBreakpoint(at.address, conditional);
 }
 function appendLogs(logs = []) {
   if (!logs.length) return;
@@ -26326,7 +26381,7 @@ function renderLogs() {
 function renderOutput() {
   let html = "", from = 0;
   for (const e of state.inputEchoes || []) {
-    html += escapeHTML(state.output.slice(from, e.at)) + `<span class="echo">${escapeHTML(e.text)}\u23CE</span>
+    html += escapeHTML(state.output.slice(from, e.at)) + `<span class="echo" title="\u4F60\u8F93\u5165\u7684\u5185\u5BB9">${escapeHTML(e.text)}</span>
 `;
     from = e.at;
   }
@@ -26610,8 +26665,25 @@ for (let mode of ["source", "over", "out", "run"])
 $("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
 $("radix").innerHTML = RADIXES.map(
-  ([value, label2]) => `<option value="${value}" ${value === radix ? "selected" : ""}>${label2}</option>`
+  ([value, label2]) => `<option value="${value}" title="${escapeHTML(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label2}</option>`
 ).join("");
+$("radix-help").onclick = () => {
+  const cell = (b) => `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${escapeHTML(escapeByte(b) === " " ? "\u7A7A\u683C" : escapeByte(b))}</b></td>`;
+  const codes = [0, 9, 10, ...Array.from({ length: 95 }, (_, i) => 32 + i)];
+  const rows = [];
+  for (let i = 0; i < codes.length; i += 4)
+    rows.push(
+      `<tr>${codes.slice(i, i + 4).map(cell).join("")}</tr>`
+    );
+  modal(
+    "\u6570\u503C\u663E\u793A",
+    `<div class="radix-help">${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${escapeHTML(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
+     <p class="muted">\u53EA\u6539\u53D8\u53EA\u8BFB\u533A\u57DF\uFF08\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u3001\u5730\u5740\u3001\u6267\u884C\u7ED3\u679C\u3001\u4E13\u6CE8\u6A21\u5F0F\uFF09\u7684\u663E\u793A\uFF0C\u4EE3\u7801\u4E0D\u4F1A\u53D8\u3002</p>
+     <h4>\u5B57\u7B26\u7F16\u7801\u8868\uFF08ASCII\uFF09</h4>
+     <p class="muted">\u5185\u5B58\u91CC\u5B58\u7684\u90FD\u662F\u6570\u5B57\uFF1B\u6309\u8FD9\u5F20\u8868\uFF0C\u6BCF\u4E2A 0\u2013127 \u7684\u6570\u53EF\u4EE5\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\u3002\u8868\u4E2D\u5217\u51FA\u5341\u8FDB\u5236\u3001\u5341\u516D\u8FDB\u5236\u548C\u5BF9\u5E94\u7684\u5B57\u7B26\u3002</p>
+     <table class="ascii-table"><tbody>${rows.join("")}</tbody></table></div>`
+  );
+};
 $("radix").onchange = () => {
   radix = $("radix").value;
   try {

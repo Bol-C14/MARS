@@ -12,12 +12,17 @@ test("every mode carries its prefix", () => {
   assert.equal(f(72, { radix: "ascii" }), "'H'");
 });
 
-test("auto: small values in decimal, addresses and bit patterns in hex", () => {
+test("auto: address-like values in hex, everything else in decimal, never by size", () => {
   assert.equal(f(12), "0d12");
   assert.equal(f(-2), "0d-2");
+  assert.equal(f(898), "0d898");
+  assert.equal(f(898 << 4), "0d14368");
   assert.equal(f(0x10010000), "0x10010000");
+  assert.equal(f(0x7fffeffc), "0x7fffeffc");
+  assert.equal(f(0x00400010), "0x00400010");
   assert.equal(f(4, { kind: "address" }), "0x00000004");
-  assert.equal(f(0xff, { kind: "bits" }), "0x000000ff");
+  assert.equal(f(0xff00, { kind: "bits" }), "0d65280");
+  assert.equal(f(0xf0, { width: 1, kind: "bits" }), "0d240");
 });
 
 test("bytes and half-words respect their width and sign", () => {

@@ -109,9 +109,9 @@ test("generated whys name the operand's role, its producer and its next reader",
   const consumer = at(8, I("move", R(0, 10, 0, 4, 0, 33), { line: 8, source: "move $a0, $t2" }), [r(10, "$t2", 12), w(4, "$a0", 0, 12)]);
   const m = completeWhys(beatModel(e), e, { before: [producer], after: [consumer] });
   assert.ok(m.beats.every((b) => b.why), "every beat answers why");
-  assert.match(m.beats[0].why, /\$t0 在这里是第一个源操作数（rs 字段）。它现在的值来自第 3 步（main.s:3 `li \$t0, 7`）/);
-  assert.match(m.beats[0].why, /\$t1 在这里是第二个源操作数（rt 字段）。最近的执行记录里没有写过它/);
-  assert.match(m.beats[2].why, /结果写进 \$t2（rd 字段指定的目标）。之后第 8 步（main.s:8 `move \$a0, \$t2`）会读取它/);
+  assert.match(m.beats[0].why, /\$t0 在这里是第一个源操作数。它现在的值来自第 3 步（main.s:3 `li \$t0, 7`）/);
+  assert.match(m.beats[0].why, /\$t1 在这里是第二个源操作数。最近的执行记录里没有写过它/);
+  assert.match(m.beats[2].why, /结果写进 \$t2（这条指令写明的目标寄存器）。之后第 8 步（main.s:8 `move \$a0, \$t2`）会读取它/);
   const alone = completeWhys(beatModel(e), e, {});
   assert.match(alone.beats[2].why, /在窗口里之后的步骤不会再读取它/);
 });
@@ -124,10 +124,10 @@ test("hand-written derivations are kept; unknown instructions still get facts", 
   assert.ok(after.every(Boolean));
   const odd = at(2, I("teq", R(0, 8, 9, 0, 0, 52), { description: "Trap if equal" }), [r(8, "$t0", 1), r(9, "$t1", 2)]);
   const oddModel = completeWhys(beatModel(odd), odd, { explanations: {} });
-  assert.match(oddModel.beats[0].why, /\$t0 在这里是第一个源操作数（rs 字段）/);
+  assert.match(oddModel.beats[0].why, /\$t0 在这里是第一个源操作数/);
   const flow = at(3, I("j", R(2) | 0x100010, { flow: "jump", target: 0x400040, address: 0x400000 }), [], { nextPC: 0x400040 });
   const jm = completeWhys(beatModel(flow, { symbols: [{ name: "loop", address: 0x400040 }] }), flow, { symbols: [{ name: "loop", address: 0x400040 }] });
-  assert.match(jm.beats.at(-1).why, /目标|PC 被改成 0x00400040，所以下一条是 loop/);
+  assert.match(jm.beats.at(-1).why, /目标|PC）变成 0x00400040，也就是 loop/);
 });
 
 test("memory reads explain where the bytes came from", () => {

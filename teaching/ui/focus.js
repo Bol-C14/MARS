@@ -32,7 +32,7 @@ export class FocusLens {
         <header id="focus-head">
           <strong>专注</strong><span id="focus-where"></span>
           <label>范围 <select id="focus-range" aria-label="预计范围"><option value="auto">自动</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} 行</option>`).join("")}</select></label>
-          <span id="focus-keys">↑↓ 查看 · ⇧↑ 后退一行 · ⇧↓ 执行一行 · ←→ 逐步解释 · Enter 运行到选中 · ? 为什么 · Esc 退出</span>
+          <span id="focus-keys">↑↓ 查看 · ⇧↑ 后退一行 · ⇧↓ 执行一行 · ←→ 逐条解释 · Enter 执行到选中的这一步 · ? 为什么 · Esc 退出</span>
           <button id="focus-close" aria-label="退出专注模式">×</button>
         </header>
         <div id="focus-body">
@@ -41,7 +41,7 @@ export class FocusLens {
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-dots" role="group" aria-label="解释进度"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="解释进度"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
@@ -353,9 +353,11 @@ export class FocusLens {
       this.moveSelection(e.shiftKey ? -1 : 1, true);
     } else if (e.key === "Enter") {
       handled();
-      if (this.selected > 0) {
+      // Enter executes through the selected step (round-2 trial: Enter on the
+      // next step did nothing); the completed step needs nothing.
+      if (this.selected >= 0) {
         const n = this.layout.steps
-          .filter((s) => s.predicted && s.index < this.selected)
+          .filter((s) => s.predicted && s.index <= this.selected)
           .reduce((sum, s) => sum + s.events.length, 0);
         this.host.runSteps(n);
       }
@@ -371,7 +373,7 @@ export class FocusLens {
       state = this.host.getState(),
       L = this.layout;
     $("focus-where").textContent = state
-      ? `S${state.step} · ${hex(state.pc)}`
+      ? `已执行 ${state.step} 步 · 下一条 ${hex(state.pc)}`
       : "";
     const waiting = state?.status === "waiting";
     if ($("focus-input").hidden === waiting) {
@@ -530,6 +532,9 @@ export class FocusLens {
     $("focus-caption").innerHTML = glossify(
       b ? b.caption : m.beats.length ? "→ 下一条解释逐个代入真实值" : "",
     );
+    $("focus-progress").textContent = m.beats.length
+      ? `第 ${this.beat}/${m.beats.length} 条`
+      : "";
     $("focus-dots").innerHTML = m.beats
       .map(
         (_, i) =>

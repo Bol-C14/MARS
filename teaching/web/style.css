@@ -1121,7 +1121,7 @@ body.focusing #tooltip {
   color: var(--muted);
   opacity: 0.75;
   font-style: italic;
-  pointer-events: none;
+  cursor: default;
 }
 .command-item kbd {
   float: right;
@@ -1381,4 +1381,41 @@ abbr.term {
 }
 .cm-line.delay-nop:not(.next-line):not(.last-line) {
   opacity: 0.45;
+}
+.radix-legend {
+  color: var(--muted);
+  font-size: 10.5px;
+  margin-left: 6px;
+}
+#radix-help {
+  padding: 0 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.radix-help p {
+  margin: 4px 0;
+  line-height: 1.55;
+  max-width: 70ch;
+}
+.radix-help h4 {
+  margin: 14px 0 4px;
+}
+.ascii-table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ascii-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.ascii-table td:nth-child(3n) {
+  padding-right: 18px;
+}
+#focus-progress {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+#focus-progress + #focus-dots {
+  margin-left: 8px;
 }

@@ -27,7 +27,13 @@ import { OverlayRenderer } from "./overlay.js";
 import { FocusLens } from "./focus.js";
 import { Keymap, label as keyLabel } from "./keymap.js";
 import { quickOpenItems } from "./search.js";
-import { formatValue, RADIXES, addressRegisters } from "./radix.js";
+import {
+  formatValue,
+  RADIXES,
+  RADIX_HELP,
+  addressRegisters,
+  escapeByte,
+} from "./radix.js";
 import { termsIn } from "./glossary.js";
 const $ = (id) => document.getElementById(id);
 let state = null,
@@ -75,6 +81,18 @@ function lineAddress(line) {
   return program.instructions.find(
     (i) => i.file === activeFile && i.line === line,
   )?.address;
+}
+// A label line has no instruction of its own; it stands for the first
+// instruction after it (round-2 trial: F9 on "loop:" failed).
+function breakableAddress(line) {
+  const own = lineAddress(line);
+  if (own != null) return { address: own, line };
+  const text = editor.state.doc.line(line).text.split("#")[0];
+  if (!/^\s*[A-Za-z_.$][\w.$]*\s*:/.test(text)) return null;
+  const next = program.instructions
+    .filter((i) => i.file === activeFile && i.line > line)
+    .sort((a, b) => a.line - b.line || a.address - b.address)[0];
+  return next ? { address: next.address, line: next.line, label: true } : null;
 }
 // Inline execution values (DESIGN §3.8): what the most recent run of each
 // recently executed line wrote, as of the selected history state.
@@ -162,10 +180,14 @@ class InlineValue extends WidgetType {
   eq(other) {
     return other.text === this.text;
   }
+  // Long results are cut with an ellipsis; the whole text is on hover
+  // (round-2 trial: values ran off the right edge).
   toDOM() {
     const span = document.createElement("span");
     span.className = "cm-inline-value";
-    span.textContent = this.text;
+    span.textContent =
+      this.text.length > 48 ? this.text.slice(0, 47) + "…" : this.text;
+    span.title = this.text;
     return span;
   }
 }
@@ -276,6 +298,26 @@ class PeekWidget extends WidgetType {
             .join("")
         : '<p class="muted">无静态引用。</p>');
     box.querySelector("[data-peek-close]").onclick = () => closePeek();
+    // Keyboard: ↑/↓ move through the list (it scrolls), Enter opens, Esc returns.
+    box.addEventListener("keydown", (e) => {
+      const rows = [...box.querySelectorAll("[data-peek]")],
+        i = rows.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        rows[
+          Math.max(
+            0,
+            Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)),
+          )
+        ]?.focus();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closePeek();
+        editor.focus();
+      }
+    });
     box.querySelectorAll("[data-peek]").forEach(
       (b) =>
         (b.onclick = () => {
@@ -317,12 +359,16 @@ function peekReferences() {
       pos: editor.state.doc.lineAt(head).to,
     }),
   });
+  requestAnimationFrame(() =>
+    editor.dom.querySelector(".cm-peek-row")?.focus({ preventScroll: true }),
+  );
 }
 // Editor right-click menu: run to here and the line's breakpoint and queries.
 function editorMenu(x, y, pos) {
   closeMenu();
+  $("tooltip").hidden = true;
   const line = editor.state.doc.lineAt(pos).number,
-    address = lineAddress(line),
+    address = breakableAddress(line)?.address ?? null,
     token = tokenAt(pos),
     canRun = !dirty && ["paused", "waiting"].includes(state?.status);
   editor.dispatch({ selection: { anchor: pos } });
@@ -690,9 +736,16 @@ function modal(title, html) {
   $("modal-content").innerHTML = `<h3>${esc(title)}</h3>${html}`;
   if (!$("modal").open) $("modal").showModal();
 }
-function notify(message) {
+// transient: the notice clears itself after a few seconds (trial round 2:
+// a stale notice stayed on screen and was read as current).
+function notify(message, { transient = false } = {}) {
   $("banner").textContent = message;
   $("banner").className = message ? "visible" : "";
+  clearTimeout(notify.timer);
+  if (transient && message)
+    notify.timer = setTimeout(() => {
+      if ($("banner").textContent === message) notify("");
+    }, 4000);
 }
 // Every instruction the backend reports is shown with register names (C3).
 function named(s) {
@@ -1024,7 +1077,7 @@ function statusInfo() {
   if (reason.startsWith("History"))
     return {
       kind: "paused",
-      text: `回放历史 · 第 ${state.step} / ${state.historyLength} 步`,
+      text: `回放历史 · 已执行 ${state.step} / ${state.historyLength} 步`,
       at: next,
     };
   if (!state.step && next)
@@ -1332,7 +1385,10 @@ function render() {
   renderLogs();
   renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
-  $("location").textContent = `S${state.step} · ${hex(state.pc)}`;
+  // "第 N 步" in explanations is the Nth execution, so the state reads as how
+  // many steps have run (round-2 trial: S13 vs 第 14 步 looked inconsistent).
+  $("location").textContent =
+    `已执行 ${state.step} 步 · 下一条 ${hex(state.pc)}`;
   $("history-info").textContent = `${state.step} / ${state.historyLength} 步`;
   $("calls").innerHTML =
     state.calls
@@ -1453,12 +1509,21 @@ function editBreakpoint(address) {
   $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
-  let address = lineAddress(line);
-  if (address == null) {
-    notify("此行没有已汇编指令。先汇编，或在实际指令视图设置断点。");
+  const at = breakableAddress(line);
+  if (!at) {
+    notify(
+      dirty
+        ? "代码改过了，先汇编再设断点。"
+        : "这一行没有可执行的指令（空行、注释或数据），断点要设在有指令的行。",
+      { transient: true },
+    );
     return;
   }
-  toggleAddressBreakpoint(address, conditional);
+  if (at.label)
+    notify(`断点设在这个标签下面的第一条指令（第 ${at.line} 行）。`, {
+      transient: true,
+    });
+  toggleAddressBreakpoint(at.address, conditional);
 }
 function appendLogs(logs = []) {
   if (!logs.length) return;
@@ -1490,7 +1555,7 @@ function renderOutput() {
   for (const e of state.inputEchoes || []) {
     html +=
       esc(state.output.slice(from, e.at)) +
-      `<span class="echo">${esc(e.text)}⏎</span>\n`;
+      `<span class="echo" title="你输入的内容">${esc(e.text)}</span>\n`;
     from = e.at;
   }
   $("output").innerHTML = html + esc(state.output.slice(from));
@@ -1829,8 +1894,30 @@ $("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
 $("radix").innerHTML = RADIXES.map(
   ([value, label]) =>
-    `<option value="${value}" ${value === radix ? "selected" : ""}>${label}</option>`,
+    `<option value="${value}" title="${esc(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label}</option>`,
 ).join("");
+// What the notations mean, plus a character table to look 104 → h up in.
+$("radix-help").onclick = () => {
+  const cell = (b) =>
+    `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${esc(escapeByte(b) === " " ? "空格" : escapeByte(b))}</b></td>`;
+  const codes = [0, 9, 10, ...Array.from({ length: 95 }, (_, i) => 32 + i)];
+  const rows = [];
+  for (let i = 0; i < codes.length; i += 4)
+    rows.push(
+      `<tr>${codes
+        .slice(i, i + 4)
+        .map(cell)
+        .join("")}</tr>`,
+    );
+  modal(
+    "数值显示",
+    `<div class="radix-help">${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${esc(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
+     <p class="muted">只改变只读区域（寄存器、内存、地址、执行结果、专注模式）的显示，代码不会变。</p>
+     <h4>字符编码表（ASCII）</h4>
+     <p class="muted">内存里存的都是数字；按这张表，每个 0–127 的数可以读成一个字符。表中列出十进制、十六进制和对应的字符。</p>
+     <table class="ascii-table"><tbody>${rows.join("")}</tbody></table></div>`,
+  );
+};
 $("radix").onchange = () => {
   radix = $("radix").value;
   try {

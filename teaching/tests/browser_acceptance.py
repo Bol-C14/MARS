@@ -71,7 +71,7 @@ def scenario(r, page, mod):
     # Trial A4: submitting input resumes the interrupted run and echoes the input.
     r.until("() => window.marsIDE.state.status === 'ended'")
     r.check("hexOut output", page.locator("#output").inner_text().endswith("00000382"))
-    r.check("input is echoed in the console", page.locator("#output .echo").inner_text() == "898⏎")
+    r.check("input is echoed in the console", page.locator("#output .echo").inner_text() == "898")
     r.check("status chip says ended", "已结束" in page.locator("#status").inner_text())
     page.locator("#back").click()
     r.until("() => window.marsIDE.state.status === 'paused'")
@@ -165,6 +165,29 @@ def scenario(r, page, mod):
     r.check("pause ends the running state", "运行中" not in page.locator("#status").inner_text())
 
 
+    # --- Round 2: breakpoints on label lines, step wording, ASCII table ---
+    label_line = r.js("""() => { const d = window.marsIDE.editor.state.doc,
+        file = document.querySelector('.tabs .active')?.textContent.replace(' •', '').trim(),
+        has = (n) => window.marsIDE.program.instructions.some((i) => i.file === file && i.line === n);
+        for (let i = 1; i < d.lines; i++)
+          if (/^\\s*[A-Za-z_][\\w.]*:\\s*(#.*)?$/.test(d.line(i).text) && has(i + 1)) return i;
+        return 0 }""")
+    r.check("found a label line to test", label_line > 0)
+    r.js("(n) => { const e = window.marsIDE.editor; e.dispatch({ selection: { anchor: e.state.doc.line(n).from } }); e.focus() }", label_line)
+    bp_before = page.locator(".bp-row").count()
+    page.keyboard.press("F9")
+    r.check("F9 on a label line sets a breakpoint on its first instruction",
+            page.locator(".bp-row").count() == bp_before + 1 and f"第 {label_line + 1} 行" in page.locator("#banner").inner_text(),
+            page.locator("#banner").inner_text())
+    r.js("(n) => { const e = window.marsIDE.editor; e.dispatch({ selection: { anchor: e.state.doc.line(n + 1).from } }); e.focus() }", label_line)
+    page.keyboard.press("F9")
+    r.check("the same breakpoint toggles off from its instruction line", page.locator(".bp-row").count() == bp_before)
+    r.check("state reads as steps executed", page.locator("#location").inner_text().startswith("已执行"))
+    page.locator("#radix-help").click()
+    help_text = page.locator("#modal").inner_text()
+    r.check("radix help explains prefixes and lists characters", "0d" in help_text and "104" in help_text and "h" in help_text)
+    page.locator("#modal .close").click()
+
     # --- M2.5: VS Code keys ---
     page.keyboard.press("Shift+F5")
     r.until("() => window.marsIDE.state.step === 0")
@@ -206,11 +229,19 @@ def scenario(r, page, mod):
     page.keyboard.press("Shift+F12")
     r.until("() => document.querySelectorAll('.cm-peek-row').length > 3")
     r.check("peek references inline", "写入" in page.locator(".cm-peek").inner_text())
+    # Round 2: the list takes keyboard focus and ↓ moves through it.
+    r.until("() => document.activeElement?.classList.contains('cm-peek-row')", timeout=3000)
+    page.keyboard.press("ArrowDown")
+    r.check("peek list is keyboard navigable",
+            r.js("() => [...document.querySelectorAll('.cm-peek-row')].indexOf(document.activeElement)") == 1)
     page.keyboard.press("Escape")
     r.until("() => !document.querySelector('.cm-peek')")
     row = page.locator(".cm-line", has_text="lbu $t0, 0($s0)").first
+    row.hover()
+    page.wait_for_timeout(200)
     row.click(button="right")
     r.check("editor context menu", page.locator("#context-menu button").count() == 5)
+    r.check("hover tooltip closes when the menu opens", page.locator("#tooltip").is_hidden())
     page.locator("#context-menu button", has_text="编辑断点").click()
     page.locator("#bp-hit").fill("2")
     page.locator("#bp-log").fill("byte={$t0}")
