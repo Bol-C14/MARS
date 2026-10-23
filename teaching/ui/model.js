@@ -228,3 +228,36 @@ export function nameRegisters(text) {
     Number(n) < 32 ? "$" + registerNames[Number(n)] : m,
   );
 }
+
+// MARS documents each instruction with example operands ("beqz $t1,label").
+// Substitute the operands of the line being read, by position, in one pass
+// (round-3 trial: "if $t1 is equal to zero" on a line that tests $a1).
+export function withOperands(description, example, line) {
+  const operands = (text, op) =>
+    text
+      .trim()
+      .replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "")
+      .slice(op.length)
+      .split(/[\s,()]+/)
+      .filter(Boolean);
+  const op = (example || "").trim().split(/\s+/)[0] || "";
+  const code = splitComment(line || "").code;
+  if (!op || !code.replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").startsWith(op))
+    return { text: description, substituted: false };
+  const from = operands(example, op),
+    to = operands(code, op);
+  if (!from.length || from.length !== to.length)
+    return { text: description, substituted: false };
+  const map = new Map(from.map((f, i) => [f, to[i]]));
+  const pattern = new RegExp(
+    [...map.keys()]
+      .sort((a, b) => b.length - a.length)
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])")
+      .join("|"),
+    "g",
+  );
+  return {
+    text: description.replace(pattern, (m) => map.get(m) ?? m),
+    substituted: true,
+  };
+}

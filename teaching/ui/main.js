@@ -22,6 +22,7 @@ import {
   buildCFG,
   splitComment,
   nameRegisters,
+  withOperands,
 } from "./model.js";
 import { OverlayRenderer } from "./overlay.js";
 import { FocusLens } from "./focus.js";
@@ -598,7 +599,7 @@ function valueHTML(n) {
     c = v & 255;
   return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII低字节</span><span>${c >= 32 && c < 127 ? esc(String.fromCharCode(c)) : c === 0 ? "NUL" : "不可打印"} (${c})</span></div>`;
 }
-function summary(token) {
+function summary(token, line = "") {
   token = canonicalReg(token);
   if (token.startsWith("$"))
     return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>当前快照 S${state?.step ?? 0} · Cmd/Ctrl＋点击固定</small>`;
@@ -607,10 +608,14 @@ function summary(token) {
       s = services[n];
     return `<b>syscall ${n} · ${s?.[0] || "未支持服务"}</b><p>参数 ${s?.[1].join(", ") || "无"}；结果 ${s?.[2].join(", ") || "无"}</p>`;
   }
-  if (explanations[token] || program.instructionDocs[token]) {
-    const text =
-      explanations[token] || program.instructionDocs[token].description;
+  if (explanations[token]) {
+    const text = explanations[token];
     return `<b>${esc(token)}</b><p>${esc(text)}</p>${definitions(text)}<small>指令／汇编器说明</small>`;
+  }
+  if (program.instructionDocs[token]) {
+    const doc = program.instructionDocs[token],
+      mars = withOperands(doc.description, doc.example, line);
+    return `<b>${esc(token)}</b><p>${esc(mars.text)}</p><small>MARS 原文${mars.substituted ? "（已代入本行的操作数）" : `（示例：${esc(doc.example)}）`}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
@@ -632,7 +637,7 @@ function hover(e) {
     $("tooltip").hidden = true;
     return;
   }
-  $("tooltip").innerHTML = summary(token);
+  $("tooltip").innerHTML = summary(token, editor.state.doc.lineAt(pos).text);
   $("tooltip").hidden = false;
   $("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $("tooltip").style.top = Math.min(e.clientY + 18, innerHeight - 180) + "px";
@@ -846,7 +851,10 @@ async function assemble() {
     debugLog = [];
     notify(state.error || "");
     render();
-    followPC();
+    // Reassembling keeps the file being read (round-3 trial: it jumped back to
+    // main.s); the status chip still says where execution starts.
+    const start = program.instructions.find((i) => i.address === state.pc);
+    if (!activeFile || !start || start.file === activeFile) followPC();
     lens.update(state);
   } catch (e) {
     notify(e.message);
@@ -1183,7 +1191,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)} · 点击查看"><span class="name">${r.name}</span><span>${esc(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""} · 点击查看"><span class="name">${r.name}</span><span>${esc(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -1915,7 +1923,7 @@ $("radix-help").onclick = () => {
     );
   modal(
     "数值显示",
-    `<div class="radix-help">${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${esc(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
+    `<div class="radix-help"><p class="radix-example">同一个数的几种写法：${["dec", "hex", "bin", "ascii"].map((m) => `<code>${esc(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ")}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${esc(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
      <p class="muted">只改变只读区域（寄存器、内存、地址、执行结果、专注模式）的显示，代码不会变。</p>
      <h4>字符编码表（ASCII）</h4>
      <p class="muted">内存里存的都是数字；按这张表，每个 0–127 的数可以读成一个字符。表中列出十进制、十六进制和对应的字符。</p>

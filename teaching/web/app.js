@@ -22878,6 +22878,25 @@ function nameRegisters(text2) {
     (m, n) => Number(n) < 32 ? "$" + registerNames[Number(n)] : m
   );
 }
+function withOperands(description, example, line) {
+  const operands = (text2, op2) => text2.trim().replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").slice(op2.length).split(/[\s,()]+/).filter(Boolean);
+  const op = (example || "").trim().split(/\s+/)[0] || "";
+  const code = splitComment(line || "").code;
+  if (!op || !code.replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").startsWith(op))
+    return { text: description, substituted: false };
+  const from = operands(example, op), to = operands(code, op);
+  if (!from.length || from.length !== to.length)
+    return { text: description, substituted: false };
+  const map = new Map(from.map((f, i) => [f, to[i]]));
+  const pattern2 = new RegExp(
+    [...map.keys()].sort((a, b) => b.length - a.length).map((t2) => t2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])").join("|"),
+    "g"
+  );
+  return {
+    text: description.replace(pattern2, (m) => map.get(m) ?? m),
+    substituted: true
+  };
+}
 
 // ui/overlay.js
 var OverlayRenderer = class {
@@ -23224,7 +23243,7 @@ var RADIX_HELP = {
   hex: "HEX\uFF1A\u5341\u516D\u8FDB\u5236\uFF0C\u524D\u7F00 0x\u3002\u6BCF\u4E00\u4F4D\u8868\u793A 0\u201315\uFF08a\u2013f \u8868\u793A 10\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u662F\u4E00\u4E2A\u5B57\u8282\u3002",
   dec: "DEC\uFF1A\u5341\u8FDB\u5236\uFF0C\u524D\u7F00 0d\u3002\u666E\u901A\u6570\u503C\u6309\u6709\u7B26\u53F7\u6570\u8BFB\uFF08\u53EF\u4EE5\u662F\u8D1F\u6570\uFF09\uFF1B\u539F\u59CB\u5B57\u8282\u548C\u5730\u5740\u6309\u65E0\u7B26\u53F7\u6570\u8BFB\u3002",
   bin: "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002",
-  ascii: "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\u4E0D\u80FD\u663E\u793A\u7684\u5B57\u8282\u5199\u6210 \\0\u3001\\n\u3001\\xNN\u3002"
+  ascii: "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\\0\u3001\\n\u3001\\t \u8868\u793A\u7A7A\u5B57\u7B26\u3001\u6362\u884C\u3001\u5236\u8868\u3002\u4E0D\u50CF\u5B57\u7B26\u7684\u503C\uFF08\u4F8B\u5982 11\uFF09\u4ECD\u7528\u5341\u8FDB\u5236\u663E\u793A\uFF0C\u5E76\u6CE8\u660E\u201C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\u201D\u3002"
 };
 var RADIXES = [
   ["auto", "\u81EA\u52A8"],
@@ -23252,9 +23271,13 @@ function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = 
   while (shownBytes.length > 1 && shownBytes.at(-1) === 0)
     shownBytes = shownBytes.slice(0, -1);
   const ascii = "'" + shownBytes.map(escapeByte).join("") + "'";
-  const mode = radix2 === "auto" ? kind === "address" || width === 4 && looksLikeAddress(unsigned) ? "hex" : "dec" : radix2;
+  const characters = shownBytes.every(
+    (b) => b === 0 || b === 9 || b === 10 || printable(b)
+  );
+  const fallback = radix2 === "ascii" && !characters;
+  const mode = radix2 === "auto" ? kind === "address" || width === 4 && looksLikeAddress(unsigned) ? "hex" : "dec" : fallback ? "dec" : radix2;
   const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
-  const note = mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
+  const note = fallback ? "\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26" : mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
   return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
 }
 function looksLikeAddress(u) {
@@ -24304,27 +24327,30 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
 
 // ui/glossary.js
 var glossary = {
-  \u4F2A\u6307\u4EE4: "\u6C47\u7F16\u5668\u63D0\u4F9B\u7684\u4FBF\u6377\u5199\u6CD5\u3002\u6C47\u7F16\u65F6\u4F1A\u6362\u6210\u4E00\u6761\u6216\u591A\u6761\u771F\u6B63\u7684\u673A\u5668\u6307\u4EE4\u3002",
-  \u673A\u5668\u6307\u4EE4: "CPU \u771F\u6B63\u6267\u884C\u7684\u6307\u4EE4\uFF0C\u6BCF\u6761 32 \u4F4D\u3002",
-  \u5EF6\u8FDF\u5206\u652F: "MIPS \u7684\u4E00\u79CD\u6267\u884C\u65B9\u5F0F\uFF1A\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\uFF0C\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\u3002",
-  \u5EF6\u8FDF\u69FD: "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\uFF0C\u7D27\u8DDF\u5728\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u3001\u603B\u4F1A\u88AB\u6267\u884C\u7684\u90A3\u4E2A\u4F4D\u7F6E\u3002",
-  \u7B26\u53F7\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF1B\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002",
-  \u96F6\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002",
-  \u5C0F\u7AEF\u5E8F: "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002",
-  \u8865\u7801: "\u6709\u7B26\u53F7\u6574\u6570\u7684\u4E8C\u8FDB\u5236\u8868\u793A\uFF1A\u8D1F\u6570 \u2212x \u5B58\u6210 2\xB3\xB2 \u2212 x\u3002\u4F8B\u5982 \u22122 \u5B58\u6210 0xfffffffe\u3002",
-  NUL: "\u503C\u4E3A 0 \u7684\u5B57\u8282\u3002",
-  \u7ACB\u5373\u6570: "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002",
-  \u57FA\u5740: "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002",
-  \u504F\u79FB: "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002",
-  \u5BC4\u5B58\u5668: "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\u3002",
-  syscall: "\u8BF7\u6C42\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u63D0\u4F9B\u670D\u52A1\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u7531 $v0 \u9009\u62E9\u54EA\u79CD\u670D\u52A1\u3002",
-  \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002",
-  \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\uFF0C\u4F8B\u5982\u8BFB 4 \u5B57\u8282\u65F6\u5730\u5740\u662F 4 \u7684\u500D\u6570\u3002",
-  \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002",
+  \u5B57\u8282: "\u5185\u5B58\u7684\u57FA\u672C\u5355\u4F4D\uFF0C8 \u4F4D\uFF0C\u80FD\u8868\u793A 0\u2013255 \u7684\u4E00\u4E2A\u6570\u3002\u4F8B\u5982\u5B57\u7B26 h \u5360 1 \u4E2A\u5B57\u8282\uFF0C\u5B58\u7684\u662F 104\u3002",
+  \u5730\u5740: "\u5185\u5B58\u4E2D\u6BCF\u4E2A\u5B57\u8282\u7684\u7F16\u53F7\uFF0C\u50CF\u95E8\u724C\u53F7\u3002\u4F8B\u5982 0x10010000 \u662F\u6570\u636E\u533A\u7684\u7B2C\u4E00\u4E2A\u5B57\u8282\u3002",
+  \u6709\u6548\u5730\u5740: "\u4E00\u6761\u6307\u4EE4\u771F\u6B63\u8981\u8BBF\u95EE\u7684\u5185\u5B58\u5730\u5740\uFF0C\u7B49\u4E8E\u57FA\u5740\u52A0\u504F\u79FB\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D\uFF0C\u82E5 $s0 = 0x10010000\uFF0C\u6709\u6548\u5730\u5740\u5C31\u662F 0x10010004\u3002",
+  \u4F2A\u6307\u4EE4: "\u6C47\u7F16\u5668\u63D0\u4F9B\u7684\u4FBF\u6377\u5199\u6CD5\uFF0C\u6C47\u7F16\u65F6\u4F1A\u6362\u6210\u4E00\u6761\u6216\u591A\u6761\u771F\u6B63\u7684\u673A\u5668\u6307\u4EE4\u3002\u4F8B\u5982 move $t0, $a1 \u5B9E\u9645\u6267\u884C\u7684\u662F addu $t0, $a1, $zero\u3002",
+  \u673A\u5668\u6307\u4EE4: "CPU \u771F\u6B63\u6267\u884C\u7684\u6307\u4EE4\uFF0C\u6BCF\u6761 32 \u4F4D\uFF084 \u5B57\u8282\uFF09\u3002\u201C\u5B9E\u9645\u6307\u4EE4\u201D\u89C6\u56FE\u91CC\u5217\u51FA\u7684\u5C31\u662F\u5B83\u4EEC\u3002",
+  \u5EF6\u8FDF\u5206\u652F: "MIPS \u7684\u4E00\u79CD\u6267\u884C\u65B9\u5F0F\uFF1A\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\uFF0C\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\u3002\u4F8B\u5982 jal f \u540E\u9762\u90A3\u4E00\u884C\u4F1A\u5728\u8FDB\u5165 f \u4E4B\u524D\u6267\u884C\u3002",
+  \u5EF6\u8FDF\u69FD: "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\uFF0C\u7D27\u8DDF\u5728\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u3001\u603B\u4F1A\u88AB\u6267\u884C\u7684\u90A3\u4E2A\u4F4D\u7F6E\u3002\u7A0B\u5E8F\u5E38\u5728\u8FD9\u91CC\u653E nop\uFF0C\u8FD9\u6837\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u7ED3\u679C\u76F8\u540C\u3002",
+  \u7B26\u53F7\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF0C\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002\u4F8B\u5982\u5B57\u8282 0xf0\uFF08\u6700\u9AD8\u4F4D\u662F 1\uFF09\u6269\u6210 0xfffffff0\uFF0C\u4E5F\u5C31\u662F \u221216\u3002",
+  \u96F6\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002\u4F8B\u5982\u5B57\u8282 0xf0 \u6269\u6210 0x000000f0\uFF0C\u4E5F\u5C31\u662F 240\u3002",
+  \u5C0F\u7AEF\u5E8F: "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002\u4F8B\u5982 7 \u5B58\u6210 07 00 00 00\uFF0C\u22122 \u5B58\u6210 fe ff ff ff\u3002",
+  \u8865\u7801: "\u6709\u7B26\u53F7\u6574\u6570\u7684\u4E8C\u8FDB\u5236\u8868\u793A\uFF1A\u8D1F\u6570 \u2212x \u5B58\u6210 2\xB3\xB2 \u2212 x\uFF0C\u6240\u4EE5\u6700\u9AD8\u4F4D\u4E3A 1 \u7684\u6570\u662F\u8D1F\u6570\u3002\u4F8B\u5982 \u22122 \u5B58\u6210 0xfffffffe\u3002",
+  NUL: "\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF0C\u5199\u4F5C \\0\u3002\u5B57\u7B26\u4E32\u5E38\u7528\u5B83\u6807\u8BB0\u7ED3\u5C3E\uFF1A\u8BFB\u5230\u5B83\u5C31\u8868\u793A\u5B57\u7B26\u4E32\u7ED3\u675F\u4E86\u3002",
+  \u7ACB\u5373\u6570: "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002\u4F8B\u5982 addiu $t0, $t0, 4 \u91CC\u7684 4\u3002",
+  \u57FA\u5740: "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D $s0 \u662F\u57FA\u5740\u3002",
+  \u504F\u79FB: "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D 4 \u662F\u504F\u79FB\uFF0C0($s0) \u8868\u793A\u504F\u79FB\u4E3A 0\uFF0C\u4E5F\u5C31\u662F\u6B63\u597D\u5728\u57FA\u5740\u90A3\u91CC\u3002",
+  \u5BC4\u5B58\u5668: "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\uFF0C\u50CF 32 \u4E2A\u6709\u540D\u5B57\u7684\u53D8\u91CF\u3002\u4F8B\u5982 $t0\u3001$a0\u3001$sp\u3002",
+  syscall: "\u8BF7\u6C42\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u63D0\u4F9B\u670D\u52A1\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u7531 $v0 \u7684\u7F16\u53F7\u9009\u62E9\u54EA\u79CD\u670D\u52A1\uFF0C\u53C2\u6570\u653E\u5728 $a0 \u7B49\u5BC4\u5B58\u5668\u91CC\u3002\u4F8B\u5982 $v0 = 11 \u662F\u6253\u5370 $a0 \u91CC\u7684\u5B57\u7B26\u3002",
+  \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002\u4F8B\u5982 0x7fffffff + 1 \u7528\u6709\u7B26\u53F7\u6570\u8868\u793A\u4E0D\u4E0B\u3002",
+  \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\u3002\u4F8B\u5982\u8BFB 4 \u5B57\u8282\uFF08lw\uFF09\u65F6\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570\uFF0C\u6240\u4EE5\u76F8\u90BB\u7684\u5B57\u4E4B\u95F4\u5730\u5740\u5DEE 4\u3002",
+  \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002jal \u5728\u8DF3\u8FDB\u51FD\u6570\u65F6\u628A\u5B83\u5B58\u8FDB $ra\uFF0C\u51FD\u6570\u672B\u5C3E\u7684 jr $ra \u518D\u8DF3\u56DE\u53BB\u3002",
   PC: "\u7A0B\u5E8F\u8BA1\u6570\u5668\uFF1A\u4FDD\u5B58\u201C\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u7684\u5730\u5740\u201D\u3002\u6BCF\u6267\u884C\u4E00\u6761\u6307\u4EE4\u901A\u5E38\u52A0 4\uFF1B\u8DF3\u8F6C\u5C31\u662F\u628A\u5B83\u6539\u6210\u522B\u7684\u5730\u5740\u3002",
-  \u5B57\u7B26\u7F16\u7801: "\u7528\u6570\u5B57\u8868\u793A\u5B57\u7B26\u7684\u7EA6\u5B9A\uFF1A\u6BCF\u4E2A\u5B57\u7B26\u5BF9\u5E94\u4E00\u4E2A\u7F16\u53F7\uFF0C\u5185\u5B58\u91CC\u5B58\u7684\u662F\u7F16\u53F7\u3002",
-  ASCII: "\u6700\u5E38\u7528\u7684\u5B57\u7B26\u7F16\u7801\u8868\uFF1A0\u2013127 \u5404\u5BF9\u5E94\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 48 \u662F 0\u300165 \u662F A\u3001104 \u662F h\u300110 \u662F\u6362\u884C\u3002",
-  \u5341\u516D\u8FDB\u5236: "\u4EE5 16 \u4E3A\u57FA\u6570\u7684\u5199\u6CD5\uFF0C\u524D\u7F00 0x\uFF1B\u6BCF\u4F4D\u662F 0\u20139 \u6216 a\u2013f\uFF0C\u4E24\u4F4D\u6B63\u597D\u8868\u793A\u4E00\u4E2A\u5B57\u8282\u3002",
+  \u5B57\u7B26\u7F16\u7801: "\u7528\u6570\u5B57\u8868\u793A\u5B57\u7B26\u7684\u7EA6\u5B9A\uFF1A\u6BCF\u4E2A\u5B57\u7B26\u5BF9\u5E94\u4E00\u4E2A\u7F16\u53F7\uFF0C\u5185\u5B58\u91CC\u5B58\u7684\u662F\u7F16\u53F7\u3002\u4F8B\u5982\u6309 ASCII\uFF0Ch \u7684\u7F16\u53F7\u662F 104\u3002",
+  ASCII: "\u6700\u5E38\u7528\u7684\u5B57\u7B26\u7F16\u7801\u8868\uFF1A0\u2013127 \u5404\u5BF9\u5E94\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 48 \u662F 0\u300165 \u662F A\u3001104 \u662F h\u300110 \u662F\u6362\u884C\u3002\u9875\u811A\u201C\u6570\u503C\u201D\u65C1\u7684\u201C?\u201D\u91CC\u6709\u5B8C\u6574\u7684\u8868\u3002",
+  \u5341\u516D\u8FDB\u5236: "\u4EE5 16 \u4E3A\u57FA\u6570\u7684\u5199\u6CD5\uFF0C\u524D\u7F00 0x\uFF1B\u6BCF\u4F4D\u662F 0\u20139 \u6216 a\u2013f\uFF0810\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u8868\u793A\u4E00\u4E2A\u5B57\u8282\u3002\u4F8B\u5982 0x68 = 6\xD716 + 8 = 104\u3002",
   "rs \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E00\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 25\u201321 \u4F4D\uFF09\u3002",
   "rt \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E8C\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 20\u201316 \u4F4D\uFF09\u3002",
   "rd \u5B57\u6BB5": "R \u578B\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u76EE\u6807\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 15\u201311 \u4F4D\uFF09\u3002"
@@ -24390,7 +24416,7 @@ var FocusLens = class {
             <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
           </div>
           <div id="focus-why-text" hidden></div>
-          <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C</span></form>
+          <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C</span></form>
         </div>
       </section>`
     );
@@ -25684,7 +25710,7 @@ function valueHTML(n) {
   let v = n | 0, c = v & 255;
   return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII\u4F4E\u5B57\u8282</span><span>${c >= 32 && c < 127 ? escapeHTML(String.fromCharCode(c)) : c === 0 ? "NUL" : "\u4E0D\u53EF\u6253\u5370"} (${c})</span></div>`;
 }
-function summary(token) {
+function summary(token, line = "") {
   token = canonicalReg(token);
   if (token.startsWith("$"))
     return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 Cmd/Ctrl\uFF0B\u70B9\u51FB\u56FA\u5B9A</small>`;
@@ -25692,9 +25718,13 @@ function summary(token) {
     let n = regValue("$v0"), s = services[n];
     return `<b>syscall ${n} \xB7 ${s?.[0] || "\u672A\u652F\u6301\u670D\u52A1"}</b><p>\u53C2\u6570 ${s?.[1].join(", ") || "\u65E0"}\uFF1B\u7ED3\u679C ${s?.[2].join(", ") || "\u65E0"}</p>`;
   }
-  if (explanations[token] || program.instructionDocs[token]) {
-    const text2 = explanations[token] || program.instructionDocs[token].description;
+  if (explanations[token]) {
+    const text2 = explanations[token];
     return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${definitions(text2)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+  }
+  if (program.instructionDocs[token]) {
+    const doc2 = program.instructionDocs[token], mars = withOperands(doc2.description, doc2.example, line);
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p><small>MARS \u539F\u6587${mars.substituted ? "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09" : `\uFF08\u793A\u4F8B\uFF1A${escapeHTML(doc2.example)}\uFF09`}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
@@ -25711,7 +25741,7 @@ function hover(e) {
     $("tooltip").hidden = true;
     return;
   }
-  $("tooltip").innerHTML = summary(token);
+  $("tooltip").innerHTML = summary(token, editor.state.doc.lineAt(pos).text);
   $("tooltip").hidden = false;
   $("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $("tooltip").style.top = Math.min(e.clientY + 18, innerHeight - 180) + "px";
@@ -25900,7 +25930,8 @@ async function assemble() {
     debugLog = [];
     notify(state.error || "");
     render();
-    followPC();
+    const start = program.instructions.find((i) => i.address === state.pc);
+    if (!activeFile || !start || start.file === activeFile) followPC();
     lens.update(state);
   } catch (e) {
     notify(e.message);
@@ -26165,7 +26196,7 @@ function renderRegisters() {
     (r) => filter === "all" || filter === "pinned" ? filter === "all" || pinned.has(r.name) : related.has(r.name) || pinned.has(r.name)
   ).map(
     (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
-${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span>${escapeHTML(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`
+${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span>${escapeHTML(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`
   ).join("");
   $("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -26741,7 +26772,7 @@ $("radix-help").onclick = () => {
     );
   modal(
     "\u6570\u503C\u663E\u793A",
-    `<div class="radix-help">${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${escapeHTML(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
+    `<div class="radix-help"><p class="radix-example">\u540C\u4E00\u4E2A\u6570\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A${["dec", "hex", "bin", "ascii"].map((m) => `<code>${escapeHTML(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ")}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${escapeHTML(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
      <p class="muted">\u53EA\u6539\u53D8\u53EA\u8BFB\u533A\u57DF\uFF08\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u3001\u5730\u5740\u3001\u6267\u884C\u7ED3\u679C\u3001\u4E13\u6CE8\u6A21\u5F0F\uFF09\u7684\u663E\u793A\uFF0C\u4EE3\u7801\u4E0D\u4F1A\u53D8\u3002</p>
      <h4>\u5B57\u7B26\u7F16\u7801\u8868\uFF08ASCII\uFF09</h4>
      <p class="muted">\u5185\u5B58\u91CC\u5B58\u7684\u90FD\u662F\u6570\u5B57\uFF1B\u6309\u8FD9\u5F20\u8868\uFF0C\u6BCF\u4E2A 0\u2013127 \u7684\u6570\u53EF\u4EE5\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\u3002\u8868\u4E2D\u5217\u51FA\u5341\u8FDB\u5236\u3001\u5341\u516D\u8FDB\u5236\u548C\u5BF9\u5E94\u7684\u5B57\u7B26\u3002</p>

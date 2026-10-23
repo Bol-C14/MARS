@@ -11,7 +11,7 @@ export const RADIX_HELP = {
   dec: "DEC：十进制，前缀 0d。普通数值按有符号数读（可以是负数）；原始字节和地址按无符号数读。",
   bin: "BIN：二进制，前缀 0b，每 4 位用 _ 分开；就是这些位本身。",
   ascii:
-    "ASCII：把每个字节按字符编码表读成一个字符，例如 104 读作 h、48 读作 0；不能显示的字节写成 \\0、\\n、\\xNN。",
+    "ASCII：把每个字节按字符编码表读成一个字符，例如 104 读作 h、48 读作 0；\\0、\\n、\\t 表示空字符、换行、制表。不像字符的值（例如 11）仍用十进制显示，并注明“不是可显示字符”。",
 };
 
 export const RADIXES = [
@@ -64,15 +64,25 @@ export function formatValue(
   // became 0x00003820 after a shift). Values that look like addresses —
   // inside the program's code, data or stack segments — read in hex;
   // everything else, including masks and large counts, in decimal.
+  // ASCII reads bytes as characters only when they are characters (round-3
+  // trial: $v0 = 11 shown as '\x0b' was taken for a character); otherwise
+  // the value falls back to decimal with a faint "not a character" note.
+  const characters = shownBytes.every(
+    (b) => b === 0 || b === 9 || b === 10 || printable(b),
+  );
+  const fallback = radix === "ascii" && !characters;
   const mode =
     radix === "auto"
       ? kind === "address" || (width === 4 && looksLikeAddress(unsigned))
         ? "hex"
         : "dec"
-      : radix;
+      : fallback
+        ? "dec"
+        : radix;
   const text = { hex, dec, bin: bin(false), ascii }[mode] ?? hex;
-  const note =
-    mode !== "ascii" && width === 1 && printable(unsigned)
+  const note = fallback
+    ? "不是可显示字符"
+    : mode !== "ascii" && width === 1 && printable(unsigned)
       ? `'${String.fromCharCode(unsigned)}'`
       : "";
   return { text, note, full: { hex, dec, bin: bin(true), ascii }[mode] ?? hex };

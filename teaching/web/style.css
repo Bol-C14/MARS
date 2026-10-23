@@ -1419,3 +1419,19 @@ abbr.term {
 #focus-progress + #focus-dots {
   margin-left: 8px;
 }
+/* The lens input must be found at a glance (round-3 trial). */
+#focus-input {
+  padding: 8px 10px;
+  border: 1px solid var(--orange);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--orange) 10%, var(--panel));
+  color: var(--text);
+}
+#focus-input label {
+  font-weight: 600;
+}
+.radix-example {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}

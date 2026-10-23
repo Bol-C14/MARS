@@ -193,8 +193,33 @@ def scenario(r, page, mod):
     r.check("state reads as steps executed", page.locator("#location").inner_text().startswith("已执行"))
     page.locator("#radix-help").click()
     help_text = page.locator("#modal").inner_text()
+    r.check("radix help opens with one number in every notation",
+            page.locator("#modal .radix-example").inner_text().count("=") == 3, page.locator("#modal .radix-example").inner_text())
     r.check("radix help explains prefixes and lists characters", "0d" in help_text and "104" in help_text and "h" in help_text)
     page.locator("#modal .close").click()
+    # Round 3: ASCII shows characters only for characters.
+    page.select_option("#radix", "ascii")
+    sp = page.locator('[data-register="$sp"]')
+    r.check("ASCII falls back to decimal for a non-character", sp.locator("span").nth(1).inner_text().startswith("0d")
+            and "不是可显示字符" in (sp.get_attribute("title") or ""))
+    page.select_option("#radix", "auto")
+    # Round 3: MARS's English text takes this line's operands.
+    r.js("() => [...document.querySelectorAll('.tabs button')].find(b => b.textContent.trim() === 'task1.s')?.click()")
+    point = r.js("""() => { const e = window.marsIDE.editor, d = e.state.doc;
+        for (let i = 1; i <= d.lines; i++) { const k = d.line(i).text.indexOf('beqz $t0');
+          if (k >= 0) { e.dispatch({ selection: { anchor: d.line(i).from + k }, scrollIntoView: true }); return i } } return 0 }""")
+    page.wait_for_timeout(200)
+    xy = r.js("""(n) => { const e = window.marsIDE.editor, l = e.state.doc.line(n), k = l.text.indexOf('beqz');
+        const c = e.coordsAtPos(l.from + k + 1); return c && { x: c.left + 2, y: (c.top + c.bottom) / 2 } }""", point)
+    page.mouse.move(xy["x"], xy["y"])
+    r.until("() => !document.getElementById('tooltip').hidden", timeout=3000)
+    tip = page.locator("#tooltip").inner_text()
+    r.check("MARS description uses this line's operands", "$t0" in tip and "task1_done" in tip and "已代入本行的操作数" in tip, tip)
+    page.mouse.move(5, 5)
+    # Round 3: reassembling keeps the file being read.
+    page.locator("#assemble").click()
+    r.until("() => window.marsIDE.state.step === 0")
+    r.check("reassembly keeps the open file", "task1.s" in page.locator(".tabs .active").inner_text())
 
     # --- M2.5: VS Code keys ---
     page.keyboard.press("Shift+F5")

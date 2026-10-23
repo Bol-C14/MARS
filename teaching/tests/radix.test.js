@@ -36,7 +36,11 @@ test("ascii reads bytes in memory order and escapes the unprintable", () => {
   assert.equal(f(0x6948, { radix: "ascii" }), "'Hi'");
   assert.equal(f(0, { radix: "ascii", width: 1 }), "'\\0'");
   assert.equal(f(10, { radix: "ascii", width: 1 }), "'\\n'");
-  assert.equal(f(0xfffffffe, { radix: "ascii" }), "'\\xfe\\xff\\xff\\xff'");
+  // Values that are not characters fall back to decimal with a note.
+  assert.equal(f(0xfffffffe, { radix: "ascii" }), "0d-2");
+  assert.equal(formatValue(11, { radix: "ascii" }).text, "0d11");
+  assert.equal(formatValue(11, { radix: "ascii" }).note, "不是可显示字符");
+  assert.equal(formatValue(0x6948, { radix: "ascii" }).note, "");
 });
 
 test("a printable byte gets a faint character note outside ascii mode only", () => {
