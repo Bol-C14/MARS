@@ -188,3 +188,28 @@ test("merged bytes escape like ASCII mode, including quotes and line breaks", ()
   const objects = [34, 72, 10, 9, 92, 0].map((value, i) => ({ id: `mem:${i}`, kind: "memory", address: i, width: 1, value, write: false }));
   assert.equal(groupBytes(objects)[0].text, String.raw`"\"H\n\t\\\0"`);
 });
+
+test("$zero identities read as copies, constants and compares with 0, not arithmetic", () => {
+  const eqs = (m) => m.beats.map((b) => b.eq.map((p) => (typeof p === "string" ? p : p.t)).join(""));
+  // move $t0, $a1  →  addu $t0, $a1, $zero
+  const move = beatModel(step(I("addu", R(0, 5, 0, 8, 0, 33)), [r(5, "$a1", 0x1001000a), r(0, "$zero", 0), w(8, "$t0", 0, 0x1001000a)]));
+  assert.equal(plain(move.template), "$t0 ← $a1");
+  assert.deepEqual(eqs(move), ["$t0 ← 0x1001000a", "$t0 = 0x1001000a ✓"]);
+  assert.match(move.beats[1].caption, /把 \$a1 的值复制到 \$t0/);
+  assert.ok(!move.beats.some((b) => b.lit.some((l) => l.id === "reg:$zero")), "no $zero in the story");
+  // li $a1, 0  →  addiu $a1, $zero, 0
+  const li = beatModel(step(I("addiu", R(9, 0, 5) | 0), [r(0, "$zero", 0), w(5, "$a1", 0x1001000a, 0)]));
+  assert.equal(plain(li.template), "$a1 ← 0");
+  assert.deepEqual(eqs(li), ["$a1 = 0 ✓"]);
+  assert.match(li.beats[0].caption, /把常数 0 放进 \$a1/);
+  // beqz $a1, done  →  beq $a1, $zero, done
+  const beqz = beatModel(step(I("beq", R(4, 5, 0) | 3, { flow: "branch", target: 0x400010 }), [r(5, "$a1", 0), r(0, "$zero", 0)]), { symbols: [{ name: "done", address: 0x400010 }] });
+  assert.equal(plain(beqz.template), "若 $a1 == 0 → 跳到 done");
+  assert.match(beqz.beats[1].caption, /条件 0 == 0 成立/);
+  // move $v0, $zero  →  addu $v0, $zero, $zero
+  const zero = beatModel(step(I("addu", R(0, 0, 0, 2, 0, 33)), [r(0, "$zero", 0), r(0, "$zero", 0), w(2, "$v0", 5, 0)]));
+  assert.deepEqual(eqs(zero), ["$v0 = 0 ✓"]);
+  // a real addition keeps its arithmetic
+  const add = beatModel(step(I("addu", R(0, 8, 9, 10, 0, 33)), [r(8, "$t0", 7), r(9, "$t1", 5), w(10, "$t2", 0, 12)]));
+  assert.equal(plain(add.template), "$t2 ← $t0 + $t1");
+});

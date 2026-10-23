@@ -985,7 +985,11 @@ function followPC() {
       )
       .sort((a, b) => b.address - a.address)[0];
     gotoSource(ins.file, ins.line, false);
-    notify(`执行进入 ${ins.file}${label ? " · " + label.name : ""}`);
+    // A moment's notice, not a lasting state (round-3 trial: after a run
+    // ended in another file it stayed and read as "still running there").
+    notify(`执行进入 ${ins.file}${label ? " · " + label.name : ""}`, {
+      transient: true,
+    });
     keepNotice = true;
     clearTimeout(followPC.timer);
     followPC.timer = setTimeout(() => (keepNotice = false), 2500);

@@ -120,4 +120,9 @@ class CoreTests(unittest.TestCase):
   self.call('seek',step=0);s=self.call('state');self.assertEqual(s['inputEchoes'],[]);self.assertEqual(s['pcVisits'],1)
   s=self.asm('.text\nmain:\nli $t0,2\nloop:\naddiu $t0,$t0,-1\nbnez $t0,loop\nnop\n');a=next(i['address'] for i in s['instructions'] if i['line']==5)
   self.call('step');self.call('step');s=self.call('step');self.assertEqual(s['pc'],a);self.assertEqual(s['pcVisits'],2)
+ def test_state_and_memory_requests_keep_the_stop_reason(self):
+  s=self.asm('.text\nmain:\nli $t0,1\nli $t1,2\nli $v0,10\nsyscall\n');a=next(i['address'] for i in s['instructions'] if i['line']==4)
+  s=self.call('run',breakpoints=[{'address':a}]);self.assertIn('Breakpoint',s['stopReason'])
+  self.assertIn('Breakpoint',self.call('state',lookahead=8)['stopReason']);self.assertIn('Breakpoint',self.call('memory',address=0x10010000)['stopReason'])
+  self.assertEqual(self.call('step')['stopReason'],'')
 if __name__=='__main__':unittest.main(verbosity=2)

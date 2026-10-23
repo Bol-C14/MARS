@@ -91,6 +91,14 @@ def scenario(r, page, mod):
     chip = page.locator("#status").inner_text()
     r.check("breakpoint stop explained in Chinese", "停在断点前" in chip and "task1.s 第 21 行" in chip and "第 1 次" in chip, chip)
     r.check("no English stop reason in the banner", "Breakpoint" not in page.locator("#banner").inner_text())
+    # Round 3: refreshing for focus mode must not erase why the machine stopped.
+    page.keyboard.press(f"{mod}+K")
+    page.keyboard.press("f")
+    r.until("() => !document.getElementById('focus-lens').hidden")
+    page.wait_for_timeout(300)
+    r.check("opening focus mode keeps the breakpoint stop reason", "停在断点前" in page.locator("#status").inner_text(),
+            page.locator("#status").inner_text())
+    page.keyboard.press("Escape")
     r.js("(a) => window.marsIDE.gotoAddress(a)", address)
     page.locator("#step").click()
     r.until("() => window.marsIDE.state.last.instruction.op === 'lbu'")

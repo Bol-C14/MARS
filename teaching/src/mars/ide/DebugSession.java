@@ -585,7 +585,10 @@ public final class DebugSession {
       request.containsKey("programVersion") &&
       ((Number) request.get("programVersion")).intValue() != programVersion
     ) throw new IllegalArgumentException("Stale program version");
-    stopReason = "";
+    // Only commands that move the machine replace why it stopped; refreshing
+    // the state or the memory view keeps it (round-3 trial: opening focus
+    // mode turned "停在断点前" into "已暂停").
+    if (!Set.of("state", "memory").contains(command)) stopReason = "";
     logs.clear();
     switch (command) {
       case "step" -> step();

@@ -215,7 +215,65 @@ export function beatModel(
       });
   };
 
-  if (binaryOps[op] && rs && rt) {
+  // $zero is the identity of these operations (x + 0 = x, x | 0 = x), so
+  // the meaning a student needs is a copy or a constant — whether the source
+  // said move, li or wrote the instruction itself (round-3 trial: `move` was
+  // read as an addition).
+  const copyFrom =
+    /^(add|addu|or|xor)$/.test(op) && (rsN === 0 || rtN === 0)
+      ? rsN === 0
+        ? rtN
+        : rsN
+      : /^(sub|subu)$/.test(op) && rtN === 0
+        ? rsN
+        : null;
+  const loadsConstant = /^(addi|addiu|ori|xori)$/.test(op) && rsN === 0;
+  if (copyFrom != null) {
+    const dest = name(rdN),
+      src = copyFrom === 0 ? null : read(copyFrom),
+      res = written(dest);
+    if (!src) {
+      template = [dest, " ← 0"];
+      if (res)
+        beat([dest, " = ", ok(N(res.value)), " ✓"], `把 0 放进 ${dest}。`, {
+          ...writing(res),
+          why: "$zero 恒为 0，所以这一行就是把 0 放进去。",
+        });
+      else writeBack(dest);
+    } else {
+      template = [dest, " ← ", dim(src.name)];
+      beat(
+        [dest, " ← ", fresh(N(src.value))],
+        `取 ${src.name} 的值。`,
+        reading([src]),
+      );
+      if (res)
+        beat(
+          [dest, " = ", ok(N(res.value)), " ✓"],
+          `把 ${src.name} 的值复制到 ${dest}。`,
+          {
+            ...writing(res),
+            why: `机器上这是 ${src.name} 和恒为 0 的 $zero 做${/^(add|addu)$/.test(op) ? "加法" : /^(sub|subu)$/.test(op) ? "减法" : op === "or" ? "按位或" : "按位异或"}，结果就是 ${src.name} 原来的值；${src.name} 自己不变。`,
+          },
+        );
+      else writeBack(dest);
+    }
+  } else if (loadsConstant) {
+    const dest = name(rtN),
+      k = /^(ori|xori)$/.test(op) ? uimm : imm,
+      res = written(dest);
+    template = [dest, " ← ", String(k)];
+    if (res)
+      beat(
+        [dest, " = ", ok(N(res.value)), " ✓"],
+        `把常数 ${k} 放进 ${dest}。`,
+        {
+          ...writing(res),
+          why: `机器上这是恒为 0 的 $zero ${/^addi/.test(op) ? "加上" : "按位或上"} ${k}，结果就是这个常数本身。`,
+        },
+      );
+    else writeBack(dest);
+  } else if (binaryOps[op] && rs && rt) {
     const [sym, rule, asHex] = binaryOps[op],
       dest = name(rdN),
       res = written(dest);
@@ -564,7 +622,28 @@ export function beatModel(
       op === "beq" ? rsN === rtN : rsN === 0 && /^(bgez|blez|bgezal)$/.test(op);
     let taken = always;
     if (always) template = ["跳到 ", label];
-    else if (/^(beq|bne)$/.test(op) && rs && rt) {
+    else if (/^(beq|bne)$/.test(op) && rs && rt && (rsN === 0 || rtN === 0)) {
+      // Comparing with $zero is comparing with the number 0 (beqz, bnez).
+      const x = rsN === 0 ? rt : rs,
+        sym = op === "beq" ? "==" : "≠";
+      taken = op === "beq" ? x.value === 0 : x.value !== 0;
+      template = ["若 ", dim(x.name), ` ${sym} 0 → 跳到 `, label];
+      beat(
+        ["若 ", fresh(N(x.value)), ` ${sym} 0 → 跳到 `, label],
+        `取 ${x.name} 的值。`,
+        reading([x]),
+      );
+      beat(
+        [
+          fresh(taken ? "成立" : "不成立"),
+          taken ? ` → 跳到 ${label}` : " → 继续下一条",
+        ],
+        `条件 ${x.value} ${sym} 0 ${taken ? "成立" : "不成立"}。`,
+        {
+          why: `把 ${x.name} 和 0 比较（机器上是和恒为 0 的 $zero 比较），${op === "beq" ? "等于 0" : "不等于 0"}时跳转。跳转目标 ${label}（${hex(target)}）在汇编时就已写进这条指令。`,
+        },
+      );
+    } else if (/^(beq|bne)$/.test(op) && rs && rt) {
       const sym = op === "beq" ? "==" : "≠";
       taken = op === "beq" ? rs.value === rt.value : rs.value !== rt.value;
       template = [

@@ -23435,7 +23435,50 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         why: "\u5199\u5165 $zero \u4E0D\u4EA7\u751F\u6548\u679C\u3002"
       });
   };
-  if (binaryOps[op] && rs && rt) {
+  const copyFrom = /^(add|addu|or|xor)$/.test(op) && (rsN === 0 || rtN === 0) ? rsN === 0 ? rtN : rsN : /^(sub|subu)$/.test(op) && rtN === 0 ? rsN : null;
+  const loadsConstant = /^(addi|addiu|ori|xori)$/.test(op) && rsN === 0;
+  if (copyFrom != null) {
+    const dest = name2(rdN), src = copyFrom === 0 ? null : read(copyFrom), res = written(dest);
+    if (!src) {
+      template = [dest, " \u2190 0"];
+      if (res)
+        beat([dest, " = ", ok(N(res.value)), " \u2713"], `\u628A 0 \u653E\u8FDB ${dest}\u3002`, {
+          ...writing(res),
+          why: "$zero \u6052\u4E3A 0\uFF0C\u6240\u4EE5\u8FD9\u4E00\u884C\u5C31\u662F\u628A 0 \u653E\u8FDB\u53BB\u3002"
+        });
+      else writeBack(dest);
+    } else {
+      template = [dest, " \u2190 ", dim(src.name)];
+      beat(
+        [dest, " \u2190 ", fresh(N(src.value))],
+        `\u53D6 ${src.name} \u7684\u503C\u3002`,
+        reading([src])
+      );
+      if (res)
+        beat(
+          [dest, " = ", ok(N(res.value)), " \u2713"],
+          `\u628A ${src.name} \u7684\u503C\u590D\u5236\u5230 ${dest}\u3002`,
+          {
+            ...writing(res),
+            why: `\u673A\u5668\u4E0A\u8FD9\u662F ${src.name} \u548C\u6052\u4E3A 0 \u7684 $zero \u505A${/^(add|addu)$/.test(op) ? "\u52A0\u6CD5" : /^(sub|subu)$/.test(op) ? "\u51CF\u6CD5" : op === "or" ? "\u6309\u4F4D\u6216" : "\u6309\u4F4D\u5F02\u6216"}\uFF0C\u7ED3\u679C\u5C31\u662F ${src.name} \u539F\u6765\u7684\u503C\uFF1B${src.name} \u81EA\u5DF1\u4E0D\u53D8\u3002`
+          }
+        );
+      else writeBack(dest);
+    }
+  } else if (loadsConstant) {
+    const dest = name2(rtN), k = /^(ori|xori)$/.test(op) ? uimm : imm, res = written(dest);
+    template = [dest, " \u2190 ", String(k)];
+    if (res)
+      beat(
+        [dest, " = ", ok(N(res.value)), " \u2713"],
+        `\u628A\u5E38\u6570 ${k} \u653E\u8FDB ${dest}\u3002`,
+        {
+          ...writing(res),
+          why: `\u673A\u5668\u4E0A\u8FD9\u662F\u6052\u4E3A 0 \u7684 $zero ${/^addi/.test(op) ? "\u52A0\u4E0A" : "\u6309\u4F4D\u6216\u4E0A"} ${k}\uFF0C\u7ED3\u679C\u5C31\u662F\u8FD9\u4E2A\u5E38\u6570\u672C\u8EAB\u3002`
+        }
+      );
+    else writeBack(dest);
+  } else if (binaryOps[op] && rs && rt) {
     const [sym, rule, asHex] = binaryOps[op], dest = name2(rdN), res = written(dest);
     const expr = (a, b) => op === "nor" ? ["~(", a, " | ", b, ")"] : [a, ` ${sym} `, b];
     template = [dest, " \u2190 ", ...expr(dim(rs.name), dim(rt.name))];
@@ -23713,7 +23756,26 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     const always = op === "beq" ? rsN === rtN : rsN === 0 && /^(bgez|blez|bgezal)$/.test(op);
     let taken = always;
     if (always) template = ["\u8DF3\u5230 ", label2];
-    else if (/^(beq|bne)$/.test(op) && rs && rt) {
+    else if (/^(beq|bne)$/.test(op) && rs && rt && (rsN === 0 || rtN === 0)) {
+      const x = rsN === 0 ? rt : rs, sym = op === "beq" ? "==" : "\u2260";
+      taken = op === "beq" ? x.value === 0 : x.value !== 0;
+      template = ["\u82E5 ", dim(x.name), ` ${sym} 0 \u2192 \u8DF3\u5230 `, label2];
+      beat(
+        ["\u82E5 ", fresh(N(x.value)), ` ${sym} 0 \u2192 \u8DF3\u5230 `, label2],
+        `\u53D6 ${x.name} \u7684\u503C\u3002`,
+        reading([x])
+      );
+      beat(
+        [
+          fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
+          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+        ],
+        `\u6761\u4EF6 ${x.value} ${sym} 0 ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
+        {
+          why: `\u628A ${x.name} \u548C 0 \u6BD4\u8F83\uFF08\u673A\u5668\u4E0A\u662F\u548C\u6052\u4E3A 0 \u7684 $zero \u6BD4\u8F83\uFF09\uFF0C${op === "beq" ? "\u7B49\u4E8E 0" : "\u4E0D\u7B49\u4E8E 0"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002`
+        }
+      );
+    } else if (/^(beq|bne)$/.test(op) && rs && rt) {
       const sym = op === "beq" ? "==" : "\u2260";
       taken = op === "beq" ? rs.value === rt.value : rs.value !== rt.value;
       template = [
@@ -25956,7 +26018,9 @@ function followPC() {
       (s) => program.instructions.find((i) => i.address === s.address)?.file === ins.file
     ).sort((a, b) => b.address - a.address)[0];
     gotoSource(ins.file, ins.line, false);
-    notify(`\u6267\u884C\u8FDB\u5165 ${ins.file}${label2 ? " \xB7 " + label2.name : ""}`);
+    notify(`\u6267\u884C\u8FDB\u5165 ${ins.file}${label2 ? " \xB7 " + label2.name : ""}`, {
+      transient: true
+    });
     keepNotice = true;
     clearTimeout(followPC.timer);
     followPC.timer = setTimeout(() => keepNotice = false, 2500);
