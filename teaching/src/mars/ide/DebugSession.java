@@ -142,9 +142,21 @@ public final class DebugSession {
       if (name.endsWith(".s") || name.endsWith(".asm")) names.add(
         projectDir.resolve(name).toString()
       );
+    // The request lists exactly the sources to assemble (P0: the current file
+    // by default, or an explicit joint selection); the entry must be one of
+    // them, never a file outside the assembly.
+    if (names.isEmpty()) throw new IllegalArgumentException(
+      "Provide at least one .s or .asm source file"
+    );
     String entry = request
       .getOrDefault("entry", sources.keySet().iterator().next())
       .toString();
+    if (
+      !sources.containsKey(entry) ||
+      !(entry.endsWith(".s") || entry.endsWith(".asm"))
+    ) throw new IllegalArgumentException(
+      "Entry file " + entry + " is not one of the assembled sources"
+    );
     try {
       ArrayList programs = program.prepareFilesForAssembly(
         names,

@@ -1526,3 +1526,33 @@ header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
 .danger { color:#bf4040; }
 button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
 @media(max-width:1050px) { .brand { min-width:125px; } header { gap:6px; padding-left:10px; padding-right:10px; } .brand small { letter-spacing:0; } .project button { padding:5px; font-size:11px; } }
+/* Assembly scope (P0): auto by default; single file or a manual scope. */
+.assembly-choice { padding:10px 10px 4px; font-size:10px; color:var(--muted); }
+.assembly-mode { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.assembly-mode > span { font-weight:600; }
+.assembly-choice .entry-choice { padding:7px 0 0; }
+.assembly-choice p { margin:6px 0 0; line-height:1.5; }
+.sidebar .joint-pick { width:auto; flex:0 0 auto; margin:0 0 0 8px; padding:0; }
+.tree-row.joined .tree-open { font-weight:600; }
+.viewbar .target-chip { margin-left:auto; padding:2px 7px; border:1px solid var(--line); border-radius:9px; color:var(--text); max-width:46%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.viewbar .target-chip.stale { border-color:var(--orange); color:var(--orange); }
+.viewbar .target-chip + #location { margin-left:10px; }
+.scope-banner { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:7px 12px; font-size:12px; line-height:1.5; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--orange) 12%, var(--panel)); color:var(--text); flex-shrink:0; }
+.scope-banner[hidden] { display:none; }
+.scope-banner span { flex:1 1 260px; }
+.scope-banner button { padding:4px 9px; border:1px solid var(--line); border-radius:5px; background:var(--panel); }
+.scope-banner button:first-of-type { border-color:var(--accent); color:var(--accent); }
+.break-dot.stale { opacity:.4; }
+.bp.stale { opacity:.6; }
+.scope-hint { display:block; margin-top:3px; color:var(--orange); white-space:normal; }
+.split-button { position:relative; display:inline-flex; }
+.split-button #assemble { border-top-right-radius:0; border-bottom-right-radius:0; }
+.split-button #assemble-mode { border-top-left-radius:0; border-bottom-left-radius:0; border-left:1px solid color-mix(in srgb, white 35%, transparent); padding:6px 7px; }
+.assemble-menu { position:absolute; top:calc(100% + 4px); left:0; z-index:40; display:flex; flex-direction:column; min-width:270px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 24px rgb(0 0 0 / .18); }
+.assemble-menu[hidden] { display:none; }
+.assemble-menu button { display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; white-space:normal; padding:7px 9px 7px 26px; position:relative; }
+.assemble-menu button small { color:var(--muted); font-size:10px; }
+.assemble-menu button[aria-checked="true"]::before { content:'✓'; position:absolute; left:9px; top:7px; color:var(--accent); }
+.assembly-mode b { color:var(--text); font-size:11px; }
+.assembly-mode small { flex-basis:100%; }
+.split-button .primary:hover, .split-button .primary[aria-expanded="true"] { background:#2858b5; border-color:transparent; }

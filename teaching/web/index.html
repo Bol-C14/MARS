@@ -33,12 +33,28 @@
       </button>
     </header>
     <nav class="toolbar">
-      <button
-        id="assemble"
-        class="primary"
-        title="汇编 · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5"
-      >
-        汇编 ⌘↵</button
+      <span class="split-button"
+        ><button
+          id="assemble"
+          class="primary"
+          title="汇编 · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5"
+        >
+          汇编 ⌘↵</button
+        ><button
+          id="assemble-mode"
+          class="primary"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-controls="assemble-menu"
+          title="选择汇编方式"
+          aria-label="选择汇编方式"
+        >
+          ▾</button
+        ><div id="assemble-menu" class="assemble-menu" role="menu" hidden>
+          <button role="menuitemradio" data-assembly-mode="auto">自动汇编<small>从当前文件或同目录的 main 开始，自动链接用到的文件</small></button>
+          <button role="menuitemradio" data-assembly-mode="single">单文件汇编<small>只汇编正在编辑的文件</small></button>
+          <button role="menuitemradio" data-assembly-mode="manual">手动选择范围…<small>在文件树中勾选参与的源码并选择入口</small></button>
+        </div></span
       ><span class="separator"></span
       ><button id="back" title="回退一步 · Shift+F9">↶ 回退</button
       ><button id="step" title="机器单步 · Alt+F11">→ 单步</button
@@ -70,7 +86,11 @@
           工程文件 <span><button id="new-file" title="新建文件" aria-label="新建文件">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹">＋ 目录</button></span>
         </div>
         <div id="files"></div>
-        <div class="entry-choice"><label for="entry-file">汇编入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
+        <div class="assembly-choice">
+          <div class="assembly-mode"><span>汇编方式</span><b id="assembly-mode-name">自动汇编</b><small>在汇编按钮右侧 ▾ 切换</small></div>
+          <div id="joint-settings" class="entry-choice" hidden><label for="entry-file">入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
+          <p id="assembly-hint" class="muted"></p>
+        </div>
         <div class="workspace-tools"><button id="export-file">下载当前文件</button><button id="restore-project">恢复上次管理操作</button></div>
         <div class="section-title">符号与定位</div>
         <input
@@ -100,8 +120,11 @@
         <div class="viewbar">
           <button data-view="source" class="selected">源码</button
           ><button data-view="machine">实际指令</button
-          ><button data-view="cfg">控制流</button><span id="location"></span>
+          ><button data-view="cfg">控制流</button
+          ><span id="target" class="target-chip">程序：未汇编</span
+          ><span id="location"></span>
         </div>
+        <div id="scope-banner" class="scope-banner" role="status" hidden></div>
         <div id="editor"></div>
         <div id="machine" class="alternate" hidden></div>
         <div id="cfg" class="alternate" hidden></div>

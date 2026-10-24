@@ -234,28 +234,28 @@ var TextLeaf = class _TextLeaf extends Text {
   get children() {
     return null;
   }
-  lineInner(target, isLine, line, offset) {
+  lineInner(target2, isLine, line, offset) {
     for (let i = 0; ; i++) {
       let string2 = this.text[i], end = offset + string2.length;
-      if ((isLine ? line : end) >= target)
+      if ((isLine ? line : end) >= target2)
         return new Line(offset, end, line, string2);
       offset = end + 1;
       line++;
     }
   }
-  decompose(from, to, target, open) {
+  decompose(from, to, target2, open) {
     let text2 = from <= 0 && to >= this.length ? this : new _TextLeaf(sliceText(this.text, from, to), Math.min(to, this.length) - Math.max(0, from));
     if (open & 1) {
-      let prev = target.pop();
+      let prev = target2.pop();
       let joined = appendText(text2.text, prev.text.slice(), 0, text2.length);
       if (joined.length <= 32) {
-        target.push(new _TextLeaf(joined, prev.length + text2.length));
+        target2.push(new _TextLeaf(joined, prev.length + text2.length));
       } else {
         let mid = joined.length >> 1;
-        target.push(new _TextLeaf(joined.slice(0, mid)), new _TextLeaf(joined.slice(mid)));
+        target2.push(new _TextLeaf(joined.slice(0, mid)), new _TextLeaf(joined.slice(mid)));
       }
     } else {
-      target.push(text2);
+      target2.push(text2);
     }
   }
   replace(from, to, text2) {
@@ -281,27 +281,27 @@ var TextLeaf = class _TextLeaf extends Text {
     }
     return result;
   }
-  flatten(target) {
+  flatten(target2) {
     for (let line of this.text)
-      target.push(line);
+      target2.push(line);
   }
   scanIdentical() {
     return 0;
   }
-  static split(text2, target) {
+  static split(text2, target2) {
     let part = [], len = -1;
     for (let line of text2) {
       part.push(line);
       len += line.length + 1;
       if (part.length == 32) {
-        target.push(new _TextLeaf(part, len));
+        target2.push(new _TextLeaf(part, len));
         part = [];
         len = -1;
       }
     }
     if (len > -1)
-      target.push(new _TextLeaf(part, len));
-    return target;
+      target2.push(new _TextLeaf(part, len));
+    return target2;
   }
 };
 var TextNode = class _TextNode extends Text {
@@ -313,24 +313,24 @@ var TextNode = class _TextNode extends Text {
     for (let child of children)
       this.lines += child.lines;
   }
-  lineInner(target, isLine, line, offset) {
+  lineInner(target2, isLine, line, offset) {
     for (let i = 0; ; i++) {
       let child = this.children[i], end = offset + child.length, endLine = line + child.lines - 1;
-      if ((isLine ? endLine : end) >= target)
-        return child.lineInner(target, isLine, line, offset);
+      if ((isLine ? endLine : end) >= target2)
+        return child.lineInner(target2, isLine, line, offset);
       offset = end + 1;
       line = endLine + 1;
     }
   }
-  decompose(from, to, target, open) {
+  decompose(from, to, target2, open) {
     for (let i = 0, pos = 0; pos <= to && i < this.children.length; i++) {
       let child = this.children[i], end = pos + child.length;
       if (from <= end && to >= pos) {
         let childOpen = open & ((pos <= from ? 1 : 0) | (end >= to ? 2 : 0));
         if (pos >= from && end <= to && !childOpen)
-          target.push(child);
+          target2.push(child);
         else
-          child.decompose(from - pos, to - pos, target, childOpen);
+          child.decompose(from - pos, to - pos, target2, childOpen);
       }
       pos = end + 1;
     }
@@ -367,9 +367,9 @@ var TextNode = class _TextNode extends Text {
     }
     return result;
   }
-  flatten(target) {
+  flatten(target2) {
     for (let child of this.children)
-      child.flatten(target);
+      child.flatten(target2);
   }
   scanIdentical(other, dir) {
     if (!(other instanceof _TextNode))
@@ -441,7 +441,7 @@ function textLength(text2) {
     length += line.length + 1;
   return length;
 }
-function appendText(text2, target, from = 0, to = 1e9) {
+function appendText(text2, target2, from = 0, to = 1e9) {
   for (let pos = 0, i = 0, first = true; i < text2.length && pos <= to; i++) {
     let line = text2[i], end = pos + line.length;
     if (end >= from) {
@@ -450,14 +450,14 @@ function appendText(text2, target, from = 0, to = 1e9) {
       if (pos < from)
         line = line.slice(from - pos);
       if (first) {
-        target[target.length - 1] += line;
+        target2[target2.length - 1] += line;
         first = false;
       } else
-        target.push(line);
+        target2.push(line);
     }
     pos = end + 1;
   }
-  return target;
+  return target2;
 }
 function sliceText(text2, from, to) {
   return appendText(text2, [""], from, to);
@@ -3501,16 +3501,16 @@ var StyleModule = class {
     function splitSelector(selector) {
       return /^@/.test(selector) ? [selector] : selector.split(/,\s*/);
     }
-    function render2(selectors, spec2, target, isKeyframes) {
+    function render2(selectors, spec2, target2, isKeyframes) {
       let local = [], isAt = /^@(\w+)\b/.exec(selectors[0]), keyframes = isAt && isAt[1] == "keyframes";
-      if (isAt && spec2 == null) return target.push(selectors[0] + ";");
+      if (isAt && spec2 == null) return target2.push(selectors[0] + ";");
       for (let prop in spec2) {
         let value = spec2[prop];
         if (/&/.test(prop)) {
           render2(
             prop.split(/,\s*/).map((part) => selectors.map((sel) => part.replace(/&/, sel))).reduce((a, b) => a.concat(b)),
             value,
-            target
+            target2
           );
         } else if (value && typeof value == "object") {
           if (!isAt) throw new RangeError("The value of a property (" + prop + ") should be a primitive value.");
@@ -3520,7 +3520,7 @@ var StyleModule = class {
         }
       }
       if (local.length || keyframes) {
-        target.push((finish && !isAt && !isKeyframes ? selectors.map(finish) : selectors).join(", ") + " {" + local.join(" ") + "}");
+        target2.push((finish && !isAt && !isKeyframes ? selectors.map(finish) : selectors).join(", ") + " {" + local.join(" ") + "}");
       }
     }
     for (let prop in spec) render2(splitSelector(prop), spec[prop], this.rules);
@@ -3609,9 +3609,9 @@ var StyleSet = class {
           text2 += this.modules[i].getRules() + "\n";
         this.styleTag.textContent = text2;
       }
-      let target = root.head || root;
-      if (this.styleTag.parentNode != target)
-        target.insertBefore(this.styleTag, target.firstChild);
+      let target2 = root.head || root;
+      if (this.styleTag.parentNode != target2)
+        target2.insertBefore(this.styleTag, target2.firstChild);
     }
   }
   setNonce(nonce) {
@@ -3785,16 +3785,16 @@ var browser = {
   safari_version: safari ? +(/* @__PURE__ */ /\bVersion\/(\d+(\.\d+)?)/.exec(nav.userAgent) || [0, 0])[1] : 0,
   tabSize: doc.documentElement.style.tabSize != null ? "tab-size" : "-moz-tab-size"
 };
-function combineAttrs(source, target) {
+function combineAttrs(source, target2) {
   for (let name2 in source) {
-    if (name2 == "class" && target.class)
-      target.class += " " + source.class;
-    else if (name2 == "style" && target.style)
-      target.style += ";" + source.style;
+    if (name2 == "class" && target2.class)
+      target2.class += " " + source.class;
+    else if (name2 == "style" && target2.style)
+      target2.style += ";" + source.style;
     else
-      target[name2] = source[name2];
+      target2[name2] = source[name2];
   }
-  return target;
+  return target2;
 }
 var noAttrs = /* @__PURE__ */ Object.create(null);
 function attrsEq(a, b, ignore) {
@@ -4128,13 +4128,13 @@ BlockWrapper.prototype.startSide = BlockWrapper.prototype.endSide = -1;
 var isElt = (node) => node.nodeType == 1;
 var isText = (node) => node.nodeType == 3;
 function getSelection(root) {
-  let target;
+  let target2;
   if (root.nodeType == 11) {
-    target = root.getSelection ? root : root.ownerDocument;
+    target2 = root.getSelection ? root : root.ownerDocument;
   } else {
-    target = root;
+    target2 = root;
   }
-  return target.getSelection();
+  return target2.getSelection();
 }
 function contains(dom, node) {
   return node ? dom == node || dom.contains(node.nodeType != 1 ? node.parentNode : node) : false;
@@ -4371,9 +4371,9 @@ var DOMSelectionState = class {
     this.focusOffset = focusOffset;
   }
 };
-function getScrollStack(target) {
+function getScrollStack(target2) {
   let stack = [];
-  for (let cur2 = target; cur2; cur2 = cur2.nodeType == 11 ? cur2.host : cur2.parentNode) {
+  for (let cur2 = target2; cur2; cur2 = cur2.nodeType == 11 ? cur2.host : cur2.parentNode) {
     if (isElt(cur2))
       stack.push({ node: cur2, left: cur2.scrollLeft, top: cur2.scrollTop });
   }
@@ -5549,8 +5549,8 @@ var LineTile = class _LineTile extends CompositeTile {
       }
     }
     scan(this, pos);
-    let target = (side < 0 ? before : after) || before || after;
-    return target ? { tile: target, offset: target == before ? beforeOff : afterOff } : null;
+    let target2 = (side < 0 ? before : after) || before || after;
+    return target2 ? { tile: target2, offset: target2 == before ? beforeOff : afterOff } : null;
   }
   coordsIn(pos, side, rtl) {
     let found = this.resolveInline(pos, side, true);
@@ -6942,22 +6942,22 @@ var DocView = class {
       this.dynamicDecorationMap[i++] = false;
     this.blockWrappers = this.view.state.facet(blockWrappers).map((v) => typeof v == "function" ? v(this.view) : v);
   }
-  scrollIntoView(target) {
-    if (target.isSnapshot) {
-      let ref = this.view.viewState.lineBlockAt(target.range.head);
-      this.view.scrollDOM.scrollTop = ref.top - target.yMargin;
-      this.view.scrollDOM.scrollLeft = target.xMargin;
+  scrollIntoView(target2) {
+    if (target2.isSnapshot) {
+      let ref = this.view.viewState.lineBlockAt(target2.range.head);
+      this.view.scrollDOM.scrollTop = ref.top - target2.yMargin;
+      this.view.scrollDOM.scrollLeft = target2.xMargin;
       return;
     }
     for (let handler of this.view.state.facet(scrollHandler)) {
       try {
-        if (handler(this.view, target.range, target))
+        if (handler(this.view, target2.range, target2))
           return true;
       } catch (e) {
         logException(this.view.state, e, "scroll handler");
       }
     }
-    let { range } = target;
+    let { range } = target2;
     let rect = this.coordsAt(range.head, range.assoc || (range.head > range.anchor ? -1 : 1)), other;
     if (!rect)
       return;
@@ -6976,7 +6976,7 @@ var DocView = class {
       bottom: rect.bottom + margins.bottom
     };
     let { offsetWidth, offsetHeight } = this.view.scrollDOM;
-    scrollRectIntoView(this.view.scrollDOM, targetRect, range.head < range.anchor ? -1 : 1, target.x, target.y, Math.max(Math.min(target.xMargin, offsetWidth), -offsetWidth), Math.max(Math.min(target.yMargin, offsetHeight), -offsetHeight), this.view.textDirection == Direction.LTR);
+    scrollRectIntoView(this.view.scrollDOM, targetRect, range.head < range.anchor ? -1 : 1, target2.x, target2.y, Math.max(Math.min(target2.xMargin, offsetWidth), -offsetWidth), Math.max(Math.min(target2.yMargin, offsetHeight), -offsetHeight), this.view.textDirection == Direction.LTR);
     if (window.visualViewport && window.innerHeight - window.visualViewport.height > 1 && (rect.top > window.visualViewport.offsetTop + window.visualViewport.height || rect.bottom < window.visualViewport.offsetTop)) {
       let line = this.view.docView.lineAt(range.head, 1);
       if (line) {
@@ -8241,13 +8241,13 @@ function capturePaste(view2) {
   let parent = view2.dom.parentNode;
   if (!parent)
     return;
-  let target = parent.appendChild(document.createElement("textarea"));
-  target.style.cssText = "position: fixed; left: -10000px; top: 10px";
-  target.focus();
+  let target2 = parent.appendChild(document.createElement("textarea"));
+  target2.style.cssText = "position: fixed; left: -10000px; top: 10px";
+  target2.focus();
   setTimeout(() => {
     view2.focus();
-    target.remove();
-    doPaste(view2, target.value);
+    target2.remove();
+    doPaste(view2, target2.value);
   }, 50);
 }
 function textFilter(state2, facet, text2) {
@@ -8505,14 +8505,14 @@ function captureCopy(view2, text2) {
   let parent = view2.dom.parentNode;
   if (!parent)
     return;
-  let target = parent.appendChild(document.createElement("textarea"));
-  target.style.cssText = "position: fixed; left: -10000px; top: 10px";
-  target.value = text2;
-  target.focus();
-  target.selectionEnd = text2.length;
-  target.selectionStart = 0;
+  let target2 = parent.appendChild(document.createElement("textarea"));
+  target2.style.cssText = "position: fixed; left: -10000px; top: 10px";
+  target2.value = text2;
+  target2.focus();
+  target2.selectionEnd = text2.length;
+  target2.selectionStart = 0;
   setTimeout(() => {
-    target.remove();
+    target2.remove();
     view2.focus();
   }, 50);
 }
@@ -9792,13 +9792,13 @@ var ViewState = class {
       let structure = lineStructure(line.from, line.to, this.stateDeco);
       if (structure.total < doubleMargin)
         return;
-      let target = this.scrollTarget ? this.scrollTarget.range.head : null;
+      let target2 = this.scrollTarget ? this.scrollTarget.range.head : null;
       let viewFrom, viewTo;
       if (wrapping) {
         let marginHeight = margin / this.heightOracle.lineLength * this.heightOracle.lineHeight;
         let top2, bot;
-        if (target != null) {
-          let targetFrac = findFraction(structure, target);
+        if (target2 != null) {
+          let targetFrac = findFraction(structure, target2);
           let spaceFrac = ((this.visibleBottom - this.visibleTop) / 2 + marginHeight) / line.height;
           top2 = targetFrac - spaceFrac;
           bot = targetFrac + spaceFrac;
@@ -9819,8 +9819,8 @@ var ViewState = class {
           }
         let pxLeft = this.pixelViewport.left + horizOffset, pxRight = this.pixelViewport.right + horizOffset;
         let left, right;
-        if (target != null) {
-          let targetFrac = findFraction(structure, target);
+        if (target2 != null) {
+          let targetFrac = findFraction(structure, target2);
           let spaceFrac = ((pxRight - pxLeft) / 2 + marginWidth) / totalWidth;
           left = targetFrac - spaceFrac;
           right = targetFrac + spaceFrac;
@@ -14249,11 +14249,11 @@ var SingleGutterView = class {
     this.dom.className = "cm-gutter" + (this.config.class ? " " + this.config.class : "");
     for (let prop in config2.domEventHandlers) {
       this.dom.addEventListener(prop, (event) => {
-        let target = event.target, y;
-        if (target != this.dom && this.dom.contains(target)) {
-          while (target.parentNode != this.dom)
-            target = target.parentNode;
-          let rect = target.getBoundingClientRect();
+        let target2 = event.target, y;
+        if (target2 != this.dom && this.dom.contains(target2)) {
+          while (target2.parentNode != this.dom)
+            target2 = target2.parentNode;
+          let rect = target2.getBoundingClientRect();
           y = (rect.top + rect.bottom) / 2;
         } else {
           y = event.clientY;
@@ -18281,9 +18281,9 @@ var marks = {
 };
 
 // node_modules/@codemirror/commands/dist/index.js
-var toggleComment = (target) => {
-  let { state: state2 } = target, line = state2.doc.lineAt(state2.selection.main.from), config2 = getConfig(target.state, line.from);
-  return config2.line ? toggleLineComment(target) : config2.block ? toggleBlockCommentByLine(target) : false;
+var toggleComment = (target2) => {
+  let { state: state2 } = target2, line = state2.doc.lineAt(state2.selection.main.from), config2 = getConfig(target2.state, line.from);
+  return config2.line ? toggleLineComment(target2) : config2.block ? toggleBlockCommentByLine(target2) : false;
 };
 function command(f, option) {
   return ({ state: state2, dispatch }) => {
@@ -18845,16 +18845,16 @@ function toMatchingBracket(state2, dispatch, extend) {
   return true;
 }
 var cursorMatchingBracket = ({ state: state2, dispatch }) => toMatchingBracket(state2, dispatch, false);
-function extendSel(target, forward, how) {
-  let selection = updateSel(target.state.selection, (range) => {
+function extendSel(target2, forward, how) {
+  let selection = updateSel(target2.state.selection, (range) => {
     if (range.undirectional && range.head >= range.anchor != forward)
       range = EditorSelection.range(range.head, range.anchor);
     let head = how(range);
     return EditorSelection.range(range.anchor, head.head, head.goalColumn, head.bidiLevel || void 0, head.assoc);
   });
-  if (selection.eq(target.state.selection))
+  if (selection.eq(target2.state.selection))
     return false;
-  target.dispatch(setSel(target.state, selection));
+  target2.dispatch(setSel(target2.state, selection));
   return true;
 }
 function selectByChar(view2, forward) {
@@ -18978,49 +18978,49 @@ var simplifySelection = ({ state: state2, dispatch }) => {
   dispatch(setSel(state2, selection));
   return true;
 };
-function deleteBy(target, by) {
-  if (target.state.readOnly)
+function deleteBy(target2, by) {
+  if (target2.state.readOnly)
     return false;
-  let event = "delete.selection", { state: state2 } = target;
+  let event = "delete.selection", { state: state2 } = target2;
   let changes = state2.changeByRange((range) => {
     let { from, to } = range;
     if (from == to) {
       let towards = by(range);
       if (towards < from) {
         event = "delete.backward";
-        towards = skipAtomic(target, towards, false);
+        towards = skipAtomic(target2, towards, false);
       } else if (towards > from) {
         event = "delete.forward";
-        towards = skipAtomic(target, towards, true);
+        towards = skipAtomic(target2, towards, true);
       }
       from = Math.min(from, towards);
       to = Math.max(to, towards);
     } else {
-      from = skipAtomic(target, from, false);
-      to = skipAtomic(target, to, true);
+      from = skipAtomic(target2, from, false);
+      to = skipAtomic(target2, to, true);
     }
     return from == to ? { range } : { changes: { from, to }, range: EditorSelection.cursor(from, from < range.head ? -1 : 1) };
   });
   if (changes.changes.empty)
     return false;
-  target.dispatch(state2.update(changes, {
+  target2.dispatch(state2.update(changes, {
     scrollIntoView: true,
     userEvent: event,
     effects: event == "delete.selection" ? EditorView.announce.of(state2.phrase("Selection deleted")) : void 0
   }));
   return true;
 }
-function skipAtomic(target, pos, forward) {
-  if (target instanceof EditorView)
-    for (let ranges of target.state.facet(EditorView.atomicRanges).map((f) => f(target)))
+function skipAtomic(target2, pos, forward) {
+  if (target2 instanceof EditorView)
+    for (let ranges of target2.state.facet(EditorView.atomicRanges).map((f) => f(target2)))
       ranges.between(pos, pos, (from, to) => {
         if (from < pos && to > pos)
           pos = forward ? to : from;
       });
   return pos;
 }
-var deleteByChar = (target, forward, byIndentUnit) => deleteBy(target, (range) => {
-  let pos = range.from, { state: state2 } = target, line = state2.doc.lineAt(pos), before, targetPos;
+var deleteByChar = (target2, forward, byIndentUnit) => deleteBy(target2, (range) => {
+  let pos = range.from, { state: state2 } = target2, line = state2.doc.lineAt(pos), before, targetPos;
   if (byIndentUnit && !forward && pos > line.from && pos < line.from + 200 && !/[^ \t]/.test(before = line.text.slice(0, pos - line.from))) {
     if (before[before.length - 1] == "	")
       return pos - 1;
@@ -19039,8 +19039,8 @@ var deleteByChar = (target, forward, byIndentUnit) => deleteBy(target, (range) =
 });
 var deleteCharBackward = (view2) => deleteByChar(view2, false, true);
 var deleteCharForward = (view2) => deleteByChar(view2, true, false);
-var deleteByGroup = (target, forward) => deleteBy(target, (range) => {
-  let pos = range.head, { state: state2 } = target, line = state2.doc.lineAt(pos);
+var deleteByGroup = (target2, forward) => deleteBy(target2, (range) => {
+  let pos = range.head, { state: state2 } = target2, line = state2.doc.lineAt(pos);
   let categorize = state2.charCategorizer(pos);
   for (let cat = null; ; ) {
     if (pos == (forward ? line.to : line.from)) {
@@ -19059,8 +19059,8 @@ var deleteByGroup = (target, forward) => deleteBy(target, (range) => {
   }
   return pos;
 });
-var deleteGroupBackward = (target) => deleteByGroup(target, false);
-var deleteGroupForward = (target) => deleteByGroup(target, true);
+var deleteGroupBackward = (target2) => deleteByGroup(target2, false);
+var deleteGroupForward = (target2) => deleteByGroup(target2, true);
 var deleteToLineEnd = (view2) => deleteBy(view2, (range) => {
   let lineEnd = view2.lineBlockAt(range.head).to;
   return range.head < lineEnd ? lineEnd : Math.min(view2.state.doc.length, range.head + 1);
@@ -23010,12 +23010,12 @@ var OverlayRenderer = class {
         if (seen.has(k)) continue;
         seen.add(k);
         if (scope === "focus" && focus2 !== name2) continue;
-        let target = this.center(
+        let target2 = this.center(
           a.kind === "register" ? document.querySelector(`[data-register="${a.name}"]`) : document.querySelector(`[data-byte="${a.address}"]`)
         );
         let offscreen = false;
-        if (!target) {
-          target = this.center(
+        if (!target2) {
+          target2 = this.center(
             document.querySelector(
               a.kind === "register" ? "#reg-filter" : "#address"
             )
@@ -23025,8 +23025,8 @@ var OverlayRenderer = class {
         let code = this.codePoint(event.instruction, a.name) || origin;
         let label2 = offscreen ? a.kind === "memory" ? hex(a.address) : a.name : focus2 ? a.write ? `${a.before} \u2192 ${a.value}` : `${a.value}` : "";
         draw(
-          a.write ? code : target,
-          a.write ? target : code,
+          a.write ? code : target2,
+          a.write ? target2 : code,
           type,
           dashed,
           label2,
@@ -23035,11 +23035,11 @@ var OverlayRenderer = class {
         if (paths.length >= 35) break;
       }
       if (document.querySelector("#flows").checked && event.nextPC != null && scope === "all") {
-        let targetIns = s.instructions?.find((i) => i.address === event.nextPC), target = this.codePoint(targetIns);
-        if (!target) target = this.center(document.querySelector("#location"));
+        let targetIns = s.instructions?.find((i) => i.address === event.nextPC), target2 = this.codePoint(targetIns);
+        if (!target2) target2 = this.center(document.querySelector("#location"));
         draw(
           origin,
-          target,
+          target2,
           "flow",
           dashed,
           event.nextPC !== event.pc + 4 ? `\u2192 ${hex(event.nextPC)}` : "",
@@ -23074,12 +23074,12 @@ function unconditional(ins) {
   if (ins.op === "beq") return rs === rt;
   return rs === 0 && /^(bgez|blez|bgezal)$/.test(ins.op);
 }
-function transferKind(event, target, delay) {
+function transferKind(event, target2, delay) {
   const ins = event.instruction;
   if (ins.flow === "branch") {
     if (unconditional(ins)) return "jump";
-    if (target === ins.target) return "taken";
-    if (target === ins.address + (delay ? 8 : 4)) return "fallthrough";
+    if (target2 === ins.target) return "taken";
+    if (target2 === ins.address + (delay ? 8 : 4)) return "fallthrough";
     return "jump";
   }
   if (ins.flow === "call") return "call";
@@ -23793,7 +23793,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       }
     );
   } else if (ins.flow === "branch") {
-    const target = ins.target, label2 = where(target), fallthrough = ins.address + (delay ? 8 : 4);
+    const target2 = ins.target, label2 = where(target2), fallthrough = ins.address + (delay ? 8 : 4);
     const always = op === "beq" ? rsN === rtN : rsN === 0 && /^(bgez|blez|bgezal)$/.test(op);
     let taken = always;
     if (always) template = ["\u8DF3\u5230 ", label2];
@@ -23813,7 +23813,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ],
         `\u6761\u4EF6 ${x.value} ${sym} 0 ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
         {
-          why: `\u628A ${x.name} \u548C 0 \u6BD4\u8F83\uFF08\u673A\u5668\u4E0A\u662F\u548C\u6052\u4E3A 0 \u7684 $zero \u6BD4\u8F83\uFF09\uFF0C${op === "beq" ? "\u7B49\u4E8E 0" : "\u4E0D\u7B49\u4E8E 0"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002`
+          why: `\u628A ${x.name} \u548C 0 \u6BD4\u8F83\uFF08\u673A\u5668\u4E0A\u662F\u548C\u6052\u4E3A 0 \u7684 $zero \u6BD4\u8F83\uFF09\uFF0C${op === "beq" ? "\u7B49\u4E8E 0" : "\u4E0D\u7B49\u4E8E 0"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002`
         }
       );
     } else if (/^(beq|bne)$/.test(op) && rs && rt) {
@@ -23846,7 +23846,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ],
         `\u6761\u4EF6 ${rs.value} ${sym} ${rt.value} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
         {
-          why: `${op} ${op === "beq" ? "\u5728\u4E24\u6570\u76F8\u7B49" : "\u5728\u4E24\u6570\u4E0D\u7B49"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
+          why: `${op} ${op === "beq" ? "\u5728\u4E24\u6570\u76F8\u7B49" : "\u5728\u4E24\u6570\u4E0D\u7B49"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
         }
       );
     } else if (compareZero[op] && rs) {
@@ -23865,7 +23865,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ],
         `\u6761\u4EF6 ${rs.value} ${cond} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
         {
-          why: `${op} \u628A ${rs.name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
+          why: `${op} \u628A ${rs.name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
         }
       );
     }
@@ -23875,7 +23875,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ...writing(ra, hex(ra.value)),
         why: "\u94FE\u63A5\u5206\u652F\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u5199 $ra\u3002"
       });
-    const dest = taken ? target : fallthrough;
+    const dest = taken ? target2 : fallthrough;
     beat(
       ["\u4E0B\u4E00\u6761 = ", ok(where(dest)), " \u2713"],
       taken ? "\u8DF3\u8F6C\u3002" : "\u987A\u5E8F\u6267\u884C\u3002",
@@ -24396,9 +24396,9 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   const taken = op === "beq" ? x === y : op === "bne" ? x !== y : compareZero[op] && x != null ? compareZero[op][1](x) : null;
   if (taken == null) return null;
   const s = symbols.find((v) => v.address === ins.target && !v.data), t2 = instructions.find((v) => v.address === ins.target);
-  const target = s ? s.name : t2 ? `\u7B2C ${t2.line} \u884C` : hex(ins.target);
+  const target2 = s ? s.name : t2 ? `\u7B2C ${t2.line} \u884C` : hex(ins.target);
   const always = op === "beq" && rs === rt || rs === "$zero" && /^(bgez|blez|bgezal)$/.test(op);
-  if (always) return `\u2192 \u8DF3\u5230 ${target}`;
+  if (always) return `\u2192 \u8DF3\u5230 ${target2}`;
   const [mn, ...args] = (events[0].instruction.source || "").replace(/#.*/, "").replace(/^\s*[\w.]+:/, "").trim().split(/[\s,]+/);
   const unsigned = /u$/.test(mn);
   const operand = (a) => {
@@ -24417,7 +24417,7 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
       test = `${a} ${sourceCompare[mn]}${b === "" ? "" : " " + b}`;
   } else if (compareZero[mn] && mn === op)
     test = `${format(x, rs)} ${compareZero[op][0]}`;
-  const result = taken ? `\u2192 \u8DF3\u5230 ${target}` : "\u2192 \u7EE7\u7EED\u4E0B\u4E00\u884C";
+  const result = taken ? `\u2192 \u8DF3\u5230 ${target2}` : "\u2192 \u7EE7\u7EED\u4E0B\u4E00\u884C";
   if (test) return `${test} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"} ${result}`;
   const listed = [...reads].filter(([n]) => n !== "$zero" && n !== "$at").map(([n, v]) => `${n} = ${format(v, n)}`);
   return [listed.join("\uFF0C"), result].filter(Boolean).join(" ");
@@ -26317,7 +26317,7 @@ function normalizeProject(input) {
   if (!input || typeof input !== "object" || !input.files || Array.isArray(input.files)) throw Error("\u4E0D\u662F\u6709\u6548\u7684 MARS \u5DE5\u7A0B\u6587\u4EF6\u3002");
   const files2 = {}, data2 = {}, folders = /* @__PURE__ */ new Set();
   let size = 0, count = 0;
-  for (const [kind, target] of [["files", files2], ["data", data2]]) {
+  for (const [kind, target2] of [["files", files2], ["data", data2]]) {
     const values = input[kind] || {};
     if (typeof values !== "object" || Array.isArray(values)) throw Error("\u5DE5\u7A0B\u6587\u4EF6\u5217\u8868\u65E0\u6548\u3002");
     for (const [key, text2] of Object.entries(values)) {
@@ -26328,7 +26328,7 @@ function normalizeProject(input) {
       if (Object.hasOwn(files2, name2) || Object.hasOwn(data2, name2)) throw Error(`\u6587\u4EF6\u91CD\u590D\uFF1A${name2}`);
       size += strToU8(text2).length;
       if (++count > 200 || size > MAX_BYTES) throw Error("\u5DE5\u7A0B\u6700\u591A 200 \u4E2A\u6587\u4EF6\u30011.5 MB \u6587\u672C\u5185\u5BB9\u3002");
-      target[name2] = text2;
+      target2[name2] = text2;
     }
   }
   if (input.folders != null && !Array.isArray(input.folders)) throw Error("\u6587\u4EF6\u5939\u5217\u8868\u65E0\u6548\u3002");
@@ -26344,7 +26344,48 @@ function normalizeProject(input) {
   const activeFile2 = input.activeFile === "" ? "" : Object.hasOwn(files2, input.activeFile) ? input.activeFile : entry;
   const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files2, n) && a.indexOf(n) === i) : Object.keys(files2);
   if (activeFile2 && !openTabs.includes(activeFile2)) openTabs.push(activeFile2);
-  return { version: 2, name: String(input.name || "\u6211\u7684\u5DE5\u7A0B").slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay) };
+  return { version: 3, name: String(input.name || "\u6211\u7684\u5DE5\u7A0B").slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files2) };
+}
+var MODES = { auto: "auto", single: "single", manual: "manual", current: "single", joint: "manual" };
+function normalizeAssembly(input, files2) {
+  const chosen = Array.isArray(input?.files) ? input.files.filter((n, i, a) => typeof n === "string" && Object.hasOwn(files2, n) && a.indexOf(n) === i) : [];
+  return { mode: MODES[input?.mode] || "auto", files: chosen };
+}
+var dirOf = (name2) => name2.includes("/") ? name2.slice(0, name2.lastIndexOf("/")) : "";
+function assemblyScope(p, activeFile2) {
+  const mode = p.assembly?.mode || "auto";
+  if (mode === "manual") {
+    const files2 = p.assembly.files.filter((n) => Object.hasOwn(p.files, n));
+    if (!files2.length) return { mode, files: files2, entry: "", error: "\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u8FD8\u6CA1\u6709\u52FE\u9009\u6E90\u7801\u6587\u4EF6\u3002" };
+    return { mode, files: files2, entry: files2.includes(p.entry) ? p.entry : files2.includes("main.s") ? "main.s" : files2[0] };
+  }
+  if (!activeFile2 || !Object.hasOwn(p.files, activeFile2)) return { mode, files: [], entry: "", error: "\u8BF7\u5148\u6253\u5F00\u8981\u6C47\u7F16\u7684 .s / .asm \u6E90\u7801\u6587\u4EF6\u3002" };
+  if (mode === "single") return { mode, files: [activeFile2], entry: activeFile2 };
+  return autoScope(p.files, activeFile2);
+}
+function autoScope(sources, activeFile2) {
+  const info = new Map(Object.entries(sources).map(([n, t2]) => [n, { ...labelsIn(t2), refs: referencesIn(t2) }]));
+  const hasMain = (n) => info.get(n).defined.has("main");
+  const fail = (error) => ({ mode: "auto", files: [], entry: "", error });
+  let entry = activeFile2;
+  if (!hasMain(activeFile2)) {
+    const mains = Object.keys(sources).filter((n) => n !== activeFile2 && dirOf(n) === dirOf(activeFile2) && hasMain(n));
+    if (mains.length > 1) return fail(`${activeFile2} \u6CA1\u6709 main\uFF0C\u6240\u5728\u76EE\u5F55\u91CC\u6709\u591A\u4E2A\u6587\u4EF6\u5B9A\u4E49\u4E86 main\uFF08${mains.join("\u3001")}\uFF09\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u8FD0\u884C\u54EA\u4E00\u4E2A\u3002\u8BF7\u6253\u5F00\u8981\u8FD0\u884C\u7684\u90A3\u4E2A\u6587\u4EF6\u518D\u6C47\u7F16\uFF0C\u6216\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u5355\u6587\u4EF6\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`);
+    if (mains.length) entry = mains[0];
+  }
+  const files2 = entry === activeFile2 ? [entry] : [entry, activeFile2];
+  const provides = (n, sym) => info.get(n).globals.has(sym) && info.get(n).defined.has(sym);
+  for (let i = 0; i < files2.length; i++) {
+    const own = info.get(files2[i]);
+    for (const sym of own.refs) {
+      if (own.defined.has(sym) || files2.some((n) => provides(n, sym))) continue;
+      const providers = Object.keys(sources).filter((n) => !files2.includes(n) && !hasMain(n) && provides(n, sym));
+      const near = providers.filter((n) => dirOf(n) === dirOf(entry)), pick = near.length ? near : providers;
+      if (pick.length > 1) return fail(`${files2[i]} \u7528\u5230\u7684 ${sym} \u540C\u65F6\u5B9A\u4E49\u5728 ${pick.join("\u3001")}\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u94FE\u63A5\u54EA\u4E00\u4E2A\u3002\u8BF7\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`);
+      if (pick.length) files2.push(pick[0]);
+    }
+  }
+  return { mode: "auto", files: files2, entry };
 }
 var blankProject = (name2 = "\u6211\u7684\u5DE5\u7A0B") => normalizeProject({ name: name2, files: { "main.s": "# \u5728\u8FD9\u91CC\u7F16\u5199 MIPS \u6C47\u7F16\u7A0B\u5E8F\n.text\n" }, data: {}, entry: "main.s" });
 function renamePath(input, from, to) {
@@ -26361,7 +26402,7 @@ function renamePath(input, from, to) {
   for (const n of all.filter(match)) if (all.some((other) => !match(other) && other === move(n))) throw Error(`\u76EE\u6807\u5DF2\u5B58\u5728\uFF1A${move(n)}`);
   if (!folder && isSource(from) !== isSource(to)) throw Error("\u91CD\u547D\u540D\u65F6\u8BF7\u4FDD\u6301\u6E90\u7801\u6216\u8F93\u5165\u6587\u4EF6\u7684\u7C7B\u578B\u3002");
   const remap = (obj) => Object.fromEntries(Object.entries(obj).map(([n, text2]) => [move(n), text2]));
-  return normalizeProject({ ...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move) });
+  return normalizeProject({ ...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move), assembly: { ...p.assembly, files: p.assembly.files.map(move) } });
 }
 function removePath(input, path) {
   const p = normalizeProject(input);
@@ -26380,7 +26421,7 @@ function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name2, text2] of Object.entries({ ...p.files, ...p.data })) entries[name2] = strToU8(text2);
   for (const f of p.folders) entries[f + "/"] = new Uint8Array();
-  entries[".mars-project.json"] = strToU8(JSON.stringify({ version: 2, name: p.name, entry: p.entry, folders: p.folders, delay: p.delay }, null, 2));
+  entries[".mars-project.json"] = strToU8(JSON.stringify({ version: 3, name: p.name, entry: p.entry, folders: p.folders, delay: p.delay, assembly: p.assembly }, null, 2));
   return zipSync(entries, { level: 6 });
 }
 function textFile(bytes, name2) {
@@ -26415,7 +26456,7 @@ async function readImports(selected) {
     if (name2.endsWith("/.mars-project.json")) {
       const m = JSON.parse(textFile(bytes, name2)), prefix = name2.slice(0, -".mars-project.json".length);
       if (m.folders != null && !Array.isArray(m.folders)) throw Error("\u6587\u4EF6\u5939\u5DE5\u7A0B\u4FE1\u606F\u65E0\u6548\u3002");
-      metadata = { ...m, entry: m.entry ? prefix + m.entry : "", folders: (m.folders || []).map((n) => prefix + n) };
+      metadata = { ...m, entry: m.entry ? prefix + m.entry : "", folders: (m.folders || []).map((n) => prefix + n), assembly: m.assembly && { ...m.assembly, files: Array.isArray(m.assembly.files) ? m.assembly.files.map((n) => prefix + n) : [] } };
       continue;
     }
     if (/\.zip$/i.test(f.name)) {
@@ -26447,6 +26488,51 @@ async function readImports(selected) {
   }
   if (!seen.size && !folders.length) throw Error("\u6CA1\u6709\u53EF\u5BFC\u5165\u7684\u6587\u4EF6\u3002");
   return normalizeProject({ ...metadata, files: files2, data: data2, folders: [...folders, ...metadata.folders || []] });
+}
+var stripped = (raw) => raw.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""').replace(/#.*/, "");
+var labelPrefix = /^\s*([A-Za-z_.$][\w.$]*)\s*:/;
+function labelsIn(text2) {
+  const defined = /* @__PURE__ */ new Set(), globals = /* @__PURE__ */ new Set();
+  for (const raw of String(text2).split("\n")) {
+    let line = stripped(raw);
+    for (let m; m = labelPrefix.exec(line); line = line.slice(m[0].length)) defined.add(m[1]);
+    const g = /^\s*\.globl\s+(.+)/.exec(line);
+    if (g) for (const name2 of g[1].split(/[\s,]+/).filter(Boolean)) globals.add(name2);
+  }
+  return { defined, globals };
+}
+function referencesIn(text2) {
+  const refs = /* @__PURE__ */ new Set();
+  for (const raw of String(text2).split("\n")) {
+    let line = stripped(raw);
+    for (let m; m = labelPrefix.exec(line); line = line.slice(m[0].length)) ;
+    const [, op = "", operands = ""] = /^\s*(\S+)\s*(.*)$/.exec(line) || [];
+    if (op.startsWith(".") && !/^\.(word|half|byte)$/.test(op)) continue;
+    for (const m of operands.matchAll(/(?<![\w$.%])[A-Za-z_][\w.$]*/g)) refs.add(m[0]);
+  }
+  return refs;
+}
+function scopeHints(diagnostics, project, scope) {
+  const labels = new Map(Object.entries(project.files).map(([n, t2]) => [n, labelsIn(t2)]));
+  const list = (names) => names.join("\u3001");
+  return (diagnostics || []).map((d) => {
+    let m = /^"(.+)" already defined as global in a different file/.exec(d.message || "");
+    if (m) {
+      const owners = scope.files.filter((n) => labels.get(n)?.globals.has(m[1]) && labels.get(n).defined.has(m[1]));
+      return `\u53C2\u4E0E\u8FD9\u6B21\u6C47\u7F16\u7684 ${list(owners.length > 1 ? owners : scope.files)} \u90FD\u5B9A\u4E49\u4E86\u5168\u5C40\u6807\u7B7E ${m[1]}\u3002` + (scope.mode === "manual" ? "\u5982\u679C\u5B83\u4EEC\u662F\u5404\u81EA\u72EC\u7ACB\u7684\u7EC3\u4E60\uFF0C\u8BF7\u53D6\u6D88\u52FE\u9009\u5176\u4E2D\u4E00\u4E2A\uFF0C\u6216\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u3002" : "\u540C\u4E00\u4E2A\u5168\u5C40\u6807\u7B7E\u53EA\u80FD\u5B9A\u4E49\u4E00\u6B21\uFF0C\u8BF7\u6539\u540D\u6216\u5220\u53BB\u5176\u4E2D\u4E00\u4E2A\u3002");
+    }
+    m = /^Symbol "(.+)" not found in symbol table/.exec(d.message || "");
+    if (m) {
+      const sym = m[1], owners = [...labels].filter(([n, l]) => !scope.files.includes(n) && l.defined.has(sym)).map(([n]) => n);
+      if (!owners.length) return "";
+      const local = owners.filter((n) => !labels.get(n).globals.has(sym));
+      if (local.length === owners.length) return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u4F46\u6CA1\u6709\u7528 .globl ${sym} \u58F0\u660E\u4E3A\u5168\u5C40\u6807\u7B7E\uFF0C\u5176\u4ED6\u6587\u4EF6\u770B\u4E0D\u5230\u5B83\u3002`;
+      if (scope.mode === "manual") return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u5B83\u6CA1\u6709\u52FE\u9009\u8FDB\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u3002\u9700\u8981\u65F6\u8BF7\u52FE\u9009\u5B83\u3002`;
+      if (scope.mode === "single") return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u5355\u6587\u4EF6\u6C47\u7F16\u4E0D\u4F1A\u52A0\u5165\u5B83\u3002\u8BF7\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`;
+      return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u4F46\u90A3\u91CC\u4E5F\u5B9A\u4E49\u4E86 main\uFF08\u662F\u53E6\u4E00\u4E2A\u7A0B\u5E8F\uFF09\uFF0C\u81EA\u52A8\u6C47\u7F16\u4E0D\u4F1A\u628A\u5B83\u94FE\u63A5\u8FDB\u6765\u3002\u9700\u8981\u4E00\u8D77\u6C47\u7F16\u65F6\u8BF7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`;
+    }
+    return "";
+  });
 }
 
 // ui/project-manager.js
@@ -26503,6 +26589,28 @@ function projectManager(hooks) {
     }
     render2();
     save();
+  }
+  function setAssembly(patch, entry = meta2.entry) {
+    if (hooks.busy()) {
+      hooks.notify("\u8BF7\u5148\u6682\u505C\u6267\u884C\uFF0C\u518D\u4FEE\u6539\u6C47\u7F16\u8303\u56F4\u3002");
+      render2();
+      return;
+    }
+    const current = hooks.snapshot().activeFile, assembly = { ...meta2.assembly, ...patch };
+    if (patch.mode === "manual" && !assembly.files.length) {
+      const auto = assemblyScope({ ...snapshot(), assembly: { mode: "auto", files: [] } }, current);
+      if (!auto.error) {
+        assembly.files = auto.files;
+        entry = auto.entry;
+      } else if (current && isSource(current)) {
+        assembly.files = [current];
+        entry = current;
+      }
+    }
+    meta2 = normalizeProject({ ...snapshot(), assembly, entry });
+    render2();
+    changed();
+    hooks.scopeChanged();
   }
   function form(title, label2, value, action, hint = "") {
     hooks.modal(title, `<form id="project-form"><label>${escapeHTML(label2)}<input id="project-value" value="${escapeHTML(value)}" required autocomplete="off"></label>${hint ? `<p class="muted">${escapeHTML(hint)}</p>` : ""}<p id="project-error" role="alert"></p><div class="project-actions"><button type="button" id="project-cancel">\u53D6\u6D88</button><button class="primary">\u786E\u5B9A</button></div></form>`);
@@ -26567,18 +26675,14 @@ function projectManager(hooks) {
   }
   function menu(path, folder) {
     const p = snapshot();
-    hooks.modal(folder ? "\u6587\u4EF6\u5939 \xB7 " + path : "\u6587\u4EF6 \xB7 " + path, `<div class="file-actions">${folder ? '<button id="node-new-file">\u65B0\u5EFA\u6587\u4EF6</button><button id="node-new-folder">\u65B0\u5EFA\u5B50\u6587\u4EF6\u5939</button>' : '<button id="node-download">\u4E0B\u8F7D\u6B64\u6587\u4EF6</button>'}${isSource(path) && !folder ? `<button id="node-entry" ${p.entry === path ? "disabled" : ""}>${p.entry === path ? "\u5F53\u524D\u6C47\u7F16\u5165\u53E3" : "\u8BBE\u4E3A\u6C47\u7F16\u5165\u53E3"}</button>` : ""}<button id="node-rename">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8</button><button class="danger" id="node-delete">${folder ? "\u5220\u9664\u6587\u4EF6\u5939\u53CA\u5176\u5185\u5BB9" : "\u5220\u9664\u6587\u4EF6"}</button></div><p class="muted">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8\u65F6\u586B\u5199\u5B8C\u6574\u5DE5\u7A0B\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\u3002</p>`);
+    hooks.modal(folder ? "\u6587\u4EF6\u5939 \xB7 " + path : "\u6587\u4EF6 \xB7 " + path, `<div class="file-actions">${folder ? '<button id="node-new-file">\u65B0\u5EFA\u6587\u4EF6</button><button id="node-new-folder">\u65B0\u5EFA\u5B50\u6587\u4EF6\u5939</button>' : '<button id="node-download">\u4E0B\u8F7D\u6B64\u6587\u4EF6</button>'}${isSource(path) && !folder && p.assembly.mode === "manual" ? `<button id="node-entry" ${p.entry === path && p.assembly.files.includes(path) ? "disabled" : ""}>${p.entry === path && p.assembly.files.includes(path) ? "\u5F53\u524D\u6C47\u7F16\u5165\u53E3" : "\u8BBE\u4E3A\u6C47\u7F16\u5165\u53E3"}</button>` : ""}<button id="node-rename">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8</button><button class="danger" id="node-delete">${folder ? "\u5220\u9664\u6587\u4EF6\u5939\u53CA\u5176\u5185\u5BB9" : "\u5220\u9664\u6587\u4EF6"}</button></div><p class="muted">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8\u65F6\u586B\u5199\u5B8C\u6574\u5DE5\u7A0B\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\u3002</p>`);
     if (folder) {
       $("node-new-file").onclick = () => create(path);
       $("node-new-folder").onclick = () => create(path, true);
     } else $("node-download").onclick = () => downloadFile(path);
-    if ($("node-entry")) $("node-entry").onclick = async () => {
-      try {
-        await apply({ ...snapshot(), entry: path });
-        $("modal").close();
-      } catch (e) {
-        hooks.notify(e.message);
-      }
+    if ($("node-entry")) $("node-entry").onclick = () => {
+      setAssembly({ files: [.../* @__PURE__ */ new Set([...meta2.assembly.files, path])] }, path);
+      $("modal").close();
     };
     $("node-rename").onclick = () => form("\u91CD\u547D\u540D\uFF0F\u79FB\u52A8", "\u65B0\u8DEF\u5F84", path, (value) => apply(renamePath(snapshot(), path, value)));
     $("node-delete").onclick = () => {
@@ -26591,12 +26695,14 @@ function projectManager(hooks) {
     const p = snapshot();
     $("project-title").textContent = p.name;
     $("project-title").title = "\u4FEE\u6539\u5DE5\u7A0B\u540D\u79F0";
+    const joint = p.assembly.mode === "manual", chosen = p.assembly.files;
+    const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes("main.s") ? "main.s" : chosen[0];
     const rows = (parent) => {
       const base2 = parent ? parent + "/" : "";
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""}"><button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${path === p.entry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
     $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\u6216\u6253\u5F00\u5DE5\u7A0B\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
@@ -26610,8 +26716,13 @@ function projectManager(hooks) {
       if (d.open) collapsed.delete(d.dataset.folder);
       else collapsed.add(d.dataset.folder);
     });
-    $("entry-file").innerHTML = Object.keys(p.files).map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === p.entry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || "<option>\u6682\u65E0\u6E90\u7801</option>";
-    $("entry-file").disabled = !p.entry;
+    $("files").querySelectorAll("[data-joint]").forEach((c) => c.onchange = () => setAssembly({ files: c.checked ? [...chosen, c.dataset.joint] : chosen.filter((n) => n !== c.dataset.joint) }));
+    $("joint-settings").hidden = !joint;
+    const scope = assemblyScope(p, p.activeFile);
+    $("assembly-mode-name").textContent = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u9009\u62E9\u8303\u56F4" }[p.assembly.mode];
+    $("assembly-hint").textContent = scope.error ? scope.error : joint ? `\u52FE\u9009\u7684 ${chosen.length} \u4E2A\u6E90\u7801\u4E00\u8D77\u6C47\u7F16\uFF0C\u4ECE\u5165\u53E3\u5F00\u59CB\u6267\u884C\uFF1B\u672A\u52FE\u9009\u7684\u4E0D\u53C2\u4E0E\u3002` : p.assembly.mode === "single" ? `\u53EA\u6C47\u7F16 ${scope.entry}\u3002` : `\u4ECE ${scope.entry} \u7684 main \u5F00\u59CB${scope.files.length > 1 ? `\uFF0C\u94FE\u63A5 ${scope.files.filter((n) => n !== scope.entry).join("\u3001")}` : ""}\uFF1B\u5176\u4ED6\u6587\u4EF6\u4E0D\u53C2\u4E0E\u3002`;
+    $("entry-file").innerHTML = chosen.map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === scopeEntry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || '<option value="">\u5148\u52FE\u9009\u6E90\u7801</option>';
+    $("entry-file").disabled = !chosen.length;
     $("export-file").disabled = !p.activeFile;
     try {
       $("restore-project").disabled = !previous && !localStorage.getItem(BACKUP_KEY);
@@ -26665,7 +26776,7 @@ function projectManager(hooks) {
   };
   $("save").onclick = () => {
     const p = snapshot();
-    hooks.modal("\u5BFC\u51FA\u5DE5\u7A0B", '<p>\u4FDD\u5B58\u5230\u7535\u8111\u540E\u53EF\u91CD\u65B0\u5BFC\u5165\uFF0C\u6216\u53D1\u7ED9\u8001\u5E08\u3002\u6E90\u7801\u3001\u8F93\u5165\u6587\u4EF6\u3001\u76EE\u5F55\u548C\u6C47\u7F16\u5165\u53E3\u90FD\u4F1A\u4FDD\u7559\u3002</p><div class="file-actions"><button id="download-zip">\u4E0B\u8F7D ZIP\uFF08\u5305\u542B\u539F\u59CB\u6587\u4EF6\uFF09</button><button id="download-json">\u4E0B\u8F7D MARS \u5DE5\u7A0B JSON</button></div>');
+    hooks.modal("\u5BFC\u51FA\u5DE5\u7A0B", '<p>\u4FDD\u5B58\u5230\u7535\u8111\u540E\u53EF\u91CD\u65B0\u5BFC\u5165\uFF0C\u6216\u53D1\u7ED9\u8001\u5E08\u3002\u6E90\u7801\u3001\u8F93\u5165\u6587\u4EF6\u3001\u76EE\u5F55\u3001\u6C47\u7F16\u65B9\u5F0F\u548C\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u90FD\u4F1A\u4FDD\u7559\u3002</p><div class="file-actions"><button id="download-zip">\u4E0B\u8F7D ZIP\uFF08\u5305\u542B\u539F\u59CB\u6587\u4EF6\uFF09</button><button id="download-json">\u4E0B\u8F7D MARS \u5DE5\u7A0B JSON</button></div>');
     const basename = p.name.replace(/[\\/:*?"<>|]/g, "-") || "mars-project";
     $("download-zip").onclick = () => {
       download(projectZip(p), basename + ".zip", "application/zip");
@@ -26677,14 +26788,7 @@ function projectManager(hooks) {
     };
   };
   $("export-file").onclick = () => downloadFile(hooks.snapshot().activeFile);
-  $("entry-file").onchange = async (e) => {
-    try {
-      await apply({ ...snapshot(), entry: e.target.value });
-    } catch (error) {
-      hooks.notify(error.message);
-      render2();
-    }
-  };
+  $("entry-file").onchange = (e) => setAssembly({}, e.target.value);
   $("restore-project").onclick = () => {
     try {
       const restore = previous || normalizeProject(JSON.parse(localStorage.getItem(BACKUP_KEY)));
@@ -26713,6 +26817,8 @@ function projectManager(hooks) {
     snapshot,
     apply,
     entry: () => meta2.entry,
+    assembly: () => meta2.assembly,
+    setAssembly,
     tabs: () => meta2.openTabs.filter((n) => Object.hasOwn(hooks.snapshot().files, n)),
     opened: (name2) => {
       if (!meta2.openTabs.includes(name2)) meta2.openTabs.push(name2);
@@ -26750,6 +26856,8 @@ function projectManager(hooks) {
 // ui/main.js
 var $2 = (id2) => document.getElementById(id2);
 var workspace = null;
+var target = null;
+var lastInTarget = "";
 var fileAccess = new Compartment();
 var state = null;
 var files = {};
@@ -26785,8 +26893,10 @@ var Dot = class extends GutterMarker {
   }
   toDOM() {
     let e = document.createElement("span");
-    e.className = "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "");
+    e.className = "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "") + (this.breakpoint && this.breakpoint.address == null ? " stale" : "");
     e.textContent = breakpointGlyph(this.breakpoint);
+    if (this.breakpoint && this.breakpoint.address == null)
+      e.title = "\u8FD9\u4E2A\u6587\u4EF6\u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF0C\u65AD\u70B9\u6682\u4E0D\u751F\u6548";
     return e;
   }
 };
@@ -27031,7 +27141,7 @@ function peekReferences() {
 function editorMenu(x, y, pos) {
   closeMenu();
   $2("tooltip").hidden = true;
-  const line = editor.state.doc.lineAt(pos).number, address = breakableAddress(line)?.address ?? null, token = tokenAt(pos), canRun = !dirty && ["paused", "waiting"].includes(state?.status);
+  const line = editor.state.doc.lineAt(pos).number, address = breakableAddress(line)?.address ?? null, token = tokenAt(pos), canRun = !dirty && !blocked() && ["paused", "waiting"].includes(state?.status);
   editor.dispatch({ selection: { anchor: pos } });
   const items = [
     [
@@ -27164,11 +27274,13 @@ var editor = new EditorView({
           if (!activeFile) return;
           files[activeFile] = u.state.doc.toString();
           workspace?.changed();
-          dirty = true;
           renderTabs();
+          if (!target || target.files.includes(activeFile)) {
+            dirty = true;
+            $2("banner").textContent = "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C";
+            $2("banner").className = "visible";
+          }
           updateControls();
-          $2("banner").textContent = "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C";
-          $2("banner").className = "visible";
         }
         overlay?.schedule();
       }),
@@ -27205,7 +27317,7 @@ var overlay = new OverlayRenderer({
   onSource: (a) => gotoAddress(a)
 });
 var lens = new FocusLens({
-  getState: () => dirty ? null : state,
+  getState: () => dirty || blocked() ? null : state,
   getProgram: () => program,
   getSource: (file, line) => files[file]?.split("\n")[line - 1],
   command: (name2, extra) => command2(name2, extra).then((s) => (followPC(), s)),
@@ -27409,8 +27521,23 @@ async function api(body) {
   if (!r.ok || !s.protocol) throw Error(s.error || "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001");
   return named(s);
 }
+var EXECUTING = /* @__PURE__ */ new Set([
+  "step",
+  "source",
+  "over",
+  "out",
+  "run",
+  "back",
+  "seek",
+  "line",
+  "input"
+]);
 async function command2(name2, extra = {}) {
   if (busy) return null;
+  if (EXECUTING.has(name2) && blocked()) {
+    notify(blocked(), { transient: true });
+    return null;
+  }
   busy = true;
   updateControls();
   try {
@@ -27440,17 +27567,20 @@ async function assemble() {
   busy = true;
   updateControls();
   try {
-    let old = state?.programVersion;
     savedEditor();
     if (!Object.keys(files).length) throw Error("\u8BF7\u5148\u65B0\u5EFA\u6216\u5BFC\u5165\u4E00\u4E2A .s / .asm \u6E90\u7801\u6587\u4EF6\u3002");
+    const scope = nextScope();
+    if (scope.error) throw Error(scope.error);
     state = await api({
       command: "assemble",
-      files,
+      files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
       data,
-      entry: workspace?.entry() || Object.keys(files)[0],
+      entry: scope.entry,
       delay: $2("delay").checked,
       ...lookahead()
     });
+    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
+    lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
       instructions: state.instructions || [],
       symbols: state.symbols || [],
@@ -27462,12 +27592,13 @@ async function assemble() {
       address: program.instructions.find(
         (i) => i.file === b.file && i.line === b.line
       )?.address
-    })).filter((b) => b.address != null);
+    }));
     debugLog = [];
     notify(state.error || "");
     render();
     const start = program.instructions.find((i) => i.address === state.pc);
-    if (!activeFile || !start || start.file === activeFile) followPC();
+    if (!activeFile || !start || start.file === activeFile || !target.files.includes(activeFile))
+      followPC();
     lens.update(state);
   } catch (e) {
     notify(e.message);
@@ -27484,6 +27615,7 @@ function switchFile(file) {
   savedEditor();
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
+  if (target?.files.includes(file)) lastInTarget = file;
   workspace?.opened(file);
   loadEditor = true;
   editor.dispatch({
@@ -27494,6 +27626,7 @@ function switchFile(file) {
   loadEditor = false;
   renderTabs();
   renderFiles();
+  updateControls();
   overlay.schedule();
 }
 var navBack = [];
@@ -27583,6 +27716,7 @@ function arrive(jumped = false) {
 var keepNotice = false;
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
+  if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
     const label2 = program.symbols.filter((s) => !s.data && s.address <= ins.address).filter(
       (s) => program.instructions.find((i) => i.address === s.address)?.file === ins.file
@@ -27680,10 +27814,12 @@ function statusInfo() {
   };
 }
 function updateControls() {
+  const gate = blocked();
   for (let name2 of ["step", "source", "over", "out", "run", "demo"])
-    $2(name2).disabled = busy || dirty || running || !state || !["paused", "waiting"].includes(state.status);
-  $2("back").disabled = busy || dirty || running || !state?.step;
+    $2(name2).disabled = busy || dirty || !!gate || running || !state || !["paused", "waiting"].includes(state.status);
+  $2("back").disabled = busy || dirty || !!gate || running || !state?.step;
   $2("assemble").disabled = busy;
+  renderScope();
   $2("pause").disabled = !running;
   const info = statusInfo();
   $2("status").textContent = info.text;
@@ -27691,6 +27827,116 @@ function updateControls() {
   $2("status").onclick = info.at ? () => gotoSource(info.at.file, info.at.line) : null;
   $2("status").title = info.at ? "\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C" : "";
 }
+function nextScope() {
+  return assemblyScope(
+    {
+      files,
+      assembly: workspace?.assembly() || { mode: "auto", files: [] },
+      entry: workspace?.entry() || ""
+    },
+    activeFile
+  );
+}
+var MODE_NAMES = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u8303\u56F4" };
+var describeScope = (s) => s.error ? "\uFF08\u5C1A\u672A\u9009\u597D\u6E90\u7801\uFF09" : s.files.length > 1 ? `${MODE_NAMES[s.mode]} ${s.files.length} \u4E2A\u6587\u4EF6\uFF08\u5165\u53E3 ${s.entry}\uFF09` : `${MODE_NAMES[s.mode]} ${s.entry}`;
+var sameFiles = (a, b) => [...a].sort().join("\n") === [...b].sort().join("\n");
+function scopeReason() {
+  if (!state || !target || !workspace) return null;
+  if (activeFile && Object.hasOwn(files, activeFile) && !target.files.includes(activeFile))
+    return {
+      kind: "outside",
+      text: target.files.length > 1 ? `${activeFile} \u4E0D\u5C5E\u4E8E\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\uFF08${describeScope(target)}\uFF09\u3002\u8FD0\u884C\u548C\u5355\u6B65\u6682\u505C\u4F7F\u7528\uFF0C\u4E0D\u4F1A\u8FD0\u884C\u65E7\u7A0B\u5E8F\u3002` : `\u6B63\u5728\u67E5\u770B ${activeFile}\uFF1B\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\u6765\u81EA ${target.entry}\u3002\u8FD0\u884C\u548C\u5355\u6B65\u6682\u505C\u4F7F\u7528\uFF0C\u4E0D\u4F1A\u8FD0\u884C\u65E7\u7A0B\u5E8F\u3002`
+    };
+  const scope = nextScope();
+  if (scope.mode !== target.mode || scope.mode === "manual" && (scope.entry !== target.entry || !sameFiles(scope.files, target.files)))
+    return {
+      kind: "changed",
+      text: `\u6C47\u7F16\u65B9\u5F0F\u6216\u8303\u56F4\u5DF2\u66F4\u6539\uFF1A\u4E0B\u6B21\u5C06${describeScope(scope)}\uFF0C\u5DF2\u88C5\u5165\u7684\u4ECD\u662F${describeScope(target)}\u3002\u91CD\u65B0\u6C47\u7F16\u540E\u624D\u80FD\u8FD0\u884C\u3002`
+    };
+  return null;
+}
+function blocked() {
+  return scopeReason()?.text || "";
+}
+function renderScope() {
+  const scope = nextScope(), reason = scopeReason();
+  $2("target").textContent = !target ? "\u7A0B\u5E8F\uFF1A\u672A\u6C47\u7F16" : target.files.length > 1 ? `\u7A0B\u5E8F\uFF1A${target.entry} \uFF0B${target.files.length - 1} \u4E2A\u6587\u4EF6` : `\u7A0B\u5E8F\uFF1A${target.entry}`;
+  $2("target").title = target ? `${MODE_NAMES[target.mode]}\uFF0C\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\u7531\u8FD9\u4E9B\u6E90\u7801\u6C47\u7F16\uFF1A
+` + target.files.join("\n") : "\u8FD8\u6CA1\u6709\u6C47\u7F16";
+  $2("target").classList.toggle("stale", !!reason);
+  $2("assemble").title = (scope.error || describeScope(scope)) + " \xB7 Cmd/Ctrl+Enter\uFF1B\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F \xB7 Cmd/Ctrl+Shift+F5";
+  document.querySelectorAll("[data-assembly-mode]").forEach(
+    (b) => b.setAttribute(
+      "aria-checked",
+      String(b.dataset.assemblyMode === scope.mode)
+    )
+  );
+  const banner = $2("scope-banner");
+  banner.hidden = !reason;
+  if (!reason) return banner.replaceChildren();
+  const actions2 = reason.kind === "changed" ? [["assemble", "\u91CD\u65B0\u6C47\u7F16"]] : target.mode === "manual" ? [
+    ["back", "\u56DE\u5230\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F"],
+    ["join", `\u628A ${activeFile} \u52A0\u5165\u6C47\u7F16\u8303\u56F4`]
+  ] : [
+    [
+      "assemble",
+      !scope.error && scope.entry !== activeFile ? `\u6C47\u7F16\uFF08\u5165\u53E3 ${scope.entry}\uFF09` : `\u6C47\u7F16 ${activeFile}`
+    ],
+    ["back", `\u56DE\u5230 ${lastInTarget || target.entry}`]
+  ];
+  banner.innerHTML = `<span>${escapeHTML(reason.text)}</span>${actions2.map(
+    ([a, label2]) => `<button data-scope-action="${a}">${escapeHTML(label2)}</button>`
+  ).join("")}`;
+  banner.querySelectorAll("[data-scope-action]").forEach(
+    (b) => b.onclick = () => {
+      const a = b.dataset.scopeAction;
+      if (a === "assemble") assemble();
+      else if (a === "back") {
+        setView("source");
+        switchFile(
+          target.files.includes(lastInTarget) ? lastInTarget : target.entry
+        );
+      } else if (a === "join")
+        workspace.setAssembly({
+          files: [...workspace.assembly().files, activeFile]
+        });
+    }
+  );
+}
+function closeAssembleMenu() {
+  $2("assemble-menu").hidden = true;
+  $2("assemble-mode").setAttribute("aria-expanded", "false");
+}
+$2("assemble-mode").onclick = (e) => {
+  e.stopPropagation();
+  const open = $2("assemble-menu").hidden;
+  $2("assemble-menu").hidden = !open;
+  $2("assemble-mode").setAttribute("aria-expanded", String(open));
+  if (open)
+    $2("assemble-menu").querySelector('[aria-checked="true"]')?.focus();
+};
+document.querySelectorAll("[data-assembly-mode]").forEach(
+  (b) => b.onclick = () => {
+    closeAssembleMenu();
+    workspace.setAssembly({ mode: b.dataset.assemblyMode });
+    if (b.dataset.assemblyMode === "manual")
+      document.querySelector(".assembly-choice")?.scrollIntoView({ block: "nearest" });
+  }
+);
+$2("assemble-menu").addEventListener("keydown", (e) => {
+  const items = [...$2("assemble-menu").querySelectorAll("button")], at = items.indexOf(document.activeElement);
+  if (e.key === "Escape") {
+    closeAssembleMenu();
+    $2("assemble-mode").focus();
+  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus();
+  } else return;
+  e.preventDefault();
+  e.stopPropagation();
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".split-button")) closeAssembleMenu();
+});
 function renderFiles() {
   workspace?.render();
 }
@@ -27882,8 +28128,9 @@ function render() {
   $2("calls").querySelectorAll("[data-call]").forEach(
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.call) })
   );
+  const hints = target ? scopeHints(state.diagnostics, { files }, target) : [];
   $2("problems").innerHTML = state.diagnostics.map(
-    (d, i) => `<button class="command-item" data-diagnostic="${i}">${escapeHTML(d.file)}:${d.line} \xB7 ${escapeHTML(d.message)}</button>`
+    (d, i) => `<button class="command-item" data-diagnostic="${i}">${escapeHTML(d.file)}:${d.line} \xB7 ${escapeHTML(d.message)}${hints[i] ? `<small class="scope-hint">${escapeHTML(hints[i])}</small>` : ""}</button>`
   ).join("") + (state.error ? `<pre>${escapeHTML(state.error)}</pre>` : "");
   $2("problems").querySelectorAll("[data-diagnostic]").forEach(
     (b) => b.onclick = () => {
@@ -27892,7 +28139,7 @@ function render() {
     }
   );
   if (state.error) {
-    notify(state.error);
+    notify(hints.find(Boolean) || state.error);
     setBottom("problems");
   } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
@@ -27903,7 +28150,7 @@ function render() {
   updateControls();
 }
 function activeBreakpoints() {
-  return breakpoints.filter((b) => b.enabled).map(({ address, condition, hit, log }) => ({
+  return breakpoints.filter((b) => b.enabled && b.address != null).map(({ address, condition, hit, log }) => ({
     address,
     condition,
     hit,
@@ -27976,6 +28223,20 @@ function editBreakpoint(address) {
   $2("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
+  const kept = breakpoints.find(
+    (b) => b.file === activeFile && b.line === line && b.address == null
+  );
+  if (kept) {
+    breakpoints = breakpoints.filter((b) => b !== kept);
+    breakpointChanged();
+    return;
+  }
+  if (target && !target.files.includes(activeFile)) {
+    notify(`${activeFile} \u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF1B\u6C47\u7F16\u5B83\u4E4B\u540E\u624D\u80FD\u5728\u8FD9\u91CC\u8BBE\u65AD\u70B9\u3002`, {
+      transient: true
+    });
+    return;
+  }
   const at = breakableAddress(line);
   if (!at) {
     notify(
@@ -28023,7 +28284,7 @@ function renderStops() {
     ].filter(Boolean);
     return `<div class="bp-row ${b.enabled ? "" : "off"}">
         <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="\u542F\u7528 ${escapeHTML(b.file)}:${b.line}">
-        <button class="bp" data-bp="${i}">${breakpointGlyph(b)} ${escapeHTML(b.file)}:${b.line}<br><small>${escapeHTML(details.join(" \xB7 ") || hex(b.address))}</small></button>
+        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${escapeHTML(b.file)}:${b.line}<br><small>${escapeHTML(b.address == null ? "\u672A\u53C2\u4E0E\u6C47\u7F16 \xB7 \u6682\u4E0D\u751F\u6548" : details.join(" \xB7 ") || hex(b.address))}</small></button>
         <button data-bp-edit="${i}" aria-label="\u7F16\u8F91\u65AD\u70B9" title="\u7F16\u8F91\u65AD\u70B9">\u270E</button><button data-bp-remove="${i}" aria-label="\u5220\u9664\u65AD\u70B9" title="\u5220\u9664\u65AD\u70B9">\xD7</button>
       </div>`;
   }).join("");
@@ -28069,6 +28330,10 @@ function requestStop() {
 }
 async function run(mode = "run", extra = {}) {
   if (busy || dirty || running) return;
+  if (blocked()) {
+    notify(blocked(), { transient: true });
+    return;
+  }
   running = true;
   stopRequested = false;
   let finish;
@@ -28570,6 +28835,7 @@ workspace = projectManager({
   notify,
   editData,
   assemble,
+  scopeChanged: () => updateControls(),
   replace: async (p) => {
     await requestStop();
     if (busy) throw Error("\u8BF7\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
@@ -28585,6 +28851,8 @@ workspace = projectManager({
     debugLog = [];
     state = null;
     program = { instructions: [], symbols: [], instructionDocs: {} };
+    target = null;
+    lastInTarget = "";
     inspecting = null;
     focus = null;
     inlineCache.key = null;

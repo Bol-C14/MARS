@@ -43,7 +43,64 @@ export function normalizeProject(input) {
   const activeFile = input.activeFile === '' ? '' : Object.hasOwn(files, input.activeFile) ? input.activeFile : entry;
   const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files, n) && a.indexOf(n) === i) : Object.keys(files);
   if (activeFile && !openTabs.includes(activeFile)) openTabs.push(activeFile);
-  return {version: 2, name: String(input.name || '我的工程').slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay)};
+  return {version: 3, name: String(input.name || '我的工程').slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files)};
+}
+// Assembly scope (P0, 2026-10-24 classroom). Three ways, chosen beside the
+// assemble button and saved with the project:
+// - auto (default): start from main and link the files it needs, so
+//   independent exercises that each define main can sit in one project;
+// - single: only the file being edited;
+// - manual: exactly the checked files, with the top-level `entry`.
+// Projects saved before this field open in auto. The first P0 draft's names
+// (current, joint) still read as single and manual.
+const MODES = {auto: 'auto', single: 'single', manual: 'manual', current: 'single', joint: 'manual'};
+function normalizeAssembly(input, files) {
+  const chosen = Array.isArray(input?.files) ? input.files.filter((n, i, a) => typeof n === 'string' && Object.hasOwn(files, n) && a.indexOf(n) === i) : [];
+  return {mode: MODES[input?.mode] || 'auto', files: chosen};
+}
+const dirOf = name => name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : '';
+// What an assembly request would contain right now: the files and the entry.
+// `error` explains why nothing can be assembled.
+export function assemblyScope(p, activeFile) {
+  const mode = p.assembly?.mode || 'auto';
+  if (mode === 'manual') {
+    const files = p.assembly.files.filter(n => Object.hasOwn(p.files, n));
+    if (!files.length) return {mode, files, entry: '', error: '手动选择的汇编范围还没有勾选源码文件。'};
+    return {mode, files, entry: files.includes(p.entry) ? p.entry : files.includes('main.s') ? 'main.s' : files[0]};
+  }
+  if (!activeFile || !Object.hasOwn(p.files, activeFile)) return {mode, files: [], entry: '', error: '请先打开要汇编的 .s / .asm 源码文件。'};
+  if (mode === 'single') return {mode, files: [activeFile], entry: activeFile};
+  return autoScope(p.files, activeFile);
+}
+// Auto: the open file is the program when it defines main. Otherwise the
+// one file in its folder that defines main is, and the open file joins it;
+// with no main anywhere the open file runs from its first instruction. Then
+// every global label the program uses is linked from the file that defines
+// it, preferring the entry's folder. Files with their own main are other
+// programs and are never linked, so the open file is the only main source.
+function autoScope(sources, activeFile) {
+  const info = new Map(Object.entries(sources).map(([n, t]) => [n, {...labelsIn(t), refs: referencesIn(t)}]));
+  const hasMain = n => info.get(n).defined.has('main');
+  const fail = error => ({mode: 'auto', files: [], entry: '', error});
+  let entry = activeFile;
+  if (!hasMain(activeFile)) {
+    const mains = Object.keys(sources).filter(n => n !== activeFile && dirOf(n) === dirOf(activeFile) && hasMain(n));
+    if (mains.length > 1) return fail(`${activeFile} 没有 main，所在目录里有多个文件定义了 main（${mains.join('、')}），无法自动决定运行哪一个。请打开要运行的那个文件再汇编，或在汇编按钮右侧改用“单文件汇编”或“手动选择范围”。`);
+    if (mains.length) entry = mains[0];
+  }
+  const files = entry === activeFile ? [entry] : [entry, activeFile];
+  const provides = (n, sym) => info.get(n).globals.has(sym) && info.get(n).defined.has(sym);
+  for (let i = 0; i < files.length; i++) {
+    const own = info.get(files[i]);
+    for (const sym of own.refs) {
+      if (own.defined.has(sym) || files.some(n => provides(n, sym))) continue;
+      const providers = Object.keys(sources).filter(n => !files.includes(n) && !hasMain(n) && provides(n, sym));
+      const near = providers.filter(n => dirOf(n) === dirOf(entry)), pick = near.length ? near : providers;
+      if (pick.length > 1) return fail(`${files[i]} 用到的 ${sym} 同时定义在 ${pick.join('、')}，无法自动决定链接哪一个。请在汇编按钮右侧改用“手动选择范围”。`);
+      if (pick.length) files.push(pick[0]);
+    }
+  }
+  return {mode: 'auto', files, entry};
 }
 export const blankProject = (name = '我的工程') => normalizeProject({name, files: {'main.s': '# 在这里编写 MIPS 汇编程序\n.text\n'}, data: {}, entry: 'main.s'});
 
@@ -60,7 +117,7 @@ export function renamePath(input, from, to) {
   for (const n of all.filter(match)) if (all.some(other => !match(other) && other === move(n))) throw Error(`目标已存在：${move(n)}`);
   if (!folder && isSource(from) !== isSource(to)) throw Error('重命名时请保持源码或输入文件的类型。');
   const remap = obj => Object.fromEntries(Object.entries(obj).map(([n, text]) => [move(n), text]));
-  return normalizeProject({...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move)});
+  return normalizeProject({...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move), assembly: {...p.assembly, files: p.assembly.files.map(move)}});
 }
 export function removePath(input, path) {
   const p = normalizeProject(input);
@@ -73,13 +130,14 @@ export function mergeProject(current, incoming, overwrite = false) {
   const names = new Set([...Object.keys(a.files), ...Object.keys(a.data)]);
   const conflicts = [...Object.keys(b.files), ...Object.keys(b.data)].filter(n => names.has(n));
   if (conflicts.length && !overwrite) throw Error('同名文件：' + conflicts.join('、'));
+  // Added files never join the current joint-assembly selection by themselves.
   return normalizeProject({...a, files: {...a.files, ...b.files}, data: {...a.data, ...b.data}, folders: [...a.folders, ...b.folders]});
 }
 export function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name, text] of Object.entries({...p.files, ...p.data})) entries[name] = strToU8(text);
   for (const f of p.folders) entries[f + '/'] = new Uint8Array();
-  entries['.mars-project.json'] = strToU8(JSON.stringify({version: 2, name:p.name, entry:p.entry, folders:p.folders, delay:p.delay}, null, 2));
+  entries['.mars-project.json'] = strToU8(JSON.stringify({version: 3, name:p.name, entry:p.entry, folders:p.folders, delay:p.delay, assembly:p.assembly}, null, 2));
   return zipSync(entries, {level: 6});
 }
 function textFile(bytes, name) {
@@ -108,7 +166,7 @@ export async function readImports(selected) {
     if (name.endsWith('/.mars-project.json')) {
       const m = JSON.parse(textFile(bytes,name)), prefix=name.slice(0,-'.mars-project.json'.length);
       if (m.folders != null && !Array.isArray(m.folders)) throw Error('文件夹工程信息无效。');
-      metadata={...m,entry:m.entry ? prefix+m.entry : '',folders:(m.folders||[]).map(n=>prefix+n)};
+      metadata={...m,entry:m.entry ? prefix+m.entry : '',folders:(m.folders||[]).map(n=>prefix+n),assembly:m.assembly && {...m.assembly,files:Array.isArray(m.assembly.files) ? m.assembly.files.map(n=>prefix+n) : []}};
       continue;
     }
     if (/\.zip$/i.test(f.name)) {
@@ -137,4 +195,60 @@ export async function readImports(selected) {
   }
   if (!seen.size && !folders.length) throw Error('没有可导入的文件。');
   return normalizeProject({...metadata, files, data, folders: [...folders, ...(metadata.folders || [])]});
+}
+
+const stripped = raw => raw.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""').replace(/#.*/, '');
+const labelPrefix = /^\s*([A-Za-z_.$][\w.$]*)\s*:/;
+// Labels a source defines and declares global, read from its text only (no
+// assembling): enough to link files and to say which files a diagnostic is
+// about.
+export function labelsIn(text) {
+  const defined = new Set(), globals = new Set();
+  for (const raw of String(text).split('\n')) {
+    let line = stripped(raw);
+    for (let m; (m = labelPrefix.exec(line)); line = line.slice(m[0].length)) defined.add(m[1]);
+    const g = /^\s*\.globl\s+(.+)/.exec(line);
+    if (g) for (const name of g[1].split(/[\s,]+/).filter(Boolean)) globals.add(name);
+  }
+  return {defined, globals};
+}
+// Names a source uses as operands of instructions and data words (jal
+// helper, la $a0, prompt, .word table): candidates for labels in other files.
+export function referencesIn(text) {
+  const refs = new Set();
+  for (const raw of String(text).split('\n')) {
+    let line = stripped(raw);
+    for (let m; (m = labelPrefix.exec(line)); line = line.slice(m[0].length));
+    const [, op = '', operands = ''] = /^\s*(\S+)\s*(.*)$/.exec(line) || [];
+    if (op.startsWith('.') && !/^\.(word|half|byte)$/.test(op)) continue;
+    for (const m of operands.matchAll(/(?<![\w$.%])[A-Za-z_][\w.$]*/g)) refs.add(m[0]);
+  }
+  return refs;
+}
+// One plain explanation per assembler diagnostic that is about the assembly
+// scope: a global defined by two assembled files, or a label that lives in a
+// project file outside this assembly. Other diagnostics get ''.
+export function scopeHints(diagnostics, project, scope) {
+  const labels = new Map(Object.entries(project.files).map(([n, t]) => [n, labelsIn(t)]));
+  const list = names => names.join('、');
+  return (diagnostics || []).map(d => {
+    let m = /^"(.+)" already defined as global in a different file/.exec(d.message || '');
+    if (m) {
+      const owners = scope.files.filter(n => labels.get(n)?.globals.has(m[1]) && labels.get(n).defined.has(m[1]));
+      return `参与这次汇编的 ${list(owners.length > 1 ? owners : scope.files)} 都定义了全局标签 ${m[1]}。` + (scope.mode === 'manual'
+        ? '如果它们是各自独立的练习，请取消勾选其中一个，或改用“自动汇编”。'
+        : '同一个全局标签只能定义一次，请改名或删去其中一个。');
+    }
+    m = /^Symbol "(.+)" not found in symbol table/.exec(d.message || '');
+    if (m) {
+      const sym = m[1], owners = [...labels].filter(([n, l]) => !scope.files.includes(n) && l.defined.has(sym)).map(([n]) => n);
+      if (!owners.length) return '';
+      const local = owners.filter(n => !labels.get(n).globals.has(sym));
+      if (local.length === owners.length) return `${sym} 定义在 ${list(owners)}，但没有用 .globl ${sym} 声明为全局标签，其他文件看不到它。`;
+      if (scope.mode === 'manual') return `${sym} 定义在 ${list(owners)}，它没有勾选进手动选择的汇编范围。需要时请勾选它。`;
+      if (scope.mode === 'single') return `${sym} 定义在 ${list(owners)}，单文件汇编不会加入它。请改用“自动汇编”或“手动选择范围”。`;
+      return `${sym} 定义在 ${list(owners)}，但那里也定义了 main（是另一个程序），自动汇编不会把它链接进来。需要一起汇编时请改用“手动选择范围”。`;
+    }
+    return '';
+  });
 }

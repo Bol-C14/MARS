@@ -1,5 +1,5 @@
 import {escapeHTML as esc} from './model.js';
-import {blankProject, normalizeProject, pathName, isSource, renamePath, removePath, mergeProject, readImports, projectZip} from './workspace.js';
+import {blankProject, normalizeProject, pathName, isSource, renamePath, removePath, mergeProject, readImports, projectZip, assemblyScope} from './workspace.js';
 
 export const DRAFT_KEY = 'mars-trace:project:v2';
 const BACKUP_KEY = 'mars-trace:previous-project:v2';
@@ -42,6 +42,20 @@ export function projectManager(hooks) {
     try { await hooks.replace(p); } finally { replacing = false; }
     render();
     save();
+  }
+  // Changing the assembly scope keeps the loaded program and its history; the
+  // IDE then says the program is out of date instead of replacing anything.
+  function setAssembly(patch, entry = meta.entry) {
+    if (hooks.busy()) { hooks.notify('请先暂停执行，再修改汇编范围。'); render(); return; }
+    const current = hooks.snapshot().activeFile, assembly = {...meta.assembly, ...patch};
+    // A first manual scope starts from what auto assembly would use now.
+    if (patch.mode === 'manual' && !assembly.files.length) {
+      const auto = assemblyScope({...snapshot(), assembly: {mode: 'auto', files: []}}, current);
+      if (!auto.error) { assembly.files = auto.files; entry = auto.entry; }
+      else if (current && isSource(current)) { assembly.files = [current]; entry = current; }
+    }
+    meta = normalizeProject({...snapshot(), assembly, entry});
+    render(); changed(); hooks.scopeChanged();
   }
   function form(title, label, value, action, hint = '') {
     hooks.modal(title, `<form id="project-form"><label>${esc(label)}<input id="project-value" value="${esc(value)}" required autocomplete="off"></label>${hint ? `<p class="muted">${esc(hint)}</p>` : ''}<p id="project-error" role="alert"></p><div class="project-actions"><button type="button" id="project-cancel">取消</button><button class="primary">确定</button></div></form>`);
@@ -88,12 +102,12 @@ export function projectManager(hooks) {
   }
   function menu(path, folder) {
     const p = snapshot();
-    hooks.modal(folder ? '文件夹 · ' + path : '文件 · ' + path, `<div class="file-actions">${folder ? '<button id="node-new-file">新建文件</button><button id="node-new-folder">新建子文件夹</button>' : '<button id="node-download">下载此文件</button>'}${isSource(path) && !folder ? `<button id="node-entry" ${p.entry===path ? 'disabled' : ''}>${p.entry===path ? '当前汇编入口' : '设为汇编入口'}</button>` : ''}<button id="node-rename">重命名／移动</button><button class="danger" id="node-delete">${folder ? '删除文件夹及其内容' : '删除文件'}</button></div><p class="muted">重命名／移动时填写完整工程路径，例如 src/main.s。</p>`);
+    hooks.modal(folder ? '文件夹 · ' + path : '文件 · ' + path, `<div class="file-actions">${folder ? '<button id="node-new-file">新建文件</button><button id="node-new-folder">新建子文件夹</button>' : '<button id="node-download">下载此文件</button>'}${isSource(path) && !folder && p.assembly.mode==='manual' ? `<button id="node-entry" ${p.entry===path && p.assembly.files.includes(path) ? 'disabled' : ''}>${p.entry===path && p.assembly.files.includes(path) ? '当前汇编入口' : '设为汇编入口'}</button>` : ''}<button id="node-rename">重命名／移动</button><button class="danger" id="node-delete">${folder ? '删除文件夹及其内容' : '删除文件'}</button></div><p class="muted">重命名／移动时填写完整工程路径，例如 src/main.s。</p>`);
     if (folder) {
       $('node-new-file').onclick = () => create(path);
       $('node-new-folder').onclick = () => create(path, true);
     } else $('node-download').onclick = () => downloadFile(path);
-    if ($('node-entry')) $('node-entry').onclick = async () => { try { await apply({...snapshot(),entry:path}); $('modal').close(); } catch(e) {hooks.notify(e.message);} };
+    if ($('node-entry')) $('node-entry').onclick = () => { setAssembly({files:[...new Set([...meta.assembly.files,path])]}, path); $('modal').close(); };
     $('node-rename').onclick = () => form('重命名／移动', '新路径', path, value => apply(renamePath(snapshot(), path, value)));
     $('node-delete').onclick = () => {
       const count = [...Object.keys(p.files),...Object.keys(p.data)].filter(n => n === path || n.startsWith(path+'/')).length;
@@ -105,20 +119,32 @@ export function projectManager(hooks) {
     const p = snapshot();
     $('project-title').textContent = p.name;
     $('project-title').title = '修改工程名称';
+    // A manual scope shows a checkbox per source and the entry among them;
+    // auto and single assembly need neither.
+    const joint = p.assembly.mode === 'manual', chosen = p.assembly.files;
+    const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes('main.s') ? 'main.s' : chosen[0];
     const rows = parent => {
       const base = parent ? parent + '/' : '';
       const immediate = name => name.startsWith(base) && !name.slice(base.length).includes('/');
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files),...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary><span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => `<li class="tree-row ${path===p.activeFile ? 'active' : ''}"><button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}"><span aria-hidden="true">${isSource(path) ? '◇' : '▤'}</span><span class="tree-name">${esc(path.slice(base.length))}</span>${path===p.entry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
+      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary><span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => `<li class="tree-row ${path===p.activeFile ? 'active' : ''} ${joint && chosen.includes(path) ? 'joined' : ''}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${esc(path)}" ${chosen.includes(path) ? 'checked' : ''} aria-label="${esc(path)} 参与汇编" title="参与汇编">` : ''}<button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}"><span aria-hidden="true">${isSource(path) ? '◇' : '▤'}</span><span class="tree-name">${esc(path.slice(base.length))}</span>${joint && path===scopeEntry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
     };
     $('files').innerHTML = `<ul class="file-tree" aria-label="工程文件树">${rows('') || '<li class="tree-empty">工程为空，点击 ＋ 新建文件或打开工程。</li>'}</ul>`;
     $('files').querySelectorAll('[data-file]').forEach(b => b.onclick = () => hooks.openFile(b.dataset.file));
     $('files').querySelectorAll('[data-data]').forEach(b => b.onclick = () => hooks.editData(b.dataset.data));
     $('files').querySelectorAll('[data-node]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); menu(b.dataset.node, b.dataset.directory==='true'); });
     $('files').querySelectorAll('details').forEach(d => d.ontoggle = () => { if (d.open) collapsed.delete(d.dataset.folder); else collapsed.add(d.dataset.folder); });
-    $('entry-file').innerHTML = Object.keys(p.files).map(name => `<option value="${esc(name)}" ${name===p.entry ? 'selected' : ''}>${esc(name)}</option>`).join('') || '<option>暂无源码</option>';
-    $('entry-file').disabled = !p.entry;
+    $('files').querySelectorAll('[data-joint]').forEach(c => c.onchange = () => setAssembly({files: c.checked ? [...chosen, c.dataset.joint] : chosen.filter(n => n !== c.dataset.joint)}));
+    $('joint-settings').hidden = !joint;
+    const scope = assemblyScope(p, p.activeFile);
+    $('assembly-mode-name').textContent = {auto: '自动汇编', single: '单文件汇编', manual: '手动选择范围'}[p.assembly.mode];
+    $('assembly-hint').textContent = scope.error ? scope.error : joint
+      ? `勾选的 ${chosen.length} 个源码一起汇编，从入口开始执行；未勾选的不参与。`
+      : p.assembly.mode === 'single' ? `只汇编 ${scope.entry}。`
+      : `从 ${scope.entry} 的 main 开始${scope.files.length > 1 ? `，链接 ${scope.files.filter(n => n !== scope.entry).join('、')}` : ''}；其他文件不参与。`;
+    $('entry-file').innerHTML = chosen.map(name => `<option value="${esc(name)}" ${name===scopeEntry ? 'selected' : ''}>${esc(name)}</option>`).join('') || '<option value="">先勾选源码</option>';
+    $('entry-file').disabled = !chosen.length;
     $('export-file').disabled = !p.activeFile;
     try { $('restore-project').disabled = !previous && !localStorage.getItem(BACKUP_KEY); } catch { $('restore-project').disabled = !previous; }
   }
@@ -152,13 +178,13 @@ export function projectManager(hooks) {
   $('save-local').onclick = () => { save(); hooks.notify(failed ? '浏览器存储不可用，请导出工程保存。' : '源码已保存到此浏览器；换设备前请导出工程。', {transient: true}); };
   $('save').onclick = () => {
     const p = snapshot();
-    hooks.modal('导出工程', '<p>保存到电脑后可重新导入，或发给老师。源码、输入文件、目录和汇编入口都会保留。</p><div class="file-actions"><button id="download-zip">下载 ZIP（包含原始文件）</button><button id="download-json">下载 MARS 工程 JSON</button></div>');
+    hooks.modal('导出工程', '<p>保存到电脑后可重新导入，或发给老师。源码、输入文件、目录、汇编方式和手动选择的范围都会保留。</p><div class="file-actions"><button id="download-zip">下载 ZIP（包含原始文件）</button><button id="download-json">下载 MARS 工程 JSON</button></div>');
     const basename = p.name.replace(/[\\/:*?"<>|]/g,'-') || 'mars-project';
     $('download-zip').onclick = () => { download(projectZip(p),basename+'.zip','application/zip'); $('modal').close(); };
     $('download-json').onclick = () => { download(JSON.stringify(p,null,2),basename+'.json','application/json'); $('modal').close(); };
   };
   $('export-file').onclick = () => downloadFile(hooks.snapshot().activeFile);
-  $('entry-file').onchange = async e => { try { await apply({...snapshot(),entry:e.target.value}); } catch(error) {hooks.notify(error.message);render();} };
+  $('entry-file').onchange = e => setAssembly({}, e.target.value);
   $('restore-project').onclick = () => {
     try { const restore=previous || normalizeProject(JSON.parse(localStorage.getItem(BACKUP_KEY))); confirm('恢复上次管理操作前的工程', `恢复“${restore.name}”的文件。当前内容会成为下一份备份。`, '恢复', () => apply(restore)); }
     catch(error) { hooks.notify(error.message); }
@@ -171,6 +197,8 @@ export function projectManager(hooks) {
   return {
     render, changed, save, snapshot, apply,
     entry: () => meta.entry,
+    assembly: () => meta.assembly,
+    setAssembly,
     tabs: () => meta.openTabs.filter(n => Object.hasOwn(hooks.snapshot().files,n)),
     opened: name => { if (!meta.openTabs.includes(name)) meta.openTabs.push(name); changed(); },
     closeTab: name => { const active=hooks.snapshot().activeFile; meta.openTabs=meta.openTabs.filter(n=>n!==name); hooks.selectActive(active===name ? meta.openTabs.at(-1)||'' : active); render(); save(); },

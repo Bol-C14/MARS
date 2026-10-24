@@ -80,18 +80,29 @@ public final class Server {
                   );
                 }
               }
-              examples.add(
-                Json.obj(
-                  "name",
-                  dir.getFileName().toString(),
-                  "files",
-                  files,
-                  "data",
-                  data,
-                  "entry",
-                  "main.s"
-                )
+              // An example that needs several sources declares its joint
+              // assembly in .mars-project.json; the rest assemble the file
+              // being edited.
+              var example = Json.obj(
+                "name",
+                dir.getFileName().toString(),
+                "files",
+                files,
+                "data",
+                data,
+                "entry",
+                "main.s"
               );
+              Path meta = dir.resolve(".mars-project.json");
+              if (Files.isRegularFile(meta)) {
+                var declared = (Map<?, ?>) Json.parse(Files.readString(meta));
+                for (String key : List.of("entry", "assembly"))
+                  if (declared.containsKey(key)) example.put(
+                    key,
+                    declared.get(key)
+                  );
+              }
+              examples.add(example);
             }
           }
           send(ex, 200, Json.stringify(examples), "application/json");

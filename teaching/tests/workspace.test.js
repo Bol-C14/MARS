@@ -46,3 +46,58 @@ test('reject unsafe paths, invalid text, malformed project and oversized ZIP bef
  await assert.rejects(()=>readImports([new File([bytes],'too-big.zip')]));
  await assert.rejects(()=>readImports([new File([zipSync({'../outside.s':strToU8('x')})],'unsafe.zip')]));
 });
+import {assemblyScope,labelsIn,referencesIn,scopeHints} from '../ui/workspace.js';
+const one=v=>`.text\n.globl main\nmain:\nli $a0,${v}\nli $v0,1\nsyscall\n`;
+const exercises=()=>normalizeProject({files:{'hello.s':one(1),'课程/hexOut.s':'.text\n.globl main # entry\nmain: jal helper\n','课程/helper.s':'.text\n.globl helper\nhelper: jr $ra\n','课程/other.s':one(3)},activeFile:'课程/hexOut.s',entry:'hello.s'});
+const mode=(p,m,extra={})=>normalizeProject({...p,assembly:{mode:m,files:[],...extra}});
+test('legacy projects open in auto mode; the first draft names still read',()=>{
+ assert.deepEqual(exercises().assembly,{mode:'auto',files:[]});
+ assert.equal(normalizeProject({...exercises(),assembly:{mode:'joint'}}).assembly.mode,'manual');
+ assert.equal(normalizeProject({...exercises(),assembly:{mode:'current'}}).assembly.mode,'single');
+});
+test('auto: the open file with main is the only main source and links what it uses',()=>{
+ assert.deepEqual(assemblyScope(exercises(),'课程/hexOut.s'),{mode:'auto',files:['课程/hexOut.s','课程/helper.s'],entry:'课程/hexOut.s'});
+ assert.deepEqual(assemblyScope(exercises(),'hello.s'),{mode:'auto',files:['hello.s'],entry:'hello.s'});
+});
+test('auto: an open file without main finds the one main in its folder, links transitively',()=>{
+ const p=normalizeProject({files:{'lab/main.s':'.text\n.globl main\nmain: jal task1\n','lab/task1.s':'.text\n.globl task1\ntask1: jal printChar\n','lib/io.s':'.text\n.globl printChar\nprintChar: jr $ra\n','solo.s':'.text\nli $v0,10\nsyscall\n'}});
+ assert.deepEqual(assemblyScope(p,'lab/task1.s'),{mode:'auto',files:['lab/main.s','lab/task1.s','lib/io.s'],entry:'lab/main.s'});
+ assert.deepEqual(assemblyScope(p,'solo.s'),{mode:'auto',files:['solo.s'],entry:'solo.s'},'no main anywhere: the open file runs alone');
+});
+test('auto: several mains in the folder of a file without main is the only error',()=>{
+ assert.match(assemblyScope(exercises(),'课程/helper.s').error,/多个文件定义了 main（课程\/hexOut\.s、课程\/other\.s）/);
+ const twice=normalizeProject({files:{'main.s':'.text\n.globl main\nmain: jal f\n','a/f.s':'.text\n.globl f\nf: jr $ra\n','b/f.s':'.text\n.globl f\nf: jr $ra\n'}});
+ assert.match(assemblyScope(twice,'main.s').error,/f 同时定义在 a\/f\.s、b\/f\.s/);
+});
+test('single and manual scopes use exactly the open file or the chosen files',()=>{
+ assert.deepEqual(assemblyScope(mode(exercises(),'single'),'课程/hexOut.s'),{mode:'single',files:['课程/hexOut.s'],entry:'课程/hexOut.s'});
+ const p=mode(exercises(),'manual',{files:['课程/hexOut.s','课程/helper.s','missing.s','课程/helper.s']});
+ assert.deepEqual(p.assembly.files,['课程/hexOut.s','课程/helper.s']);
+ assert.deepEqual(assemblyScope(p,'hello.s'),{mode:'manual',files:['课程/hexOut.s','课程/helper.s'],entry:'课程/hexOut.s'});
+ assert.equal(assemblyScope(normalizeProject({...p,entry:'课程/helper.s'}),'').entry,'课程/helper.s');
+ assert.match(assemblyScope(mode(exercises(),'manual'),'hello.s').error,/还没有勾选/);
+ assert.match(assemblyScope(exercises(),'').error,/请先打开/);
+});
+test('manual selection follows renames and deletions and survives ZIP and JSON',async()=>{
+ let p=normalizeProject({...mode(exercises(),'manual',{files:['课程/hexOut.s','课程/helper.s']}),entry:'课程/hexOut.s'});
+ p=renamePath(p,'课程','src');assert.deepEqual(p.assembly.files,['src/hexOut.s','src/helper.s']);
+ assert.deepEqual(removePath(p,'src/helper.s').assembly.files,['src/hexOut.s']);
+ const zip=await readImports([new File([projectZip(p)],'p.zip')]);assert.deepEqual(zip.assembly,p.assembly);assert.equal(zip.entry,p.entry);
+ const json=await readImports([new File([JSON.stringify(p)],'p.json')]);assert.deepEqual(json.assembly,p.assembly);
+ const merged=mergeProject(p,normalizeProject({files:{'extra.s':'.text'},assembly:{mode:'manual',files:['extra.s']}}));assert.deepEqual(merged.assembly,p.assembly);
+});
+test('labels and references are read from text, ignoring comments and strings',()=>{
+ const l=labelsIn('.globl main, helper\nmain: a: nop # b:\n.asciiz "c: d"\n');
+ assert.deepEqual([...l.defined],['main','a']);assert.deepEqual([...l.globals],['main','helper']);
+ assert.deepEqual([...referencesIn('loop: beq $t0,$zero,done # jal x\nla $a0, 0x10($sp)\n.word table, 4\n.asciiz "jal y"\n.globl z\n')],['done','table']);
+});
+test('scope diagnostics name the files involved and the way out',()=>{
+ const p=mode(exercises(),'manual',{files:['hello.s','课程/hexOut.s']});
+ const [dup,other]=scopeHints([{message:'"main" already defined as global in a different file.'},{message:'Something else'}],p,assemblyScope(p,''));
+ assert.match(dup,/hello\.s、课程\/hexOut\.s 都定义了全局标签 main/);assert.equal(other,'');
+ const single=mode(exercises(),'single'),[missing]=scopeHints([{message:'Symbol "helper" not found in symbol table.'}],single,assemblyScope(single,'课程/hexOut.s'));
+ assert.match(missing,/helper 定义在 课程\/helper\.s，单文件汇编不会加入它/);
+ const local=normalizeProject({files:{'main.s':'.text\nmain: jal f\n','f.s':'.text\nf: jr $ra\n'}});
+ assert.match(scopeHints([{message:'Symbol "f" not found in symbol table.'}],local,assemblyScope(local,'main.s'))[0],/没有用 \.globl f 声明为全局标签/);
+ assert.equal(scopeHints([{message:'Symbol "nowhere" not found in symbol table.'}],single,assemblyScope(single,'hello.s'))[0],'');
+});

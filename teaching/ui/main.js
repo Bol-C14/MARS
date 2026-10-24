@@ -38,8 +38,16 @@ import {
 import { termsIn } from "./glossary.js";
 import { lineDecision } from "./beats.js";
 import { projectManager } from "./project-manager.js";
+import { assemblyScope, scopeHints } from "./workspace.js";
 const $ = (id) => document.getElementById(id);
 let workspace = null;
+// Four different things (P0): the tab being edited (activeFile), the scope
+// the next assembly would use (nextScope: auto, single or manual), the way
+// saved with the project (workspace.assembly), and the target: the files and entry of the
+// program that is loaded now. Execution only runs while the target is still
+// what the student is looking at.
+let target = null,
+  lastInTarget = "";
 const fileAccess = new Compartment();
 let state = null,
   files = {},
@@ -77,8 +85,12 @@ class Dot extends GutterMarker {
   toDOM() {
     let e = document.createElement("span");
     e.className =
-      "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "");
+      "break-dot" +
+      (this.breakpoint && !this.breakpoint.enabled ? " off" : "") +
+      (this.breakpoint && this.breakpoint.address == null ? " stale" : "");
     e.textContent = breakpointGlyph(this.breakpoint);
+    if (this.breakpoint && this.breakpoint.address == null)
+      e.title = "这个文件没有参与当前汇编，断点暂不生效";
     return e;
   }
 }
@@ -403,7 +415,8 @@ function editorMenu(x, y, pos) {
   const line = editor.state.doc.lineAt(pos).number,
     address = breakableAddress(line)?.address ?? null,
     token = tokenAt(pos),
-    canRun = !dirty && ["paused", "waiting"].includes(state?.status);
+    canRun =
+      !dirty && !blocked() && ["paused", "waiting"].includes(state?.status);
   editor.dispatch({ selection: { anchor: pos } });
   const items = [
     [
@@ -543,12 +556,15 @@ const editor = new EditorView({
           if (!activeFile) return;
           files[activeFile] = u.state.doc.toString();
           workspace?.changed();
-          dirty = true;
           renderTabs();
+          // Editing another exercise leaves the loaded program valid (P0).
+          if (!target || target.files.includes(activeFile)) {
+            dirty = true;
+            $("banner").textContent =
+              "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本";
+            $("banner").className = "visible";
+          }
           updateControls();
-          $("banner").textContent =
-            "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本";
-          $("banner").className = "visible";
         }
         overlay?.schedule();
       }),
@@ -585,7 +601,7 @@ const overlay = new OverlayRenderer({
   onSource: (a) => gotoAddress(a),
 });
 const lens = new FocusLens({
-  getState: () => (dirty ? null : state),
+  getState: () => (dirty || blocked() ? null : state),
   getProgram: () => program,
   getSource: (file, line) => files[file]?.split("\n")[line - 1],
   command: (name, extra) => command(name, extra).then((s) => (followPC(), s)),
@@ -828,8 +844,25 @@ async function api(body) {
   if (!r.ok || !s.protocol) throw Error(s.error || "执行服务未返回状态");
   return named(s);
 }
+// Commands that execute or move through the loaded program's history. They
+// wait while the loaded program is not the one being looked at (P0).
+const EXECUTING = new Set([
+  "step",
+  "source",
+  "over",
+  "out",
+  "run",
+  "back",
+  "seek",
+  "line",
+  "input",
+]);
 async function command(name, extra = {}) {
   if (busy) return null;
+  if (EXECUTING.has(name) && blocked()) {
+    notify(blocked(), { transient: true });
+    return null;
+  }
   busy = true;
   updateControls();
   try {
@@ -859,38 +892,50 @@ async function assemble() {
   busy = true;
   updateControls();
   try {
-    let old = state?.programVersion;
     savedEditor();
     if (!Object.keys(files).length) throw Error("请先新建或导入一个 .s / .asm 源码文件。");
+    // Only the scope goes to the assembler: auto (main plus the files it
+    // uses), the single open file, or the manual selection. Other exercises
+    // stay in the tree (P0).
+    const scope = nextScope();
+    if (scope.error) throw Error(scope.error);
     state = await api({
       command: "assemble",
-      files,
+      files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
       data,
-      entry: workspace?.entry() || Object.keys(files)[0],
+      entry: scope.entry,
       delay: $("delay").checked,
       ...lookahead(),
     });
+    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
+    lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
       instructions: state.instructions || [],
       symbols: state.symbols || [],
       instructionDocs: state.instructionDocs || {},
     };
     dirty = false;
-    breakpoints = breakpoints
-      .map((b) => ({
-        ...b,
-        address: program.instructions.find(
-          (i) => i.file === b.file && i.line === b.line,
-        )?.address,
-      }))
-      .filter((b) => b.address != null);
+    // Breakpoints live on file:line. Those in files outside this assembly
+    // stay listed but inactive, and come back when the file is assembled.
+    breakpoints = breakpoints.map((b) => ({
+      ...b,
+      address: program.instructions.find(
+        (i) => i.file === b.file && i.line === b.line,
+      )?.address,
+    }));
     debugLog = [];
     notify(state.error || "");
     render();
     // Reassembling keeps the file being read (round-3 trial: it jumped back to
     // main.s); the status chip still says where execution starts.
     const start = program.instructions.find((i) => i.address === state.pc);
-    if (!activeFile || !start || start.file === activeFile) followPC();
+    if (
+      !activeFile ||
+      !start ||
+      start.file === activeFile ||
+      !target.files.includes(activeFile)
+    )
+      followPC();
     lens.update(state);
   } catch (e) {
     notify(e.message);
@@ -907,6 +952,7 @@ function switchFile(file) {
   savedEditor();
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
+  if (target?.files.includes(file)) lastInTarget = file;
   workspace?.opened(file);
   loadEditor = true;
   editor.dispatch({
@@ -917,6 +963,7 @@ function switchFile(file) {
   loadEditor = false;
   renderTabs();
   renderFiles();
+  updateControls();
   overlay.schedule();
 }
 // Cursor navigation history (VS Code Go Back / Go Forward). Following the PC
@@ -1022,8 +1069,12 @@ function arrive(jumped = false) {
 // Moving to another file while following execution is easy to miss; say where
 // execution went and flash the tab.
 let keepNotice = false;
+// The debugger moving the editor to where execution is, as opposed to the
+// student switching tabs: it never records navigation and only ever opens
+// files of the loaded program, so it cannot make the program look outdated.
 function followPC() {
   let ins = program.instructions.find((i) => i.address === state?.pc);
+  if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
     const label = program.symbols
       .filter((s) => !s.data && s.address <= ins.address)
@@ -1142,15 +1193,18 @@ function statusInfo() {
   };
 }
 function updateControls() {
+  const gate = blocked();
   for (let name of ["step", "source", "over", "out", "run", "demo"])
     $(name).disabled =
       busy ||
       dirty ||
+      !!gate ||
       running ||
       !state ||
       !["paused", "waiting"].includes(state.status);
-  $("back").disabled = busy || dirty || running || !state?.step;
+  $("back").disabled = busy || dirty || !!gate || running || !state?.step;
   $("assemble").disabled = busy;
+  renderScope();
   $("pause").disabled = !running;
   const info = statusInfo();
   $("status").textContent = info.text;
@@ -1160,6 +1214,165 @@ function updateControls() {
     : null;
   $("status").title = info.at ? "点击跳到这一行" : "";
 }
+function nextScope() {
+  return assemblyScope(
+    {
+      files,
+      assembly: workspace?.assembly() || { mode: "auto", files: [] },
+      entry: workspace?.entry() || "",
+    },
+    activeFile,
+  );
+}
+const MODE_NAMES = { auto: "自动汇编", single: "单文件汇编", manual: "手动范围" };
+const describeScope = (s) =>
+  s.error
+    ? "（尚未选好源码）"
+    : s.files.length > 1
+      ? `${MODE_NAMES[s.mode]} ${s.files.length} 个文件（入口 ${s.entry}）`
+      : `${MODE_NAMES[s.mode]} ${s.entry}`;
+const sameFiles = (a, b) =>
+  [...a].sort().join("\n") === [...b].sort().join("\n");
+// Why the loaded program must not run right now, if it must not: the student
+// switched to a source outside it, or changed the way or the manual scope.
+// Following execution into another file never causes this, because execution
+// only reaches files inside the target.
+function scopeReason() {
+  if (!state || !target || !workspace) return null;
+  if (
+    activeFile &&
+    Object.hasOwn(files, activeFile) &&
+    !target.files.includes(activeFile)
+  )
+    return {
+      kind: "outside",
+      text:
+        target.files.length > 1
+          ? `${activeFile} 不属于已装入的程序（${describeScope(target)}）。运行和单步暂停使用，不会运行旧程序。`
+          : `正在查看 ${activeFile}；已装入的程序来自 ${target.entry}。运行和单步暂停使用，不会运行旧程序。`,
+    };
+  const scope = nextScope();
+  if (
+    scope.mode !== target.mode ||
+    (scope.mode === "manual" &&
+      (scope.entry !== target.entry || !sameFiles(scope.files, target.files)))
+  )
+    return {
+      kind: "changed",
+      text: `汇编方式或范围已更改：下次将${describeScope(scope)}，已装入的仍是${describeScope(target)}。重新汇编后才能运行。`,
+    };
+  return null;
+}
+function blocked() {
+  return scopeReason()?.text || "";
+}
+function renderScope() {
+  const scope = nextScope(),
+    reason = scopeReason();
+  $("target").textContent = !target
+    ? "程序：未汇编"
+    : target.files.length > 1
+      ? `程序：${target.entry} ＋${target.files.length - 1} 个文件`
+      : `程序：${target.entry}`;
+  $("target").title = target
+    ? `${MODE_NAMES[target.mode]}，已装入的程序由这些源码汇编：\n` +
+      target.files.join("\n")
+    : "还没有汇编";
+  $("target").classList.toggle("stale", !!reason);
+  $("assemble").title =
+    (scope.error || describeScope(scope)) +
+    " · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5";
+  document
+    .querySelectorAll("[data-assembly-mode]")
+    .forEach((b) =>
+      b.setAttribute(
+        "aria-checked",
+        String(b.dataset.assemblyMode === scope.mode),
+      ),
+    );
+  const banner = $("scope-banner");
+  banner.hidden = !reason;
+  if (!reason) return banner.replaceChildren();
+  const actions =
+    reason.kind === "changed"
+      ? [["assemble", "重新汇编"]]
+      : target.mode === "manual"
+        ? [
+            ["back", "回到已装入的程序"],
+            ["join", `把 ${activeFile} 加入汇编范围`],
+          ]
+        : [
+            [
+              "assemble",
+              !scope.error && scope.entry !== activeFile
+                ? `汇编（入口 ${scope.entry}）`
+                : `汇编 ${activeFile}`,
+            ],
+            ["back", `回到 ${lastInTarget || target.entry}`],
+          ];
+  banner.innerHTML = `<span>${esc(reason.text)}</span>${actions
+    .map(
+      ([a, label]) =>
+        `<button data-scope-action="${a}">${esc(label)}</button>`,
+    )
+    .join("")}`;
+  banner.querySelectorAll("[data-scope-action]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const a = b.dataset.scopeAction;
+        if (a === "assemble") assemble();
+        else if (a === "back") {
+          setView("source");
+          switchFile(
+            target.files.includes(lastInTarget) ? lastInTarget : target.entry,
+          );
+        } else if (a === "join")
+          workspace.setAssembly({
+            files: [...workspace.assembly().files, activeFile],
+          });
+      }),
+  );
+}
+// The way of assembling sits beside the assemble button (2026-10-24): auto by
+// default, single file, or a manual scope checked in the file tree.
+function closeAssembleMenu() {
+  $("assemble-menu").hidden = true;
+  $("assemble-mode").setAttribute("aria-expanded", "false");
+}
+$("assemble-mode").onclick = (e) => {
+  e.stopPropagation();
+  const open = $("assemble-menu").hidden;
+  $("assemble-menu").hidden = !open;
+  $("assemble-mode").setAttribute("aria-expanded", String(open));
+  if (open)
+    $("assemble-menu").querySelector('[aria-checked="true"]')?.focus();
+};
+document.querySelectorAll("[data-assembly-mode]").forEach(
+  (b) =>
+    (b.onclick = () => {
+      closeAssembleMenu();
+      workspace.setAssembly({ mode: b.dataset.assemblyMode });
+      if (b.dataset.assemblyMode === "manual")
+        document
+          .querySelector(".assembly-choice")
+          ?.scrollIntoView({ block: "nearest" });
+    }),
+);
+$("assemble-menu").addEventListener("keydown", (e) => {
+  const items = [...$("assemble-menu").querySelectorAll("button")],
+    at = items.indexOf(document.activeElement);
+  if (e.key === "Escape") {
+    closeAssembleMenu();
+    $("assemble-mode").focus();
+  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus();
+  } else return;
+  e.preventDefault();
+  e.stopPropagation();
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".split-button")) closeAssembleMenu();
+});
 function renderFiles() {
   workspace?.render();
 }
@@ -1429,11 +1642,13 @@ function render() {
       (b) =>
         (b.onclick = () => command("seek", { step: Number(b.dataset.call) })),
     );
+  // Diagnostics about the assembly scope say which files are involved.
+  const hints = target ? scopeHints(state.diagnostics, { files }, target) : [];
   $("problems").innerHTML =
     state.diagnostics
       .map(
         (d, i) =>
-          `<button class="command-item" data-diagnostic="${i}">${esc(d.file)}:${d.line} · ${esc(d.message)}</button>`,
+          `<button class="command-item" data-diagnostic="${i}">${esc(d.file)}:${d.line} · ${esc(d.message)}${hints[i] ? `<small class="scope-hint">${esc(hints[i])}</small>` : ""}</button>`,
       )
       .join("") + (state.error ? `<pre>${esc(state.error)}</pre>` : "");
   $("problems")
@@ -1446,7 +1661,7 @@ function render() {
         }),
     );
   if (state.error) {
-    notify(state.error);
+    notify(hints.find(Boolean) || state.error);
     setBottom("problems");
   } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
@@ -1460,7 +1675,7 @@ function render() {
 // before the Nth execution since S0) and logpoint message (log, don't pause).
 function activeBreakpoints() {
   return breakpoints
-    .filter((b) => b.enabled)
+    .filter((b) => b.enabled && b.address != null)
     .map(({ address, condition, hit, log }) => ({
       address,
       condition,
@@ -1534,6 +1749,20 @@ function editBreakpoint(address) {
   $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
+  const kept = breakpoints.find(
+    (b) => b.file === activeFile && b.line === line && b.address == null,
+  );
+  if (kept) {
+    breakpoints = breakpoints.filter((b) => b !== kept);
+    breakpointChanged();
+    return;
+  }
+  if (target && !target.files.includes(activeFile)) {
+    notify(`${activeFile} 没有参与当前汇编；汇编它之后才能在这里设断点。`, {
+      transient: true,
+    });
+    return;
+  }
   const at = breakableAddress(line);
   if (!at) {
     notify(
@@ -1596,7 +1825,7 @@ function renderStops() {
       ].filter(Boolean);
       return `<div class="bp-row ${b.enabled ? "" : "off"}">
         <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="启用 ${esc(b.file)}:${b.line}">
-        <button class="bp" data-bp="${i}">${breakpointGlyph(b)} ${esc(b.file)}:${b.line}<br><small>${esc(details.join(" · ") || hex(b.address))}</small></button>
+        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${esc(b.file)}:${b.line}<br><small>${esc(b.address == null ? "未参与汇编 · 暂不生效" : details.join(" · ") || hex(b.address))}</small></button>
         <button data-bp-edit="${i}" aria-label="编辑断点" title="编辑断点">✎</button><button data-bp-remove="${i}" aria-label="删除断点" title="删除断点">×</button>
       </div>`;
     })
@@ -1666,6 +1895,10 @@ function requestStop() {
 }
 async function run(mode = "run", extra = {}) {
   if (busy || dirty || running) return;
+  if (blocked()) {
+    notify(blocked(), { transient: true });
+    return;
+  }
   running = true;
   stopRequested = false;
   let finish;
@@ -2228,6 +2461,7 @@ workspace = projectManager({
   openFile: name => {setView("source");switchFile(name);editor.focus();},
   selectActive: name => { selectActiveFile(name); renderTabs(); },
   modal, notify, editData, assemble,
+  scopeChanged: () => updateControls(),
   replace: async p => {
     await requestStop();
     if (busy) throw Error("请等待当前操作完成。");
@@ -2238,6 +2472,7 @@ workspace = projectManager({
     fileStates.clear(); navBack.length = navForward.length = 0;
     breakpoints = []; watches = []; debugLog = [];
     state = null; program = {instructions:[], symbols:[], instructionDocs:{}};
+    target = null; lastInTarget = "";
     inspecting = null; focus = null; inlineCache.key = null;
     dirty = true; pendingResume = null;
     $("delay").checked = p.delay;

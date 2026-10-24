@@ -125,4 +125,13 @@ class CoreTests(unittest.TestCase):
   s=self.call('run',breakpoints=[{'address':a}]);self.assertIn('Breakpoint',s['stopReason'])
   self.assertIn('Breakpoint',self.call('state',lookahead=8)['stopReason']);self.assertIn('Breakpoint',self.call('memory',address=0x10010000)['stopReason'])
   self.assertEqual(self.call('step')['stopReason'],'')
+ def test_only_requested_sources_are_assembled(self):
+  # P0: two exercises that both define main assemble one at a time; the entry
+  # must be one of the requested sources, and only those are assembled.
+  one='.text\n.globl main\nmain:\nli $a0,{}\nli $v0,1\nsyscall\nli $v0,10\nsyscall\n'
+  for name,value in (('hello.s',1),('nested/hexOut.s',2)):
+   s=self.call('assemble',files={name:one.format(value)},entry=name);self.assertEqual(s['status'],'paused',s.get('diagnostics'));self.assertEqual(self.finish()['output'],str(value))
+  self.p.stdin.write(json.dumps(dict(command='assemble',files={'hello.s':one.format(1)},entry='nested/hexOut.s'))+'\n');self.p.stdin.flush()
+  self.assertIn('not one of the assembled sources',json.loads(self.p.stdout.readline())['error'])
+  s=self.call('assemble',files={'a.s':one.format(1),'b.s':one.format(2)},entry='a.s');self.assertEqual(s['status'],'error');self.assertIn('already defined as global',s['diagnostics'][0]['message'])
 if __name__=='__main__':unittest.main(verbosity=2)
