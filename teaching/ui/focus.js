@@ -381,7 +381,7 @@ export class FocusLens {
       if (waiting) $("focus-input-value").focus();
     }
     const badge = (s) =>
-      `<button class="fbadge ${s.predicted ? "pred" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "预计第 " + (s.index + 1) + " 步" : "刚完成"}">${s.predicted ? "+" + (s.index + 1) : "✓"}</button>`;
+      `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "预计第 " + (s.index + 1) + " 步" : s.index < -1 ? "之前执行的第 " + -s.index + " 行" : "刚完成"}">${s.predicted ? "+" + (s.index + 1) : "✓"}</button>`;
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
     const selectedStep = byIndex.get(this.selected);
     const instructions = this.host.getProgram().instructions;
@@ -510,7 +510,9 @@ export class FocusLens {
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
     $("focus-tag").textContent = step.predicted
       ? `预计 +${step.index + 1}`
-      : "刚完成";
+      : step.index < -1
+        ? "之前执行"
+        : "刚完成";
     $("focus-tag").className = step.predicted ? "pred" : "done";
     const source = splitComment(
       this.host.getSource(step.file, step.line) || "",
@@ -618,6 +620,19 @@ export class FocusLens {
   // ---- drawing inside the lens ----
   anchor(id, side) {
     const body = document.getElementById("focus-body").getBoundingClientRect();
+    const el = this.anchorElement(id);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0) return null;
+    const x =
+      side === "right"
+        ? r.right - 6
+        : side === "left"
+          ? r.left + 6
+          : r.left + r.width / 2;
+    return { x: x - body.left, y: r.top + r.height / 2 - body.top };
+  }
+  anchorElement(id) {
     let el;
     if (id === "code") el = this.rowOf(this.selected);
     else if (id === "next") {
@@ -631,16 +646,7 @@ export class FocusLens {
       el = document.querySelector(
         `#focus-objects [data-obj~="${id.replace(/"/g, '\\"')}"]`,
       );
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    if (r.width === 0) return null;
-    const x =
-      side === "right"
-        ? r.right - 6
-        : side === "left"
-          ? r.left + 6
-          : r.left + r.width / 2;
-    return { x: x - body.left, y: r.top + r.height / 2 - body.top };
+    return el;
   }
   rowOf(index) {
     return document
@@ -725,9 +731,16 @@ export class FocusLens {
       const from = this.anchor(t.from, t.from === "code" ? "right" : "left"),
         to = this.anchor(t.to, t.to === "code" ? "right" : "left");
       if (!from || !to) continue;
+      // Control goes row to row like the segment edges, so it never loops
+      // out of the lens when the next row sits in a column to the left.
+      const rows = [this.anchorElement(t.from), this.anchorElement(t.to)];
       const p =
-        t.to === "next"
-          ? this.curve(from, { x: to.x - 10, y: to.y })
+        t.to === "next" && rows[0] && rows[1]
+          ? this.route(
+              rows[0].getBoundingClientRect(),
+              rows[1].getBoundingClientRect(),
+              document.getElementById("focus-body").getBoundingClientRect(),
+            )
           : this.curve(from, to);
       routes.push([p, t]);
       out.push(

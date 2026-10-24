@@ -213,3 +213,40 @@ test("$zero identities read as copies, constants and compares with 0, not arithm
   const add = beatModel(step(I("addu", R(0, 8, 9, 10, 0, 33)), [r(8, "$t0", 7), r(9, "$t1", 5), w(10, "$t2", 0, 12)]));
   assert.equal(plain(add.template), "$t2 ← $t0 + $t1");
 });
+
+import { lineDecision } from "../ui/beats.js";
+test("branch lines read as the compared values and the outcome", () => {
+  const syms = { symbols: [{ name: "over10", address: 0x400040 }, { name: "done", address: 0x400024 }] };
+  // bne $t0, $zero, over10 with $t0 = 3: taken
+  const bne = [step(I("bne", R(5, 8, 0) | 3, { flow: "branch", target: 0x400040, source: "bne $t0, $zero, over10" }), [r(8, "$t0", 3), r(0, "$zero", 0)])];
+  assert.equal(lineDecision(bne, syms), "3 ≠ 0 成立 → 跳到 over10");
+  // beqz $t0 (pseudo-free) with $t0 = 3: not taken
+  const beqz = [step(I("beq", R(4, 8, 0) | 3, { flow: "branch", target: 0x400040, source: "loop: beqz $t0, over10 # done?" }), [r(8, "$t0", 3), r(0, "$zero", 0)])];
+  assert.equal(lineDecision(beqz, syms), "3 == 0 不成立 → 继续下一行");
+  // blt $t0, $t1, done  →  slt $at,$t0,$t1 ; bne $at,$zero
+  const blt = [
+    step(I("slt", R(0, 8, 9, 1, 0, 42), { source: "blt $t0, $t1, done" }), [r(8, "$t0", 1), r(9, "$t1", 2), w(1, "$at", 0, 1)]),
+    step(I("bne", R(5, 1, 0) | 3, { flow: "branch", target: 0x400024 }), [r(1, "$at", 1), r(0, "$zero", 0)]),
+  ];
+  assert.equal(lineDecision(blt, syms), "1 < 2 成立 → 跳到 done");
+  // bgt $t0, 10, over10  with an immediate operand
+  const bgt = [
+    step(I("addi", R(8, 0, 1) | 10, { source: "bgt $t0, 10, over10" }), [w(1, "$at", 0, 10)]),
+    step(I("slt", R(0, 1, 8, 1, 0, 42)), [r(1, "$at", 10), r(8, "$t0", 4), w(1, "$at", 10, 0)]),
+    step(I("bne", R(5, 1, 0) | 3, { flow: "branch", target: 0x400040 }), [r(1, "$at", 0), r(0, "$zero", 0)]),
+  ];
+  assert.equal(lineDecision(bgt, syms), "4 > 10 不成立 → 继续下一行");
+  // b loop  →  bgez $zero: always
+  const b = [step(I("bgez", R(1, 0, 1) | 3, { flow: "branch", target: 0x400024, source: "b done" }), [r(0, "$zero", 0)])];
+  assert.equal(lineDecision(b, syms), "→ 跳到 done");
+  assert.equal(lineDecision([step(I("addu", R(0, 8, 9, 10, 0, 33)), [])]), null);
+});
+
+test("syscall lines read as the service, what it read and what it did", () => {
+  const sys = (service, accesses, extra) => [step(I("syscall", 12, { source: "syscall" }), accesses, { service, ...extra })];
+  const fmt = (v, name) => (name === "$a0" && v > 0x400000 ? "0x" + v.toString(16) : String(v));
+  assert.equal(lineDecision(sys(4, [r(2, "$v0", 4), r(4, "$a0", 0x10010000)], { output: "Hi\n" }), { format: fmt }), '$v0 = 4 打印以 NUL 结束的字符串 · $a0 = 0x10010000 → 输出 "Hi\\n"');
+  assert.equal(lineDecision(sys(5, [r(2, "$v0", 5), w(2, "$v0", 5, 42)]), { format: fmt }), "$v0 = 5 读取整数 → $v0 = 42");
+  assert.equal(lineDecision(sys(5, [r(2, "$v0", 5)], { status: "waiting-input" })), "$v0 = 5 读取整数 → 等待输入");
+  assert.equal(lineDecision(sys(10, [r(2, "$v0", 10)])), "$v0 = 10 退出程序 → 程序结束");
+});

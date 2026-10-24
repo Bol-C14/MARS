@@ -62,19 +62,22 @@ def scenario(r, page, mod):
     page.keyboard.press("Escape")
 
     page.select_option("#example", label="Hexadecimal · 位与字符")
-    r.until("() => window.marsIDE.files['main.s']?.includes('Hex') && window.marsIDE.state.step === 0")
+    page.locator("#project-confirm").click()
+    r.until("() => window.marsIDE.files['main.s']?.includes('Hex') && window.marsIDE.state?.step === 0")
     page.locator("#run").click()
-    r.until("() => window.marsIDE.state.status === 'waiting'")
+    r.until("() => window.marsIDE.state?.status === 'waiting'")
     r.check("status chip says waiting for input", "等待输入" in page.locator("#status").inner_text())
     page.locator("#stdin").fill("898")
     page.locator("#input-form button").click()
     # Trial A4: submitting input resumes the interrupted run and echoes the input.
-    r.until("() => window.marsIDE.state.status === 'ended'")
+    r.until("() => window.marsIDE.state?.status === 'ended'")
     r.check("hexOut output", page.locator("#output").inner_text().endswith("00000382"))
     r.check("input is echoed in the console", page.locator("#output .echo").inner_text() == "898")
     r.check("status chip says ended", "已结束" in page.locator("#status").inner_text())
+    ended = page.locator(".cm-inline-value").all_inner_texts()
+    r.check("syscall lines show the service and what it did", "$v0 = 0d10 退出程序 → 程序结束" in ended, str(ended))
     page.locator("#back").click()
-    r.until("() => window.marsIDE.state.status === 'paused'")
+    r.until("() => window.marsIDE.state?.status === 'paused'")
     page.locator('[data-register="$v0"]').click()
     page.locator("#refs").click()
     r.check("register references", page.locator("[data-ref]").count() > 0)
@@ -82,12 +85,13 @@ def scenario(r, page, mod):
     page.locator("#clear-focus").click()
 
     page.select_option("#example", label="Task 1 · 文件与调用")
-    r.until("() => window.marsIDE.program.instructions.some(i => i.file === 'task1.s') && window.marsIDE.state.step === 0")
+    page.locator("#project-confirm").click()
+    r.until("() => window.marsIDE.program.instructions.some(i => i.file === 'task1.s') && window.marsIDE.state?.step === 0")
     address = r.js("() => window.marsIDE.program.instructions.find(i => i.file === 'task1.s' && i.line === 21).address")
     page.locator('[data-view="machine"]').click()
     page.locator(f'[data-machine-bp="{address}"]').click()
     page.locator("#run").click()
-    r.until("(a) => window.marsIDE.state.pc === a", address)
+    r.until("(a) => window.marsIDE.state?.pc === a", address)
     chip = page.locator("#status").inner_text()
     r.check("breakpoint stop explained in Chinese", "停在断点前" in chip and "task1.s 第 21 行" in chip and "第 1 次" in chip, chip)
     r.check("no English stop reason in the banner", "Breakpoint" not in page.locator("#banner").inner_text())
@@ -101,7 +105,7 @@ def scenario(r, page, mod):
     page.keyboard.press("Escape")
     r.js("(a) => window.marsIDE.gotoAddress(a)", address)
     page.locator("#step").click()
-    r.until("() => window.marsIDE.state.last.instruction.op === 'lbu'")
+    r.until("() => window.marsIDE.state?.last.instruction.op === 'lbu'")
     page.locator(".overlay-settings summary").click()
     page.select_option("#relation-scope", "all")
     r.until("() => document.querySelectorAll('#overlay>path').length > 0")
@@ -130,12 +134,38 @@ def scenario(r, page, mod):
     page.select_option("#watch-access", "read")
     page.locator("#watch-form button").click()
     page.locator("#run").click()
-    r.until("() => window.marsIDE.state.stopReason.includes('Watchpoint')")
+    r.until("() => window.marsIDE.state?.stopReason.includes('Watchpoint')")
     r.check("read watchpoint", True)
     r.js("() => document.querySelector('[data-watch]')?.click()")
 
     # --- M2.5: inline values ---
     r.check("inline execution values", page.locator(".cm-inline-value").count() > 0)
+
+    # --- 2026-10-23 feedback: decisions inline, A−/A＋, splitters, one pulse ---
+    inline = page.locator(".cm-inline-value").all_inner_texts()
+    r.check("branch lines show the comparison and outcome", any("成立" in t or "跳到" in t for t in inline), str(inline))
+    r.check("pseudo lines leave out the $at scratch value", not any("$at" in t for t in inline), str(inline))
+    code_size = lambda: r.js("() => getComputedStyle(document.documentElement).getPropertyValue('--code').trim()")
+    before = code_size()
+    page.locator("#zoom-out").click()
+    smaller = code_size()
+    page.locator("#zoom").click()
+    r.check("A− shrinks the code and A＋ grows it back", int(smaller[:-2]) == int(before[:-2]) - 1 and code_size() == before, f"{before} {smaller} {code_size()}")
+    width = lambda: page.locator(".sidebar").bounding_box()["width"]
+    start, line = width(), page.locator("#split-left").bounding_box()
+    page.mouse.move(line["x"] + 0.5, line["y"] + 200)
+    page.mouse.down()
+    page.mouse.move(line["x"] + 60, line["y"] + 200, steps=4)
+    page.mouse.up()
+    dragged = width()
+    page.locator("#split-left").dblclick()
+    r.check("dragging a panel line resizes it; double-click restores", abs(dragged - start - 60) <= 2 and abs(width() - start) <= 1, f"{start} {dragged} {width()}")
+    r.js("() => window.marsIDE.editor.focus()")
+    for _ in range(3):
+        page.keyboard.press("F11")
+    page.wait_for_timeout(150)
+    pulses = r.js("() => document.getAnimations().filter(a => a.effect?.target?.classList?.contains('cm-line') && a.playState === 'running' && a.effect.getKeyframes().some(k => 'background' in k || 'backgroundColor' in k)).map(a => a.effect.getTiming().iterations)")
+    r.check("fast stepping leaves one single arrival pulse", pulses == [1] or pulses == [], str(pulses))
 
     # --- Trial C: read-only radix switch; code never changes (C2) ---
     code_before = r.js("() => window.marsIDE.editor.state.doc.toString()")
@@ -155,7 +185,7 @@ def scenario(r, page, mod):
 
     # --- Trial A: running is visible; demo follows across files and says so ---
     page.keyboard.press("Shift+F5")
-    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => window.marsIDE.state?.step === 0")
     r.until("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
     r.check("spotlight marks where execution stopped after a jump", True)
     r.until("() => !document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
@@ -175,7 +205,7 @@ def scenario(r, page, mod):
 
     # --- Round 2: breakpoints on label lines, step wording, ASCII table ---
     label_line = r.js("""() => { const d = window.marsIDE.editor.state.doc,
-        file = document.querySelector('.tabs .active')?.textContent.replace(' •', '').trim(),
+        file = document.querySelector('.tabs .active [data-tab]')?.textContent.replace(' •', '').trim(),
         has = (n) => window.marsIDE.program.instructions.some((i) => i.file === file && i.line === n);
         for (let i = 1; i < d.lines; i++)
           if (/^\\s*[A-Za-z_][\\w.]*:\\s*(#.*)?$/.test(d.line(i).text) && has(i + 1)) return i;
@@ -218,27 +248,27 @@ def scenario(r, page, mod):
     page.mouse.move(5, 5)
     # Round 3: reassembling keeps the file being read.
     page.locator("#assemble").click()
-    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => window.marsIDE.state?.step === 0")
     r.check("reassembly keeps the open file", "task1.s" in page.locator(".tabs .active").inner_text())
 
     # --- M2.5: VS Code keys ---
     page.keyboard.press("Shift+F5")
-    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => window.marsIDE.state?.step === 0")
     r.js("() => window.marsIDE.editor.focus()")
     page.keyboard.press("F11")
-    r.until("() => window.marsIDE.state.step === 2")  # la expands to two instructions
+    r.until("() => window.marsIDE.state?.step === 2")  # la expands to two instructions
     page.keyboard.press("Alt+F11")
-    r.until("() => window.marsIDE.state.step === 3")
+    r.until("() => window.marsIDE.state?.step === 3")
     page.wait_for_timeout(1300)
     page.keyboard.press("Alt+F11")
-    r.until("() => window.marsIDE.state.step === 4")
+    r.until("() => window.marsIDE.state?.step === 4")
     page.wait_for_timeout(150)
     r.check("no spotlight for an adjacent single step",
             not r.js("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')"))
     page.keyboard.press("Shift+F9")
-    r.until("() => window.marsIDE.state.step === 3")
+    r.until("() => window.marsIDE.state?.step === 3")
     page.keyboard.press("Shift+F9")
-    r.until("() => window.marsIDE.state.step === 2")
+    r.until("() => window.marsIDE.state?.step === 2")
     r.js("() => { try { localStorage.removeItem('key-hint:F7') } catch {} }")
     page.keyboard.press("F7")
     r.check("retired key hint", "Alt+F11" in page.locator("#banner").inner_text() and state()["step"] == 2)
@@ -248,7 +278,7 @@ def scenario(r, page, mod):
     page.keyboard.press(f"{mod}+P")
     page.locator("#picker-input").press_sequentially("loadf")
     page.keyboard.press("Enter")
-    r.until("() => document.querySelector('.tabs .active')?.textContent.includes('libio.s')")
+    r.until("() => document.querySelector('.tabs .active [data-tab]')?.textContent.includes('libio.s')")
     line = r.js("() => { const e = window.marsIDE.editor; return e.state.doc.lineAt(e.state.selection.main.head).text }")
     r.check("quick open jumps to label", line.startswith("loadFile:"), line)
     page.keyboard.press(f"{mod}+Shift+O")
@@ -281,17 +311,17 @@ def scenario(r, page, mod):
     page.locator("#bp-form button.primary").click()
     r.check("logpoint glyph in sidebar", "◆" in page.locator("#breakpoints").inner_text())
     page.keyboard.press("Shift+F5")
-    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => window.marsIDE.state?.step === 0")
     r.js("() => document.querySelectorAll('[data-bp-enable]').forEach(c => { if (!c.closest('.bp-row').textContent.includes('◆')) { c.checked = false; c.dispatchEvent(new Event('change')) } })")
     page.keyboard.press("F5")
-    r.until("() => window.marsIDE.state.status === 'ended'")
+    r.until("() => window.marsIDE.state?.status === 'ended'")
     page.locator('[data-bottom="logs"]').click()
     logs = page.locator("#logs").inner_text()
     r.check("logpoint logs once on 2nd hit without pausing", logs.count("byte=") == 1, logs)
 
     # --- M2.5 W4: focus mode ---
     page.keyboard.press("Shift+F5")
-    r.until("() => window.marsIDE.state.step === 0")
+    r.until("() => window.marsIDE.state?.step === 0")
     r.js("() => document.querySelector('[data-bottom=console]').click()")
     for _ in range(3):
         page.keyboard.press("F11")
@@ -321,24 +351,24 @@ def scenario(r, page, mod):
     page.keyboard.press("ArrowUp")
     r.check("plain ↑ returns to the completed step", page.locator("#focus-tag").inner_text() == "刚完成")
     page.keyboard.press("Shift+ArrowDown")
-    r.until("(n) => window.marsIDE.state.step > n", before)
+    r.until("(n) => window.marsIDE.state?.step > n", before)
     page.keyboard.press("Shift+ArrowUp")
-    r.until("(n) => window.marsIDE.state.step === n", before)
+    r.until("(n) => window.marsIDE.state?.step === n", before)
     r.check("Shift+↑/↓ move by source line", True)
     page.keyboard.press("Tab")
     page.keyboard.press("Tab")
     r.check("Tab selects a predicted step", "预计" in page.locator("#focus-tag").inner_text())
     page.keyboard.press("Enter")
-    r.until("(n) => window.marsIDE.state.step > n", before)
+    r.until("(n) => window.marsIDE.state?.step > n", before)
     r.check("Enter runs to the selected step", r.js("() => document.getElementById('focus-tag').textContent") == "刚完成")
     # Holding ↓: OS auto-repeat arrives as keydown events with repeat set.
     held = r.js("""async () => {
-        const start = window.marsIDE.state.step, tokens = [];
+        const start = window.marsIDE.state?.step, tokens = [];
         const send = (type, repeat) => window.dispatchEvent(new KeyboardEvent(type, { key: 'ArrowDown', shiftKey: true, repeat, bubbles: true }));
         send('keydown', false);
         for (let i = 0; i < 25; i++) { await new Promise(r => setTimeout(r, 40)); send('keydown', true); tokens.push(document.querySelectorAll('.ftoken').length) }
         await new Promise(r => setTimeout(r, 300));
-        const moved = window.marsIDE.state.step - start;
+        const moved = window.marsIDE.state?.step - start;
         send('keyup', false);
         await new Promise(r => setTimeout(r, 1500));
         return { moved, maxTokens: Math.max(...tokens), playedAfter: document.querySelector('.fdot.now') !== null };
@@ -354,7 +384,7 @@ def scenario(r, page, mod):
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: e.state.doc.length, insert: '\\n# edit test' } }) }")
     r.check("dirty source blocks stale execution", page.locator("#step").is_disabled())
     page.locator("#assemble").click()
-    r.until("() => window.marsIDE.state.step === 0 && !document.querySelector('#step').disabled")
+    r.until("() => window.marsIDE.state?.step === 0 && !document.querySelector('#step').disabled")
     r.check("reassembly restores execution", True)
 
 
@@ -374,7 +404,7 @@ def reduced_motion(r, page, mod):
     r.check("reduced motion: no moving values", page.locator(".ftoken").count() == 0)
     page.keyboard.press("Escape")
     page.keyboard.press("F5")
-    r.until("() => window.marsIDE.state.status !== 'paused' || window.marsIDE.state.stopReason !== ''")
+    r.until("() => window.marsIDE.state?.status !== 'paused' || window.marsIDE.state?.stopReason !== ''")
     page.wait_for_timeout(300)
     r.check("reduced motion: no spotlight", not r.js("() => document.querySelector('.cm-editor').classList.contains('arrival-spotlight')"))
 
@@ -398,6 +428,8 @@ def main():
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto(f"http://127.0.0.1:{port}")
+            page.select_option("#example", label="Hexadecimal · 位与字符")
+            page.locator("#project-confirm").click()
             mod = "Meta" if "Mac" in page.evaluate("navigator.platform") else "Control"
             r = Run(page)
             try:
@@ -405,6 +437,9 @@ def main():
                 calm = browser.new_page(viewport={"width": 1280, "height": 850}, reduced_motion="reduce")
                 calm.on("pageerror", lambda e: errors.append(str(e)))
                 calm.goto(f"http://127.0.0.1:{port}")
+                calm.select_option("#example", label="Hexadecimal · 位与字符")
+                calm.locator("#project-confirm").click()
+                calm.wait_for_function("() => window.marsIDE?.state?.status === 'paused'")
                 reduced_motion(Run(calm), calm, mod)
                 r.passed += ["reduced motion shows the conclusion", "reduced motion: no moving values", "reduced motion: no spotlight"]
                 r.check("no page errors", not errors, json.dumps(errors))

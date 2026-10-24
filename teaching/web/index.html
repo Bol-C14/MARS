@@ -14,15 +14,23 @@
         <div>MARS <b>Trace</b><small>EXECUTION · CONNECTED</small></div>
       </div>
       <div class="project">
-        <select id="example" aria-label="示例项目"></select
-        ><button id="import">导入文件</button
-        ><input id="upload" type="file" multiple hidden /><button id="save">
-          导出工程
-        </button>
+        <button id="new-project">新建工程</button>
+        <button id="import">打开工程</button>
+        <button id="add-import">添加文件</button>
+        <button id="save-local" title="保存到此浏览器 · Cmd/Ctrl+S">保存</button>
+        <button id="save">导出工程</button>
+        <select id="example" aria-label="示例项目"><option value="">教学示例…</option></select>
+        <input id="upload" type="file" multiple hidden />
+        <input id="folder-upload" type="file" webkitdirectory multiple hidden />
       </div>
       <button id="commands" title="命令面板 · Cmd/Ctrl+Shift+P 或 F1">
         命令面板</button
-      ><button id="theme">◐</button><button id="zoom">A＋</button>
+      ><button id="theme">◐</button
+      ><button id="zoom-out" title="缩小代码字号" aria-label="缩小代码字号">
+        A−</button
+      ><button id="zoom" title="放大代码字号" aria-label="放大代码字号">
+        A＋
+      </button>
     </header>
     <nav class="toolbar">
       <button
@@ -54,10 +62,16 @@
     <div id="banner" role="status"></div>
     <div class="workspace">
       <aside class="sidebar">
-        <div class="section-title">
-          EXPLORER <button id="new-file">＋</button>
+        <div class="project-heading">
+          <button id="project-title" title="修改工程名称">我的工程</button>
+          <small id="workspace-status" role="status">自动保存到此浏览器</small>
+        </div>
+        <div class="section-title explorer-heading">
+          工程文件 <span><button id="new-file" title="新建文件" aria-label="新建文件">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹">＋ 目录</button></span>
         </div>
         <div id="files"></div>
+        <div class="entry-choice"><label for="entry-file">汇编入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
+        <div class="workspace-tools"><button id="export-file">下载当前文件</button><button id="restore-project">恢复上次管理操作</button></div>
         <div class="section-title">符号与定位</div>
         <input
           id="symbol-search"
@@ -71,9 +85,16 @@
           WATCHPOINTS <button id="add-watch">＋</button>
         </div>
         <div id="watches"></div>
-        <div class="section-title">VIRTUAL FILES</div>
-        <div id="data-files"></div>
       </aside>
+      <div
+        class="splitter col"
+        id="split-left"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="调整文件栏宽度"
+        tabindex="0"
+        title="拖动调整大小，双击恢复默认"
+      ></div>
       <main class="code-pane">
         <div id="tabs" class="tabs"></div>
         <div class="viewbar">
@@ -92,6 +113,15 @@
             <small>即将执行 · 虚线</small><b>汇编以开始</b>
           </div>
         </div>
+        <div
+          class="splitter row"
+          id="split-bottom"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="调整底部面板高度"
+          tabindex="0"
+          title="拖动调整大小，双击恢复默认"
+        ></div>
         <section class="bottom">
           <div class="viewbar">
             <button data-bottom="console" class="selected">控制台</button
@@ -117,6 +147,15 @@
           <div id="logs" class="bottom-panel" hidden></div>
         </section>
       </main>
+      <div
+        class="splitter col"
+        id="split-right"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="调整右侧面板宽度"
+        tabindex="0"
+        title="拖动调整大小，双击恢复默认"
+      ></div>
       <aside class="inspector">
         <div class="section-title">
           CONTEXT <button id="clear-focus">清除聚焦</button>

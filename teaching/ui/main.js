@@ -7,7 +7,7 @@ import {
   gutter,
   keymap,
 } from "@codemirror/view";
-import { EditorState, StateEffect, StateField } from "@codemirror/state";
+import { EditorState, StateEffect, StateField, Compartment } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { autocompletion } from "@codemirror/autocomplete";
 import {
@@ -36,7 +36,11 @@ import {
   escapeByte,
 } from "./radix.js";
 import { termsIn } from "./glossary.js";
+import { lineDecision } from "./beats.js";
+import { projectManager } from "./project-manager.js";
 const $ = (id) => document.getElementById(id);
+let workspace = null;
+const fileAccess = new Compartment();
 let state = null,
   files = {},
   data = {},
@@ -96,7 +100,11 @@ function breakableAddress(line) {
   return next ? { address: next.address, line: next.line, label: true } : null;
 }
 // Inline execution values (DESIGN §3.8): what the most recent run of each
-// recently executed line wrote, as of the selected history state.
+// recently executed line wrote, as of the selected history state. A pseudo
+// line shows only its result: $at is the assembler's scratch register, so it
+// is left out when the line writes anything else (2026-10-23 feedback: la
+// showed $at first, then $a0, as if it took two steps). A line that branches
+// or calls a service shows the decision instead (lineDecision).
 const INLINE_LINES = 12;
 let inlineCache = { key: null, map: new Map() };
 // A nop right after a branch or jump keeps the program correct when delayed
@@ -132,6 +140,7 @@ function inlineValues() {
     : `${state?.programVersion}:${state?.step}:${radix}`;
   if (inlineCache.key === key) return inlineCache.map;
   const map = new Map(),
+    runs = new Map(),
     closed = new Set();
   const events = (state?.trace || []).filter(
     (e) => !dirty && e.step <= state.step,
@@ -145,6 +154,7 @@ function inlineValues() {
       open = closed.has(line) ? null : line;
     }
     if (!open) continue;
+    runs.set(line, [events[i], ...(runs.get(line) || [])]);
     const writes = map.get(line) || new Map();
     for (const a of events[i].accesses)
       if (a.write) {
@@ -160,7 +170,28 @@ function inlineValues() {
       }
     map.set(line, writes);
   }
-  for (const [line, writes] of map)
+  // A pseudo line stopped halfway (machine step) has only its scratch value.
+  const next = program.instructions.find((i) => i.address === state?.pc),
+    latest = events.at(-1);
+  const midLine =
+    next &&
+    latest &&
+    next.file === latest.instruction.file &&
+    next.line === latest.instruction.line &&
+    next.address === latest.pc + 4
+      ? next.file + ":" + next.line
+      : null;
+  for (const [line, writes] of map) {
+    const decision = lineDecision(runs.get(line), {
+      symbols: program.symbols,
+      instructions: program.instructions,
+      format: (v, name) => fmt(v, 4, name ? regKind(name) : "value").text,
+    });
+    if (decision) {
+      map.set(line, decision);
+      continue;
+    }
+    if (writes.size > 1 || line === midLine) writes.delete("$at");
     if (writes.size)
       map.set(
         line,
@@ -170,6 +201,7 @@ function inlineValues() {
           .join("  "),
       );
     else map.delete(line);
+  }
   inlineCache = { key, map };
   return map;
 }
@@ -187,7 +219,7 @@ class InlineValue extends WidgetType {
     const span = document.createElement("span");
     span.className = "cm-inline-value";
     span.textContent =
-      this.text.length > 48 ? this.text.slice(0, 47) + "…" : this.text;
+      this.text.length > 64 ? this.text.slice(0, 63) + "…" : this.text;
     span.title = this.text;
     return span;
   }
@@ -477,6 +509,7 @@ const editor = new EditorView({
     doc: "",
     extensions: [
       basicSetup,
+      fileAccess.of([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
       decorations,
       peekField,
       breakpointGutter,
@@ -507,7 +540,9 @@ const editor = new EditorView({
       ]),
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
+          if (!activeFile) return;
           files[activeFile] = u.state.doc.toString();
+          workspace?.changed();
           dirty = true;
           renderTabs();
           updateControls();
@@ -826,11 +861,12 @@ async function assemble() {
   try {
     let old = state?.programVersion;
     savedEditor();
+    if (!Object.keys(files).length) throw Error("请先新建或导入一个 .s / .asm 源码文件。");
     state = await api({
       command: "assemble",
       files,
       data,
-      entry: files["main.s"] ? "main.s" : Object.keys(files)[0],
+      entry: workspace?.entry() || Object.keys(files)[0],
       delay: $("delay").checked,
       ...lookahead(),
     });
@@ -864,15 +900,17 @@ async function assemble() {
   }
 }
 function savedEditor() {
-  if (activeFile) files[activeFile] = editor.state.doc.toString();
+  if (activeFile && Object.hasOwn(files, activeFile)) files[activeFile] = editor.state.doc.toString();
 }
 function switchFile(file) {
-  if (!files.hasOwnProperty(file)) return;
+  if (!Object.hasOwn(files, file)) return;
   savedEditor();
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
+  workspace?.opened(file);
   loadEditor = true;
   editor.dispatch({
+    effects: fileAccess.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
     changes: { from: 0, to: editor.state.doc.length, insert: files[file] },
     selection: fileStates.get(file) || { anchor: 0 },
   });
@@ -948,7 +986,9 @@ function gotoSymbol(s) {
 }
 // Where execution just stopped, shown without words (trial A5, variants A+B):
 // the next line pulses on every stop; after a run, a file change or a jump the
-// rest of the code also dims for a moment so the eye lands on it.
+// rest of the code also dims for a moment so the eye lands on it. One pulse,
+// and a new stop cancels the previous one (2026-10-23 feedback: two pulses per
+// stop, and fast stepping left a trail of flashing lines).
 let arrivedAt = null;
 function arrive(jumped = false) {
   const ins = program.instructions.find((i) => i.address === state?.pc);
@@ -962,12 +1002,13 @@ function arrive(jumped = false) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
     const line = editor.dom.querySelector(".cm-line.next-line");
-    line?.animate(
+    arrive.pulse?.cancel();
+    arrive.pulse = line?.animate(
       [
         { background: "color-mix(in srgb, var(--blue) 40%, var(--panel))" },
         { background: "color-mix(in srgb, var(--blue) 12%, transparent)" },
       ],
-      { duration: 900, iterations: 2, easing: "ease-out" },
+      { duration: 700, iterations: 1, easing: "ease-out" },
     );
     if (!far) return;
     editor.dom.classList.add("arrival-spotlight");
@@ -1120,43 +1161,15 @@ function updateControls() {
   $("status").title = info.at ? "点击跳到这一行" : "";
 }
 function renderFiles() {
-  $("files").innerHTML = Object.keys(files)
-    .map(
-      (f) =>
-        `<button class="file ${f === activeFile ? "active" : ""}" data-file="${esc(f)}">◇ ${esc(f)}</button>`,
-    )
-    .join("");
-  $("files")
-    .querySelectorAll("[data-file]")
-    .forEach((b) => (b.onclick = () => switchFile(b.dataset.file)));
-  $("data-files").innerHTML =
-    Object.keys(data)
-      .map(
-        (f) =>
-          `<button class="file" data-data="${esc(f)}">▤ ${esc(f)}<small>${new TextEncoder().encode(data[f]).length} bytes</small></button>`,
-      )
-      .join("") + '<button class="file" id="add-data">＋ 添加输入文件</button>';
-  $("data-files")
-    .querySelectorAll("[data-data]")
-    .forEach((b) => (b.onclick = () => editData(b.dataset.data)));
-  $("add-data").onclick = () =>
-    ask("输入文件名", "input.txt", (name) => {
-      if (name) {
-        data[name] = "";
-        editData(name);
-      }
-    });
+  workspace?.render();
 }
 function renderTabs() {
-  $("tabs").innerHTML = Object.keys(files)
-    .map(
-      (f) =>
-        `<button class="${f === activeFile ? "active" : ""}" data-tab="${esc(f)}">${esc(f)}${dirty ? " •" : ""}</button>`,
-    )
-    .join("");
-  $("tabs")
-    .querySelectorAll("button")
-    .forEach((b) => (b.onclick = () => switchFile(b.dataset.tab)));
+  const tabs = workspace?.tabs() || Object.keys(files);
+  $("tabs").innerHTML = tabs.map(f =>
+    `<span class="file-tab ${f === activeFile ? 'active' : ''}"><button data-tab="${esc(f)}" title="${esc(f)}">${esc(f)}</button><button class="close-tab" data-close-tab="${esc(f)}" aria-label="关闭标签 ${esc(f)}" title="关闭标签，文件仍在工程中">×</button></span>`
+  ).join('') || '<span class="empty-tab">从左侧选择文件，或新建文件</span>';
+  $("tabs").querySelectorAll('[data-tab]').forEach(b => b.onclick=()=>{setView("source");switchFile(b.dataset.tab);});
+  $("tabs").querySelectorAll('[data-close-tab]').forEach(b => b.onclick=()=>workspace.closeTab(b.dataset.closeTab));
 }
 function renderSymbols() {
   let q = $("symbol-search").value.toLowerCase();
@@ -1746,18 +1759,23 @@ function editData(name) {
   );
   $("data-save").onclick = () => {
     data[name] = $("data-edit").value;
+    workspace?.changed();
     $("modal").close();
     assemble();
   };
   $("data-delete").onclick = () => {
-    delete data[name];
     $("modal").close();
-    assemble();
+    workspace.apply({...workspace.snapshot(), data: Object.fromEntries(Object.entries(data).filter(([n])=>n!==name))}).catch(e=>notify(e.message));
   };
 }
 function commandList() {
   const commands = [
     ["汇编工程", assemble, "assemble"],
+    ["新建空白工程", () => $("new-project").click()],
+    ["打开工程（替换工作区）", () => $("import").click()],
+    ["添加文件到工程", () => $("add-import").click()],
+    ["保存工程到浏览器", () => $("save-local").click()],
+    ["导出工程 ZIP／JSON", () => $("save").click()],
     ["快速打开文件／标签／地址", () => openPicker(""), "quickOpen"],
     ["转到当前文件中的符号", () => openPicker("@"), "outline"],
     ["专注模式", () => openFocus(), "focus"],
@@ -1948,12 +1966,119 @@ $("theme").onclick = () => {
   document.body.classList.toggle("dark");
   overlay.schedule();
 };
-$("zoom").onclick = () => {
-  fontSize = fontSize >= 19 ? 13 : fontSize + 2;
+// Code size steps up and down (trial feedback: A＋ only cycled back to the
+// smallest size, so there was no way to step down), remembered per viewer.
+function setFontSize(size) {
+  fontSize = Math.max(11, Math.min(22, size));
   document.documentElement.style.setProperty("--code", fontSize + "px");
+  $("zoom").title = `放大代码字号（当前 ${fontSize}）`;
+  $("zoom-out").title = `缩小代码字号（当前 ${fontSize}）`;
+  $("zoom").disabled = fontSize >= 22;
+  $("zoom-out").disabled = fontSize <= 11;
+  try {
+    localStorage.setItem("code-size", String(fontSize));
+  } catch {}
   editor.requestMeasure();
   overlay.schedule();
+}
+$("zoom").onclick = () => setFontSize(fontSize + 1);
+// Panels resize by dragging the lines between them, or with the arrow keys
+// on a focused line (2026-10-23 feedback). Sizes are remembered per viewer;
+// a double-click restores the default.
+const panelSplits = {
+  "split-left": {
+    prop: "--left-w",
+    axis: "x",
+    sign: 1,
+    min: 110,
+    panel: ".sidebar",
+  },
+  "split-right": {
+    prop: "--right-w",
+    axis: "x",
+    sign: -1,
+    min: 220,
+    panel: ".inspector",
+  },
+  "split-bottom": {
+    prop: "--bottom-h",
+    axis: "y",
+    sign: -1,
+    min: 70,
+    panel: ".bottom",
+  },
 };
+function setSplit({ prop, axis, min, panel }, px) {
+  const root = document.documentElement;
+  if (px == null) root.style.removeProperty(prop);
+  else {
+    // Leave the code pane usable: at least 300px wide and 160px tall.
+    const max =
+      axis === "x"
+        ? document.querySelector(".workspace").offsetWidth -
+          document.querySelector(
+            prop === "--left-w" ? ".inspector" : ".sidebar",
+          ).offsetWidth -
+          300
+        : document.querySelector(".code-pane").offsetHeight - 160;
+    px = Math.round(Math.max(min, Math.min(max, px)));
+    root.style.setProperty(prop, px + "px");
+  }
+  try {
+    if (px == null) localStorage.removeItem("split" + prop);
+    else localStorage.setItem("split" + prop, String(px));
+  } catch {}
+  editor.requestMeasure();
+  overlay.schedule();
+}
+for (const [id, split] of Object.entries(panelSplits)) {
+  const line = $(id),
+    size = () =>
+      document.querySelector(split.panel).getBoundingClientRect()[
+        split.axis === "x" ? "width" : "height"
+      ];
+  try {
+    const saved = Number(localStorage.getItem("split" + split.prop));
+    if (saved) setSplit(split, saved);
+  } catch {}
+  line.addEventListener("pointerdown", (down) => {
+    if (down.button !== 0) return;
+    down.preventDefault();
+    line.setPointerCapture(down.pointerId);
+    line.classList.add("dragging");
+    document.body.classList.add("resizing-" + split.axis);
+    const at = (e) => (split.axis === "x" ? e.clientX : e.clientY),
+      start = at(down),
+      from = size();
+    const move = (e) => setSplit(split, from + split.sign * (at(e) - start));
+    const end = () => {
+      line.removeEventListener("pointermove", move);
+      line.removeEventListener("pointerup", end);
+      line.removeEventListener("pointercancel", end);
+      line.classList.remove("dragging");
+      document.body.classList.remove("resizing-" + split.axis);
+    };
+    line.addEventListener("pointermove", move);
+    line.addEventListener("pointerup", end);
+    line.addEventListener("pointercancel", end);
+  });
+  line.addEventListener("dblclick", () => setSplit(split, null));
+  line.addEventListener("keydown", (e) => {
+    const keys =
+      split.axis === "x"
+        ? { ArrowLeft: -1, ArrowRight: 1 }
+        : { ArrowUp: -1, ArrowDown: 1 };
+    if (!(e.key in keys)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setSplit(split, size() + split.sign * keys[e.key] * 16);
+  });
+}
+$("zoom-out").onclick = () => setFontSize(fontSize - 1);
+try {
+  const saved = Number(localStorage.getItem("code-size"));
+  if (saved) setFontSize(saved);
+} catch {}
 $("clear-focus").onclick = () => {
   focus = null;
   inspecting = null;
@@ -1966,6 +2091,7 @@ $("reg-filter").onchange = () => {
 };
 $("symbol-search").oninput = renderSymbols;
 $("delay").onchange = () => {
+  workspace?.changed();
   dirty = true;
   notify("运行配置已修改，请重新汇编");
   updateControls();
@@ -1994,15 +2120,6 @@ $("memory-form").onsubmit = (e) => {
 };
 $("stack").onclick = () => memoryAt(regValue("$sp") - 16);
 $("data").onclick = () => memoryAt(0x10010000);
-$("new-file").onclick = () =>
-  ask("新建源码文件", "new.s", (name) => {
-    if (name && !files[name]) {
-      files[name] = ".text\n";
-      switchFile(name);
-      dirty = true;
-      updateControls();
-    }
-  });
 $("add-watch").onclick = () => {
   modal(
     "添加读写观察点",
@@ -2020,40 +2137,10 @@ $("add-watch").onclick = () => {
     renderStops();
   };
 };
-$("import").onclick = () => $("upload").click();
-$("upload").onchange = async (e) => {
-  for (let f of e.target.files) {
-    let text = await f.text();
-    if (f.name.endsWith(".json")) {
-      let project = JSON.parse(text);
-      files = project.files || files;
-      data = project.data || {};
-    } else if (/\.(s|asm)$/.test(f.name)) files[f.name] = text;
-    else data[f.name] = text;
-  }
-  activeFile = "";
-  switchFile(Object.keys(files)[0]);
-  await assemble();
+$("example").onchange = () => {
+  if ($("example").value !== "") loadExample(Number($("example").value));
+  $("example").value = "";
 };
-$("save").onclick = () => {
-  savedEditor();
-  let blob = new Blob(
-      [
-        JSON.stringify(
-          { version: 1, files, data, delay: $("delay").checked },
-          null,
-          2,
-        ),
-      ],
-      { type: "application/json" },
-    ),
-    a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "mars-project.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-};
-$("example").onchange = () => loadExample(Number($("example").value));
 // Global shortcuts (DESIGN §3.9). Focus mode handles its own arrow keys first.
 const mac = /Mac|iPhone|iPad/.test(navigator.platform);
 const keys = new Keymap(mac);
@@ -2122,34 +2209,53 @@ document.addEventListener("keydown", (e) => {
   actions[r.action]();
 });
 async function loadExample(index) {
-  let p = exampleList[index];
-  files = { ...p.files };
-  data = { ...p.data };
+  const p = exampleList[index];
+  if (p) workspace.example(p, p.name);
+}
+function selectActiveFile(name) {
+  if (name) { switchFile(name); return; }
+  savedEditor();
   activeFile = "";
-  breakpoints = [];
-  watches = [];
-  fileStates.clear();
-  switchFile(p.entry);
-  await assemble();
+  loadEditor = true;
+  editor.dispatch({changes:{from:0,to:editor.state.doc.length,insert:""}, effects:fileAccess.reconfigure([EditorState.readOnly.of(true), EditorView.editable.of(false)])});
+  loadEditor = false;
+  renderTabs();
+  overlay.schedule();
 }
-try {
-  exampleList = await (await fetch("/examples")).json();
-  $("example").innerHTML = exampleList
-    .map(
-      (e, i) =>
-        `<option value="${i}">${esc(e.name === "hexout" ? "Hexadecimal · 位与字符" : e.name === "task1" ? "Task 1 · 文件与调用" : e.name)}</option>`,
-    )
-    .join("");
-  $("example").value = String(
-    Math.max(
-      0,
-      exampleList.findIndex((e) => e.name === "hexout"),
-    ),
-  );
-  await loadExample(Number($("example").value));
-} catch (e) {
-  notify("无法连接执行服务：" + e.message);
-}
+workspace = projectManager({
+  snapshot: () => { savedEditor(); return {files, data, activeFile, delay:$("delay").checked}; },
+  busy: () => busy || running,
+  openFile: name => {setView("source");switchFile(name);editor.focus();},
+  selectActive: name => { selectActiveFile(name); renderTabs(); },
+  modal, notify, editData, assemble,
+  replace: async p => {
+    await requestStop();
+    if (busy) throw Error("请等待当前操作完成。");
+    lens.close();
+    lens.update(null);
+    activeFile = "";
+    files = {...p.files}; data = {...p.data};
+    fileStates.clear(); navBack.length = navForward.length = 0;
+    breakpoints = []; watches = []; debugLog = [];
+    state = null; program = {instructions:[], symbols:[], instructionDocs:{}};
+    inspecting = null; focus = null; inlineCache.key = null;
+    dirty = true; pendingResume = null;
+    $("delay").checked = p.delay;
+    setView("source"); setBottom("console");
+    for (const id of ["output","trace","calls","problems","logs","symbols","registers","memory","machine","cfg"]) {
+      if ($(id)) $(id).replaceChildren();
+    }
+    $("last-card").innerHTML='<small>刚完成 · 实线</small><b>尚无执行记录</b>';
+    $("next-card").innerHTML='<small>下一条 · 虚线</small><b>汇编后开始</b>';
+    $("location").textContent="尚未汇编";
+    $("history-info").textContent="0 / 0 步";
+    $("pc").textContent="PC —";
+    selectActiveFile(p.activeFile);
+    renderFiles(); renderTabs(); renderStops(); updateControls();
+    notify("工程已更新 · 点击“汇编”开始执行。");
+  },
+});
+await workspace.start();
 window.marsIDE = {
   get state() {
     return state;
@@ -2172,3 +2278,17 @@ window.marsIDE = {
     return overlay;
   },
 };
+
+// Examples are optional; editing and local draft recovery work without the backend.
+(async () => {
+try {
+  const response = await fetch("/examples");
+  if (!response.ok) throw Error("示例服务暂时不可用");
+  exampleList = await response.json();
+  $("example").innerHTML = '<option value="">教学示例…</option>' + exampleList.map((e,i) =>
+    `<option value="${i}">${esc(e.name === "hexout" ? "Hexadecimal · 位与字符" : e.name === "task1" ? "Task 1 · 文件与调用" : e.name)}</option>`
+  ).join('');
+} catch (e) {
+  $("example").innerHTML='<option value="">示例暂不可用</option>';
+}
+})();

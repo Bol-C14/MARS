@@ -1280,3 +1280,124 @@ export function lineSummary(
     },
   };
 }
+
+// Grey decision text beside a line that branches or calls a service
+// (2026-10-23 feedback): the values the condition compared and how it came
+// out, or the service number, what it read and what it did. Recorded facts
+// only, built from the line's operands and accesses, never per instruction.
+const sourceCompare = {
+  beq: "==",
+  bne: "≠",
+  blt: "<",
+  bgt: ">",
+  ble: "≤",
+  bge: "≥",
+  bltu: "<",
+  bgtu: ">",
+  bleu: "≤",
+  bgeu: "≥",
+  beqz: "== 0",
+  bnez: "≠ 0",
+};
+export function lineDecision(
+  events,
+  { symbols = [], instructions = [], format = (v) => show(v) } = {},
+) {
+  const last = events?.at(-1),
+    ins = last?.instruction;
+  if (!ins || (ins.flow !== "branch" && ins.op !== "syscall")) return null;
+  // The first value each register had on this line, before the line wrote it.
+  const reads = new Map(),
+    written = new Set();
+  for (const e of events)
+    for (const a of e.accesses || []) {
+      if (a.kind !== "register") continue;
+      if (!a.write && !written.has(a.name) && !reads.has(a.name))
+        reads.set(a.name, a.value);
+      if (a.write) written.add(a.name);
+    }
+  const val = (name) => (name === "$zero" ? 0 : reads.get(name));
+  const reg = (t) =>
+    /^\$\d+$/.test(t) ? "$" + registerNames[Number(t.slice(1))] : t;
+  if (ins.op === "syscall") {
+    const n = last.service ?? val("$v0");
+    const [name, args = []] = services[n] || [`服务 ${n}`];
+    const parts = [`$v0 = ${format(n, "$v0")} ${name}`];
+    const shown = args
+      .filter((r) => r !== "memory" && val(r) != null)
+      .map((r) => `${r} = ${format(val(r), r)}`);
+    if (shown.length) parts.push(" · " + shown.join("，"));
+    const results = [];
+    if (last.output) {
+      const out = [...last.output]
+        .map((c) => escapeByte(c.charCodeAt(0)))
+        .join("");
+      results.push(`输出 "${out.length > 16 ? out.slice(0, 15) + "…" : out}"`);
+    }
+    for (const a of last.accesses || [])
+      if (a.write && a.kind === "register")
+        results.push(`${a.name} = ${format(a.value, a.name)}`);
+    if (/^waiting/.test(last.status || "")) results.push("等待输入");
+    else if (n === 10 || n === 17) results.push("程序结束");
+    if (results.length) parts.push(" → " + results.join("，"));
+    return parts.join("");
+  }
+  const op = ins.op,
+    rs = "$" + registerNames[(ins.binary >>> 21) & 31],
+    rt = "$" + registerNames[(ins.binary >>> 16) & 31];
+  // The branch itself decides on the values it read (a pseudo branch first
+  // computes them into $at).
+  const own = (name) =>
+    name === "$zero"
+      ? 0
+      : (last.accesses || []).find(
+          (a) => a.kind === "register" && !a.write && a.name === name,
+        )?.value;
+  const x = own(rs),
+    y = own(rt);
+  const taken =
+    op === "beq"
+      ? x === y
+      : op === "bne"
+        ? x !== y
+        : compareZero[op] && x != null
+          ? compareZero[op][1](x)
+          : null;
+  if (taken == null) return null;
+  const s = symbols.find((v) => v.address === ins.target && !v.data),
+    t = instructions.find((v) => v.address === ins.target);
+  const target = s ? s.name : t ? `第 ${t.line} 行` : hex(ins.target);
+  const always =
+    (op === "beq" && rs === rt) ||
+    (rs === "$zero" && /^(bgez|blez|bgezal)$/.test(op));
+  if (always) return `→ 跳到 ${target}`;
+  const [mn, ...args] = (events[0].instruction.source || "")
+    .replace(/#.*/, "")
+    .replace(/^\s*[\w.]+:/, "")
+    .trim()
+    .split(/[\s,]+/);
+  const unsigned = /u$/.test(mn);
+  const operand = (a) => {
+    if (a == null) return undefined;
+    if (a.startsWith("$")) {
+      const v = val(reg(a));
+      return v == null ? undefined : format(unsigned ? v >>> 0 : v, reg(a));
+    }
+    const n = Number(a);
+    return Number.isFinite(n) ? format(unsigned ? n >>> 0 : n) : undefined;
+  };
+  let test = null;
+  if (sourceCompare[mn]) {
+    const a = operand(args[0]),
+      b = /0$/.test(sourceCompare[mn]) && /z$/.test(mn) ? "" : operand(args[1]);
+    if (a != null && b != null)
+      test = `${a} ${sourceCompare[mn]}${b === "" ? "" : " " + b}`;
+  } else if (compareZero[mn] && mn === op)
+    test = `${format(x, rs)} ${compareZero[op][0]}`;
+  const result = taken ? `→ 跳到 ${target}` : "→ 继续下一行";
+  if (test) return `${test} ${taken ? "成立" : "不成立"} ${result}`;
+  const listed = [...reads]
+    .filter(([n]) => n !== "$zero" && n !== "$at")
+    .map(([n, v]) => `${n} = ${format(v, n)}`);
+  return [listed.join("，"), result].filter(Boolean).join(" ");
+}

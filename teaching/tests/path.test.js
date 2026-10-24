@@ -137,3 +137,18 @@ test("the completed step includes the whole pseudo-instruction line from history
   const p = layoutPath({ last: history[1], history, lookahead: look([[C, 0xc]]), instructions: [A, B, C], mode: "fixed" });
   assert.deepEqual(p.steps[0].events.map((e) => e.instruction.op), ["lui", "ori"]);
 });
+
+test("earlier executed lines stay in the window before the completed one", () => {
+  const A = ins(0x00, 1), B = ins(0x04, 2, "lui"), B2 = ins(0x08, 2, "ori"), C = ins(0x0c, 3), D = ins(0x10, 4);
+  const history = [
+    { ...ev(A, 4), pc: 0, step: 1 },
+    { ...ev(B, 8), pc: 4, step: 2 },
+    { ...ev(B2, 0xc), pc: 8, step: 3 },
+    { ...ev(C, 0x10), pc: 0xc, step: 4 },
+  ];
+  const p = layoutPath({ last: history[3], history, lookahead: look([[D, 0x14]]), instructions: [A, B, B2, C, D], mode: "fixed" });
+  assert.deepEqual(p.steps.map((s) => [s.index, s.line, s.events.length, s.predicted]),
+    [[-3, 1, 1, false], [-2, 2, 2, false], [-1, 3, 1, false], [0, 4, 1, true]]);
+  const two = layoutPath({ last: history[3], history, earlier: 1, lookahead: look([[D, 0x14]]), instructions: [A, B, B2, C, D], mode: "fixed" });
+  assert.deepEqual(two.steps.map((s) => s.index), [-2, -1, 0]);
+});

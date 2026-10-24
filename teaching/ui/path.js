@@ -50,6 +50,7 @@ function lastTransfer(step, before, delay) {
 export function layoutPath({
   last = null,
   history = [],
+  earlier = 3,
   lookahead = null,
   instructions = [],
   symbols = [],
@@ -95,20 +96,40 @@ export function layoutPath({
   // The completed step is the whole source line that just ran: a
   // pseudo-instruction's earlier machine instructions come from history,
   // grouped like source stepping (same line, sequential PCs).
+  // Earlier lines stay in view too (trial feedback: executing the next line
+  // used to make the previous one disappear), up to `earlier` of them,
+  // numbered -2, -3, … before the completed step.
   if (last?.instruction) {
-    const done = [last];
     const byStep = new Map(history.map((e) => [e.step, e]));
-    for (let e = byStep.get(last.step - 1); e; e = byStep.get(e.step - 1)) {
-      const next = done[0];
-      if (
-        e.instruction.file !== next.instruction.file ||
-        e.instruction.line !== next.instruction.line ||
-        e.pc + 4 !== next.pc
-      )
-        break;
-      done.unshift(e);
+    const lineEnding = (end) => {
+      const done = [end];
+      for (let e = byStep.get(end.step - 1); e; e = byStep.get(e.step - 1)) {
+        const next = done[0];
+        if (
+          e.instruction.file !== next.instruction.file ||
+          e.instruction.line !== next.instruction.line ||
+          e.pc + 4 !== next.pc
+        )
+          break;
+        done.unshift(e);
+      }
+      return done;
+    };
+    const lines = [lineEnding(last)];
+    while (lines.length <= earlier) {
+      const before = byStep.get(lines[0][0].step - 1);
+      if (!before?.instruction) break;
+      lines.unshift(lineEnding(before));
     }
-    addStep(-1, false, last.instruction.file, last.instruction.line, done);
+    lines.forEach((done, i) =>
+      addStep(
+        i - lines.length,
+        false,
+        done[0].instruction.file,
+        done[0].instruction.line,
+        done,
+      ),
+    );
   }
 
   // Window range: fixed N lines, or (auto) the rest of the current block plus

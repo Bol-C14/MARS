@@ -152,10 +152,11 @@ header {
 }
 .workspace {
   display: grid;
-  grid-template-columns: 190px minmax(390px, 1fr) 345px;
+  grid-template-columns:
+    var(--left-w, 190px) 1px minmax(330px, 1fr) 1px
+    var(--right-w, 345px);
   flex: 1;
   min-height: 0;
-  gap: 1px;
   background: var(--line);
 }
 .sidebar,
@@ -359,10 +360,9 @@ header {
   border-left: 3px dashed var(--blue);
 }
 .bottom {
-  height: 210px;
+  height: var(--bottom-h, 210px);
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--line);
   flex-shrink: 0;
 }
 .bottom-panel {
@@ -718,7 +718,9 @@ input:focus-visible {
 }
 @media (max-width: 1150px) {
   .workspace {
-    grid-template-columns: 145px minmax(330px, 1fr) 300px;
+    grid-template-columns:
+      var(--left-w, 145px) 1px minmax(300px, 1fr) 1px
+      var(--right-w, 300px);
   }
   header {
     padding: 0 10px;
@@ -757,7 +759,7 @@ input:focus-visible {
 }
 @media (max-height: 850px) {
   .bottom {
-    height: 145px;
+    height: var(--bottom-h, 145px);
   }
 }
 .overlay-settings summary {
@@ -1435,3 +1437,92 @@ abbr.term {
   border-radius: 6px;
   background: color-mix(in srgb, var(--accent) 8%, var(--panel));
 }
+.fbadge.done.earlier:not(.sel) {
+  opacity: 0.55;
+}
+
+/* Draggable lines between panels (2026-10-23 feedback). The visible line
+   stays 1px; a wider invisible strip takes the pointer. */
+.splitter {
+  position: relative;
+  z-index: 6;
+  background: var(--line);
+  flex-shrink: 0;
+  touch-action: none;
+}
+.splitter.col {
+  cursor: col-resize;
+}
+.splitter.row {
+  height: 1px;
+  cursor: row-resize;
+}
+.splitter::before {
+  content: "";
+  position: absolute;
+  inset: 0 -3px;
+}
+.splitter.row::before {
+  inset: -3px 0;
+}
+.splitter:hover,
+.splitter:focus-visible,
+.splitter.dragging {
+  background: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+body.resizing-x,
+body.resizing-x * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+body.resizing-y,
+body.resizing-y * {
+  cursor: row-resize !important;
+  user-select: none;
+}
+
+/* Project/file operations share the existing compact IDE visual language. */
+header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
+.project { flex-wrap:wrap; gap:4px; }
+.project select { max-width:190px; }
+.project-heading { padding:12px 12px 2px; }
+#project-title { font-weight:700; padding:2px 0; max-width:100%; overflow:hidden; text-overflow:ellipsis; display:block; }
+#workspace-status { display:block; font-size:10px; color:var(--muted); margin-top:5px; line-height:1.5; }
+.explorer-heading { letter-spacing:0; gap:4px; flex-wrap:wrap; white-space:nowrap; }
+.explorer-heading span { display:flex; gap:2px; }
+.file-tree, .file-tree ul { list-style:none; padding:0; margin:0; }
+.file-tree ul { margin-left:13px; border-left:1px solid var(--line); }
+.file-tree summary { cursor:pointer; display:flex; align-items:center; gap:5px; padding:4px 5px 4px 10px; font-size:12px; min-height:31px; }
+.file-tree summary::before { content:'▸'; color:var(--muted); }
+.file-tree details[open] > summary::before { content:'▾'; }
+.folder-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tree-row { display:flex; align-items:center; padding-right:5px; min-width:0; border-left:2px solid transparent; }
+.tree-row.active { background:color-mix(in srgb,var(--accent) 9%,var(--panel)); border-left-color:var(--accent); }
+.tree-open { display:flex; gap:7px; align-items:center; min-width:0; flex:1; padding:7px 8px; text-align:left; border-radius:0; font-size:12px; }
+.tree-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tree-menu { flex-shrink:0; font-size:16px; padding:0 5px; color:var(--muted); }
+.tree-menu:hover,.tree-menu:focus-visible { color:var(--text); }
+.tree-empty { padding:9px 12px; color:var(--muted); font-size:11px; line-height:1.6; }
+.entry-badge { flex-shrink:0; color:var(--accent); font-size:9px; margin-left:auto; border:1px solid var(--line); border-radius:3px; padding:1px 3px; }
+.entry-choice { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:7px; padding:12px 10px 5px; font-size:10px; color:var(--muted); }
+.entry-choice select { width:100%; font-size:11px; padding:4px; }
+.workspace-tools { display:flex; flex-wrap:wrap; gap:2px; padding:2px 6px 8px; border-bottom:1px solid var(--line); }
+.workspace-tools button { color:var(--muted); font-size:10px; padding:5px; }
+.file-tab { display:flex; align-items:center; border-right:1px solid var(--line); flex-shrink:0; }
+.file-tab.active { color:var(--accent); border-top:2px solid var(--accent); }
+.tabs .file-tab button { border:0; padding:9px 8px; }
+.tabs .file-tab.active button { color:var(--accent); }
+.tabs .close-tab { padding:6px; color:var(--muted); }
+.empty-tab { color:var(--muted); padding:10px; font-size:11px; }
+.project-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; flex-wrap:wrap; }
+.file-actions { display:flex; flex-direction:column; gap:5px; align-items:stretch; }
+.file-actions button { text-align:left; padding:10px; border:1px solid var(--line); }
+#project-form label { display:block; }
+#project-value { display:block; width:100%; margin-top:8px; }
+#project-error { color:var(--orange); line-height:1.5; }
+.project-explanation { overflow-wrap:anywhere; line-height:1.6; }
+.danger { color:#bf4040; }
+button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+@media(max-width:1050px) { .brand { min-width:125px; } header { gap:6px; padding-left:10px; padding-right:10px; } .brand small { letter-spacing:0; } .project button { padding:5px; font-size:11px; } }
