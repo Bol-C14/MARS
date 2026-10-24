@@ -248,3 +248,20 @@ export function layoutPath({
     },
   };
 }
+
+// The code on a branch's untaken side (classroom 2026-10-24): source lines
+// from `target` onward in address order, through the first control transfer,
+// at most `max` lines. Static only: nothing here runs or predicts values.
+export function untakenLines(instructions, target, max = 4) {
+  const by = new Map(instructions.map((i) => [i.address, i])),
+    lines = [];
+  for (let a = target, i = by.get(a); i && lines.length <= max; i = by.get((a += 4))) {
+    const last = lines.at(-1);
+    if (!last || last.file !== i.file || last.line !== i.line) {
+      if (lines.length === max) break;
+      lines.push({ file: i.file, line: i.line, address: i.address });
+    }
+    if (i.flow !== "next") break;
+  }
+  return lines;
+}

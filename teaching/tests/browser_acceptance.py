@@ -106,20 +106,28 @@ def scenario(r, page, mod):
     r.js("(a) => window.marsIDE.gotoAddress(a)", address)
     page.locator("#step").click()
     r.until("() => window.marsIDE.state?.last.instruction.op === 'lbu'")
-    page.locator(".overlay-settings summary").click()
-    page.select_option("#relation-scope", "all")
+    # Relation-line settings live in focus mode now (classroom 2026-10-24).
+    def lens_settings(action):
+        page.locator("#focus-open").click()
+        r.until("() => !document.getElementById('focus-lens').hidden")
+        if page.locator("#focus-head .overlay-settings").get_attribute("open") is None:
+            page.locator("#focus-head .overlay-settings summary").click()
+        action()
+        page.locator("#focus-close").click()
+    lens_settings(lambda: page.select_option("#relation-scope", "all"))
     r.until("() => document.querySelectorAll('#overlay>path').length > 0")
+    r.check("relation settings are reached from focus mode", page.locator("#focus-head .overlay-settings").count() == 1 and page.locator("footer .overlay-settings").count() == 0)
     r.check("preview lines", page.locator("#overlay>path[stroke-dasharray]").count() > 0)
-    page.locator("#dashed").uncheck()
+    lens_settings(lambda: page.locator("#dashed").uncheck())
     r.until("() => document.querySelectorAll('#overlay>path[stroke-dasharray]').length === 0")
     r.check("actual lines independent of preview", page.locator("#overlay>path").count() > 0)
-    page.locator("#solid").uncheck()
+    lens_settings(lambda: page.locator("#solid").uncheck())
     r.until("() => document.querySelectorAll('#overlay>path').length === 0")
     r.check("both layers off", True)
-    page.locator("#solid").check()
-    page.locator("#dashed").check()
-    page.locator(".overlay-settings summary").click()
+    lens_settings(lambda: (page.locator("#solid").check(), page.locator("#dashed").check(), page.locator("#focus-head .overlay-settings summary").click()))
+    page.locator("#view-menu-button").click()
     page.locator("#zoom").click()
+    page.keyboard.press("Escape")
     page.set_viewport_size({"width": 1280, "height": 850})
     r.until("() => document.querySelectorAll('#overlay>path').length > 0")
     paths = r.js("() => [...document.querySelectorAll('#overlay>path')].map(p => p.getAttribute('d'))")
@@ -129,6 +137,7 @@ def scenario(r, page, mod):
     page.locator('[data-view="source"]').click()
     page.locator('[data-bottom="trace"]').click()
     r.check("loop iteration groups", page.locator(".loop-history").count() > 0)
+    page.locator("#side-tab-stops").click()
     page.locator("#add-watch").click()
     page.locator("#watch-target").fill("$t0")
     page.select_option("#watch-access", "read")
@@ -147,9 +156,11 @@ def scenario(r, page, mod):
     r.check("pseudo lines leave out the $at scratch value", not any("$at" in t for t in inline), str(inline))
     code_size = lambda: r.js("() => getComputedStyle(document.documentElement).getPropertyValue('--code').trim()")
     before = code_size()
+    page.locator("#view-menu-button").click()
     page.locator("#zoom-out").click()
     smaller = code_size()
     page.locator("#zoom").click()
+    page.keyboard.press("Escape")
     r.check("A− shrinks the code and A＋ grows it back", int(smaller[:-2]) == int(before[:-2]) - 1 and code_size() == before, f"{before} {smaller} {code_size()}")
     width = lambda: page.locator(".sidebar").bounding_box()["width"]
     start, line = width(), page.locator("#split-left").bounding_box()
@@ -380,12 +391,263 @@ def scenario(r, page, mod):
     r.check("Esc leaves focus mode", page.locator("#focus-lens").is_hidden())
 
     # --- edit invalidation and reassembly (ported) ---
+    page.locator("#view-menu-button").click()
     page.locator("#theme").click()
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: e.state.doc.length, insert: '\\n# edit test' } }) }")
     r.check("dirty source blocks stale execution", page.locator("#step").is_disabled())
     page.locator("#assemble").click()
     r.until("() => window.marsIDE.state?.step === 0 && !document.querySelector('#step').disabled")
     r.check("reassembly restores execution", True)
+
+
+def classroom_p1(r, page, mod):
+    """2026-10-24 classroom P1: layout, menus, inspector, BIN, syscalls, terminal."""
+    r.until("() => window.marsIDE?.state?.status === 'paused'")
+    # Toolbar: stepping is a group of named icons; words stay on main actions.
+    r.check("step icons carry names and shortcuts", "源码单步" in page.locator("#source").get_attribute("aria-label") and "F11" in page.locator("#source").get_attribute("data-tip") and page.locator("#source .tool-label").bounding_box()["width"] <= 2)
+    page.locator("#over").hover()
+    r.check("hovering an icon shows its name", "跨过调用" in r.js("() => getComputedStyle(document.getElementById('over'), '::after').content"))
+    r.check("run and pause keep their words", page.locator("#run").inner_text().strip() == "▶ 运行" and "暂停" in page.locator("#pause").inner_text())
+    # Header: project actions in one menu, with replace vs add and browser vs computer spelled out.
+    page.locator("#project-menu-button").click()
+    menu = page.locator("#project-menu").inner_text()
+    r.check("the project menu separates replace, add, save and export", all(w in menu for w in ("打开工程", "替换当前工程", "添加文件", "追加", "保存到此浏览器", "导出到电脑")))
+    page.keyboard.press("Escape")
+    r.check("Escape closes the project menu", page.locator("#project-menu").is_hidden())
+    r.check("the project name shows its save state", page.locator(".project-state #workspace-status").is_visible())
+    # Left: one group at a time, chosen by mouse or keyboard, remembered.
+    page.locator("#side-tab-symbols").click()
+    r.check("side tabs show one group at a time", page.locator("#side-symbols").is_visible() and page.locator("#side-files").is_hidden() and page.locator("#side-tab-symbols").get_attribute("aria-selected") == "true")
+    page.keyboard.press("ArrowDown")
+    r.check("arrow keys move between side tabs", page.locator("#side-stops").is_visible())
+    # Right: panels fold to their titles and keep the rest usable.
+    page.locator("#panel-registers .panel-toggle").click()
+    r.check("a right-hand panel folds to its title", page.locator("#registers-body").is_hidden() and page.locator("#panel-registers .panel-toggle").is_visible() and "fill" in page.locator("#panel-memory").get_attribute("class"))
+    page.reload(); r.until("() => Boolean(window.marsIDE)")
+    r.check("folded panels and the side tab are remembered", page.locator("#registers-body").is_hidden() and page.locator("#side-stops").is_visible())
+    page.locator("#view-menu-button").click(); page.locator("#reset-layout").click()
+    r.check("reset layout restores panels and the files tab", page.locator("#registers-body").is_visible() and page.locator("#side-files").is_visible())
+    before = page.locator("#panel-context").bounding_box()["height"]
+    line = page.locator("#split-context").bounding_box()
+    page.mouse.move(line["x"] + 40, line["y"] + 0.5); page.mouse.down(); page.mouse.move(line["x"] + 40, line["y"] + 50, steps=4); page.mouse.up()
+    r.check("the inspector and registers split their height by dragging", page.locator("#panel-context").bounding_box()["height"] > before + 40)
+    page.locator("#split-context").dblclick()
+    # Instruction detail: rule, this line, values before, calculation, result.
+    page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
+    r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: '.text\\nmain:\\n li $s0, 7\\n li $t0, 3\\n add $s0, $s0, $t0\\n li $v0, 10\\n syscall\\n' } }) }")
+    page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+    for _ in range(2):
+        page.locator("#source").click(); page.wait_for_timeout(150)
+    r.until("() => window.marsIDE.state.step === 2")
+    word = page.locator(".cm-line").nth(4).locator("text=add")
+    word.hover()
+    r.until("() => !document.getElementById('tooltip').hidden")
+    tip = page.locator("#tooltip").inner_text()
+    r.check("the hover note leads with how to open the details", ("⌘＋点击查看详细" if mod == "Meta" else "Ctrl＋点击查看详细") in tip.splitlines()[0] and "本行：$s0 ← $s0 + $t0" in tip, tip)
+    page.locator("#tooltip .tip-detail").click()
+    detail = page.locator("#context").inner_text()
+    r.check("a preview is marked as not yet executed", "即将执行" in detail and "预览：尚未执行" in detail, detail)
+    r.check("the detail shows the general rule and this line", "$a ← $b + $c" in detail and "$s0 ← $s0 + $t0" in detail, detail)
+    page.locator("#source").click(); r.until("() => window.marsIDE.state.step === 3")
+    detail = page.locator("#context").inner_text()
+    r.check("after running, the detail uses the values from before the write", "刚执行（第 3 步）" in detail and "$s0 = 0d7，$t0 = 0d3" in detail and "$s0：0d7 → 0d10" in detail, detail)
+    page.locator("#back").click(); r.until("() => window.marsIDE.state.step === 2")
+    r.check("the pinned detail follows the selected history step", "即将执行" in page.locator("#context").inner_text())
+    # BIN: the whole 32-bit pattern, wrapping only at byte boundaries.
+    page.select_option("#radix", "bin")
+    sp = page.locator('[data-register="$sp"] .value')
+    r.check("BIN registers show all 32 bits with leading zeros", sp.inner_text().replace("\n", "") == "0b0111_1111_1111_1111_1110_1111_1111_1100" and page.locator('[data-register="$zero"] .value').inner_text().replace("\n", "").count("0") == 33)
+    r.check("BIN values do not overflow their register cell", r.js("() => [...document.querySelectorAll('#registers .reg')].every(e => e.scrollWidth <= e.clientWidth + 1)"))
+    page.select_option("#radix", "auto")
+    # Syscalls: per-service explanation from the number before the call.
+    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+    page.locator('[data-bottom="trace"]').click()
+    for _ in range(3):
+        page.locator("#source").click(); page.wait_for_timeout(150)
+    r.until("() => window.marsIDE.state.output.length > 0")
+    r.check("new output marks the hidden console tab", "unread" in page.locator('[data-bottom="console"]').get_attribute("class"))
+    page.locator("#source").click(); page.locator("#source").click()
+    r.until("() => window.marsIDE.state.status === 'waiting'")
+    r.check("waiting for input brings the console forward and lights the input", page.locator("#console").is_visible() and "waiting" in page.locator("#console").get_attribute("class") and "等待输入" in page.locator("#stdin").get_attribute("placeholder"))
+    r.check("waiting does not take keyboard focus", r.js("() => document.activeElement?.id") != "stdin")
+    r.js("() => window.marsIDE.inspectToken('syscall', { file: 'main.s', line: 11 })")
+    detail = page.locator("#context").inner_text()
+    r.check("the syscall detail explains the service while it waits", "读取整数（服务 5）" in detail and "正在等待输入" in detail and "$v0 变为" not in detail, detail)
+    page.locator("#stdin").fill("898"); page.locator("#input-form button").click()
+    r.until("() => window.marsIDE.state.status !== 'waiting'")
+    detail = page.locator("#context").inner_text()
+    r.check("after the read, the service number stays the one before the call", "读取整数（服务 5）" in detail and "最近一次执行" in detail and "$v0 变为 0d898" in detail, detail)
+    # A breakpoint hit while its group is hidden marks the tab.
+    page.locator("#side-tab-files").click()
+    r.js("() => window.marsIDE.gotoAddress(window.marsIDE.program.instructions.find(i => i.line === 18).address)")
+    page.keyboard.press("F9"); page.keyboard.press("F5")
+    r.until("() => (window.marsIDE.state?.stopReason || '').startsWith('Breakpoint')")
+    r.check("a breakpoint hit marks the hidden breakpoint tab", page.locator("#stops-badge").is_visible())
+    page.locator("#side-tab-stops").click()
+    r.check("opening the tab clears the mark", page.locator("#stops-badge").is_hidden())
+
+
+HELLO = """.data
+greeting: .asciiz "Hello!"
+.text
+.globl main
+main:
+    la $a0, greeting
+    li $v0, 4
+    syscall
+    li $v0, 10
+    syscall
+"""
+NAME = """.data
+greeting: .asciiz "Hello, "
+bang:     .asciiz "!"
+name:     .space 32
+.text
+.globl main
+main:
+    la $a0, name
+    li $a1, 32
+    li $v0, 8
+    syscall
+    la $a0, greeting
+    li $v0, 4
+    syscall
+    la $a0, name
+    li $v0, 4
+    syscall
+    la $a0, bang
+    li $v0, 4
+    syscall
+    li $t0, START
+    addi $t0, $t0, 1
+EXTRA    li $v0, 10
+    syscall
+"""
+
+
+def classroom_p2(r, page, mod):
+    """2026-10-24 classroom P2: untaken branch, bits, search, and the tutorial."""
+    def card():
+        return page.locator("#tutorial").inner_text()
+    def step_done(title):
+        r.until("(t) => { const c = document.getElementById('tutorial'); return c && c.innerText.includes(t) && !!c.querySelector('[data-t=next]'); }", title)
+        page.locator('#tutorial [data-t="next"]').click()
+    def write(text):
+        r.js("(t) => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: t } }) }", text)
+    def run_with(*inputs, through_breakpoints=True):
+        """Assemble and run, answering input waits and continuing past breakpoints."""
+        page.locator("#assemble").click()
+        r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+        page.locator("#run").click()
+        pending = list(inputs)
+        for _ in range(20):
+            r.until("() => !document.getElementById('run').disabled || ['ended', 'error'].includes(window.marsIDE.state?.status)")
+            page.wait_for_timeout(150)
+            status = r.js("() => window.marsIDE.state.status")
+            if status == "waiting" and pending:
+                page.locator("#stdin").fill(pending.pop(0)); page.locator("#input-form button").click()
+            elif status == "paused" and through_breakpoints and (r.js("() => window.marsIDE.state.stopReason") or "").startswith(("Breakpoint", "Watchpoint")) is False:
+                break
+            elif status == "paused" and through_breakpoints and r.js("() => window.marsIDE.state.stopReason.startsWith('Breakpoint')"):
+                page.locator("#run").click()
+            else:
+                break
+    # Focus mode: the untaken side of a branch, and bits of a shift.
+    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+    page.locator("#run").click()
+    r.until("() => window.marsIDE.state.status === 'waiting'")
+    page.locator("#stdin").fill("300"); page.locator("#input-form button").click()
+    r.until("() => window.marsIDE.state.status === 'ended'")
+    shift = r.js("() => window.marsIDE.program.instructions.find(i => i.op === 'srl').address")
+    page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.step === 0")
+    r.js("(a) => window.marsIDE.gotoAddress(a)", shift)
+    page.keyboard.press("F9"); page.locator("#run").click()
+    r.until("() => window.marsIDE.state.status === 'waiting'")
+    page.locator("#stdin").fill("300"); page.locator("#input-form button").click()
+    r.until("(a) => window.marsIDE.state.pc === a", shift)
+    page.locator("#source").click(); r.until("() => window.marsIDE.state.last?.instruction.op === 'srl'")
+    page.locator("#focus-open").click(); r.until("() => !document.getElementById('focus-lens').hidden")
+    page.wait_for_timeout(500)
+    page.locator("#focus-bits-toggle").click()
+    r.check("a shift can be followed bit by bit", "srl：逐位移位" in page.locator("#focus-bits").inner_text() and "第 1/" in page.locator("#focus-bits").inner_text())
+    page.locator("#bits-next").click()
+    r.check("bit steps move one shift at a time", "第 1 次移动" in page.locator("#focus-bits").inner_text())
+    page.locator("#focus-bits-toggle").click()
+    untaken = page.locator(".funtaken").first
+    r.check("a conditional branch shows its untaken side, folded", untaken.count() == 1 and "未走的路径" in untaken.inner_text() and untaken.get_attribute("open") is None)
+    untaken.locator("summary").click()
+    r.check("the untaken side shows code only, marked as not executed", "没有执行" in untaken.inner_text() and untaken.locator(".frow.untaken").count() > 0)
+    page.locator("#focus-close").click()
+    # Search: from what one wants to do to the instruction or service.
+    page.locator("#find-instruction").click()
+    page.locator("#find-input").fill("打印字符")
+    r.check("search finds a service from what one wants to do", "syscall 11 · 打印字符" in page.locator("#find-list .selected").inner_text() and "li $v0, 11" in page.locator("#find-detail").inner_text())
+    page.locator("#find-input").fill("比较大小")
+    r.check("search lists comparisons and says real or pseudo", any(w in page.locator("#find-list").inner_text() for w in ("slt", "blt")) and ("伪指令" in page.locator("#find-list").inner_text()))
+    page.locator("#find-input").fill("zzz不存在")
+    r.check("search says when nothing matches", "没有找到匹配" in page.locator("#find-detail").inner_text())
+    page.keyboard.press("Escape")
+    # The tutorial, walked through as a student would.
+    page.locator("#start-tutorial").click(); page.locator("#tutorial-begin").click()
+    r.until("() => !document.getElementById('tutorial').hidden")
+    r.check("the tutorial opens its own project and keeps the old one aside", r.js("() => Object.keys(window.marsIDE.files).length") == 0 and r.js("() => !!localStorage.getItem('tutorial-backup')"))
+    r.check("the tutorial starts from a goal, not a list of features", "新建 hello.s" in card() and "第一个程序放在哪里" in card())
+    page.locator('#tutorial [data-t="hint"]').click()
+    r.check("hints come one at a time", "提示 1" in card() and "提示 2" not in card())
+    page.locator("#new-file").click(); page.locator("#project-value").fill("hello.s"); page.locator("#project-form button.primary").click()
+    step_done("新建 hello.s")
+    r.check("the next step stays locked until it really happened", page.locator('#tutorial [data-t="next"]').count() == 0)
+    page.locator('#tutorial [data-t="answer"]').click()
+    r.check("the reference answer is shown, not typed in", "参考答案" in card() and r.js("() => window.marsIDE.files['hello.s']") == "")
+    write(HELLO); run_with()
+    step_done("让程序打印 Hello!")
+    write(NAME.replace("START", "41").replace("    li $t0, 41\n    addi $t0, $t0, 1\n", "").replace("EXTRA", "")); run_with("Alice")
+    step_done("读取名字")
+    page.locator(".cm-line").nth(16).click(); page.keyboard.press("F9")
+    page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.step === 0")
+    page.locator("#run").click(); r.until("() => window.marsIDE.state?.status === 'waiting'")
+    page.locator("#stdin").fill("Alice"); page.locator("#input-form button").click()
+    step_done("停在打印名字之前")
+    page.locator(".cm-line").nth(16).locator("text=syscall").hover()
+    page.locator("#tooltip .tip-detail").click()
+    step_done("看懂这个 syscall")
+    page.locator('[data-register="$a0"]').click(); page.locator("#point").click()
+    step_done("顺着地址找到名字")
+    page.locator('#tutorial [data-go="focus"]').click(); r.until("() => !document.getElementById('focus-lens').hidden")
+    page.wait_for_timeout(600)
+    page.keyboard.press("Shift+ArrowDown")
+    r.until("() => window.marsIDE.state.last?.instruction.op === 'syscall'")
+    page.locator("#focus-close").click()
+    step_done("在专注模式里执行它")
+    r.check("the overflow step shows the code to add", "0x7fffffff" in card())
+    write(NAME.replace("START", "0x7fffffff").replace("EXTRA", "")); run_with("Alice")
+    step_done("让计算越界")
+    page.locator("#back").click(); r.until("() => window.marsIDE.state.status === 'paused'")
+    page.locator(".cm-line").nth(21).locator("text=addi").hover(); page.locator("#tooltip .tip-detail").click()
+    step_done("看出错前的数值")
+    page.locator('#tutorial [data-go="side:stops"]').click()
+    page.locator("#add-watch").click(); page.locator("#watch-target").fill("$t0"); page.select_option("#watch-access", "write"); page.locator("#watch-form button").click()
+    run_with("Alice")
+    step_done("用观察点找到写入")
+    r.js("() => document.querySelector('[data-watch]')?.click()")
+    write(NAME.replace("START", "0x7fffffff").replace("addi $t0", "addiu $t0").replace("EXTRA", "")); run_with("Alice")
+    r.until("() => window.marsIDE.state.status === 'ended'")
+    r.check("silencing the overflow with addiu is not accepted as a fix", "溢出还在" in card() and page.locator('#tutorial [data-t="next"]').count() == 0)
+    write(NAME.replace("START", "41").replace("EXTRA", "")); run_with("Alice")
+    step_done("修好它")
+    age = "    li $v0, 5\n    syscall\n    addi $a0, $v0, 1\n    li $v0, 1\n    syscall\n"
+    write(NAME.replace("START", "41").replace("EXTRA", age)); run_with("Alice", "17")
+    step_done("读取年龄")
+    page.locator('#tutorial [data-go="menu:project"]').click(); page.locator("#save").click()
+    with page.expect_download():
+        page.locator("#download-zip").click()
+    step_done("导出你的工程")
+    r.check("the finish offers to keep the exercise or go back", page.locator("#tutorial-restore").is_visible() and page.locator("#tutorial-keep").is_visible())
+    page.locator("#tutorial-restore").click()
+    r.until("() => document.getElementById('tutorial').hidden")
+    r.check("going back restores the project from before the tutorial", r.js("() => Object.keys(window.marsIDE.files)") != ["hello.s"])
 
 
 def reduced_motion(r, page, mod):
@@ -402,6 +664,10 @@ def reduced_motion(r, page, mod):
     dots = r.js("() => [...document.querySelectorAll('.fdot')].map(d => d.className)")
     r.check("reduced motion shows the conclusion", "now" in dots[-1], str(dots))
     r.check("reduced motion: no moving values", page.locator(".ftoken").count() == 0)
+    if page.locator("#focus-bits-toggle").is_visible():
+        page.locator("#focus-bits-toggle").click()
+        r.check("reduced motion: bit steps are listed at once", page.locator(".bits-step").count() > 1 and page.locator("#bits-play").count() == 0)
+        page.locator("#focus-bits-toggle").click()
     page.keyboard.press("Escape")
     page.keyboard.press("F5")
     r.until("() => window.marsIDE.state?.status !== 'paused' || window.marsIDE.state?.stopReason !== ''")
@@ -441,11 +707,28 @@ def main():
                 calm.locator("#project-confirm").click()
                 calm.wait_for_function("() => window.marsIDE?.state?.status === 'paused'")
                 reduced_motion(Run(calm), calm, mod)
+                calm.close()
+                wide = browser.new_page(viewport={"width": 1440, "height": 1000})
+                wide.on("pageerror", lambda e: errors.append(str(e)))
+                wide.goto(f"http://127.0.0.1:{port}")
+                wide.select_option("#example", label="Hexadecimal · 位与字符")
+                wide.locator("#project-confirm").click()
+                p1 = Run(wide)
+                try:
+                    classroom_p1(p1, wide, mod)
+                    classroom_p2(p1, wide, mod)
+                except Exception:
+                    wide.screenshot(path=str(ROOT / "teaching/test-results/browser-failure-wide.png"))
+                    raise
+                finally:
+                    r.passed += p1.passed
                 r.passed += ["reduced motion shows the conclusion", "reduced motion: no moving values", "reduced motion: no spotlight"]
                 r.check("no page errors", not errors, json.dumps(errors))
             except Exception as e:
                 page.screenshot(path=str(ROOT / "teaching/test-results/browser-failure.png"))
                 print(f"FAIL after {len(r.passed)} checks: {e}")
+                import traceback
+                print("".join(l for l in traceback.format_exc().splitlines(True) if "browser_acceptance.py" in l))
                 print("passed:", ", ".join(r.passed))
                 sys.exit(1)
             finally:

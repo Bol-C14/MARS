@@ -153,7 +153,7 @@ header {
 .workspace {
   display: grid;
   grid-template-columns:
-    var(--left-w, 190px) 1px minmax(330px, 1fr) 1px
+    var(--left-w, 236px) 1px minmax(330px, 1fr) 1px
     var(--right-w, 345px);
   flex: 1;
   min-height: 0;
@@ -719,7 +719,7 @@ input:focus-visible {
 @media (max-width: 1150px) {
   .workspace {
     grid-template-columns:
-      var(--left-w, 145px) 1px minmax(300px, 1fr) 1px
+      var(--left-w, 196px) 1px minmax(300px, 1fr) 1px
       var(--right-w, 300px);
   }
   header {
@@ -1556,3 +1556,131 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .assembly-mode b { color:var(--text); font-size:11px; }
 .assembly-mode small { flex-basis:100%; }
 .split-button .primary:hover, .split-button .primary[aria-expanded="true"] { background:#2858b5; border-color:transparent; }
+/* BIN registers: the full 32-bit pattern, one register per row. */
+#registers.bin { grid-template-columns: 1fr; }
+#registers.bin .reg { gap: 8px; }
+#registers.bin .value { text-align: right; overflow-wrap: normal; word-break: keep-all; letter-spacing: -0.2px; }
+/* Terminal attention: input waits light the box; output gets a static mark
+   under reduced motion (the pulse itself is a Web Animation). */
+#console.waiting #input-form { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+#console.waiting #stdin { border-color: var(--accent); }
+[data-bottom="console"].unread::after { content: " •"; color: var(--orange); }
+.fresh-output { box-shadow: inset 3px 0 0 var(--accent); }
+/* Hover brief and detailed inspector (classroom 2026-10-24). */
+#tooltip { pointer-events: auto; }
+#tooltip .tip-hint { font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+#tooltip .tip-formula { margin: 4px 0; }
+#tooltip .tip-detail { margin-top: 6px; padding: 3px 8px; border: 1px solid var(--line); color: var(--accent); }
+.inspect-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.inspect-head h3 { margin: 6px 0 2px; }
+.inspect-head span { color: var(--muted); font-size: 11px; }
+.detail-steps, .syscall-steps { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; margin: 8px 0; }
+.detail-steps dt, .syscall-steps dt { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.detail-steps dd, .syscall-steps dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.detail-steps ol, .detail-steps ul, .syscall-steps ul { margin: 0; padding-left: 18px; }
+.detail-steps small, .syscall-steps small { color: var(--muted); }
+.detail-when { display: block; }
+.detail-terms summary { cursor: pointer; color: var(--muted); font-size: 11px; }
+/* Workspace layout (classroom 2026-10-24) ------------------------------- */
+/* Top: a project menu, the project with its save state, learning, settings. */
+.menu-wrap { position: relative; }
+.menu-button { border: 1px solid var(--line); }
+.menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 45; min-width: 250px; display: flex; flex-direction: column; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / .18); }
+.menu.menu-right { left: auto; right: 0; }
+.menu > button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; white-space: normal; padding: 7px 10px; }
+.menu small { color: var(--muted); font-size: 10px; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.menu-row { display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; }
+.menu-row button { border: 1px solid var(--line); padding: 3px 8px; }
+.project-state { display: flex; flex-direction: column; min-width: 0; max-width: 260px; }
+.project-state #project-title { padding: 0; text-align: left; }
+.project-state #workspace-status { margin-top: 1px; }
+.learn { display: flex; align-items: center; gap: 6px; }
+#start-tutorial { border: 1px solid var(--accent); color: var(--accent); }
+#commands { color: var(--muted); }
+/* Toolbar: main actions keep words; stepping is one group of icons whose
+   names show on hover and keyboard focus, and as text on touch screens. */
+.tool-group { display: inline-flex; align-items: center; gap: 1px; padding: 1px; border: 1px solid var(--line); border-radius: 7px; margin: 0 3px; }
+.tool { display: inline-flex; align-items: center; gap: 4px; padding: 5px 7px; }
+.tool svg, .side-tabs svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.tool svg circle { fill: currentColor; stroke: none; }
+.tool-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (hover: none) { .tool-label { position: static; width: auto; height: auto; clip: auto; font-size: 11px; } }
+[data-tip] { position: relative; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 46; white-space: nowrap; background: var(--text); color: var(--panel); font-size: 11px; font-weight: 400; letter-spacing: 0; padding: 3px 7px; border-radius: 4px; pointer-events: none; }
+/* Left: one group at a time, chosen from a vertical tab strip. */
+.sidebar { display: grid; grid-template-columns: 46px minmax(0, 1fr); padding: 0; overflow: hidden; }
+.side-tabs { display: flex; flex-direction: column; gap: 3px; padding: 6px 3px; border-right: 1px solid var(--line); background: var(--bg); }
+.side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 1px; font-size: 10px; border-radius: 6px; color: var(--muted); position: relative; white-space: nowrap; }
+.side-tabs button[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--panel)); }
+.side-badge { position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+.side-panels { overflow: auto; min-height: 0; }
+.side-panels > section { padding-bottom: 12px; }
+/* Right: inspector, registers and memory share the height; each can be
+   resized, folded to its title, and scrolls on its own. */
+.inspector { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.panel { display: flex; flex-direction: column; min-height: 0; }
+#panel-context { flex: 0 0 var(--context-h, 34%); }
+#panel-registers { flex: 0 0 var(--registers-h, 34%); }
+#panel-memory { flex: 1 1 0; }
+.panel.fill { flex: 1 1 0 !important; }
+.panel.collapsed { flex: 0 0 auto !important; }
+.panel.collapsed .panel-body { display: none; }
+.panel-head { padding: 8px 12px 6px; flex-shrink: 0; }
+.panel-toggle { font-size: 10px !important; font-weight: 700; letter-spacing: 1.2px !important; color: var(--muted); padding: 2px 4px 2px 0 !important; }
+.panel-toggle::before { content: "▾ "; }
+.panel-toggle[aria-expanded="false"]::before { content: "▸ "; }
+.panel-body { overflow: auto; min-height: 0; flex: 1; }
+#context { max-height: none; border-bottom: 0; overflow: auto; }
+#registers { max-height: none; overflow: visible; }
+.inspector .splitter.row { flex-shrink: 0; }
+/* Overlay settings now live in focus mode, next to the paths they draw. */
+#focus-head .overlay-settings { position: relative; }
+#focus-head .overlay-settings .overlay-controls { top: calc(100% + 6px); bottom: auto; left: 0; flex-wrap: wrap; width: max-content; max-width: 420px; box-shadow: 0 8px 24px rgb(0 0 0 / .18); border-radius: 8px; }
+/* Focus mode: the untaken side of a branch, folded by default. */
+.funtaken { margin: 0 6px 4px 34px; border-left: 2px dashed var(--line); padding-left: 6px; font-size: 11px; color: var(--muted); }
+.funtaken summary { cursor: pointer; padding: 2px 0; }
+.funtaken-tag { border: 1px dashed var(--muted); border-radius: 4px; padding: 0 4px; margin-right: 2px; }
+.funtaken-now { color: var(--text); opacity: .8; }
+.funtaken .frow.untaken { opacity: .55; border: 0; border-bottom: 1px dashed var(--line); }
+.funtaken-note { margin: 2px 0 4px; font-size: 10px; }
+/* Focus mode: bit-by-bit view. */
+#focus-bits { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 12px; max-height: 260px; overflow: auto; }
+.bits-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 4px; }
+.bits-head span { color: var(--muted); font-size: 11px; }
+.bits-step p { margin: 4px 0; }
+.brow { display: flex; align-items: center; gap: 8px; font-family: ui-monospace, Menlo, monospace; }
+.blabel { width: 92px; flex-shrink: 0; color: var(--muted); font-size: 11px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bbits { display: inline-flex; flex-wrap: wrap; }
+.bbits i { font-style: normal; width: 1.15em; text-align: center; line-height: 1.5; border-radius: 3px; }
+.bbits i.pending { color: var(--muted); opacity: .5; }
+.bbits i.in, .bbits i.new { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.bbits i.hi { background: color-mix(in srgb, var(--orange) 16%, transparent); }
+.bbits i.lo { background: color-mix(in srgb, var(--blue) 16%, transparent); }
+.bgap { width: 5px; }
+.brow.carry { font-size: 10px; color: var(--muted); }
+.brow.result .bbits i { font-weight: 700; }
+.bout { font-size: 10px; color: var(--orange); }
+.bits-controls { display: flex; gap: 6px; margin-top: 6px; }
+#find-list { max-height: 220px; overflow: auto; margin: 8px 0; } #find-list .command-item span { font-size: 11px; } .find-code { white-space: pre-wrap; } #find-detail { border-top: 1px solid var(--line); padding-top: 6px; }
+/* Hands-on introduction card: it floats over the code pane and can shrink to
+   a pill; it never blocks the editor or the toolbar. */
+.tutorial { position: fixed; z-index: 30; top: 128px; right: calc(var(--right-w, 345px) + 22px); width: min(360px, calc(100vw - 32px)); max-height: calc(100vh - 420px); min-height: 0; overflow: auto; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 10px 30px rgb(0 0 0 / .2); padding: 10px 12px; font-size: 12px; line-height: 1.6; }
+.tutorial header { display: flex; align-items: center; gap: 8px; }
+.tutorial header span { flex: 1; color: var(--muted); font-size: 11px; }
+.tutorial h4 { margin: 6px 0 2px; font-size: 14px; }
+.tutorial-goal { margin: 2px 0 6px; }
+.tutorial-checks { list-style: none; padding: 0; margin: 4px 0; }
+.tutorial-checks li { color: var(--muted); }
+.tutorial-checks li.ok { color: var(--accent); }
+.tutorial-hint { margin: 4px 0; padding: 4px 8px; background: var(--bg); border-radius: 6px; }
+.tutorial-fail { color: var(--orange); margin: 4px 0; }
+.tutorial-answer { font: 11px/1.5 ui-monospace, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; overflow: auto; max-height: 220px; user-select: text; }
+.tutorial-go { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.tutorial-go button { border: 1px dashed var(--accent); color: var(--accent); padding: 3px 8px; }
+.tutorial-actions { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+.tutorial-actions span { flex: 1; }
+.tutorial-actions button { border: 1px solid var(--line); }
+.tutorial.collapsed { width: auto; padding: 0; border: 0; background: transparent; box-shadow: none; overflow: visible; }
+.tutorial-pill { background: var(--accent); color: white; border-radius: 16px; padding: 6px 12px; box-shadow: 0 6px 18px rgb(0 0 0 / .2); }
+@media (max-width: 900px) { .tutorial { right: 16px; } }

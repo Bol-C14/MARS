@@ -20559,11 +20559,11 @@ function completeFromList(list) {
   };
 }
 var Option = class {
-  constructor(completion2, source, match, score2) {
+  constructor(completion2, source, match, score3) {
     this.completion = completion2;
     this.source = source;
     this.match = match;
-    this.score = score2;
+    this.score = score3;
   }
 };
 function cur(state2) {
@@ -20624,8 +20624,8 @@ var FuzzyMatcher = class {
     }
     this.astral = pattern2.length != this.chars.length;
   }
-  ret(score2, matched) {
-    this.score = score2;
+  ret(score3, matched) {
+    this.score = score3;
     this.matched = matched;
     return this;
   }
@@ -20644,13 +20644,13 @@ var FuzzyMatcher = class {
     let { chars, folded, any, precise, byWord } = this;
     if (chars.length == 1) {
       let first = codePointAt2(word, 0), firstSize = codePointSize2(first);
-      let score2 = firstSize == word.length ? 0 : -100;
+      let score3 = firstSize == word.length ? 0 : -100;
       if (first == chars[0]) ;
       else if (first == folded[0])
-        score2 += -200;
+        score3 += -200;
       else
         return null;
-      return this.ret(score2, [0, firstSize]);
+      return this.ret(score3, [0, firstSize]);
     }
     let direct = word.indexOf(this.pattern);
     if (direct == 0)
@@ -20708,7 +20708,7 @@ var FuzzyMatcher = class {
       return this.result(-100 + (byWordFolded ? -200 : 0) + -700 + (wordAdjacent ? 0 : -1100), byWord, word);
     return chars.length == 2 ? null : this.result((any[0] ? -700 : 0) + -200 + -1100, any, word);
   }
-  result(score2, positions, word) {
+  result(score3, positions, word) {
     let result = [], i = 0;
     for (let pos of positions) {
       let to = pos + (this.astral ? codePointSize2(codePointAt2(word, pos)) : 1);
@@ -20719,7 +20719,7 @@ var FuzzyMatcher = class {
         result[i++] = to;
       }
     }
-    return this.ret(score2 - word.length, result);
+    return this.ret(score3 - word.length, result);
   }
 };
 var StrictMatcher = class {
@@ -21151,13 +21151,13 @@ function sortOptions(active, state2) {
         for (let option of a.result.options)
           if (match = matcher.match(option.label)) {
             let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
-            let score2 = match.score + (option.boost || 0);
-            addOption(new Option(option, a.source, matched, score2));
+            let score3 = match.score + (option.boost || 0);
+            addOption(new Option(option, a.source, matched, score3));
             if (typeof option.section == "object" && option.section.rank === "dynamic") {
               let { name: name2 } = option.section;
               if (!dynamicSectionScore)
                 dynamicSectionScore = /* @__PURE__ */ Object.create(null);
-              dynamicSectionScore[name2] = Math.max(score2, dynamicSectionScore[name2] || -1e9);
+              dynamicSectionScore[name2] = Math.max(score3, dynamicSectionScore[name2] || -1e9);
             }
           }
       }
@@ -23060,6 +23060,122 @@ var OverlayRenderer = class {
   }
 };
 
+// ui/bits.js
+var bitsOf = (v, n = 32) => Array.from({ length: n }, (_, i) => Number(BigInt.asUintN(n, BigInt(v)) >> BigInt(n - 1 - i) & 1n));
+var row = (label2, bits2, marks2 = {}, extra = {}) => ({ label: label2, bits: bits2, marks: marks2, ...extra });
+var hexOf = (v) => "0x" + (v >>> 0).toString(16).padStart(8, "0");
+var SHIFTS = { sll: "left", sllv: "left", srl: "logical", srlv: "logical", sra: "arith", srav: "arith" };
+var ADDS = { add: "add", addu: "add", addi: "add", addiu: "add", sub: "sub", subu: "sub" };
+var LOGIC = {
+  and: ["and", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1"],
+  andi: ["and", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1"],
+  or: ["or", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1"],
+  ori: ["or", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1"],
+  xor: ["xor", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1\uFF0C\u76F8\u540C\u5F97 0"],
+  xori: ["xor", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1\uFF0C\u76F8\u540C\u5F97 0"],
+  nor: ["nor", "\u4E24\u4F4D\u90FD\u662F 0 \u624D\u5F97 1\uFF08\u6216\u7684\u7ED3\u679C\u518D\u53D6\u53CD\uFF09"]
+};
+var MULDIV = { mult: true, multu: false, div: true, divu: false };
+function supportsBits(event) {
+  const op = event?.instruction?.op;
+  return !!(op && (SHIFTS[op] || ADDS[op] || LOGIC[op] || op in MULDIV));
+}
+function bitStory(event, name2 = (n) => "$" + n) {
+  const ins = event?.instruction;
+  if (!supportsBits(event)) return null;
+  const op = ins.op, b = ins.binary | 0, rsN = b >>> 21 & 31, rtN = b >>> 16 & 31, sa = b >>> 6 & 31, imm = b << 16 >> 16, uimm = b & 65535;
+  const accesses2 = event.accesses || [];
+  const read = (n) => n === 0 ? 0 : accesses2.find((a2) => a2.kind === "register" && !a2.write && a2.number === n)?.value ?? 0;
+  const written = accesses2.filter((a2) => a2.kind === "register" && a2.write);
+  const result = written[0];
+  const steps = [];
+  const step = (caption, rows) => steps.push({ caption, rows });
+  const failed = event.error ? "\u8FD9\u4E00\u6B65\u89E6\u53D1\u4E86\u5F02\u5E38\uFF0C\u76EE\u6807\u5BC4\u5B58\u5668\u6CA1\u6709\u88AB\u5199\u5165\u3002" : "";
+  if (SHIFTS[op]) {
+    const kind = SHIFTS[op], src = read(rtN) | 0, amount = op.endsWith("v") ? read(rsN) & 31 : sa;
+    const fill = kind === "left" ? "\u53F3\u7AEF\u8865 0" : kind === "logical" ? "\u5DE6\u7AEF\u8865 0\uFF08\u903B\u8F91\u53F3\u79FB\uFF09" : "\u5DE6\u7AEF\u8865\u7B26\u53F7\u4F4D\uFF08\u7B97\u672F\u53F3\u79FB\uFF0C\u4FDD\u6301\u6B63\u8D1F\uFF09";
+    step(`${name2(rtN)} \u7684 32 \u4F4D\uFF0C\u8981${kind === "left" ? "\u5DE6" : "\u53F3"}\u79FB ${amount} \u4F4D${op.endsWith("v") ? `\uFF08\u79FB\u4F4D\u6570\u53D6 ${name2(rsN)} \u7684\u4F4E 5 \u4F4D\uFF09` : ""}\uFF1B${fill}\u3002`, [row(name2(rtN), bitsOf(src))]);
+    let v = src;
+    for (let k = 1; k <= amount; k++) {
+      const out = kind === "left" ? v >>> 31 & 1 : v & 1;
+      v = kind === "left" ? v << 1 : kind === "logical" ? v >>> 1 : v >> 1;
+      const at = kind === "left" ? 31 : 0;
+      step(`\u7B2C ${k} \u6B21\u79FB\u52A8\uFF1A\u79FB\u51FA ${out}\uFF0C${kind === "left" ? "\u53F3\u7AEF" : "\u5DE6\u7AEF"}\u8865\u5165 ${kind === "left" ? 0 : v >>> 31 & 1}\u3002`, [
+        row(`\u79FB ${k} \u4F4D`, bitsOf(v), { [at]: "in" }, { out: { side: kind === "left" ? "left" : "right", bit: out } })
+      ]);
+    }
+    if (!amount) step("\u79FB\u52A8 0 \u4F4D\uFF1A\u7ED3\u679C\u4E0E\u539F\u503C\u76F8\u540C\u3002", [row("\u7ED3\u679C", bitsOf(v))]);
+    step(`\u7ED3\u679C ${hexOf(v)} \u5199\u5165 ${result?.name ?? "\u76EE\u6807\u5BC4\u5B58\u5668"}${result && (result.value | 0) !== (v | 0) ? "\uFF08\u4E0E\u8BB0\u5F55\u4E0D\u4E00\u81F4\uFF09" : ""}\u3002`, [row(result?.name ?? "\u7ED3\u679C", bitsOf(v), {}, { result: true })]);
+    return { title: `${op}\uFF1A\u9010\u4F4D\u79FB\u4F4D`, steps };
+  }
+  if (ADDS[op]) {
+    const sub = ADDS[op] === "sub", a2 = read(rsN) | 0, bv = op.startsWith("addi") ? imm : read(rtN) | 0, operand = sub ? ~bv : bv;
+    const A = bitsOf(a2), B = bitsOf(operand), carries = new Array(33).fill(0), S = new Array(32).fill(0);
+    carries[0] = sub ? 1 : 0;
+    for (let i = 0; i < 32; i++) {
+      const ai = A[31 - i], bi = B[31 - i], c2 = carries[i];
+      S[31 - i] = ai ^ bi ^ c2;
+      carries[i + 1] = ai & bi | ai & c2 | bi & c2;
+    }
+    const overflow = carries[31] !== carries[32];
+    const bLabel = op.startsWith("addi") ? "\u7ACB\u5373\u6570" : name2(rtN);
+    const intro = sub ? `\u51CF\u6CD5 ${name2(rsN)} \u2212 ${bLabel}\uFF1A\u673A\u5668\u628A ${bLabel} \u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\u518D\u52A0 1\uFF08\u8865\u7801\uFF09\uFF0C\u53D8\u6210\u52A0\u6CD5\u3002` : `\u52A0\u6CD5 ${name2(rsN)} + ${bLabel}${op.startsWith("addi") ? "\uFF0816 \u4F4D\u7ACB\u5373\u6570\u5148\u7B26\u53F7\u6269\u5C55\u6210 32 \u4F4D\uFF09" : ""}\uFF1A\u4ECE\u6700\u4F4E\u4F4D\u5F00\u59CB\u9010\u4F4D\u76F8\u52A0\uFF0C\u6EE1 2 \u5411\u9AD8\u4F4D\u8FDB 1\u3002`;
+    const carryRow = (upto) => row("\u8FDB\u4F4D", Array.from({ length: 32 }, (_, j) => 31 - j < upto ? carries[31 - j] : null), {}, { carry: true });
+    const pending = (upto) => S.map((s, j) => 31 - j < upto ? s : null);
+    step(intro, [row(name2(rsN), A), row(sub ? `${bLabel} \u53D6\u53CD` : bLabel, B), carryRow(sub ? 1 : 0), row("\u7ED3\u679C", pending(0))]);
+    for (let k = 4; k <= 32; k += 4) {
+      const marks2 = {};
+      for (let j = 32 - k; j < 36 - k; j++) marks2[j] = "new";
+      step(`\u7B2C ${k - 3}\u2013${k} \u4F4D\uFF1A\u6BCF\u4E00\u4F4D = \u4E24\u4E2A\u52A0\u6570\u7684\u4F4D + \u8FDB\u4F4D\uFF0C\u7ED3\u679C\u5199\u4E0B\u4E2A\u4F4D\uFF0C\u8FDB\u4F4D\u5E26\u5230\u66F4\u9AD8\u4E00\u4F4D\u3002`, [
+        row(name2(rsN), A),
+        row(sub ? `${bLabel} \u53D6\u53CD` : bLabel, B),
+        carryRow(k),
+        row("\u7ED3\u679C", pending(k), marks2)
+      ]);
+    }
+    const trapping = op === "add" || op === "addi" || op === "sub";
+    const note = overflow ? trapping ? `\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6709\u7B26\u53F7\u6EA2\u51FA\u3002${op} \u68C0\u67E5\u6EA2\u51FA\uFF0C\u4F1A\u89E6\u53D1\u5F02\u5E38\u3002` : `\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u770B\u6EA2\u51FA\u4E86\uFF0C\u4F46 ${op} \u4E0D\u68C0\u67E5\u6EA2\u51FA\uFF0C\u7167\u5E38\u5199\u5165\u3002` : carries[32] ? "\u6700\u9AD8\u4F4D\u5411\u5916\u7684\u8FDB\u4F4D\u88AB\u4E22\u5F03\uFF0832 \u4F4D\u653E\u4E0D\u4E0B\uFF09\uFF0C\u6309\u6709\u7B26\u53F7\u6570\u770B\u6CA1\u6709\u6EA2\u51FA\u3002" : "\u6CA1\u6709\u6EA2\u51FA\u3002";
+    step(`${note}${failed}${result ? ` \u7ED3\u679C ${hexOf(S.reduce((v, s) => v << 1 | s, 0))} \u5199\u5165 ${result.name}\u3002` : ""}`, [
+      row("\u7ED3\u679C", S, {}, { result: true })
+    ]);
+    return { title: `${op}\uFF1A\u9010\u4F4D${sub ? "\u76F8\u51CF" : "\u76F8\u52A0"}`, steps, overflow };
+  }
+  if (LOGIC[op]) {
+    const [kind, rule] = LOGIC[op], a2 = read(rsN) | 0, bv = op.endsWith("i") ? uimm : read(rtN) | 0;
+    const A = bitsOf(a2), B = bitsOf(bv), f = { and: (x, y) => x & y, or: (x, y) => x | y, xor: (x, y) => x ^ y, nor: (x, y) => 1 - (x | y) }[kind], S = A.map((x, j) => f(x, B[j]));
+    const bLabel = op.endsWith("i") ? "\u7ACB\u5373\u6570\uFF08\u96F6\u6269\u5C55\uFF09" : name2(rtN);
+    step(`${op}\uFF1A\u9010\u4F4D\u6BD4\u8F83\uFF0C${rule}\u3002\u5404\u4F4D\u4E92\u4E0D\u5F71\u54CD\uFF0C\u6CA1\u6709\u8FDB\u4F4D\u3002`, [row(name2(rsN), A), row(bLabel, B), row("\u7ED3\u679C", S.map(() => null))]);
+    for (let k = 8; k <= 32; k += 8) {
+      const marks2 = {};
+      for (let j = 32 - k; j < 40 - k; j++) marks2[j] = "new";
+      step(`\u7B2C ${k - 7}\u2013${k} \u4F4D\u3002`, [row(name2(rsN), A), row(bLabel, B), row("\u7ED3\u679C", S.map((s, j) => 31 - j < k ? s : null), marks2)]);
+    }
+    step(`\u7ED3\u679C\u5199\u5165 ${result?.name ?? "\u76EE\u6807\u5BC4\u5B58\u5668"}\u3002`, [row("\u7ED3\u679C", S, {}, { result: true })]);
+    return { title: `${op}\uFF1A\u9010\u4F4D${kind}`, steps };
+  }
+  const signed = MULDIV[op], a = read(rsN), c = read(rtN);
+  const big = (v) => signed ? BigInt(v | 0) : BigInt(v >>> 0);
+  if (op.startsWith("mult")) {
+    const product = BigInt.asUintN(64, big(a) * big(c));
+    const bits2 = bitsOf(product, 64);
+    step(`${signed ? "\u6709\u7B26\u53F7" : "\u65E0\u7B26\u53F7"}\u76F8\u4E58\uFF1A\u4E24\u4E2A 32 \u4F4D\u6570\u7684\u4E58\u79EF\u6700\u591A\u8981 64 \u4F4D\u3002`, [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+    step("\u4E58\u79EF\u7684\u9AD8 32 \u4F4D\u653E\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u653E\u8FDB LO\uFF1B\u7528 mfhi / mflo \u53D6\u51FA\u3002", [
+      row("\u4E58\u79EF", bits2, Object.fromEntries(bits2.map((_, j) => [j, j < 32 ? "hi" : "lo"])), { wide: true }),
+      row("HI", bits2.slice(0, 32)),
+      row("LO", bits2.slice(32))
+    ]);
+    return { title: `${op}\uFF1A64 \u4F4D\u4E58\u79EF`, steps };
+  }
+  if (!c) {
+    step("\u9664\u6570\u4E3A 0\uFF1AMIPS \u4E0D\u4EA7\u751F\u5F02\u5E38\uFF0CHI \u548C LO \u7684\u503C\u6CA1\u6709\u89C4\u5B9A\uFF0C\u4E0D\u80FD\u4F7F\u7528\u3002", [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+    return { title: `${op}\uFF1A\u9664\u4EE5 0`, steps };
+  }
+  const q = big(a) / big(c), r = big(a) - q * big(c);
+  step(`${signed ? "\u6709\u7B26\u53F7" : "\u65E0\u7B26\u53F7"}\u76F8\u9664\uFF1A${name2(rsN)} \xF7 ${name2(rtN)}\u3002`, [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+  step("\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI\uFF1B\u7528 mflo / mfhi \u53D6\u51FA\u3002", [row("LO\uFF08\u5546\uFF09", bitsOf(q)), row("HI\uFF08\u4F59\u6570\uFF09", bitsOf(r))]);
+  return { title: `${op}\uFF1A\u5546\u548C\u4F59\u6570`, steps };
+}
+
 // ui/path.js
 var edgeLabels = {
   next: "\u987A\u5E8F",
@@ -23254,6 +23370,18 @@ function layoutPath({
     }
   };
 }
+function untakenLines(instructions, target2, max2 = 4) {
+  const by = new Map(instructions.map((i) => [i.address, i])), lines = [];
+  for (let a = target2, i = by.get(a); i && lines.length <= max2; i = by.get(a += 4)) {
+    const last2 = lines.at(-1);
+    if (!last2 || last2.file !== i.file || last2.line !== i.line) {
+      if (lines.length === max2) break;
+      lines.push({ file: i.file, line: i.line, address: i.address });
+    }
+    if (i.flow !== "next") break;
+  }
+  return lines;
+}
 
 // ui/radix.js
 var RADIX_HELP = {
@@ -23302,6 +23430,87 @@ function looksLikeAddress(u) {
   return u >= 4194304 && u < 2147483648;
 }
 var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
+
+// ui/syscalls.js
+var serviceGuide = {
+  1: ["\u6253\u5370\u6574\u6570", "\u628A $a0 \u7684\u503C\u6309\u6709\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u7684\u5341\u8FDB\u5236\u5199\u6CD5\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 45\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  2: ["\u6253\u5370\u5355\u7CBE\u5EA6\u6570", "\u628A $f12 \u7684\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  3: ["\u6253\u5370\u53CC\u7CBE\u5EA6\u6570", "\u628A $f12/$f13 \u7EC4\u6210\u7684\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570\uFF08\u4F4E\u4F4D\u4E00\u534A\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  4: ["\u6253\u5370\u5B57\u7B26\u4E32", "\u4ECE $a0 \u7ED9\u51FA\u7684\u5730\u5740\u5F00\u59CB\u9010\u4E2A\u5B57\u8282\u6253\u5370\uFF0C\u9047\u5230\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF08\\0\uFF09\u505C\u4E0B\u3002", [["$a0", "\u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740\uFF08\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u6BB5\u6587\u5B57\uFF1B\\0 \u672C\u8EAB\u4E0D\u6253\u5370\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  5: ["\u8BFB\u53D6\u6574\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6574\u6570\u5E76\u6309 Enter\u3002", [], "\u8BFB\u5230\u7684\u6574\u6570\u5199\u5165 $v0\uFF0C\u8986\u76D6\u539F\u6765\u7684\u670D\u52A1\u53F7 5\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  6: ["\u8BFB\u53D6\u5355\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0\u3002", "$f0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  7: ["\u8BFB\u53D6\u53CC\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0/$f1\u3002", "$f0\u3001$f1\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  8: ["\u8BFB\u53D6\u5B57\u7B26\u4E32", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u884C\u6587\u5B57\uFF0C\u628A\u5B57\u7B26\u5B58\u8FDB\u5185\u5B58\u3002", [["$a0", "\u7F13\u51B2\u533A\uFF08\u5B58\u653E\u8F93\u5165\u7684\u5185\u5B58\uFF09\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740"], ["$a1", "\u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\uFF0C\u542B\u672B\u5C3E\u7684 \\0"]], "\u4ECE $a0 \u5F00\u59CB\u6700\u591A\u5199\u5165 $a1\u22121 \u4E2A\u5B57\u7B26\uFF08\u542B\u6362\u884C\uFF09\uFF0C\u672B\u5C3E\u8865 \\0\u3002", "\u5185\u5B58\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  9: ["\u5206\u914D\u5806\u5185\u5B58", "\u5728\u5806\u4E0A\u7559\u51FA $a0 \u4E2A\u5B57\u8282\u3002", [["$a0", "\u9700\u8981\u7684\u5B57\u8282\u6570"]], "\u8FD9\u5757\u5185\u5B58\u7684\u8D77\u59CB\u5730\u5740\u5199\u5165 $v0\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  10: ["\u9000\u51FA\u7A0B\u5E8F", "\u7ED3\u675F\u7A0B\u5E8F\u3002", [], "\u7A0B\u5E8F\u505C\u6B62\uFF0C\u4E0D\u518D\u6267\u884C\u540E\u9762\u7684\u6307\u4EE4\u3002", "\u6267\u884C\u7ED3\u675F"],
+  11: ["\u6253\u5370\u5B57\u7B26", "\u628A $a0 \u4F4E 8 \u4F4D\u6309\u5B57\u7B26\u7F16\u7801\u8868\u5F53\u4F5C\u4E00\u4E2A\u5B57\u7B26\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u5B57\u7B26\u7684\u7F16\u7801"]], "\u7EC8\u7AEF\u591A\u51FA\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 -\uFF08\u540C\u6837\u7684 45 \u7528\u670D\u52A1 1 \u4F1A\u6253\u5370\u6210 45\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  12: ["\u8BFB\u53D6\u5B57\u7B26", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u5B57\u7B26\u3002", [], "\u8FD9\u4E2A\u5B57\u7B26\u7684\u7F16\u7801\u5199\u5165 $v0\uFF0C\u8986\u76D6\u539F\u6765\u7684\u670D\u52A1\u53F7 12\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  13: ["\u6253\u5F00\u865A\u62DF\u6587\u4EF6", "\u6309 $a0 \u7684\u6587\u4EF6\u540D\u6253\u5F00\u5DE5\u7A0B\u91CC\u7684\u8F93\u5165\u6587\u4EF6\uFF08\u4E0D\u4F1A\u8BBF\u95EE\u7535\u8111\u4E0A\u7684\u6587\u4EF6\uFF09\u3002", [["$a0", "\u6587\u4EF6\u540D\u5B57\u7B26\u4E32\u7684\u5730\u5740"], ["$a1", "\u6253\u5F00\u65B9\u5F0F\uFF1A0 \u8BFB\u30011 \u5199\u30019 \u8FFD\u52A0"], ["$a2", "\u6A21\u5F0F\uFF08\u5FFD\u7565\uFF09"]], "\u6587\u4EF6\u63CF\u8FF0\u7B26\u5199\u5165 $v0\uFF1B\u6253\u4E0D\u5F00\u65F6\u4E3A\u8D1F\u6570\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  14: ["\u8BFB\u53D6\u6587\u4EF6", "\u4ECE\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u8BFB\u53D6\u5B57\u8282\u5230\u5185\u5B58\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u7F13\u51B2\u533A\u5730\u5740"], ["$a2", "\u6700\u591A\u8BFB\u53D6\u7684\u5B57\u8282\u6570"]], "\u8BFB\u5230\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\uFF080 \u8868\u793A\u8BFB\u5B8C\uFF0C\u8D1F\u6570\u8868\u793A\u51FA\u9519\uFF09\u3002", "\u5185\u5B58\u3001$v0"],
+  15: ["\u5199\u5165\u6587\u4EF6", "\u628A\u5185\u5B58\u4E2D\u7684\u5B57\u8282\u5199\u5165\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u8981\u5199\u7684\u6570\u636E\u5730\u5740"], ["$a2", "\u5B57\u8282\u6570"]], "\u5199\u5165\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\u3002", "\u865A\u62DF\u6587\u4EF6\u3001$v0"],
+  16: ["\u5173\u95ED\u6587\u4EF6", "\u5173\u95ED $a0 \u6307\u5B9A\u7684\u865A\u62DF\u6587\u4EF6\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"]], "\u6587\u4EF6\u5173\u95ED\u3002", "\u65E0"],
+  17: ["\u9000\u51FA\u5E76\u8FD4\u56DE\u72B6\u6001\u7801", "\u7ED3\u675F\u7A0B\u5E8F\uFF0C\u5E76\u628A $a0 \u4F5C\u4E3A\u9000\u51FA\u7801\u3002", [["$a0", "\u9000\u51FA\u7801"]], "\u7A0B\u5E8F\u505C\u6B62\u3002", "\u6267\u884C\u7ED3\u675F"],
+  34: ["\u6253\u5370\u5341\u516D\u8FDB\u5236\u6574\u6570", "\u628A $a0 \u6309 8 \u4F4D\u5341\u516D\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA 0x \u5F00\u5934\u7684\u5199\u6CD5\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  35: ["\u6253\u5370\u4E8C\u8FDB\u5236\u6574\u6570", "\u628A $a0 \u6309 32 \u4F4D\u4E8C\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA 32 \u4E2A 0/1\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  36: ["\u6253\u5370\u65E0\u7B26\u53F7\u6574\u6570", "\u628A $a0 \u6309\u65E0\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\uFF08\u4E0D\u4F1A\u662F\u8D1F\u6570\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"]
+};
+var printable2 = (b) => b >= 32 && b < 127;
+function argumentMeaning(n, register, value) {
+  if (value == null) return "";
+  if (n === 11 && register === "$a0") {
+    const b = value & 255;
+    return printable2(b) ? `\u7F16\u7801 ${b} \u662F\u5B57\u7B26 '${escapeByte(b)}'` : `\u7F16\u7801 ${b}\uFF08${escapeByte(b)}\uFF0C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\uFF09`;
+  }
+  if (n === 1 && register === "$a0") return `\u6253\u5370\u51FA\u6765\u662F ${value | 0}`;
+  if (n === 36 && register === "$a0") return `\u6253\u5370\u51FA\u6765\u662F ${value >>> 0}`;
+  if ((n === 4 || n === 8 || n === 13) && register === "$a0") return "\u8FD9\u662F\u5730\u5740\uFF0C\u5185\u5BB9\u5728\u5185\u5B58\u91CC";
+  if ((n === 14 || n === 15) && register === "$a1") return "\u8FD9\u662F\u5730\u5740\uFF0C\u5185\u5BB9\u5728\u5185\u5B58\u91CC";
+  return "";
+}
+function serviceAt({ next, event, v0, lines = [], line = 0 }) {
+  if (next) return { n: v0, from: "next" };
+  if (event) return { n: event.service, from: "ran", event };
+  for (let i = line - 2; i >= 0 && i >= line - 30; i--) {
+    const text2 = lines[i].replace(/#.*/, "");
+    const m = /^\s*(?:li|addiu?|ori)\s+\$(?:v0|2)\s*,\s*(?:\$(?:zero|0)\s*,\s*)?(-?(?:0x[\da-f]+|\d+))\s*$/i.exec(text2);
+    if (m) return { n: Number(m[1]), from: "source" };
+    if (/^\s*[\w.$]+\s*:/.test(text2) || /^\s*(?:j|jal|jr|jalr|b\w*)\s/.test(text2) || /^\s*syscall\b/.test(text2) || /\$(?:v0|2)\s*,/.test(text2)) break;
+  }
+  return { n: null, from: "unknown" };
+}
+var serviceSource = {
+  next: "\u5373\u5C06\u6267\u884C\uFF1A\u670D\u52A1\u53F7\u53D6\u81EA\u5F53\u524D\u7684 $v0",
+  ran: "\u6700\u8FD1\u4E00\u6B21\u6267\u884C\uFF1A\u670D\u52A1\u53F7\u662F\u8C03\u7528\u524D\u7684 $v0",
+  source: "\u6309\u6E90\u7801\u63A8\u6D4B\uFF1A\u53D6\u81EA\u4E0A\u65B9\u7684 li $v0, N",
+  unknown: "\u670D\u52A1\u53F7\u8981\u5230\u6267\u884C\u65F6\u7531 $v0 \u51B3\u5B9A"
+};
+function syscallDetail({ n, from, values = {}, event, waiting, esc, show: show2 = String }) {
+  const g = serviceGuide[n];
+  const head = n == null ? "syscall \xB7 \u670D\u52A1\u53F7\u672A\u77E5" : `syscall \xB7 ${g ? g[0] : "\u4E0D\u652F\u6301\u7684\u670D\u52A1"}\uFF08\u670D\u52A1 ${n}\uFF09`;
+  if (n != null && !g)
+    return { title: head, html: `<p>\u670D\u52A1\u53F7 ${esc(String(n))} \u4E0D\u5728 MARS Trace \u652F\u6301\u7684\u8303\u56F4\u5185\uFF08\u652F\u6301 ${Object.keys(serviceGuide).join("\u3001")}\uFF09\uFF0C\u6267\u884C\u65F6\u4F1A\u62A5\u9519\u505C\u4E0B\u3002</p>` };
+  if (!g)
+    return { title: head, html: `<p>syscall \u6309\u8C03\u7528\u65F6 $v0 \u7684\u503C\u9009\u62E9\u670D\u52A1\u3002\u8FD9\u4E00\u884C\u4E0A\u65B9\u6CA1\u6709\u627E\u5230\u786E\u5B9A\u7684 li $v0, N\uFF0C\u8981\u6267\u884C\u5230\u8FD9\u91CC\u624D\u77E5\u9053\u3002</p>` };
+  const [, does, args, effect, changes] = g;
+  const arg = ([r, meaning]) => {
+    const v = values[r], m = argumentMeaning(n, r, v);
+    return `<li><code>${r}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show2(v, r))}</b>`}${m ? `<small> \xB7 ${esc(m)}</small>` : ""}</li>`;
+  };
+  const happened = [];
+  if (waiting) happened.push("\u6B63\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u8BF7\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540E\u6309 Enter\u3002\u8F93\u5165\u5B8C\u6210\u524D $v0 \u4ECD\u662F\u670D\u52A1\u53F7\uFF0C\u4E0D\u4F1A\u663E\u793A\u865A\u6784\u7684\u7ED3\u679C\u3002");
+  if (event) {
+    if (event.output) happened.push(`\u5B9E\u9645\u8F93\u51FA "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
+    for (const a of event.accesses || [])
+      if (a.write && a.kind === "register") happened.push(`${a.name} \u53D8\u4E3A ${esc(show2(a.value, a.name))}`);
+    const bytes = (event.accesses || []).filter((a) => a.kind === "memory" && a.write).reduce((s, a) => s + a.width, 0);
+    if (bytes) happened.push(`\u5199\u5165\u5185\u5B58 ${bytes} \u5B57\u8282`);
+    if (event.status === "waiting-input") happened.push("\u5F53\u65F6\u5728\u7B49\u5F85\u8F93\u5165");
+  }
+  return {
+    title: head,
+    html: `<p class="muted">${esc(serviceSource[from] || "")}</p><dl class="syscall-steps"><dt>\u505A\u4EC0\u4E48</dt><dd>${esc(does)}</dd><dt>\u9700\u8981\u7684\u53C2\u6570</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : "\u65E0"}</dd><dt>\u53D1\u751F\u4EC0\u4E48</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>\u53D8\u5316</dt><dd>${esc(changes)}</dd></dl><p class="muted">\u8C03\u7528\u524D $v0 \u662F\u670D\u52A1\u53F7\uFF1B\u8BFB\u53D6\u7C7B\u670D\u52A1\u5B8C\u6210\u540E $v0 \u4F1A\u53D8\u6210\u8BFB\u5230\u7684\u7ED3\u679C\u3002</p>`
+  };
+}
 
 // ui/beats.js
 var N = (v, w = 4, k = "value") => ({
@@ -23943,15 +24152,20 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     );
   } else if (op === "syscall") {
     const v0 = readNamed("$v0"), n = event.service ?? v0?.value, [title, args = []] = services[n] || ["\u7CFB\u7EDF\u670D\u52A1"];
+    const guide = serviceGuide[n];
     template = ["syscall\uFF08", dim("$v0"), "\uFF09"];
     if (v0)
       beat(
-        ["syscall ", fresh(N(n)), ` \xB7 ${title}`],
-        "\u6309 $v0 \u9009\u62E9\u670D\u52A1\u3002",
-        reading([v0])
+        ["syscall ", fresh(N(n)), ` \xB7 ${guide?.[0] || title}`],
+        guide ? `\u6309 $v0 \u9009\u62E9\u670D\u52A1\uFF1A${guide[1]}` : "\u6309 $v0 \u9009\u62E9\u670D\u52A1\u3002",
+        {
+          ...reading([v0]),
+          why: guide ? `\u8C03\u7528\u524D $v0 = ${n} \u662F\u670D\u52A1\u53F7\u3002${guide[3]}\u53D8\u5316\uFF1A${guide[4]}\u3002` : `\u670D\u52A1\u53F7 ${n} \u4E0D\u5728\u652F\u6301\u8303\u56F4\u5185\u3002`
+        }
       );
     const params = reads.filter((a) => a !== v0 && args.includes(a.name));
-    if (params.length)
+    if (params.length) {
+      const meaning = (a) => guide?.[2].find(([r]) => r === a.name)?.[1];
       beat(
         params.flatMap((a, i) => [
           i ? "\uFF0C" : "",
@@ -23959,9 +24173,13 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           " = ",
           fresh(N(a.value))
         ]),
-        "\u53D6\u53C2\u6570\u7684\u503C\u3002",
+        params.map((a) => {
+          const m = argumentMeaning(n, a.name, a.value);
+          return `${a.name}\uFF1A${meaning(a) || "\u53C2\u6570"}${m ? `\uFF08${m}\uFF09` : ""}`;
+        }).join("\uFF1B") + "\u3002",
         reading(params)
       );
+    }
     if (event.status === "waiting-input")
       beat([fresh("\u7B49\u5F85\u8F93\u5165")], "\u7ED3\u679C\u5C1A\u672A\u4EA7\u751F\uFF0C\u8BF7\u5728\u63A7\u5236\u53F0\u63D0\u4EA4\u8F93\u5165\u3002");
     for (const a of writes)
@@ -24368,7 +24586,7 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
       if (a.write) written.add(a.name);
     }
   const val = (name2) => name2 === "$zero" ? 0 : reads.get(name2);
-  const reg = (t3) => /^\$\d+$/.test(t3) ? "$" + registerNames[Number(t3.slice(1))] : t3;
+  const reg2 = (t3) => /^\$\d+$/.test(t3) ? "$" + registerNames[Number(t3.slice(1))] : t3;
   if (ins.op === "syscall") {
     const n = last2.service ?? val("$v0");
     const [name2, args2 = []] = services[n] || [`\u670D\u52A1 ${n}`];
@@ -24404,8 +24622,8 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   const operand = (a) => {
     if (a == null) return void 0;
     if (a.startsWith("$")) {
-      const v = val(reg(a));
-      return v == null ? void 0 : format(unsigned ? v >>> 0 : v, reg(a));
+      const v = val(reg2(a));
+      return v == null ? void 0 : format(unsigned ? v >>> 0 : v, reg2(a));
     }
     const n = Number(a);
     return Number.isFinite(n) ? format(unsigned ? n >>> 0 : n) : void 0;
@@ -24421,6 +24639,20 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   if (test) return `${test} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"} ${result}`;
   const listed = [...reads].filter(([n]) => n !== "$zero" && n !== "$at").map(([n, v]) => `${n} = ${format(v, n)}`);
   return [listed.join("\uFF0C"), result].filter(Boolean).join(" ");
+}
+function genericTemplate(template, source = "") {
+  const operands = source.replace(/#.*/, "").trim().replace(/^(?:[\w.$]+:\s*)*\S+\s*/, "").split(/\s*,\s*/).filter(Boolean).map((t2) => t2.replace(/^-?\d+\((\$\w+)\)$/, "$1"));
+  const letters = "abcdefgh", used = /* @__PURE__ */ new Set();
+  const placeholder = (token, kind) => {
+    const i = operands.findIndex((o, n) => !used.has(n) && o === token);
+    if (i < 0) return token;
+    used.add(i);
+    return kind === "reg" ? "$" + letters[i] : "\u7ACB\u5373\u6570";
+  };
+  return text(Array.isArray(template) ? template : [template]).replace(
+    /\$\w+|(?<![\w$.])-?\d+\b/g,
+    (m) => m.startsWith("$") ? placeholder(m, "reg") : placeholder(m, "imm")
+  );
 }
 
 // ui/glossary.js
@@ -24488,6 +24720,7 @@ var FocusLens = class {
     this.beat = 0;
     this.whyOpen = false;
     this.expanded = /* @__PURE__ */ new Set();
+    this.untakenOpen = /* @__PURE__ */ new Set();
     this.mode = this.load("focus-range", "auto");
     this.motion = matchMedia("(prefers-reduced-motion: reduce)");
     document.body.insertAdjacentHTML(
@@ -24511,9 +24744,10 @@ var FocusLens = class {
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
           <div class="focus-controls">
-            <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button>
+            <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>\u9010\u4F4D\u67E5\u770B</button>
           </div>
           <div id="focus-why-text" hidden></div>
+          <div id="focus-bits" aria-label="\u9010\u4F4D\u67E5\u770B" hidden></div>
           <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C</span></form>
         </div>
       </section>`
@@ -24532,6 +24766,14 @@ var FocusLens = class {
     $3("focus-next").onclick = () => this.seekBeat(this.beat + 1);
     $3("focus-play").onclick = () => this.timer ? this.stop() : this.play();
     $3("focus-why").onclick = () => this.toggleWhy();
+    this.bitsOpen = false;
+    this.bitsStep = 0;
+    $3("focus-bits-toggle").onclick = () => {
+      this.bitsOpen = !this.bitsOpen;
+      this.bitsStep = 0;
+      this.stopBits();
+      this.renderBits();
+    };
     $3("focus-input").onsubmit = async (e) => {
       e.preventDefault();
       await this.host.submitInput($3("focus-input-value").value);
@@ -24728,6 +24970,8 @@ var FocusLens = class {
   select(index) {
     if (!this.models.has(index)) return;
     this.stop();
+    this.stopBits();
+    this.bitsStep = 0;
     this.selected = index;
     this.beat = 0;
     this.render();
@@ -24832,15 +25076,22 @@ var FocusLens = class {
                 <code>${escapeHTML(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "\u25BE" : "\u25B8"} ${machine.length} \u6761</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "\u8FD9\u6B21\u4E0D\u8DF3\u5230 " + escapeHTML(hint.label) : "\u8FD9\u6B21\u4E0D\u987A\u5E8F\u6267\u884C\u5230 " + escapeHTML(hint.label)}</div>` : ""}`;
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? this.untaken(hint, byIndex.get(hint.step), instructions) : ""}`;
       }).join("");
       return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${n % 2 + 1};grid-row:${n + 1}"><div class="fseg-head">${head}</div>${rows}</div>`;
     }).join("") + this.stopNote();
     $3("focus-path").querySelectorAll("[data-step]").forEach((b) => b.onclick = () => this.select(Number(b.dataset.step)));
+    $3("focus-path").querySelectorAll("[data-untaken]").forEach(
+      (d) => d.ontoggle = () => {
+        const key = Number(d.dataset.untaken);
+        d.open ? this.untakenOpen.add(key) : this.untakenOpen.delete(key);
+        this.draw();
+      }
+    );
     $3("focus-path").querySelectorAll(".frow").forEach(
-      (row) => row.onclick = (e) => {
+      (row2) => row2.onclick = (e) => {
         if (e.target.closest("button")) return;
-        const k = row.querySelector("[data-step]");
+        const k = row2.querySelector("[data-step]");
         if (k) this.select(Number(k.dataset.step));
       }
     );
@@ -24905,6 +25156,7 @@ var FocusLens = class {
       return;
     }
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
+    this.renderBits(step);
     $3("focus-tag").textContent = step.predicted ? `\u9884\u8BA1 +${step.index + 1}` : step.index < -1 ? "\u4E4B\u524D\u6267\u884C" : "\u521A\u5B8C\u6210";
     $3("focus-tag").className = step.predicted ? "pred" : "done";
     const source = splitComment(
@@ -24963,6 +25215,77 @@ var FocusLens = class {
     });
     if (!html) return f.text;
     return escapeHTML(f.text) + (f.note ? `<span class="value-note">${escapeHTML(f.note)}</span>` : "");
+  }
+  // The other side of a conditional branch (classroom 2026-10-24): this run's
+  // comparison and where the branch would have gone, folded by default; the
+  // code there is shown as text only, never as executed or with values.
+  untaken(hint, step, instructions) {
+    const decision = step?.events?.length ? lineDecision(step.events, {
+      symbols: this.host.getProgram().symbols,
+      instructions,
+      format: (v, name2) => this.number(
+        { num: true, v, w: 4, k: addressRegisters.has(name2) ? "address" : "value" },
+        false
+      )
+    }) : null;
+    const where = hint.kind === "taken" ? `\u6761\u4EF6\u6210\u7ACB\u65F6\u4F1A\u8DF3\u5230 ${hint.label}` : `\u6761\u4EF6\u4E0D\u6210\u7ACB\u65F6\u4F1A\u987A\u5E8F\u6267\u884C\u5230 ${hint.label}`;
+    const key = hint.branch * 2 + (hint.kind === "taken" ? 1 : 0);
+    const lines = hint.target.address != null ? untakenLines(instructions, hint.target.address) : [];
+    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">\u672A\u8D70\u7684\u8DEF\u5F84</span> ${escapeHTML(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? "\u9884\u8BA1" : "\u672C\u6B21"}\uFF1A${escapeHTML(decision)}</span>` : ""}</summary>${lines.map(
+      (l) => `<div class="frow untaken"><span class="fbp"></span><span class="fln">${l.line}</span><code>${escapeHTML(splitComment(this.host.getSource(l.file, l.line) || "").code)}</code></div>`
+    ).join("")}<p class="funtaken-note">\u6CA1\u6709\u6267\u884C\uFF1A\u53EA\u663E\u793A\u4EE3\u7801\uFF0C\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u548C\u8F93\u5165\u8F93\u51FA\u90FD\u4E0D\u4F1A\u56E0\u6B64\u6539\u53D8\u3002</p></details>`;
+  }
+  // Bit by bit (classroom 2026-10-24): the selected step's machine instruction
+  // — for a pseudo-instruction line, the expanded instruction that computes —
+  // from its recorded reads and writes. Paused, stepped or replayed by hand;
+  // with reduced motion every step is listed at once instead.
+  stopBits() {
+    clearInterval(this.bitsTimer);
+    this.bitsTimer = null;
+  }
+  renderBits(step = this.layout?.steps.find((s) => s.index === this.selected)) {
+    const $3 = (id2) => document.getElementById(id2), events = step?.events || [], k = events.map(supportsBits).lastIndexOf(true), event = events[k];
+    $3("focus-bits-toggle").hidden = !event;
+    $3("focus-bits-toggle").setAttribute("aria-expanded", String(this.bitsOpen && !!event));
+    $3("focus-bits-toggle").textContent = this.bitsOpen && event ? "\u6536\u8D77\u9010\u4F4D" : "\u9010\u4F4D\u67E5\u770B";
+    const panel = $3("focus-bits");
+    if (!event || !this.bitsOpen) {
+      panel.hidden = true;
+      return;
+    }
+    const story = bitStory(event, (n) => "$" + registerNames[n]);
+    this.bitsStep = Math.min(this.bitsStep, story.steps.length - 1);
+    const where = `\u673A\u5668\u6307\u4EE4 ${event.instruction.basic || event.instruction.op}${events.length > 1 ? `\uFF08\u8FD9\u4E00\u884C\u4F2A\u6307\u4EE4\u5C55\u5F00\u540E\u7684\u7B2C ${k + 1} \u6761\uFF0C\u5171 ${events.length} \u6761\uFF09` : ""}${step.predicted ? " \xB7 \u9884\u8BA1" : ""}`;
+    const reduced = this.motion.matches, shown = reduced ? story.steps : [story.steps[this.bitsStep]];
+    const rowHTML = (r) => `<div class="brow${r.carry ? " carry" : ""}${r.result ? " result" : ""}"><span class="blabel">${escapeHTML(r.label)}</span><span class="bbits">${r.bits.map(
+      (bit, j) => `<i class="${r.marks[j] || ""}${bit == null ? " pending" : ""}">${bit == null ? "\xB7" : bit}</i>${(j + 1) % 4 === 0 && j < r.bits.length - 1 ? '<span class="bgap"></span>' : ""}`
+    ).join("")}</span>${r.out ? `<span class="bout">\u79FB\u51FA ${r.out.bit}</span>` : ""}</div>`;
+    panel.hidden = false;
+    panel.innerHTML = `<div class="bits-head"><b>${escapeHTML(story.title)}</b><span>${escapeHTML(where)}</span>${reduced ? "" : `<span class="bits-progress">\u7B2C ${this.bitsStep + 1}/${story.steps.length} \u6B65</span>`}</div>` + shown.map((st) => `<div class="bits-step"><p>${escapeHTML(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`).join("") + (reduced ? "" : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>\u25C0 \u4E0A\u4E00\u6B65</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>\u4E0B\u4E00\u6B65 \u25B6</button><button id="bits-play">${this.bitsTimer ? "\u6682\u505C" : "\u64AD\u653E"}</button><button id="bits-replay">\u91CD\u653E</button></div>`);
+    if (reduced) return;
+    const go = (to) => {
+      this.bitsStep = Math.max(0, Math.min(story.steps.length - 1, to));
+      this.renderBits();
+    };
+    $3("bits-prev").onclick = () => (this.stopBits(), go(this.bitsStep - 1));
+    $3("bits-next").onclick = () => (this.stopBits(), go(this.bitsStep + 1));
+    $3("bits-replay").onclick = () => {
+      this.stopBits();
+      this.bitsStep = 0;
+      $3("bits-play").click();
+    };
+    $3("bits-play").onclick = () => {
+      if (this.bitsTimer) return this.stopBits(), this.renderBits();
+      if (this.bitsStep >= story.steps.length - 1) this.bitsStep = 0;
+      this.bitsTimer = setInterval(() => {
+        if (this.bitsStep >= story.steps.length - 1) {
+          this.stopBits();
+          return this.renderBits();
+        }
+        go(this.bitsStep + 1);
+      }, 700);
+      this.renderBits();
+    };
   }
   // ---- drawing inside the lens ----
   anchor(id2, side) {
@@ -25113,7 +25436,8 @@ var FocusLens = class {
       }
     }
     head.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button, select, label")) return;
+      if (e.target.closest("button, select, label, input, summary, details"))
+        return;
       const r = this.el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
       head.setPointerCapture(e.pointerId);
       const move = (m) => {
@@ -25249,15 +25573,15 @@ function fuzzy(query, text2) {
   if (t2.startsWith(q)) return 1e3 - t2.length;
   const at = t2.indexOf(q);
   if (at >= 0) return 800 - at - t2.length;
-  let score2 = 0, j = 0, run2 = 0;
+  let score3 = 0, j = 0, run2 = 0;
   for (const c of q) {
     const k = t2.indexOf(c, j);
     if (k < 0) return -1;
     run2 = k === j ? run2 + 1 : 0;
-    score2 += 10 + run2 * 5 - (k - j);
+    score3 += 10 + run2 * 5 - (k - j);
     j = k + 1;
   }
-  return score2;
+  return score3;
 }
 var LABEL = /^\s*([A-Za-z_.$][\w.$]*)\s*:/;
 function outline(files2, file, symbols = []) {
@@ -25337,6 +25661,467 @@ function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: a
   if (!query) return [...fileItems, ...symbolItems].slice(0, limit);
   return rank([...fileItems, ...symbolItems], query).slice(0, limit);
 }
+
+// ui/instruction-index.js
+var TABLE = [
+  ["add", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0", "add rd, rs, rt", "rd \u2190 rs + rt", "add $t0, $t1, $t2", "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u52A0 plus sum"],
+  ["addu", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "addu rd, rs, rt", "rd \u2190 rs + rt", "addu $t0, $t1, $t2", "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38\uFF0C\u5E38\u7528\u4E8E\u5730\u5740\u548C\u65E0\u7B26\u53F7\u6570", "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u65E0\u7B26\u53F7 \u5730\u5740"],
+  ["addi", false, "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570", "addi rt, rs, imm", "rt \u2190 rs + imm", "addi $t0, $t0, 1", "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u52A0\u4E00 \u7ACB\u5373\u6570 \u8BA1\u6570"],
+  ["addiu", false, "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "addiu rt, rs, imm", "rt \u2190 rs + imm", "addiu $sp, $sp, -4", "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u6808 \u7ACB\u5373\u6570 \u8BA1\u6570"],
+  ["sub", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF", "sub rd, rs, rt", "rd \u2190 rs \u2212 rt", "sub $t0, $t1, $t2", "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u51CF"],
+  ["subu", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "subu rd, rs, rt", "rd \u2190 rs \u2212 rt", "subu $t0, $t1, $t2", "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38", "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u65E0\u7B26\u53F7 \u53D6\u53CD"],
+  ["mult", false, "\u6709\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO", "mult rs, rt", "HI:LO \u2190 rs \xD7 rt", "mult $t0, $t1", "\u9AD8 32 \u4F4D\u5728 HI\uFF0C\u4F4E 32 \u4F4D\u5728 LO\uFF0C\u7528 mfhi/mflo \u53D6\u51FA", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58"],
+  ["multu", false, "\u65E0\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO", "multu rs, rt", "HI:LO \u2190 rs \xD7 rt", "multu $t0, $t1", "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u4E58", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u65E0\u7B26\u53F7"],
+  ["mul", false, "\u4E58\u6CD5\uFF0C\u53EA\u4FDD\u7559\u4F4E 32 \u4F4D", "mul rd, rs, rt", "rd \u2190 (rs \xD7 rt) \u7684\u4F4E 32 \u4F4D", "mul $t0, $t1, $t2", "\u9AD8\u4F4D\u88AB\u4E22\u5F03\uFF0C\u7ED3\u679C\u53EF\u80FD\u6EA2\u51FA\u800C\u4E0D\u62A5\u9519", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58"],
+  ["div", false, "\u6709\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI", "div rs, rt", "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 rs \u9664\u4EE5 rt \u7684\u4F59\u6570", "div $t0, $t1", "\u9664\u6570\u4E3A 0 \u65F6\u7ED3\u679C\u6CA1\u6709\u89C4\u5B9A", "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u53D6\u4F59 \u53D6\u6A21 \u6574\u9664"],
+  ["divu", false, "\u65E0\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI", "divu rs, rt", "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 \u4F59\u6570", "divu $t0, $t1", "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u9664", "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u65E0\u7B26\u53F7"],
+  ["mfhi", false, "\u53D6\u51FA HI\uFF08\u4E58\u79EF\u9AD8\u4F4D\u6216\u9664\u6CD5\u4F59\u6570\uFF09", "mfhi rd", "rd \u2190 HI", "mfhi $t0", "", "\u4F59\u6570 \u9AD8\u4F4D \u53D6\u6A21 hi"],
+  ["mflo", false, "\u53D6\u51FA LO\uFF08\u4E58\u79EF\u4F4E\u4F4D\u6216\u9664\u6CD5\u7684\u5546\uFF09", "mflo rd", "rd \u2190 LO", "mflo $t0", "", "\u5546 \u4F4E\u4F4D \u4E58\u79EF lo"],
+  ["and", false, "\u6309\u4F4D\u4E0E", "and rd, rs, rt", "rd \u2190 rs & rt", "and $t0, $t1, $t2", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1", "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u6E05\u96F6"],
+  ["andi", false, "\u548C\u5E38\u6570\u6309\u4F4D\u4E0E", "andi rt, rs, imm", "rt \u2190 rs & imm", "andi $t0, $t0, 0xff", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55\uFF1B\u5E38\u7528\u6765\u53D6\u51FA\u4F4E\u51E0\u4F4D", "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u53D6\u4F4E\u4F4D \u53D6\u5B57\u8282 \u6E05\u96F6"],
+  ["or", false, "\u6309\u4F4D\u6216", "or rd, rs, rt", "rd \u2190 rs | rt", "or $t0, $t1, $t2", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1", "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5408\u5E76"],
+  ["ori", false, "\u548C\u5E38\u6570\u6309\u4F4D\u6216", "ori rt, rs, imm", "rt \u2190 rs | imm", "ori $t0, $zero, 5", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55", "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5E38\u6570"],
+  ["xor", false, "\u6309\u4F4D\u5F02\u6216", "xor rd, rs, rt", "rd \u2190 rs ^ rt", "xor $t0, $t1, $t2", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1", "\u5F02\u6216 \u6309\u4F4D\u5F02\u6216 \u7FFB\u8F6C \u6BD4\u8F83\u662F\u5426\u76F8\u540C"],
+  ["xori", false, "\u548C\u5E38\u6570\u6309\u4F4D\u5F02\u6216", "xori rt, rs, imm", "rt \u2190 rs ^ imm", "xori $t0, $t0, 1", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55", "\u5F02\u6216 \u7FFB\u8F6C"],
+  ["nor", false, "\u6309\u4F4D\u6216\u975E", "nor rd, rs, rt", "rd \u2190 ~(rs | rt)", "nor $t0, $t1, $zero", "\u548C $zero \u505A nor \u5C31\u662F\u6309\u4F4D\u53D6\u53CD", "\u6216\u975E \u53D6\u53CD \u975E"],
+  ["not", true, "\u6309\u4F4D\u53D6\u53CD", "not rd, rs", "rd \u2190 ~rs", "not $t0, $t1", "\u4F2A\u6307\u4EE4\uFF1Anor rd, rs, $zero", "\u53D6\u53CD \u975E \u6309\u4F4D\u53D6\u53CD"],
+  ["sll", false, "\u903B\u8F91\u5DE6\u79FB", "sll rd, rt, sa", "rd \u2190 rt << sa", "sll $t0, $t0, 2", "\u53F3\u8FB9\u8865 0\uFF1B\u5DE6\u79FB n \u4F4D\u76F8\u5F53\u4E8E\u4E58\u4EE5 2\u207F", "\u5DE6\u79FB \u79FB\u4F4D \u4E582 \u4E58\u4EE52"],
+  ["srl", false, "\u903B\u8F91\u53F3\u79FB", "srl rd, rt, sa", "rd \u2190 rt >>> sa", "srl $t0, $t0, 4", "\u5DE6\u8FB9\u8865 0\uFF08\u6309\u65E0\u7B26\u53F7\u6570\uFF09", "\u53F3\u79FB \u79FB\u4F4D \u96642 \u65E0\u7B26\u53F7 \u53D6\u9AD8\u4F4D"],
+  ["sra", false, "\u7B97\u672F\u53F3\u79FB", "sra rd, rt, sa", "rd \u2190 rt >> sa", "sra $t0, $t0, 1", "\u5DE6\u8FB9\u8865\u7B26\u53F7\u4F4D\uFF08\u6309\u6709\u7B26\u53F7\u6570\uFF0C\u6B63\u8D1F\u4E0D\u53D8\uFF09", "\u53F3\u79FB \u79FB\u4F4D \u96642 \u6709\u7B26\u53F7"],
+  ["sllv", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u5DE6\u79FB", "sllv rd, rt, rs", "rd \u2190 rt << (rs \u7684\u4F4E 5 \u4F4D)", "sllv $t0, $t1, $t2", "", "\u5DE6\u79FB \u79FB\u4F4D \u53EF\u53D8"],
+  ["srlv", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u903B\u8F91\u53F3\u79FB", "srlv rd, rt, rs", "rd \u2190 rt >>> (rs \u7684\u4F4E 5 \u4F4D)", "srlv $t0, $t1, $t2", "", "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8"],
+  ["srav", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u7B97\u672F\u53F3\u79FB", "srav rd, rt, rs", "rd \u2190 rt >> (rs \u7684\u4F4E 5 \u4F4D)", "srav $t0, $t1, $t2", "", "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8 \u6709\u7B26\u53F7"],
+  ["slt", false, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u65F6\u5F97 1\uFF0C\u5426\u5219\u5F97 0", "slt rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "slt $t0, $t1, $t2", "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5224\u65AD \u6761\u4EF6"],
+  ["sltu", false, "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F", "sltu rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "sltu $t0, $t1, $t2", "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7"],
+  ["slti", false, "\u548C\u5E38\u6570\u6BD4\u8F83\u5927\u5C0F", "slti rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "slti $t0, $t1, 10", "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5E38\u6570"],
+  ["sltiu", false, "\u548C\u5E38\u6570\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F", "sltiu rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "sltiu $t0, $t1, 10", "", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7"],
+  ["beq", false, "\u76F8\u7B49\u5C31\u8DF3\u8F6C", "beq rs, rt, label", "\u82E5 rs == rt\uFF0C\u8DF3\u5230 label", "beq $t0, $zero, done", "", "\u5206\u652F \u76F8\u7B49 \u7B49\u4E8E \u5224\u65AD if \u8DF3\u8F6C \u6761\u4EF6"],
+  ["bne", false, "\u4E0D\u76F8\u7B49\u5C31\u8DF3\u8F6C", "bne rs, rt, label", "\u82E5 rs \u2260 rt\uFF0C\u8DF3\u5230 label", "bne $t0, $t1, loop", "", "\u5206\u652F \u4E0D\u7B49 \u5224\u65AD if \u5FAA\u73AF \u8DF3\u8F6C \u6761\u4EF6"],
+  ["bgez", false, "\u5927\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "bgez rs, label", "\u82E5 rs \u2265 0\uFF0C\u8DF3\u5230 label", "bgez $t0, positive", "", "\u5206\u652F \u975E\u8D1F \u5224\u65AD \u6B63\u6570"],
+  ["bgtz", false, "\u5927\u4E8E 0 \u5C31\u8DF3\u8F6C", "bgtz rs, label", "\u82E5 rs > 0\uFF0C\u8DF3\u5230 label", "bgtz $t0, positive", "", "\u5206\u652F \u6B63\u6570 \u5224\u65AD"],
+  ["blez", false, "\u5C0F\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "blez rs, label", "\u82E5 rs \u2264 0\uFF0C\u8DF3\u5230 label", "blez $t0, done", "", "\u5206\u652F \u975E\u6B63 \u5224\u65AD"],
+  ["bltz", false, "\u5C0F\u4E8E 0 \u5C31\u8DF3\u8F6C", "bltz rs, label", "\u82E5 rs < 0\uFF0C\u8DF3\u5230 label", "bltz $t0, negative", "", "\u5206\u652F \u8D1F\u6570 \u5224\u65AD"],
+  ["blt", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u5C31\u8DF3\u8F6C", "blt rs, rt, label", "\u82E5 rs < rt\uFF0C\u8DF3\u5230 label", "blt $t0, $t1, loop", "\u4F2A\u6307\u4EE4\uFF1Aslt + bne", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5FAA\u73AF \u5224\u65AD"],
+  ["bgt", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u5C31\u8DF3\u8F6C", "bgt rs, rt, label", "\u82E5 rs > rt\uFF0C\u8DF3\u5230 label", "bgt $t0, 10, over", "\u4F2A\u6307\u4EE4\uFF1Aslt + bne", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E \u5224\u65AD"],
+  ["ble", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C", "ble rs, rt, label", "\u82E5 rs \u2264 rt\uFF0C\u8DF3\u5230 label", "ble $t0, $t1, loop", "\u4F2A\u6307\u4EE4\uFF1Aslt + beq", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E\u7B49\u4E8E \u5224\u65AD"],
+  ["bge", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C", "bge rs, rt, label", "\u82E5 rs \u2265 rt\uFF0C\u8DF3\u5230 label", "bge $t0, $t1, done", "\u4F2A\u6307\u4EE4\uFF1Aslt + beq", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E\u7B49\u4E8E \u5224\u65AD"],
+  ["beqz", true, "\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "beqz rs, label", "\u82E5 rs == 0\uFF0C\u8DF3\u5230 label", "beqz $t0, done", "\u4F2A\u6307\u4EE4\uFF1Abeq rs, $zero, label", "\u5206\u652F \u96F6 \u5224\u65AD \u4E3A\u96F6"],
+  ["bnez", true, "\u4E0D\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "bnez rs, label", "\u82E5 rs \u2260 0\uFF0C\u8DF3\u5230 label", "bnez $t0, loop", "\u4F2A\u6307\u4EE4\uFF1Abne rs, $zero, label", "\u5206\u652F \u975E\u96F6 \u5FAA\u73AF \u5224\u65AD"],
+  ["b", true, "\u65E0\u6761\u4EF6\u8DF3\u8F6C\uFF08\u5206\u652F\u5199\u6CD5\uFF09", "b label", "\u8DF3\u5230 label", "b loop", "\u4F2A\u6307\u4EE4\uFF1Abgez $zero, label", "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF"],
+  ["j", false, "\u8DF3\u8F6C\u5230\u6807\u7B7E", "j label", "PC \u2190 label", "j loop", "", "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF"],
+  ["jal", false, "\u8C03\u7528\u51FD\u6570\uFF1A\u628A\u8FD4\u56DE\u5730\u5740\u5B58\u8FDB $ra \u518D\u8DF3\u8F6C", "jal label", "$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 label", "jal print", "", "\u8C03\u7528 \u51FD\u6570 \u5B50\u7A0B\u5E8F call \u8FC7\u7A0B"],
+  ["jr", false, "\u8DF3\u5230\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740\uFF1Bjr $ra \u4ECE\u51FD\u6570\u8FD4\u56DE", "jr rs", "PC \u2190 rs", "jr $ra", "", "\u8FD4\u56DE return \u51FD\u6570 \u8DF3\u8F6C"],
+  ["jalr", false, "\u8C03\u7528\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740", "jalr rd, rs", "rd \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 rs", "jalr $t9", "", "\u8C03\u7528 \u51FD\u6570 \u6307\u9488"],
+  ["lw", false, "\u4ECE\u5185\u5B58\u8BFB 4 \u5B57\u8282", "lw rt, offset(rs)", "rt \u2190 \u5185\u5B58[rs + offset]", "lw $t0, 0($sp)", "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u52A0\u8F7D load \u6570\u7EC4 \u53D6\u503C \u8BFB\u53D6 \u5B57"],
+  ["sw", false, "\u628A 4 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sw rt, offset(rs)", "\u5185\u5B58[rs + offset] \u2190 rt", "sw $ra, 0($sp)", "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570", "\u5199\u5185\u5B58 \u5B58\u50A8 store \u4FDD\u5B58 \u6570\u7EC4 \u5B57"],
+  ["lb", false, "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09", "lb rt, offset(rs)", "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u6309\u7B26\u53F7\u6269\u5C55", "lb $t0, 0($a0)", "\u6700\u9AD8\u4F4D\u662F 1 \u65F6\u8865 1", "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u52A0\u8F7D"],
+  ["lbu", false, "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09", "lbu rt, offset(rs)", "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0", "lbu $t0, 0($a0)", "\u8BFB\u5B57\u7B26\u5E38\u7528\u5B83", "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B57\u7B26\u4E32 \u52A0\u8F7D \u65E0\u7B26\u53F7"],
+  ["sb", false, "\u628A\u6700\u4F4E 1 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sb rt, offset(rs)", "\u5B57\u8282[rs + offset] \u2190 rt \u7684\u4F4E 8 \u4F4D", "sb $t0, 0($a0)", "", "\u5199\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B58\u50A8"],
+  ["lh", false, "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09", "lh rt, offset(rs)", "rt \u2190 \u534A\u5B57[rs + offset]", "lh $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u534A\u5B57 \u52A0\u8F7D"],
+  ["lhu", false, "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09", "lhu rt, offset(rs)", "rt \u2190 \u534A\u5B57[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0", "lhu $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u534A\u5B57 \u65E0\u7B26\u53F7"],
+  ["sh", false, "\u628A\u6700\u4F4E 2 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sh rt, offset(rs)", "\u534A\u5B57[rs + offset] \u2190 rt \u7684\u4F4E 16 \u4F4D", "sh $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u5199\u5185\u5B58 \u534A\u5B57 \u5B58\u50A8"],
+  ["lui", false, "\u628A\u5E38\u6570\u653E\u8FDB\u9AD8 16 \u4F4D", "lui rt, imm", "rt \u2190 imm << 16", "lui $t0, 0x1001", "\u4F4E 16 \u4F4D\u6E05\u96F6", "\u9AD8\u4F4D \u5E38\u6570 \u5730\u5740 \u7ACB\u5373\u6570"],
+  ["li", true, "\u628A\u5E38\u6570\u653E\u8FDB\u5BC4\u5B58\u5668", "li rd, imm", "rd \u2190 imm", "li $v0, 4", "\u4F2A\u6307\u4EE4\uFF1A\u6309\u5927\u5C0F\u5C55\u5F00\u4E3A addiu/ori\uFF0C\u6216 lui + ori", "\u5E38\u6570 \u8D4B\u503C \u88C5\u5165 \u8BBE\u7F6E \u7ACB\u5373\u6570 \u521D\u59CB\u5316"],
+  ["la", true, "\u628A\u6807\u7B7E\u7684\u5730\u5740\u653E\u8FDB\u5BC4\u5B58\u5668", "la rd, label", "rd \u2190 label \u7684\u5730\u5740", "la $a0, prompt", "\u4F2A\u6307\u4EE4\uFF1Alui + ori\uFF1B\u5F97\u5230\u7684\u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5185\u5BB9", "\u5730\u5740 \u5B57\u7B26\u4E32 \u6570\u7EC4 \u6807\u7B7E \u53D6\u5730\u5740"],
+  ["move", true, "\u590D\u5236\u5BC4\u5B58\u5668\u7684\u503C", "move rd, rs", "rd \u2190 rs", "move $s0, $v0", "\u4F2A\u6307\u4EE4\uFF1Aaddu rd, rs, $zero", "\u590D\u5236 \u8D4B\u503C \u62F7\u8D1D \u4FDD\u5B58"],
+  ["neg", true, "\u53D6\u76F8\u53CD\u6570", "neg rd, rs", "rd \u2190 \u2212rs", "neg $t0, $t1", "\u4F2A\u6307\u4EE4\uFF1Asub rd, $zero, rs", "\u76F8\u53CD\u6570 \u8D1F\u6570 \u53D6\u8D1F"],
+  ["abs", true, "\u53D6\u7EDD\u5BF9\u503C", "abs rd, rs", "rd \u2190 |rs|", "abs $t0, $t1", "\u4F2A\u6307\u4EE4", "\u7EDD\u5BF9\u503C \u6B63\u6570"],
+  ["syscall", false, "\u7CFB\u7EDF\u8C03\u7528\uFF1A\u6309 $v0 \u7684\u670D\u52A1\u53F7\u505A\u8F93\u5165\u3001\u8F93\u51FA\u6216\u9000\u51FA", "syscall", "\u6309 $v0 \u9009\u62E9\u670D\u52A1", "li $v0, 1\nsyscall", "\u5148\u628A\u670D\u52A1\u53F7\u653E\u8FDB $v0\uFF0C\u53C2\u6570\u653E\u8FDB $a0 \u7B49", "\u7CFB\u7EDF\u8C03\u7528 \u6253\u5370 \u8F93\u5165 \u8F93\u51FA \u8BFB\u53D6 \u9000\u51FA"],
+  ["nop", false, "\u4EC0\u4E48\u4E5F\u4E0D\u505A", "nop", "\uFF08\u65E0\u53D8\u5316\uFF09", "nop", "\u5E38\u653E\u5728\u5EF6\u8FDF\u69FD\u91CC", "\u7A7A \u5360\u4F4D \u5EF6\u8FDF\u69FD"]
+];
+var SERVICE_WORDS = {
+  1: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u6574\u6570 \u6570\u5B57 print int printf",
+  2: "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570",
+  3: "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
+  4: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26\u4E32 \u6587\u5B57 \u4E00\u53E5\u8BDD print string printf",
+  5: "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u6574\u6570 \u6570\u5B57 read int scanf",
+  6: "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570",
+  7: "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
+  8: "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u5B57\u7B26\u4E32 \u540D\u5B57 \u4E00\u884C \u6587\u5B57 read string scanf gets",
+  9: "\u5206\u914D \u5185\u5B58 \u5806 malloc",
+  10: "\u9000\u51FA \u7ED3\u675F \u505C\u6B62 exit",
+  11: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26 \u4E00\u4E2A\u5B57\u7B26 print char putchar",
+  12: "\u8BFB\u53D6 \u8F93\u5165 \u5B57\u7B26 read char getchar",
+  13: "\u6253\u5F00 \u6587\u4EF6",
+  14: "\u8BFB\u53D6 \u6587\u4EF6",
+  15: "\u5199\u5165 \u6587\u4EF6",
+  16: "\u5173\u95ED \u6587\u4EF6",
+  17: "\u9000\u51FA \u7ED3\u675F \u8FD4\u56DE\u7801 exit",
+  34: "\u6253\u5370 \u8F93\u51FA \u5341\u516D\u8FDB\u5236 hex",
+  35: "\u6253\u5370 \u8F93\u51FA \u4E8C\u8FDB\u5236 binary",
+  36: "\u6253\u5370 \u8F93\u51FA \u65E0\u7B26\u53F7"
+};
+function instructionIndex(docs = {}) {
+  const items = TABLE.map(([op, pseudo, purpose, format, formula, example, note, words]) => ({
+    kind: "instruction",
+    op,
+    label: op,
+    pseudo,
+    purpose,
+    format,
+    formula,
+    example,
+    note,
+    words
+  }));
+  for (const [n, [name2, does, args]] of Object.entries(serviceGuide))
+    items.push({
+      kind: "service",
+      op: "syscall",
+      service: Number(n),
+      label: `syscall ${n} \xB7 ${name2}`,
+      name: name2,
+      pseudo: false,
+      purpose: `${name2}\uFF1A${does}`,
+      format: [`li $v0, ${n}`, ...args.map(([r, m]) => `${r} = ${m}`), "syscall"].join("\n"),
+      formula: "",
+      example: "",
+      note: `\u670D\u52A1\u53F7 ${n} \u653E\u5728 $v0`,
+      words: `${name2} ${SERVICE_WORDS[n] || ""}`
+    });
+  const known = new Set(TABLE.map((t2) => t2[0]));
+  for (const [op, d] of Object.entries(docs))
+    if (!known.has(op))
+      items.push({
+        kind: "instruction",
+        op,
+        label: op,
+        pseudo: !!d.pseudo,
+        purpose: d.description || "",
+        format: d.example || "",
+        formula: "",
+        example: d.example || "",
+        note: "MARS \u539F\u6587\u8BF4\u660E",
+        words: ""
+      });
+  return items;
+}
+var bigrams = (s) => {
+  const t2 = s.replace(/\s+/g, "");
+  return new Set(Array.from({ length: Math.max(0, t2.length - 1) }, (_, i) => t2.slice(i, i + 2)));
+};
+function score2(item, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return -1;
+  const op = item.op.toLowerCase();
+  if (item.kind === "instruction" && op === q) return 1e3;
+  if (item.kind === "service" && (q === String(item.service) || q === `syscall ${item.service}` || q === item.name)) return 990;
+  if (item.kind === "instruction" && op.startsWith(q)) return 900 - op.length;
+  const text2 = `${item.label} ${item.purpose} ${item.words}`.toLowerCase();
+  if (item.label.toLowerCase().includes(q)) return 800;
+  if (text2.includes(q)) return 700 - (item.kind === "service" ? 0 : 5);
+  const typed = q.split(/\s+/), words = item.words.toLowerCase().split(/\s+/).filter((w) => w.length > 1), found = words.filter((w) => /^[a-z]+$/.test(w) ? typed.includes(w) : q.includes(w));
+  if (found.length) {
+    const hit = found.reduce((s, w) => s + w.length, 0);
+    return 500 + Math.min(150, hit / q.length * 150);
+  }
+  if (/^[a-z]+$/.test(q) && item.kind === "instruction") {
+    let j = 0;
+    for (const c of op) if (c === q[j]) j++;
+    if (j === q.length) return 450 - (op.length - q.length) * 10;
+  }
+  const qb = bigrams(q);
+  if (qb.size) {
+    const tb = bigrams(text2);
+    const shared = [...qb].filter((b) => tb.has(b)).length / qb.size;
+    if (shared >= 0.5) return 300 + shared * 100;
+  }
+  return -1;
+}
+function searchInstructions(query, items, limit = 30) {
+  return items.map((item) => ({ item, s: score2(item, query) })).filter((r) => r.s >= 0).sort((a, b) => b.s - a.s || a.item.label.length - b.item.label.length).slice(0, limit).map((r) => r.item);
+}
+
+// ui/tutorial.js
+var HELLO = `.data
+greeting: .asciiz "Hello!"
+.text
+.globl main
+main:
+    la $a0, greeting   # \u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740
+    li $v0, 4          # \u670D\u52A1 4\uFF1A\u6253\u5370\u5B57\u7B26\u4E32
+    syscall
+    li $v0, 10         # \u670D\u52A1 10\uFF1A\u9000\u51FA
+    syscall`;
+var NAME = `.data
+greeting: .asciiz "Hello, "
+bang:     .asciiz "!"
+name:     .space 32         # \u5B58\u653E\u540D\u5B57\u7684\u7F13\u51B2\u533A\uFF0832 \u5B57\u8282\uFF09
+.text
+.globl main
+main:
+    la $a0, name        # \u7F13\u51B2\u533A\u5730\u5740
+    li $a1, 32          # \u6700\u591A\u5360\u7528 32 \u5B57\u8282
+    li $v0, 8           # \u670D\u52A1 8\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32
+    syscall
+    la $a0, greeting
+    li $v0, 4
+    syscall
+    la $a0, name        # \u6253\u5370\u540D\u5B57\uFF1A$a0 \u662F\u5730\u5740
+    li $v0, 4
+    syscall
+    la $a0, bang
+    li $v0, 4
+    syscall
+    li $v0, 10
+    syscall`;
+var OVERFLOW = `    li $t0, 0x7fffffff   # \u6700\u5927\u7684 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570
+    addi $t0, $t0, 1     # \u518D\u52A0 1 \u4F1A\u600E\u6837\uFF1F`;
+var AGE = `    li $v0, 5            # \u670D\u52A1 5\uFF1A\u8BFB\u53D6\u6574\u6570\uFF0C\u7ED3\u679C\u5728 $v0
+    syscall
+    addi $a0, $v0, 1     # \u660E\u5E74\u7684\u5E74\u9F84
+    li $v0, 1            # \u670D\u52A1 1\uFF1A\u6253\u5370\u6574\u6570
+    syscall`;
+var traceOf = (c) => (c.state?.trace || []).filter((e) => e.step <= (c.state?.step ?? 0));
+var ranFrom = (c, file) => !!c.target?.files.includes(file) && !c.dirty;
+var reg = (c, name2) => c.state?.registers?.find((r) => r.name === name2)?.value;
+var nextIsSyscall = (c, service) => {
+  const p = c.state?.preview?.instruction;
+  return p?.op === "syscall" && reg(c, "$v0") === service;
+};
+var STEPS = [
+  {
+    stage: "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
+    title: "\u65B0\u5EFA hello.s",
+    goal: "\u7B2C\u4E00\u4E2A\u7A0B\u5E8F\u653E\u5728\u54EA\u91CC\uFF1F\u5728\u5DE6\u4FA7\u201C\u6587\u4EF6\u201D\u6807\u7B7E\u91CC\u65B0\u5EFA\u4E00\u4E2A\u6E90\u7801\u6587\u4EF6 hello.s\u3002",
+    checks: [["\u5DE5\u7A0B\u91CC\u6709 hello.s", (c) => Object.hasOwn(c.files, "hello.s")]],
+    hints: ["\u70B9\u5DE6\u4FA7\u201C\u5DE5\u7A0B\u6587\u4EF6\u201D\u65C1\u8FB9\u7684 \uFF0B \u6587\u4EF6\u3002", "\u8DEF\u5F84\u586B hello.s\uFF0C\u6269\u5C55\u540D\u5FC5\u987B\u662F\u5C0F\u5199 .s\u3002"],
+    go: [["\u6253\u5F00\u6587\u4EF6\u6807\u7B7E", "side:files"]]
+  },
+  {
+    stage: "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
+    title: "\u8BA9\u7A0B\u5E8F\u6253\u5370 Hello!",
+    goal: "\u600E\u6837\u8BA9\u7EC8\u7AEF\u663E\u793A Hello!\uFF1F\u5728 hello.s \u91CC\u5199\u7A0B\u5E8F\uFF0C\u7136\u540E\u70B9\u201C\u6C47\u7F16\u201D\uFF0C\u518D\u70B9\u201C\u8FD0\u884C\u201D\u3002",
+    checks: [
+      ["hello.s \u5DF2\u6C47\u7F16\u5E76\u88C5\u5165", (c) => ranFrom(c, "hello.s")],
+      ["\u8FD0\u884C\u7ED3\u675F", (c) => ranFrom(c, "hello.s") && c.state?.status === "ended"],
+      ["\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello!", (c) => ranFrom(c, "hello.s") && (c.state?.output || "").includes("Hello!")]
+    ],
+    hints: [
+      "\u5B57\u7B26\u4E32\u653E\u5728 .data \u6BB5\uFF0C\u7528 .asciiz \u5199\uFF0C\u672B\u5C3E\u4F1A\u81EA\u52A8\u8865\u4E00\u4E2A \\0\u3002",
+      "\u6253\u5370\u5B57\u7B26\u4E32\u662F syscall \u670D\u52A1 4\uFF1A$v0 = 4\uFF0C$a0 = \u5B57\u7B26\u4E32\u7684\u5730\u5740\uFF08\u7528 la \u53D6\u5F97\uFF09\u3002\u6700\u540E\u7528\u670D\u52A1 10 \u9000\u51FA\u3002"
+    ],
+    answer: HELLO,
+    go: [["\u67E5\u201C\u6253\u5370\u5B57\u7B26\u4E32\u201D", "find:\u6253\u5370\u5B57\u7B26\u4E32"]]
+  },
+  {
+    stage: "2 \xB7 \u8F93\u5165\u4E0E\u8F93\u51FA",
+    title: "\u8BFB\u53D6\u540D\u5B57\uFF0C\u8F93\u51FA Hello, \u540D\u5B57!",
+    goal: "\u7A0B\u5E8F\u600E\u6837\u77E5\u9053\u4F60\u7684\u540D\u5B57\uFF1F\u5148\u8BFB\u53D6\u4E00\u884C\u6587\u5B57\uFF0C\u518D\u628A Hello,\u3001\u540D\u5B57\u548C ! \u4F9D\u6B21\u6253\u5370\u51FA\u6765\u3002\u8FD0\u884C\u65F6\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540D\u5B57\u3002",
+    checks: [
+      ["\u7A0B\u5E8F\u8BFB\u53D6\u4E86\u4E00\u6B21\u8F93\u5165", (c) => ranFrom(c, "hello.s") && traceOf(c).some((e) => e.service === 8 && e.instruction.op === "syscall" && e.status !== "waiting-input")],
+      ["\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello, \u548C\u4F60\u8F93\u5165\u7684\u540D\u5B57", (c) => {
+        const out = c.state?.output || "", typed = (c.state?.inputEchoes || []).map((e) => e.text ?? e.value ?? "").filter(Boolean);
+        return ranFrom(c, "hello.s") && out.includes("Hello, ") && typed.some((t2) => out.includes(String(t2).trim()));
+      }]
+    ],
+    hints: [
+      "\u540D\u5B57\u8981\u5148\u653E\u8FDB\u5185\u5B58\uFF1A\u5728 .data \u91CC\u7528 .space 32 \u7559\u51FA\u4E00\u5757\u7F13\u51B2\u533A\u3002",
+      "\u8BFB\u53D6\u5B57\u7B26\u4E32\u662F\u670D\u52A1 8\uFF1A$a0 = \u7F13\u51B2\u533A\u5730\u5740\uFF0C$a1 = \u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\u3002\u6253\u5370\u540D\u5B57\u65F6 $a0 \u4ECD\u7136\u662F\u8FD9\u4E2A\u5730\u5740\u3002",
+      "\u4F60\u4F1A\u53D1\u73B0 ! \u8DD1\u5230\u4E86\u4E0B\u4E00\u884C\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\u4E5F\u88AB\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u7528\u8C03\u8BD5\u5668\u770B\u6E05\u695A\u3002"
+    ],
+    answer: NAME,
+    go: [["\u67E5\u201C\u8BFB\u53D6\u5B57\u7B26\u4E32\u201D", "find:\u8BFB\u53D6\u5B57\u7B26\u4E32"]]
+  },
+  {
+    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
+    title: "\u505C\u5728\u6253\u5370\u540D\u5B57\u4E4B\u524D",
+    goal: "\u6253\u5370\u540D\u5B57\u4E4B\u524D\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u51B3\u5B9A\u8F93\u51FA\u4EC0\u4E48\uFF1F\u5728\u6253\u5370\u540D\u5B57\u7684\u90A3\u4E2A syscall \u884C\u8BBE\u65AD\u70B9\uFF0C\u7136\u540E\u8FD0\u884C\u5230\u90A3\u91CC\u3002",
+    checks: [
+      ["\u8BBE\u7F6E\u4E86\u65AD\u70B9", (c) => c.breakpoints.some((b) => b.address != null)],
+      ["\u505C\u5728\u4E00\u4E2A\u6253\u5370\u5B57\u7B26\u4E32\uFF08\u670D\u52A1 4\uFF09\u7684 syscall \u4E4B\u524D", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)]
+    ],
+    hints: ["\u70B9\u884C\u53F7\u5DE6\u8FB9\u7684\u7A7A\u767D\u5904\uFF0C\u6216\u628A\u5149\u6807\u653E\u5728\u90A3\u4E00\u884C\u6309 F9\u3002", "\u6253\u5370\u540D\u5B57\u7684 syscall \u524D\u9762\u4E00\u884C\u662F li $v0, 4\uFF0C\u518D\u524D\u9762\u662F la $a0, name\u3002"],
+    go: [["\u6253\u5F00\u65AD\u70B9\u6807\u7B7E", "side:stops"]]
+  },
+  {
+    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
+    title: "\u770B\u61C2\u8FD9\u4E2A syscall",
+    goal: "\u60AC\u505C\u5728 syscall \u4E0A\u770B\u7B80\u77ED\u8BF4\u660E\uFF0C\u518D\u70B9\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\uFF08\u6216 Cmd/Ctrl\uFF0B\u70B9\u51FB\uFF09\u6253\u5F00\u53F3\u4FA7\u7684\u8BE6\u7EC6\u68C0\u67E5\u3002\u5B83\u8981\u7684\u53C2\u6570\u662F\u4EC0\u4E48\uFF1F",
+    checks: [["\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u663E\u793A\u4E86\u8FD9\u4E2A syscall", (c) => c.inspecting === "syscall"]],
+    hints: ["\u8BE6\u7EC6\u68C0\u67E5\u91CC\u6709\u201C\u505A\u4EC0\u4E48 \u2192 \u9700\u8981\u7684\u53C2\u6570 \u2192 \u53D1\u751F\u4EC0\u4E48 \u2192 \u53D8\u5316\u201D\u3002", "\u670D\u52A1 4 \u7684\u53C2\u6570 $a0 \u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\u3002"],
+    go: [["\u5C55\u5F00\u8BE6\u7EC6\u68C0\u67E5", "panel:context"]]
+  },
+  {
+    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
+    title: "\u987A\u7740\u5730\u5740\u627E\u5230\u540D\u5B57",
+    goal: "$a0 \u7684\u503C\u6307\u5411\u54EA\u91CC\uFF1F\u5728\u5BC4\u5B58\u5668\u9762\u677F\u70B9 $a0\uFF0C\u9009\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\uFF0C\u5728\u5185\u5B58\u91CC\u627E\u5230\u4F60\u8F93\u5165\u7684\u540D\u5B57\u3002",
+    checks: [["\u5185\u5B58\u9762\u677F\u663E\u793A\u7684\u662F $a0 \u6307\u5411\u7684\u5730\u65B9", (c) => {
+      const a = reg(c, "$a0") >>> 0, base2 = (c.state?.memoryBase ?? -1) >>> 0;
+      return a >= base2 && a < base2 + (c.state?.memory?.length || 0);
+    }]],
+    hints: ["\u5BC4\u5B58\u5668\u9762\u677F\u91CC\u70B9 $a0\uFF0C\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u4F1A\u51FA\u73B0\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\u3002", "\u540D\u5B57\u540E\u9762\u90A3\u4E2A 0a \u5B57\u8282\u5C31\u662F\u56DE\u8F66\uFF08\\n\uFF09\uFF0C\u6700\u540E\u7684 00 \u662F \\0\u3002"],
+    go: [["\u5C55\u5F00\u5BC4\u5B58\u5668", "panel:registers"], ["\u5C55\u5F00\u5185\u5B58", "panel:memory"]]
+  },
+  {
+    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
+    title: "\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u5B83",
+    goal: "\u6267\u884C\u8FD9\u4E2A syscall \u65F6\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u88AB\u8BFB\u3001\u7EC8\u7AEF\u591A\u4E86\u4EC0\u4E48\uFF1F\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F\uFF08\u5E95\u90E8 \u25CE \u4E13\u6CE8\uFF09\uFF0C\u6309 Shift+\u2193 \u6267\u884C\u4E00\u884C\u3002",
+    checks: [["\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u4E86\u4E00\u4E2A syscall", (c, memo) => memo.lensSyscall]],
+    hints: ["\u4E13\u6CE8\u6A21\u5F0F\u91CC \u2190\u2192 \u9010\u6761\u770B\u89E3\u91CA\uFF0C? \u770B\u4E3A\u4EC0\u4E48\u3002", "\u6267\u884C\u540E\u7EC8\u7AEF\u4F1A\u95EA\u4E00\u4E0B\uFF0C\u8868\u793A\u6709\u65B0\u7684\u8F93\u51FA\u3002"],
+    go: [["\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F", "focus"]]
+  },
+  {
+    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
+    title: "\u8BA9\u8BA1\u7B97\u8D8A\u754C",
+    goal: "\u5728\u6700\u540E\u9000\u51FA\u4E4B\u524D\u52A0\u4E0A\u4E0B\u9762\u4E24\u884C\uFF0C\u518D\u6C47\u7F16\u8FD0\u884C\u3002\u7A0B\u5E8F\u4F1A\u600E\u6837\uFF1F\u8BFB\u4E00\u8BFB\u9519\u8BEF\u4FE1\u606F\u3002",
+    checks: [["\u7A0B\u5E8F\u56E0\u4E3A\u6EA2\u51FA\u505C\u4E0B", (c, memo) => memo.overflowStep != null]],
+    hints: ["\u628A\u4E0A\u9762\u4E24\u884C\u653E\u5728 li $v0, 10 \u4E4B\u524D\u3002", "0x7fffffff \u662F 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570\u80FD\u8868\u793A\u7684\u6700\u5927\u503C\u3002"],
+    code: OVERFLOW
+  },
+  {
+    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
+    title: "\u770B\u51FA\u9519\u524D\u7684\u6570\u503C",
+    goal: "\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6267\u884C\u524D\uFF0C$t0 \u662F\u591A\u5C11\uFF1F\u6309\u201C\u56DE\u9000\u201D\u9000\u56DE\u53BB\uFF0C\u5728\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6253\u5F00\u8BE6\u7EC6\u68C0\u67E5\u3002",
+    checks: [
+      ["\u56DE\u9000\u5230\u51FA\u9519\u4E4B\u524D", (c, memo) => memo.overflowStep != null && (c.state?.step ?? Infinity) < memo.overflowStep],
+      ["\u67E5\u770B\u4E86\u90A3\u4E00\u884C\u6307\u4EE4\u7684\u8BE6\u7EC6\u68C0\u67E5", (c) => !!c.inspecting && !c.inspecting.startsWith("$") && c.inspecting !== "syscall"]
+    ],
+    hints: ["\u5DE5\u5177\u680F\u7684 \u21B6\uFF08Shift+F9\uFF09\u662F\u56DE\u9000\u4E00\u6B65\u3002", "\u8BE6\u7EC6\u68C0\u67E5\u7684\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u5C31\u662F\u7B54\u6848\u3002"]
+  },
+  {
+    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
+    title: "\u7528\u89C2\u5BDF\u70B9\u627E\u5230\u5199\u5165",
+    goal: "\u662F\u54EA\u4E00\u884C\u628A\u8FD9\u4E2A\u503C\u5199\u8FDB $t0 \u7684\uFF1F\u5728\u201C\u65AD\u70B9\u201D\u6807\u7B7E\u6DFB\u52A0\u5BF9 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9\uFF0C\u7136\u540E\u91CD\u65B0\u8FD0\u884C\u3002",
+    checks: [
+      ["\u6709 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9", (c) => c.watches.some((w) => w.register === "$t0" && w.access === "write")],
+      ["\u89C2\u5BDF\u70B9\u8BA9\u7A0B\u5E8F\u505C\u4E0B", (c) => /^Watchpoint/.test(c.state?.stopReason || "")]
+    ],
+    hints: ["\u201C\u89C2\u5BDF\u70B9\u201D\u65C1\u8FB9\u7684 \uFF0B\uFF0C\u76EE\u6807\u586B $t0\uFF0C\u7C7B\u578B\u9009\u5199\u5165\u3002", "\u4E5F\u53EF\u4EE5\u5728\u5BC4\u5B58\u5668 $t0 \u7684\u8BE6\u7EC6\u68C0\u67E5\u91CC\u70B9\u201C\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165\u201D\u3002"],
+    go: [["\u6253\u5F00\u65AD\u70B9\u6807\u7B7E", "side:stops"]]
+  },
+  {
+    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
+    title: "\u4FEE\u597D\u5B83\uFF0C\u5E76\u9A8C\u8BC1\u7ED3\u679C",
+    goal: "\u628A addi \u6362\u6210 addiu \u53EA\u4F1A\u8BA9\u5B83\u4E0D\u518D\u62A5\u9519\uFF0C\u7ED3\u679C\u5374\u53D8\u6210\u8D1F\u6570\u2014\u2014\u90A3\u4E0D\u662F\u4FEE\u597D\u3002\u628A\u521D\u503C\u6539\u6210\u4E00\u4E2A\u52A0 1 \u4E0D\u4F1A\u8D8A\u754C\u7684\u6570\uFF0C\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u786E\u8BA4 $t0 \u7684\u7ED3\u679C\u6B63\u786E\u3002",
+    checks: [
+      ["\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u6CA1\u6709\u9519\u8BEF", (c) => c.state?.status === "ended" && !c.state?.error],
+      ["$t0 \u7684\u52A0 1 \u6CA1\u6709\u8D8A\u754C\uFF08\u7ED3\u679C\u7B49\u4E8E\u539F\u503C + 1\uFF09", (c, memo) => memo.fixed === true]
+    ],
+    hints: ["\u7528\u8BE6\u7EC6\u68C0\u67E5\u5BF9\u6BD4\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u548C\u201C\u7ED3\u679C\u201D\u3002", "\u4F8B\u5982 li $t0, 41\uFF0C\u518D\u52A0 1 \u5E94\u8BE5\u5F97\u5230 42\u3002"],
+    fail: (c, memo) => memo.fixed === false ? "\u8FD0\u884C\u6CA1\u6709\u62A5\u9519\uFF0C\u4F46\u7ED3\u679C\u548C\u201C\u539F\u503C + 1\u201D\u4E0D\u4E00\u6837\uFF1A\u6EA2\u51FA\u8FD8\u5728\uFF0C\u53EA\u662F\u88AB\u5FFD\u7565\u4E86\u3002" : ""
+  },
+  {
+    stage: "5 \xB7 \u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD",
+    title: "\u8BFB\u53D6\u5E74\u9F84\uFF0C\u8F93\u51FA\u660E\u5E74\u7684\u5E74\u9F84",
+    goal: "\u5728\u95EE\u5019\u4E4B\u540E\uFF0C\u518D\u8BFB\u53D6\u4E00\u4E2A\u6574\u6570\u4F5C\u4E3A\u5E74\u9F84\uFF0C\u6253\u5370\u660E\u5E74\u7684\u5E74\u9F84\u3002\u81EA\u5DF1\u6C47\u7F16\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u3002",
+    checks: [["\u8BFB\u53D6\u4E86\u4E00\u4E2A\u6574\u6570\uFF0C\u5E76\u6253\u5370\u51FA\u5B83\u52A0 1 \u7684\u7ED3\u679C", (c) => {
+      const read = traceOf(c).filter((e) => e.service === 5 && e.instruction.op === "syscall").map((e) => e.accesses.find((a) => a.write && a.name === "$v0")?.value).filter((v) => v != null);
+      return read.some((n) => (c.state?.output || "").includes(String(n + 1)));
+    }]],
+    hints: ["\u8BFB\u53D6\u6574\u6570\u662F\u670D\u52A1 5\uFF0C\u8BFB\u5230\u7684\u6570\u5728 $v0\u3002", "\u6253\u5370\u6574\u6570\u662F\u670D\u52A1 1\uFF0C\u53C2\u6570\u653E\u5728 $a0\u3002"],
+    answer: AGE,
+    go: [["\u67E5\u201C\u8BFB\u53D6\u6574\u6570\u201D", "find:\u8BFB\u53D6\u6574\u6570"]]
+  },
+  {
+    stage: "5 \xB7 \u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD",
+    title: "\u5BFC\u51FA\u4F60\u7684\u5DE5\u7A0B",
+    goal: "\u628A\u4F60\u7684\u7A0B\u5E8F\u4FDD\u5B58\u5230\u7535\u8111\uFF1A\u5DE5\u7A0B\u83DC\u5355 \u2192 \u5BFC\u51FA\u5230\u7535\u8111\u2026\uFF0C\u9009 ZIP \u6216 JSON\u3002",
+    checks: [["\u5BFC\u51FA\u4E86\u5DE5\u7A0B", (c, memo) => memo.exported]],
+    hints: ["\u5BFC\u51FA\u7684\u6587\u4EF6\u53EF\u4EE5\u91CD\u65B0\u6253\u5F00\uFF0C\u6216\u4EA4\u7ED9\u8001\u5E08\u3002"],
+    go: [["\u6253\u5F00\u5DE5\u7A0B\u83DC\u5355", "menu:project"]]
+  }
+];
+var Tutorial = class {
+  constructor(host) {
+    this.host = host;
+    this.memo = {};
+    this.index = 0;
+    this.shown = 0;
+    this.answer = false;
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<section id="tutorial" class="tutorial" role="complementary" aria-label="\u5165\u95E8\u7EC3\u4E60" hidden></section>`
+    );
+    this.el = document.getElementById("tutorial");
+    try {
+      const saved = JSON.parse(localStorage.getItem("tutorial") || "null");
+      if (saved?.active) {
+        Object.assign(this, { index: saved.index || 0, memo: saved.memo || {}, collapsed: !!saved.collapsed });
+        this.active = true;
+      }
+    } catch {
+    }
+  }
+  save() {
+    try {
+      localStorage.setItem("tutorial", JSON.stringify({ active: this.active, index: this.index, memo: this.memo, collapsed: this.collapsed }));
+    } catch {
+    }
+  }
+  start() {
+    this.active = true;
+    this.index = 0;
+    this.memo = {};
+    this.shown = 0;
+    this.answer = false;
+    this.collapsed = false;
+    this.save();
+    this.update();
+  }
+  stop() {
+    this.active = false;
+    this.save();
+    this.el.hidden = true;
+  }
+  // Facts the checks remember across states: an overflow happened at step N;
+  // a syscall ran while focus mode was open; the fix kept arithmetic exact.
+  observe(c) {
+    const s = c.state;
+    if (!s) return;
+    const last2 = s.last;
+    if (s.status === "error" && /overflow/i.test(s.error || last2?.error || "")) this.memo.overflowStep = s.step;
+    if (c.lensOpen && last2?.instruction?.op === "syscall" && s.step !== this.memo.lensFrom) this.memo.lensSyscall = true;
+    if (!c.lensOpen) this.memo.lensFrom = s.step;
+    if (s.status === "ended" && !s.error) {
+      const adds = (s.trace || []).filter((e2) => /^addi?u?$/.test(e2.instruction.op) && e2.accesses.some((a) => a.write && a.name === "$t0"));
+      const e = adds.at(-1);
+      if (e) {
+        const before = e.accesses.find((a) => !a.write && a.name === "$t0")?.value, after = e.accesses.find((a) => a.write && a.name === "$t0")?.value, imm = e.instruction.binary << 16 >> 16;
+        if (before != null && /i/.test(e.instruction.op)) this.memo.fixed = before + imm === after;
+      }
+    }
+  }
+  update() {
+    if (!this.active) return this.el.hidden = true;
+    const c = this.host.context();
+    this.observe(c);
+    const step = STEPS[this.index], results = step.checks.map(([label2, f]) => [label2, !!f(c, this.memo)]), done = results.every(([, ok2]) => ok2), fail = step.fail?.(c, this.memo) || "";
+    if (done && !this.memo["done" + this.index]) this.memo["done" + this.index] = true;
+    this.save();
+    this.el.hidden = false;
+    this.el.classList.toggle("collapsed", !!this.collapsed);
+    const progress = `${this.index + 1}/${STEPS.length}`;
+    if (this.collapsed) {
+      this.el.innerHTML = `<button class="tutorial-pill" data-t="expand">\u5165\u95E8\u7EC3\u4E60 ${progress}${done ? " \u2713" : ""}</button>`;
+    } else
+      this.el.innerHTML = `<header><b>\u5165\u95E8\u7EC3\u4E60</b><span>\u9636\u6BB5 ${escapeHTML(step.stage)} \xB7 ${progress}</span><button data-t="collapse" aria-label="\u6536\u8D77">\u2014</button><button data-t="exit" aria-label="\u9000\u51FA\u7EC3\u4E60">\xD7</button></header>
+      <h4>${escapeHTML(step.title)}</h4><p class="tutorial-goal">${escapeHTML(step.goal)}</p>
+      <ul class="tutorial-checks">${results.map(([label2, ok2]) => `<li class="${ok2 ? "ok" : ""}">${ok2 ? "\u2713" : "\u25CB"} ${escapeHTML(label2)}</li>`).join("")}</ul>
+      ${fail ? `<p class="tutorial-fail" role="alert">${escapeHTML(fail)}</p>` : ""}
+      ${step.code ? `<pre class="tutorial-answer">${escapeHTML(step.code)}</pre>` : ""}
+      ${step.hints.slice(0, this.shown).map((h, i) => `<p class="tutorial-hint">\u63D0\u793A ${i + 1}\uFF1A${escapeHTML(h)}</p>`).join("")}
+      ${this.answer && step.answer ? `<p class="tutorial-hint">\u53C2\u8003\u7B54\u6848\uFF08\u5BF9\u7167\u7740\u81EA\u5DF1\u5199\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u586B\u5165\uFF09\uFF1A</p><pre class="tutorial-answer">${escapeHTML(step.answer)}</pre>` : ""}
+      <div class="tutorial-go">${(step.go || []).map(([label2, action]) => `<button data-go="${escapeHTML(action)}">${escapeHTML(label2)}</button>`).join("")}</div>
+      <div class="tutorial-actions">${this.shown < step.hints.length ? `<button data-t="hint">${this.shown ? "\u518D\u7ED9\u4E00\u70B9\u63D0\u793A" : "\u63D0\u793A"}</button>` : ""}${step.answer && !this.answer ? `<button data-t="answer">\u53C2\u8003\u7B54\u6848</button>` : ""}<span></span><button data-t="prev" ${this.index ? "" : "disabled"}>\u4E0A\u4E00\u6B65</button>${done ? `<button class="primary" data-t="next">${this.index === STEPS.length - 1 ? "\u5B8C\u6210" : "\u4E0B\u4E00\u6B65"}</button>` : `<button data-t="skip" title="\u4E0D\u68C0\u67E5\uFF0C\u76F4\u63A5\u770B\u4E0B\u4E00\u6B65">\u8DF3\u8FC7</button>`}</div>`;
+    this.el.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => this.act(b.dataset.t));
+    this.el.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => this.host.go(b.dataset.go));
+  }
+  act(a) {
+    if (a === "hint") this.shown++;
+    else if (a === "answer") this.answer = true;
+    else if (a === "collapse" || a === "expand") this.collapsed = a === "collapse";
+    else if (a === "exit") return this.host.finish(false);
+    else if (a === "prev" || a === "next" || a === "skip") {
+      if (a === "next" && this.index === STEPS.length - 1) return this.host.finish(true);
+      this.index = Math.max(0, Math.min(STEPS.length - 1, this.index + (a === "prev" ? -1 : 1)));
+      this.shown = 0;
+      this.answer = false;
+    }
+    this.save();
+    this.update();
+  }
+};
 
 // node_modules/fflate/esm/browser.js
 var u8 = Uint8Array;
@@ -26858,6 +27643,7 @@ var $2 = (id2) => document.getElementById(id2);
 var workspace = null;
 var target = null;
 var lastInTarget = "";
+var tutorial = null;
 var fileAccess = new Compartment();
 var state = null;
 var files = {};
@@ -26876,6 +27662,7 @@ var watches = [];
 var exampleList = [];
 var fontSize = 13;
 var inspecting = null;
+var inspectingPlace = null;
 var program = { instructions: [], symbols: [], instructionDocs: {} };
 var fileStates = /* @__PURE__ */ new Map();
 var loadEditor = false;
@@ -27151,7 +27938,7 @@ function editorMenu(x, y, pos) {
     ],
     ["\u5207\u6362\u65AD\u70B9", address != null, () => toggleBreakpoint(line), "breakpoint"],
     ["\u7F16\u8F91\u65AD\u70B9\u2026", address != null, () => editBreakpoint(address)],
-    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", !!token, () => inspectToken(token)],
+    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", !!token, () => inspectToken(token, { file: activeFile, line })],
     ["\u67E5\u770B\u5F15\u7528", !!token, () => peekReferences()]
   ];
   const menu = document.createElement("div");
@@ -27249,7 +28036,11 @@ var editor = new EditorView({
         {
           key: "F12",
           run: () => {
-            inspectToken(tokenAt(editor.state.selection.main.head));
+            const head = editor.state.selection.main.head;
+            inspectToken(tokenAt(head), {
+              file: activeFile,
+              line: editor.state.doc.lineAt(head).number
+            });
             return true;
           }
         },
@@ -27286,13 +28077,22 @@ var editor = new EditorView({
       }),
       EditorView.domEventHandlers({
         mousemove: (e) => hover(e),
-        mouseleave: () => {
-          $2("tooltip").hidden = true;
+        mouseleave: () => hideTooltip2(),
+        // Touch has no hover: a tap shows the same note, with its button.
+        pointerdown: (e) => {
+          if (e.pointerType === "touch") {
+            tipFor = "";
+            hover(e);
+          }
         },
         click: (e) => {
           if (e.metaKey || e.ctrlKey) {
             let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos != null) inspectToken(tokenAt(pos));
+            if (pos != null)
+              inspectToken(tokenAt(pos), {
+                file: activeFile,
+                line: editor.state.doc.lineAt(pos).number
+              });
           }
         },
         contextmenu: (e) => {
@@ -27338,6 +28138,7 @@ var lens = new FocusLens({
   onClose: () => {
     followPC();
     overlay.schedule();
+    tutorial?.update();
   }
 });
 var lookahead = () => lens.isOpen ? { lookahead: lens.lookaheadLines() } : {};
@@ -27357,21 +28158,51 @@ function valueHTML(n) {
   let v = n | 0, c = v & 255;
   return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII\u4F4E\u5B57\u8282</span><span>${c >= 32 && c < 127 ? escapeHTML(String.fromCharCode(c)) : c === 0 ? "NUL" : "\u4E0D\u53EF\u6253\u5370"} (${c})</span></div>`;
 }
-function summary(token, line = "") {
+function syscallAt(place) {
+  const p = state?.preview?.instruction;
+  const next = !dirty && p?.op === "syscall" && (!place || p.file === place.file && p.line === place.line);
+  const event = !next && !dirty && place ? [...state?.trace || []].reverse().find(
+    (e) => e.step <= state.step && e.instruction.op === "syscall" && e.instruction.file === place.file && e.instruction.line === place.line
+  ) : null;
+  const { n, from } = serviceAt({
+    next,
+    event,
+    v0: regValue("$v0"),
+    lines: place ? (files[place.file] || "").split("\n") : [],
+    line: place?.line || 0
+  });
+  const values = {};
+  for (const [r] of serviceGuide[n]?.[2] || [])
+    values[r] = next ? regValue(r) : event?.accesses.find(
+      (a) => a.kind === "register" && !a.write && a.name === r
+    )?.value ?? null;
+  return {
+    n,
+    from,
+    values,
+    event,
+    waiting: next && state.status === "waiting",
+    esc: escapeHTML,
+    show: (v, r) => fmt(v, 4, r ? regKind(r) : "value").text
+  };
+}
+function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
     return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 Cmd/Ctrl\uFF0B\u70B9\u51FB\u56FA\u5B9A</small>`;
   if (token === "syscall") {
-    let n = regValue("$v0"), s = services[n];
-    return `<b>syscall ${n} \xB7 ${s?.[0] || "\u672A\u652F\u6301\u670D\u52A1"}</b><p>\u53C2\u6570 ${s?.[1].join(", ") || "\u65E0"}\uFF1B\u7ED3\u679C ${s?.[2].join(", ") || "\u65E0"}</p>`;
+    const at = syscallAt(place), g = serviceGuide[at.n];
+    return `<b>${escapeHTML(syscallDetail(at).title)}</b><p>${escapeHTML(g ? g[1] : "syscall \u6309\u8C03\u7528\u65F6 $v0 \u7684\u503C\u9009\u62E9\u670D\u52A1\u3002")}</p><small>${escapeHTML(
+      { next: "\u5373\u5C06\u6267\u884C", ran: "\u6700\u8FD1\u4E00\u6B21\u6267\u884C", source: "\u6309\u6E90\u7801\u63A8\u6D4B", unknown: "\u670D\u52A1\u53F7\u6267\u884C\u65F6\u624D\u786E\u5B9A" }[at.from]
+    )}</small>`;
   }
   if (explanations[token]) {
     const text2 = explanations[token];
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${definitions(text2)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${lineFormula(place)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
   }
   if (program.instructionDocs[token]) {
     const doc2 = program.instructionDocs[token], mars = withOperands(doc2.description, doc2.example, line);
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p><small>MARS \u539F\u6587${mars.substituted ? "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09" : `\uFF08\u793A\u4F8B\uFF1A${escapeHTML(doc2.example)}\uFF09`}</small>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p>${lineFormula(place)}<small>MARS \u539F\u6587${mars.substituted ? "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09" : `\uFF08\u793A\u4F8B\uFF1A${escapeHTML(doc2.example)}\uFF09`}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
@@ -27382,23 +28213,43 @@ function definitions(text2) {
   const terms = termsIn(text2);
   return terms.length ? `<dl class="defs">${terms.map(([t2, d]) => `<dt>${escapeHTML(t2)}</dt><dd>${escapeHTML(d)}</dd>`).join("")}</dl>` : "";
 }
+var DETAIL_HINT = /Mac|iPhone|iPad/.test(navigator.platform) ? "\u2318\uFF0B\u70B9\u51FB\u67E5\u770B\u8BE6\u7EC6" : "Ctrl\uFF0B\u70B9\u51FB\u67E5\u770B\u8BE6\u7EC6";
+var tipFor = "";
+var tipHide = null;
+function hideTooltip2(delay = 300) {
+  clearTimeout(tipHide);
+  tipHide = setTimeout(() => {
+    $2("tooltip").hidden = true;
+    tipFor = "";
+  }, delay);
+}
 function hover(e) {
   let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }), token = pos == null ? "" : tokenAt(pos);
-  if (!token) {
-    $2("tooltip").hidden = true;
-    return;
-  }
-  $2("tooltip").innerHTML = summary(token, editor.state.doc.lineAt(pos).text);
+  if (!token) return hideTooltip2();
+  const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number }, key = `${token}@${activeFile}:${line.number}`;
+  clearTimeout(tipHide);
+  if (key === tipFor && !$2("tooltip").hidden) return;
+  tipFor = key;
+  $2("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u67E5\u770B\u8BE6\u7EC6 \u2192</button>`;
+  $2("tooltip").querySelector(".tip-detail").onclick = () => {
+    inspectToken(token, place);
+    hideTooltip2(0);
+  };
   $2("tooltip").hidden = false;
   $2("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
-  $2("tooltip").style.top = Math.min(e.clientY + 18, innerHeight - 180) + "px";
+  $2("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
 }
+$2("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
+$2("tooltip").addEventListener("mouseleave", () => hideTooltip2());
+var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_HINT.replace("\u67E5\u770B\u8BE6\u7EC6", "")}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
 function showContext(html) {
   $2("context").innerHTML = html;
+  setTimeout(() => tutorial?.update());
 }
-function inspectToken(token) {
+function inspectToken(token, place = null) {
   if (!token) return;
   inspecting = token;
+  inspectingPlace = place;
   $2("tooltip").hidden = true;
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
@@ -27430,14 +28281,14 @@ function inspectToken(token) {
     return;
   }
   if (token === "syscall") {
-    let n = regValue("$v0"), s = services[n];
+    const detail = syscallDetail(syscallAt(place));
     showContext(
-      `<h3>syscall ${n} \xB7 ${s?.[0] || "\u672A\u652F\u6301"}</h3><p>MARS \u670D\u52A1\u7EA6\u5B9A \xB7 \u5F53\u524D\u5FEB\u7167</p>${(s?.[1] || []).map((r) => `<p><code>${r}</code> = ${hex(regValue(r))}</p>`).join("")}<p>\u7ED3\u679C\uFF1A${s?.[2].join(", ") || "\u65E0\u8FD4\u56DE\u503C"}</p><p class="muted">\u670D\u52A1\u7F16\u53F7\u4E0E\u8FD4\u56DE\u503C\u53EF\u80FD\u590D\u7528 $v0\u3002\u8F93\u5165\u9884\u89C8\u505C\u5728\u201C\u7B49\u5F85\u8F93\u5165\u201D\uFF0C\u4E0D\u4F1A\u6D88\u8D39\u8F93\u5165\u3002</p><button id="service-list">\u67E5\u770B\u670D\u52A1\u8868</button>`
+      `<h3>${escapeHTML(detail.title)}</h3>${detail.html}<button id="service-list">\u67E5\u770B\u670D\u52A1\u8868</button>`
     );
     $2("service-list").onclick = () => modal(
       "MARS \u670D\u52A1",
       Object.entries(services).map(
-        ([id2, s2]) => `<p><b>${id2}</b> ${s2[0]} \xB7 ${s2[1].join(", ") || "\u2014"} \u2192 ${s2[2].join(", ") || "\u2014"}</p>`
+        ([id2, s]) => `<p><b>${id2}</b> ${serviceGuide[id2]?.[0] || s[0]} \xB7 ${serviceGuide[id2]?.[1] || ""} <small class="muted">\u53C2\u6570 ${s[1].join(", ") || "\u65E0"} \u2192 ${s[2].join(", ") || "\u65E0\u8FD4\u56DE\u503C"}</small></p>`
       ).join("")
     );
     return;
@@ -27453,9 +28304,109 @@ function inspectToken(token) {
     gotoSymbol(symbol);
     return;
   }
+  if (isInstruction(token) && place) return instructionDetail(token, place);
   showContext(
     `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(explanations[token] || program.instructionDocs[token]?.description || "\u5F53\u524D\u5DE5\u7A0B\u4E2D\u7684\u6587\u672C\uFF0F\u7ACB\u5373\u6570")}</p><p class="muted">${escapeHTML(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
   );
+  $2("refs").onclick = () => showReferences(token);
+}
+var isInstruction = (token) => !!(explanations[token] || program.instructionDocs[token]);
+function lineRun(place) {
+  if (!place || dirty || !state) return null;
+  const at = (e) => e?.instruction?.file === place.file && e.instruction.line === place.line;
+  const trace = (state.trace || []).filter((e) => e.step <= state.step);
+  const ending = (i) => {
+    const run2 = [trace[i]];
+    for (let j = i - 1; j >= 0 && at(trace[j]) && trace[j].pc + 4 === run2[0].pc; j--)
+      run2.unshift(trace[j]);
+    return run2;
+  };
+  const latest = trace.length - 1;
+  if (latest >= 0 && trace[latest].step === state.step && at(trace[latest]))
+    return { kind: "last", events: ending(latest), step: state.step };
+  if (at(state.preview)) {
+    const machine = program.instructions.filter(
+      (i) => i.file === place.file && i.line === place.line
+    );
+    return { kind: "next", events: machine.length === 1 ? [state.preview] : [], step: state.step + 1, pseudo: machine.length > 1 };
+  }
+  for (let i = latest; i >= 0; i--)
+    if (at(trace[i])) return { kind: "past", events: ending(i), step: trace[i].step };
+  return null;
+}
+function lineModel(place, events) {
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim();
+  const options = { delay: state?.delay, instructions: program.instructions, symbols: program.symbols };
+  if (events.length > 1) return lineSummary(events, { ...options, source });
+  if (events.length) return beatModel(events[0], options);
+  return null;
+}
+function lineTemplate(place) {
+  if (!place || dirty) return null;
+  const machine = program.instructions.filter(
+    (i) => i.file === place.file && i.line === place.line
+  );
+  if (machine.length !== 1) return null;
+  const run2 = lineRun(place);
+  if (run2?.events.length === 1) return lineModel(place, run2.events).template;
+  const ins = machine[0], fields = [ins.binary >>> 21 & 31, ins.binary >>> 16 & 31, ins.binary >>> 11 & 31];
+  const reg2 = (number2, write) => ({ kind: "register", number: number2, name: "$" + registerNames[number2], value: 0, before: 0, write });
+  try {
+    const m = beatModel({
+      instruction: ins,
+      accesses: [...fields.slice(0, 2).map((n) => reg2(n, false)), ...fields.slice(1).map((n) => reg2(n, true))],
+      nextPC: ins.address + 4,
+      status: "paused"
+    });
+    return m.template?.length ? m.template : null;
+  } catch {
+    return null;
+  }
+}
+var plainEq = (parts = []) => parts.map(
+  (p) => typeof p === "string" ? p : p.num ? fmt(p.v, p.w, p.k).text : p.t
+).join("");
+function lineFormula(place) {
+  const t2 = lineTemplate(place);
+  return t2 ? `<p class="tip-formula">\u672C\u884C\uFF1A<code>${escapeHTML(plainEq(t2))}</code></p>` : "";
+}
+function instructionDetail(token, place) {
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = explanations[token] || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run2 = lineRun(place), model = run2 ? lineModel(place, run2.events) : null, template = model?.template || lineTemplate(place);
+  const where = `${place.file}:${place.line}`;
+  const status = dirty ? "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C" : !state ? "\u5C1A\u672A\u6C47\u7F16" : !run2 ? "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C" : run2.kind === "last" ? `\u521A\u6267\u884C\uFF08\u7B2C ${run2.step} \u6B65\uFF09` : run2.kind === "next" ? "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C" : `\u7B2C ${run2.step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09`;
+  const value = (o, v) => fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
+  const label2 = (o) => o.kind === "memory" ? `\u5185\u5B58[${hex(o.address)}]` : o.name;
+  const reads = (model?.objects || []).filter((o) => o.read), writes = (model?.objects || []).filter((o) => o.write);
+  const single = template && !(run2?.events?.length > 1) && !run2?.pseudo;
+  const rows = [];
+  if (template && single)
+    rows.push(["\u901A\u7528\u89C4\u5219", `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
+  if (template)
+    rows.push(["\u672C\u884C\u4EE3\u5165", `<code>${escapeHTML(plainEq(template))}</code>`]);
+  if (model) {
+    rows.push([
+      run2.kind === "next" ? "\u6267\u884C\u524D\u6570\u503C\uFF08\u73B0\u5728\uFF09" : "\u6267\u884C\u524D\u6570\u503C",
+      reads.length ? reads.map((o) => `${escapeHTML(label2(o))} = <b>${escapeHTML(value(o, o.before))}</b>`).join("\uFF0C") : "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58"
+    ]);
+    rows.push([
+      "\u8BA1\u7B97\u8FC7\u7A0B",
+      `<ol>${model.beats.map((b) => `<li><code>${escapeHTML(plainEq(b.eq))}</code>${b.caption ? ` <small>${escapeHTML(b.caption)}</small>` : ""}</li>`).join("")}</ol>`
+    ]);
+    rows.push([
+      "\u7ED3\u679C",
+      (writes.length ? writes.map((o) => `${escapeHTML(label2(o))}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run2.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
+    ]);
+    const related = [
+      reads.length && "\u8BFB " + reads.map(label2).join("\u3001"),
+      writes.length && "\u5199 " + writes.map(label2).join("\u3001")
+    ].filter(Boolean);
+    if (related.length) rows.push(["\u5173\u8054\u8BFB\u5199", escapeHTML(related.join(" \xB7 "))]);
+  } else if (run2?.pseudo)
+    rows.push(["\u7ED3\u679C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
+  showContext(
+    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
+  );
+  $2("detail-source").onclick = () => gotoSource(place.file, place.line);
   $2("refs").onclick = () => showReferences(token);
 }
 function showReferences(token) {
@@ -27547,9 +28498,11 @@ async function command2(name2, extra = {}) {
       ...lookahead(),
       ...extra
     });
+    const before = state;
     state = s;
     appendLogs(s.logs);
     render();
+    ioAttention(name2, before, s);
     lens.update(dirty ? null : state);
     return s;
   } catch (e) {
@@ -27750,9 +28703,36 @@ function setView(v) {
   if (v === "cfg") renderCFG();
   overlay.schedule();
 }
+var PRODUCING = /* @__PURE__ */ new Set(["step", "source", "over", "out", "run", "input"]);
+function ioAttention(name2, before, after) {
+  if (!PRODUCING.has(name2) || !after || after.programVersion !== before?.programVersion) return;
+  if (after.status === "waiting" && before.status !== "waiting" && bottom !== "console")
+    setBottom("console");
+  const grew = (after.output || "").length > (before.output || "").length;
+  if (!grew && name2 !== "input") return;
+  const tab = document.querySelector('[data-bottom="console"]');
+  if (bottom !== "console") tab.classList.add("unread");
+  const target2 = bottom !== "console" ? tab : name2 === "input" ? [...$2("output").querySelectorAll(".echo")].at(-1) || $2("output") : $2("output");
+  ioAttention.pulse?.cancel();
+  clearTimeout(ioAttention.timer);
+  document.querySelectorAll(".fresh-output").forEach((e) => e.classList.remove("fresh-output"));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    target2.classList.add("fresh-output");
+    ioAttention.timer = setTimeout(() => target2.classList.remove("fresh-output"), 1500);
+  } else
+    ioAttention.pulse = target2.animate(
+      [
+        { background: "color-mix(in srgb, var(--green, #268058) 26%, transparent)" },
+        { background: "transparent" }
+      ],
+      { duration: 700, easing: "ease-out" }
+    );
+}
 function setBottom(v) {
   bottom = v;
   if (v === "logs") $2("logs-tab").classList.remove("unread");
+  if (v === "console")
+    document.querySelector('[data-bottom="console"]').classList.remove("unread");
   for (let name2 of ["console", "trace", "calls", "problems", "logs"])
     $2(name2).hidden = name2 !== v;
   document.querySelectorAll("[data-bottom]").forEach((b) => b.classList.toggle("selected", b.dataset.bottom === v));
@@ -27820,6 +28800,7 @@ function updateControls() {
   $2("back").disabled = busy || dirty || !!gate || running || !state?.step;
   $2("assemble").disabled = busy;
   renderScope();
+  tutorial?.update();
   $2("pause").disabled = !running;
   const info = statusInfo();
   $2("status").textContent = info.text;
@@ -27903,6 +28884,114 @@ function renderScope() {
     }
   );
 }
+function setupMenu(buttonId, menuId) {
+  const button = $2(buttonId), menu = $2(menuId);
+  const close = () => {
+    menu.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  };
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    document.querySelectorAll(".menu").forEach((m) => m.hidden = true);
+    menu.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+    if (open) menu.querySelector("button:not(:disabled)")?.focus();
+  });
+  menu.addEventListener("click", (e) => {
+    if (e.target.closest('[role="menuitem"]')) close();
+  });
+  menu.addEventListener("keydown", (e) => {
+    const items = [...menu.querySelectorAll("button:not(:disabled)")], at = items.indexOf(document.activeElement);
+    if (e.key === "Escape") {
+      close();
+      button.focus();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp")
+      items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".menu-wrap")) close();
+  });
+}
+setupMenu("project-menu-button", "project-menu");
+setupMenu("view-menu-button", "view-menu");
+var SIDE_TABS = ["files", "symbols", "stops"];
+var sideTab = "files";
+var lastStopKey = "";
+function setSideTab(name2, focusTab = false) {
+  sideTab = SIDE_TABS.includes(name2) ? name2 : "files";
+  for (const n of SIDE_TABS) {
+    const tab = $2("side-tab-" + n);
+    tab.setAttribute("aria-selected", String(n === sideTab));
+    tab.tabIndex = n === sideTab ? 0 : -1;
+    $2("side-" + n).hidden = n !== sideTab;
+  }
+  if (sideTab === "stops") $2("stops-badge").hidden = true;
+  if (focusTab) $2("side-tab-" + sideTab).focus();
+  tutorial?.update();
+  try {
+    localStorage.setItem("side-tab", sideTab);
+  } catch {
+  }
+}
+document.querySelectorAll("[data-side]").forEach((b) => {
+  b.onclick = () => setSideTab(b.dataset.side);
+});
+document.querySelector(".side-tabs").addEventListener("keydown", (e) => {
+  const at = SIDE_TABS.indexOf(sideTab);
+  const to = e.key === "ArrowDown" || e.key === "ArrowRight" ? (at + 1) % 3 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? (at + 2) % 3 : e.key === "Home" ? 0 : e.key === "End" ? 2 : -1;
+  if (to < 0) return;
+  e.preventDefault();
+  setSideTab(SIDE_TABS[to], true);
+});
+function noteStop() {
+  const key = `${state?.programVersion}:${state?.step}:${state?.stopReason}`;
+  if (key === lastStopKey) return;
+  lastStopKey = key;
+  if (/^(Breakpoint|Watchpoint)/.test(state?.stopReason || "") && sideTab !== "stops")
+    $2("stops-badge").hidden = false;
+}
+var PANELS = ["context", "registers", "memory"];
+function layoutPanels() {
+  const open = PANELS.filter((n) => !$2("panel-" + n).classList.contains("collapsed"));
+  for (const n of PANELS) $2("panel-" + n).classList.toggle("fill", n === open.at(-1));
+  $2("split-context").hidden = !open.includes("context") || open.at(-1) === "context";
+  $2("split-registers").hidden = !open.includes("registers") || open.at(-1) === "registers";
+  editor.requestMeasure();
+  overlay.schedule();
+}
+function setPanel(name2, collapsed) {
+  const panel = $2("panel-" + name2);
+  panel.classList.toggle("collapsed", collapsed);
+  panel.querySelector(".panel-toggle").setAttribute("aria-expanded", String(!collapsed));
+  try {
+    localStorage.setItem("panel-" + name2, collapsed ? "collapsed" : "open");
+  } catch {
+  }
+  layoutPanels();
+}
+document.querySelectorAll(".panel-toggle").forEach((b) => {
+  const name2 = b.closest(".panel").id.replace("panel-", "");
+  b.onclick = () => setPanel(name2, !b.closest(".panel").classList.contains("collapsed"));
+});
+try {
+  setSideTab(localStorage.getItem("side-tab") || "files");
+  for (const n of PANELS)
+    if (localStorage.getItem("panel-" + n) === "collapsed") setPanel(n, true);
+} catch {
+}
+layoutPanels();
+$2("reset-layout").onclick = () => {
+  for (const split of Object.values(panelSplits)) setSplit(split, null);
+  for (const n of PANELS) setPanel(n, false);
+  setSideTab("files");
+  notify("\u5DF2\u6062\u590D\u9ED8\u8BA4\u5E03\u5C40\u3002", { transient: true });
+};
+document.querySelector(".overlay-settings summary").textContent = "\u4E3B\u754C\u9762\u8FDE\u7EBF";
+$2("focus-keys").before(document.querySelector(".overlay-settings"));
 function closeAssembleMenu() {
   $2("assemble-menu").hidden = true;
   $2("assemble-mode").setAttribute("aria-expanded", "false");
@@ -27969,11 +29058,17 @@ function renderRegisters() {
     all.filter((a) => a.kind === "register").map((a) => a.name)
   );
   let filter = $2("reg-filter").value;
+  const bin = radix === "bin";
+  const shown = (r) => bin ? escapeHTML(fmt(r.value, 4, regKind(r.name)).full).replace(
+    /_/g,
+    (m, i, all2) => (all2.slice(2, i).match(/_/g) || []).length % 2 ? "_<wbr>" : "_"
+  ) : escapeHTML(fmt(r.value, 4, regKind(r.name)).text);
+  $2("registers").classList.toggle("bin", bin);
   $2("registers").innerHTML = state.registers.filter(
     (r) => filter === "all" || filter === "pinned" ? filter === "all" || pinned.has(r.name) : related.has(r.name) || pinned.has(r.name)
   ).map(
     (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
-${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span>${escapeHTML(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`
+${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`
   ).join("");
   $2("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -28048,7 +29143,7 @@ function renderCards() {
     $2(id2).onclick = () => {
       if (e?.instruction) {
         gotoSource(e.instruction.file, e.instruction.line);
-        inspectToken(e.instruction.op);
+        inspectToken(e.instruction.op, e.instruction);
       }
     };
   }
@@ -28065,7 +29160,7 @@ function renderMachine() {
         return;
       }
       let ins = program.instructions.find((i) => i.address === address);
-      inspectToken(ins.op);
+      inspectToken(ins.op, ins);
     }
   );
 }
@@ -28094,13 +29189,13 @@ function renderTrace() {
       groups.push(group);
     }
   }
-  const row = (e) => `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${escapeHTML(e.instruction?.basic)}</span><small>${escapeHTML(e.instruction?.file)}:${e.instruction?.line}${e.output ? " \xB7 \u8F93\u51FA" : ""}</small></button>`;
+  const row2 = (e) => `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${escapeHTML(e.instruction?.basic)}</span><small>${escapeHTML(e.instruction?.file)}:${e.instruction?.line}${e.output ? " \xB7 \u8F93\u51FA" : ""}</small></button>`;
   $2("trace").innerHTML = `<div><input id="seek-number" type="number" min="0" max="${state?.historyLength || 0}" value="${state?.step || 0}" aria-label="\u5386\u53F2\u6B65\u9AA4"><button id="seek-go">\u8F6C\u5230\u6B65\u9AA4</button><span class="muted">\u663E\u793A\u9644\u8FD1 170 \u6B65\uFF1B\u53EF\u8DF3\u8F6C\u5168\u90E8\u5386\u53F2</span></div>` + (state?.loops || []).filter((loop) => loop.entries > 0).map(
     (loop) => `<details class="loop-history"><summary>\u5FAA\u73AF ${hex(loop.header)} \xB7 \u8FDB\u5165 ${loop.entries} \u6B21 \xB7 \u56DE\u8DF3 ${loop.backJumps} \u6B21</summary>${loop.iterations.slice(-200).map(
       (step, index) => `<button class="trace-row" data-seek="${step - 1}">\u7B2C ${Math.max(0, loop.iterations.length - 200) + index + 1} \u6B21 \xB7 \u4ECE #${step} \u5F00\u59CB</button>`
     ).join("")}</details>`
   ).join("") + groups.map(
-    (g) => g.events.length > 1 ? `<details><summary>${escapeHTML(g.key)} \xB7 ${g.events.length} \u6761\u5B9E\u9645\u6307\u4EE4</summary>${g.events.map(row).join("")}</details>` : row(g.events[0])
+    (g) => g.events.length > 1 ? `<details><summary>${escapeHTML(g.key)} \xB7 ${g.events.length} \u6761\u5B9E\u9645\u6307\u4EE4</summary>${g.events.map(row2).join("")}</details>` : row2(g.events[0])
   ).join("");
   $2("trace").querySelectorAll("[data-seek]").forEach(
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.seek) })
@@ -28109,6 +29204,10 @@ function renderTrace() {
 }
 function render() {
   if (!state) return;
+  noteStop();
+  const waiting = state.status === "waiting" && !dirty;
+  $2("console").classList.toggle("waiting", waiting);
+  $2("stdin").placeholder = waiting ? "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter" : "\u8F93\u5165\u503C\uFF0C\u6309 Enter \u63D0\u4EA4";
   renderFiles();
   renderTabs();
   renderSymbols();
@@ -28145,7 +29244,8 @@ function render() {
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
-  if (inspecting?.startsWith("$")) inspectToken(inspecting);
+  if (inspecting && (inspecting.startsWith("$") || inspecting === "syscall" || isInstruction(inspecting) && inspectingPlace))
+    inspectToken(inspecting, inspectingPlace);
   overlay.schedule();
   updateControls();
 }
@@ -28464,7 +29564,8 @@ function commandList() {
         overlay.schedule();
       }
     ],
-    ["syscall \u670D\u52A1\u8868", () => inspectToken("syscall")]
+    ["syscall \u670D\u52A1\u8868", () => inspectToken("syscall")],
+    ["\u67E5\u6307\u4EE4\u4E0E\u7528\u9014\uFF08\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u641C\u7D22\uFF09", () => findInstruction()]
   ];
   return commands.map(([label2, run2, action]) => ({
     label: label2,
@@ -28475,11 +29576,172 @@ function commandList() {
 function openCommands() {
   openPicker(">");
 }
+function findInstruction(query = "") {
+  const items = instructionIndex(program.instructionDocs);
+  modal(
+    "\u67E5\u6307\u4EE4\u4E0E\u7528\u9014",
+    `<input id="find-input" aria-label="\u641C\u7D22\u6307\u4EE4\u6216\u7528\u9014" autocomplete="off" placeholder="\u4F8B\u5982\uFF1Aadd\u3001\u52A0\u6CD5\u3001\u6BD4\u8F83\u5927\u5C0F\u3001\u6253\u5370\u5B57\u7B26\u3001\u8BFB\u53D6\u6574\u6570\u3001\u53F3\u79FB" style="width:100%"><div id="find-list" role="listbox" aria-label="\u641C\u7D22\u7ED3\u679C"></div><div id="find-detail" aria-live="polite"></div>`
+  );
+  const input = $2("find-input");
+  input.value = query;
+  let results = [], selected = 0;
+  const kindOf = (x) => x.kind === "service" ? "syscall \u670D\u52A1" : x.pseudo ? "\u4F2A\u6307\u4EE4" : "\u6307\u4EE4";
+  const uses = (x) => {
+    const out = [];
+    for (const [file, text2] of Object.entries(files)) {
+      const lines = text2.split("\n");
+      lines.forEach((t2, i) => {
+        const code = t2.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "");
+        const op = code.trim().split(/\s+/)[0];
+        if (x.kind === "service" ? op === "syscall" && serviceAt({ lines, line: i + 1 }).n === x.service : op === x.op)
+          out.push({ file, line: i + 1, text: t2.trim() });
+      });
+    }
+    return out.slice(0, 6);
+  };
+  const detail = () => {
+    const x = results[selected];
+    if (!x) {
+      $2("find-detail").innerHTML = input.value.trim() ? '<p class="muted">\u6CA1\u6709\u627E\u5230\u5339\u914D\u7684\u6307\u4EE4\u6216\u670D\u52A1\u3002\u8BD5\u8BD5\u201C\u52A0\u6CD5\u201D\u201C\u6BD4\u8F83\u5927\u5C0F\u201D\u201C\u6253\u5370\u5B57\u7B26\u201D\u201C\u8BFB\u53D6\u6574\u6570\u201D\u201C\u53F3\u79FB\u201D\uFF0C\u6216\u8F93\u5165\u6307\u4EE4\u540D\u3002</p>' : '<p class="muted">\u8F93\u5165\u6307\u4EE4\u540D\uFF0C\u6216\u7528\u4E2D\u6587\u5199\u60F3\u505A\u7684\u4E8B\u3002</p>';
+      return;
+    }
+    const used = uses(x);
+    const rows = [
+      ["\u7528\u9014", escapeHTML(x.purpose)],
+      ["\u683C\u5F0F", `<code class="find-code">${escapeHTML(x.format)}</code>`],
+      x.formula && ["\u901A\u7528\u516C\u5F0F", `<code>${escapeHTML(x.formula)}</code>`],
+      x.example && x.example !== x.format && ["\u4F8B\u5B50", `<code class="find-code">${escapeHTML(x.example)}</code>`],
+      x.note && ["\u8BF4\u660E", escapeHTML(x.note)]
+    ].filter(Boolean);
+    $2("find-detail").innerHTML = `<div class="inspect-head"><h3>${escapeHTML(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">\u672C\u5DE5\u7A0B\u4E2D\u7528\u5230\u7684\u5730\u65B9\uFF08\u70B9\u51FB\u67E5\u770B\u8FD9\u4E00\u884C\u7684\u8BE6\u7EC6\u68C0\u67E5\uFF09\uFF1A</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${escapeHTML(u.file)}:${u.line} <small class="mono">${escapeHTML(u.text)}</small></button>`).join("")}` : '<p class="muted">\u672C\u5DE5\u7A0B\u91CC\u8FD8\u6CA1\u6709\u7528\u5230\u5B83\u3002</p>'}`;
+    $2("find-detail").querySelectorAll("[data-use]").forEach(
+      (b) => b.onclick = () => {
+        const u = used[Number(b.dataset.use)];
+        $2("modal").close();
+        gotoSource(u.file, u.line);
+        inspectToken(x.op, { file: u.file, line: u.line });
+      }
+    );
+  };
+  const render2 = () => {
+    results = searchInstructions(input.value, items);
+    selected = Math.max(0, Math.min(selected, results.length - 1));
+    $2("find-list").innerHTML = results.map(
+      (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${escapeHTML(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${escapeHTML(x.purpose)}</span></button>`
+    ).join("");
+    $2("find-list").querySelectorAll("[data-find]").forEach(
+      (b) => b.onclick = () => {
+        selected = Number(b.dataset.find);
+        render2();
+      }
+    );
+    $2("find-list").querySelector(".selected")?.scrollIntoView({ block: "nearest" });
+    detail();
+  };
+  input.oninput = () => {
+    selected = 0;
+    render2();
+  };
+  input.onkeydown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      selected += e.key === "ArrowDown" ? 1 : -1;
+      render2();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      $2("find-detail").querySelector("[data-use]")?.focus();
+    }
+  };
+  render2();
+  input.focus();
+}
+$2("find-instruction").onclick = () => findInstruction();
+var TUTORIAL_BACKUP = "tutorial-backup";
+tutorial = new Tutorial({
+  context: () => ({
+    files,
+    activeFile,
+    state: dirty ? null : state,
+    target,
+    dirty,
+    breakpoints,
+    watches,
+    inspecting,
+    lensOpen: lens.isOpen,
+    sideTab
+  }),
+  go: (action) => {
+    const [kind, arg] = action.split(/:(.*)/);
+    if (kind === "side") setSideTab(arg, true);
+    else if (kind === "panel") setPanel(arg, false);
+    else if (kind === "find") findInstruction(arg);
+    else if (kind === "focus") openFocus();
+    else if (kind === "menu") setTimeout(() => $2("project-menu-button").click());
+  },
+  finish: (completed) => {
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(TUTORIAL_BACKUP) || "null");
+    } catch {
+    }
+    modal(
+      completed ? "\u5165\u95E8\u7EC3\u4E60\u5B8C\u6210" : "\u9000\u51FA\u5165\u95E8\u7EC3\u4E60",
+      `<p>${completed ? "\u505A\u5F97\u597D\uFF01" : ""}\u7EC3\u4E60\u5DE5\u7A0B\u4F1A\u7559\u5728\u5DE5\u4F5C\u533A\uFF0C\u53EF\u4EE5\u7EE7\u7EED\u4FEE\u6539\u6216\u5BFC\u51FA\u3002${saved ? `\u4E5F\u53EF\u4EE5\u56DE\u5230\u7EC3\u4E60\u524D\u7684\u5DE5\u7A0B\u201C${escapeHTML(saved.name || "\u6211\u7684\u5DE5\u7A0B")}\u201D\u3002` : ""}</p><div class="project-actions"><button id="tutorial-continue">\u7EE7\u7EED\u7EC3\u4E60</button>${saved ? '<button id="tutorial-restore">\u56DE\u5230\u4E4B\u524D\u7684\u5DE5\u7A0B</button>' : ""}<button class="primary" id="tutorial-keep">\u4FDD\u7559\u7EC3\u4E60\u5DE5\u7A0B</button></div>`
+    );
+    $2("tutorial-continue").onclick = () => $2("modal").close();
+    $2("tutorial-keep").onclick = () => {
+      $2("modal").close();
+      tutorial.stop();
+    };
+    if (saved)
+      $2("tutorial-restore").onclick = async () => {
+        try {
+          await workspace.apply(saved);
+          $2("modal").close();
+          tutorial.stop();
+          localStorage.removeItem(TUTORIAL_BACKUP);
+        } catch (e) {
+          notify(e.message);
+        }
+      };
+  }
+});
+$2("start-tutorial").onclick = () => {
+  if (tutorial.active) {
+    tutorial.collapsed = false;
+    return tutorial.update();
+  }
+  modal(
+    "\u5165\u95E8\u7EC3\u4E60\uFF1AHello World",
+    `<p class="project-explanation">\u8FB9\u5199\u8FB9\u5B66\uFF1A\u4ECE\u6253\u5370 Hello! \u5F00\u59CB\uFF0C\u8BFB\u53D6\u4F60\u7684\u540D\u5B57\uFF0C\u7528\u65AD\u70B9\u3001\u8BE6\u7EC6\u68C0\u67E5\u548C\u4E13\u6CE8\u6A21\u5F0F\u770B\u6E05\u5B83\uFF0C\u627E\u5230\u4E00\u4E2A\u6EA2\u51FA\u9519\u8BEF\u5E76\u4FEE\u597D\uFF0C\u6700\u540E\u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD\u5E76\u5BFC\u51FA\u3002</p><p class="muted">\u7EC3\u4E60\u4F1A\u6253\u5F00\u4E00\u4E2A\u5355\u72EC\u7684\u7EC3\u4E60\u5DE5\u7A0B\u3002\u5F53\u524D\u5DE5\u7A0B\u4F1A\u5148\u4FDD\u5B58\u4E00\u4EFD\uFF0C\u7ED3\u675F\u65F6\u53EF\u4EE5\u56DE\u5230\u5B83\uFF1B\u4F60\u7684\u4EE3\u7801\u4E0D\u4F1A\u88AB\u8986\u76D6\u3002</p><div class="project-actions"><button id="tutorial-cancel">\u53D6\u6D88</button><button class="primary" id="tutorial-begin">\u5F00\u59CB\u7EC3\u4E60</button></div>`
+  );
+  $2("tutorial-cancel").onclick = () => $2("modal").close();
+  $2("tutorial-begin").onclick = async () => {
+    try {
+      localStorage.setItem(TUTORIAL_BACKUP, JSON.stringify(workspace.snapshot()));
+    } catch {
+    }
+    try {
+      await workspace.apply({ name: "\u5165\u95E8\u7EC3\u4E60", files: {}, data: {}, folders: [] });
+      $2("modal").close();
+      setSideTab("files");
+      tutorial.start();
+    } catch (e) {
+      notify(e.message);
+    }
+  };
+};
+document.addEventListener("click", (e) => {
+  if (tutorial.active && e.target.closest("#download-zip, #download-json")) {
+    tutorial.memo.exported = true;
+    setTimeout(() => tutorial.update());
+  }
+});
 function openPicker(prefix = "") {
   const commands = commandList();
   modal(
     prefix === ">" ? "\u547D\u4EE4\u9762\u677F" : "\u5FEB\u901F\u6253\u5F00",
-    `<input id="picker-input" aria-label="\u641C\u7D22" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">\u6587\u4EF6\u6216\u6807\u7B7E\u540D \xB7 @ \u5F53\u524D\u6587\u4EF6\u7B26\u53F7 \xB7 :\u884C\u53F7 \xB7 \u6587\u4EF6:\u884C\u53F7 \xB7 0x \u5730\u5740 \xB7 > \u547D\u4EE4</p>`
+    `<input id="picker-input" aria-label="\u641C\u7D22" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">\u6587\u4EF6\u6216\u6807\u7B7E\u540D \xB7 @ \u5F53\u524D\u6587\u4EF6\u7B26\u53F7 \xB7 :\u884C\u53F7 \xB7 \u6587\u4EF6:\u884C\u53F7 \xB7 0x \u5730\u5740 \xB7 > \u547D\u4EE4 \xB7 ? \u67E5\u6307\u4EE4\u4E0E\u7528\u9014</p>`
   );
   const input = $2("picker-input");
   input.value = prefix;
@@ -28515,6 +29777,8 @@ function openPicker(prefix = "") {
     $2("picker-list").querySelector(".selected")?.scrollIntoView({ block: "nearest" });
   };
   input.oninput = () => {
+    if (input.value.startsWith("?") || input.value.startsWith("\uFF1F"))
+      return findInstruction(input.value.slice(1));
     selected = 0;
     render2();
   };
@@ -28580,6 +29844,7 @@ function openFocus() {
   if (dirty || !state || state.status === "empty")
     return notify("\u8BF7\u5148\u6C47\u7F16\uFF0C\u518D\u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F");
   lens.open();
+  tutorial?.update();
 }
 $2("focus-open").onclick = openFocus;
 $2("theme").onclick = () => {
@@ -28606,7 +29871,7 @@ var panelSplits = {
     prop: "--left-w",
     axis: "x",
     sign: 1,
-    min: 110,
+    min: 180,
     panel: ".sidebar"
   },
   "split-right": {
@@ -28622,13 +29887,30 @@ var panelSplits = {
     sign: -1,
     min: 70,
     panel: ".bottom"
+  },
+  // Right-hand panels: the upper two have a height, memory takes the rest.
+  "split-context": {
+    prop: "--context-h",
+    axis: "y",
+    sign: 1,
+    min: 60,
+    panel: "#panel-context",
+    max: () => document.querySelector(".inspector").offsetHeight - document.querySelector("#panel-registers").offsetHeight - 70
+  },
+  "split-registers": {
+    prop: "--registers-h",
+    axis: "y",
+    sign: 1,
+    min: 60,
+    panel: "#panel-registers",
+    max: () => document.querySelector(".inspector").offsetHeight - document.querySelector("#panel-context").offsetHeight - 70
   }
 };
-function setSplit({ prop, axis, min, panel }, px) {
+function setSplit({ prop, axis, min, panel, max: limit }, px) {
   const root = document.documentElement;
   if (px == null) root.style.removeProperty(prop);
   else {
-    const max2 = axis === "x" ? document.querySelector(".workspace").offsetWidth - document.querySelector(
+    const max2 = limit ? limit() : axis === "x" ? document.querySelector(".workspace").offsetWidth - document.querySelector(
       prop === "--left-w" ? ".inspector" : ".sidebar"
     ).offsetWidth - 300 : document.querySelector(".code-pane").offsetHeight - 160;
     px = Math.round(Math.max(min, Math.min(max2, px)));
@@ -28686,6 +29968,8 @@ try {
 $2("clear-focus").onclick = () => {
   focus = null;
   inspecting = null;
+  inspectingPlace = null;
+  showContext(CONTEXT_HINT);
   renderRegisters();
   overlay.schedule();
 };
@@ -28853,6 +30137,8 @@ workspace = projectManager({
     program = { instructions: [], symbols: [], instructionDocs: {} };
     target = null;
     lastInTarget = "";
+    inspectingPlace = null;
+    showContext(CONTEXT_HINT);
     inspecting = null;
     focus = null;
     inlineCache.key = null;

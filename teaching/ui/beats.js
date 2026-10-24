@@ -1,5 +1,6 @@
 import { hex, registerNames, services } from "./model.js";
 import { escapeByte } from "./radix.js";
+import { serviceGuide, argumentMeaning } from "./syscalls.js";
 // Fill-in-the-blank explanation of one recorded step (DESIGN §3.7): a symbolic
 // template, then beats that each substitute one recorded value. Values come
 // only from the event's accesses; nothing here executes or predicts.
@@ -777,15 +778,24 @@ export function beatModel(
     const v0 = readNamed("$v0"),
       n = event.service ?? v0?.value,
       [title, args = []] = services[n] || ["系统服务"];
+    // What the service does and what each argument means come from the
+    // per-service guide (classroom 2026-10-24), e.g. 45 is '-' for service 11.
+    const guide = serviceGuide[n];
     template = ["syscall（", dim("$v0"), "）"];
     if (v0)
       beat(
-        ["syscall ", fresh(N(n)), ` · ${title}`],
-        "按 $v0 选择服务。",
-        reading([v0]),
+        ["syscall ", fresh(N(n)), ` · ${guide?.[0] || title}`],
+        guide ? `按 $v0 选择服务：${guide[1]}` : "按 $v0 选择服务。",
+        {
+          ...reading([v0]),
+          why: guide
+            ? `调用前 $v0 = ${n} 是服务号。${guide[3]}变化：${guide[4]}。`
+            : `服务号 ${n} 不在支持范围内。`,
+        },
       );
     const params = reads.filter((a) => a !== v0 && args.includes(a.name));
-    if (params.length)
+    if (params.length) {
+      const meaning = (a) => guide?.[2].find(([r]) => r === a.name)?.[1];
       beat(
         params.flatMap((a, i) => [
           i ? "，" : "",
@@ -793,9 +803,15 @@ export function beatModel(
           " = ",
           fresh(N(a.value)),
         ]),
-        "取参数的值。",
+        params
+          .map((a) => {
+            const m = argumentMeaning(n, a.name, a.value);
+            return `${a.name}：${meaning(a) || "参数"}${m ? `（${m}）` : ""}`;
+          })
+          .join("；") + "。",
         reading(params),
       );
+    }
     if (event.status === "waiting-input")
       beat([fresh("等待输入")], "结果尚未产生，请在控制台提交输入。");
     for (const a of writes)
@@ -1400,4 +1416,31 @@ export function lineDecision(
     .filter(([n]) => n !== "$zero" && n !== "$at")
     .map(([n, v]) => `${n} = ${format(v, n)}`);
   return [listed.join("，"), result].filter(Boolean).join(" ");
+}
+
+// The general rule behind one line's template (classroom 2026-10-24): each
+// register operand becomes a placeholder by its position in the source line
+// ($a, $b, $c …) and each immediate operand becomes “立即数”, so
+// `add $s0, $s0, $t0` (template `$s0 ← $s0 + $t0`) reads `$a ← $b + $c`.
+// A register used twice takes the next unused position each time it appears.
+export function genericTemplate(template, source = "") {
+  const operands = source
+    .replace(/#.*/, "")
+    .trim()
+    .replace(/^(?:[\w.$]+:\s*)*\S+\s*/, "")
+    .split(/\s*,\s*/)
+    .filter(Boolean)
+    .map((t) => t.replace(/^-?\d+\((\$\w+)\)$/, "$1"));
+  const letters = "abcdefgh",
+    used = new Set();
+  const placeholder = (token, kind) => {
+    const i = operands.findIndex((o, n) => !used.has(n) && o === token);
+    if (i < 0) return token;
+    used.add(i);
+    return kind === "reg" ? "$" + letters[i] : "立即数";
+  };
+  return text(Array.isArray(template) ? template : [template]).replace(
+    /\$\w+|(?<![\w$.])-?\d+\b/g,
+    (m) => (m.startsWith("$") ? placeholder(m, "reg") : placeholder(m, "imm")),
+  );
 }

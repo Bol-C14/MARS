@@ -34,8 +34,14 @@ def write(page, text):
     page.keyboard.press('Meta+A' if sys.platform=='darwin' else 'Control+A')
     page.keyboard.insert_text(text)
 
+def project_action(page, name):
+    """Project actions live in the 工程 menu (classroom 2026-10-24)."""
+    if page.locator('#project-menu').is_hidden():
+        page.locator('#project-menu-button').click()
+    page.locator('#'+name).click()
+
 def upload(page, entries, add=False):
-    page.locator('#add-import' if add else '#import').click()
+    project_action(page, 'add-import' if add else 'import')
     with page.expect_file_chooser() as chooser:
         page.locator('#choose-files').click()
     chooser.value.set_files(entries)
@@ -61,7 +67,7 @@ def scope_checks(page, temp):
     """P0: auto assembly by default; single file and a manual scope on demand."""
     course=temp/'course';(course/'nested').mkdir(parents=True)
     (course/'hello.s').write_text(program(1));(course/'nested/hexOut.s').write_text(program(2))
-    page.locator('#import').click()
+    project_action(page,'import')
     with page.expect_file_chooser() as chooser:
         page.locator('#choose-folder').click()
     chooser.value.set_files(str(course));confirm(page)
@@ -181,29 +187,29 @@ def main():
             check('cancelling an import collision preserves existing content',page.evaluate("window.marsIDE.files['student.s']")==SOURCE)
             upload(page,[{'name':'student.s','mimeType':'text/plain','buffer':b'# replacement'}],add=True);confirm(page)
             check('explicit collision overwrite is applied',page.evaluate("window.marsIDE.files['student.s']")=='# replacement')
-            page.locator('#restore-project').click();confirm(page)
+            project_action(page,'restore-project');confirm(page)
             check('restore recovers the previous project contents',page.evaluate("window.marsIDE.files['student.s']")==SOURCE)
             page.locator('[data-file="student.s"]').click()
             with page.expect_download() as result:
-                page.locator('#export-file').click()
+                project_action(page,'export-file')
             path=Path(temp)/'student.s';result.value.save_as(path)
             check('individual source download contains current edits',path.read_text()==SOURCE)
-            page.locator('#save').click()
+            project_action(page,'save')
             with page.expect_download() as result:
                 page.locator('#download-zip').click()
             archive=Path(temp)/'project.zip';result.value.save_as(archive)
             with zipfile.ZipFile(archive) as z:
                 check('ZIP has original source, UTF-8 data, empty folder and entry metadata',z.read('student.s').decode()==SOURCE and z.read('input.txt').decode()=='你好\n' and 'empty/' in z.namelist() and json.loads(z.read('.mars-project.json'))['entry']=='student.s' and json.loads(z.read('.mars-project.json'))['assembly']=={'mode':'manual','files':['lib/moved.s','student.s']})
-            page.locator('#save').click()
+            project_action(page,'save')
             with page.expect_download() as result:
                 page.locator('#download-json').click()
             exported=Path(temp)/'project.json';result.value.save_as(exported)
             check('JSON export includes entry and nested source paths',json.loads(exported.read_text())['entry']=='student.s' and 'lib/moved.s' in json.loads(exported.read_text())['files'])
             node(page,'lib');page.locator('#node-delete').click();confirm(page)
             check('delete folder removes all descendants',not page.evaluate("Object.keys(window.marsIDE.files).some(x=>x.startsWith('lib/'))"))
-            page.locator('#restore-project').click();confirm(page)
+            project_action(page,'restore-project');confirm(page)
             check('deleted folder and descendants can be restored',page.evaluate("Object.hasOwn(window.marsIDE.files,'lib/moved.s')"))
-            page.locator('#new-project').click();confirm(page)
+            project_action(page,'new-project');confirm(page)
             check('new project removes previous source and data files',page.evaluate('Object.keys(window.marsIDE.files)')==['main.s'] and page.locator('[data-data]').count()==0)
             upload(page,[str(archive)]);confirm(page)
             check('ZIP reimport restores the complete project',page.evaluate("window.marsIDE.files['student.s']")==SOURCE and page.locator('[data-folder="empty"]').count()==1)
@@ -223,15 +229,17 @@ def main():
             (folder/'main.s').write_text(SOURCE)
             (folder/'assets/input.txt').write_text('folder data')
             (folder/'.DS_Store').write_bytes(b'\xff\x00')
-            page.locator('#import').click()
+            project_action(page,'import')
             with page.expect_file_chooser() as chooser:
                 page.locator('#choose-folder').click()
             chooser.value.set_files(str(folder));confirm(page)
             check('native folder picker keeps relative paths and ignores macOS metadata',page.evaluate("window.marsIDE.files['folder-project/main.s']")==SOURCE and page.locator('[data-data="folder-project/assets/input.txt"]').count()==1)
             scope_checks(page,Path(temp))
-            page.locator('#restore-project').click();confirm(page)
+            project_action(page,'restore-project');confirm(page)
             page.set_viewport_size({'width':1024,'height':800})
-            check('project actions remain visible at a smaller desktop width',page.locator('#import').is_visible() and page.locator('#new-project').is_visible())
+            page.locator('#project-menu-button').click()
+            check('project actions remain reachable at a smaller desktop width',page.locator('#import').is_visible() and page.locator('#new-project').is_visible())
+            page.keyboard.press('Escape')
             offline_context=browser.new_context(viewport={'width':1280,'height':900})
             offline_context.route('**/examples',lambda route:route.abort())
             offline=offline_context.new_page();offline.goto(URL)
@@ -247,8 +255,8 @@ def main():
             write(quota,SOURCE)
             quota.wait_for_function("() => document.getElementById('workspace-status').textContent.includes('未能保存')")
             check('storage failure shows an explicit export reminder',True)
-            quota.locator('#new-project').click();confirm(quota)
-            quota.locator('#restore-project').click();confirm(quota)
+            project_action(quota,'new-project');confirm(quota)
+            project_action(quota,'restore-project');confirm(quota)
             check('in-memory recovery still works if browser storage is unavailable',quota.evaluate("window.marsIDE.files['main.s']")==SOURCE)
             quota_context.close()
             check('no browser JavaScript errors',not errors)

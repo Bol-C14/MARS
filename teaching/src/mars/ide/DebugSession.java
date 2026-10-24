@@ -958,7 +958,9 @@ public final class DebugSession {
             "example",
             ins.getExampleFormat(),
             "description",
-            ins.getDescription()
+            ins.getDescription(),
+            "pseudo",
+            ins instanceof ExtendedInstruction
           )
         );
       }

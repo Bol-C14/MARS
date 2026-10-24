@@ -1,6 +1,19 @@
-import { hex, escapeHTML as esc, explanations, splitComment } from "./model.js";
-import { layoutPath } from "./path.js";
-import { beatModel, completeWhys, groupBytes, lineSummary } from "./beats.js";
+import {
+  hex,
+  escapeHTML as esc,
+  explanations,
+  splitComment,
+  registerNames,
+} from "./model.js";
+import { bitStory, supportsBits } from "./bits.js";
+import { layoutPath, untakenLines } from "./path.js";
+import {
+  beatModel,
+  completeWhys,
+  groupBytes,
+  lineSummary,
+  lineDecision,
+} from "./beats.js";
 import { formatValue, addressRegisters } from "./radix.js";
 import { glossify } from "./glossary.js";
 // Focus mode (DESIGN §3.7): a floating lens over a blurred IDE that narrates
@@ -23,6 +36,7 @@ export class FocusLens {
     this.beat = 0;
     this.whyOpen = false;
     this.expanded = new Set();
+    this.untakenOpen = new Set();
     this.mode = this.load("focus-range", "auto");
     this.motion = matchMedia("(prefers-reduced-motion: reduce)");
     document.body.insertAdjacentHTML(
@@ -46,9 +60,10 @@ export class FocusLens {
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
           <div class="focus-controls">
-            <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button>
+            <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>逐位查看</button>
           </div>
           <div id="focus-why-text" hidden></div>
+          <div id="focus-bits" aria-label="逐位查看" hidden></div>
           <form id="focus-input" hidden><label for="focus-input-value">程序在等待输入 · 在这里输入后按 Enter</label><input id="focus-input-value" autocomplete="off" /><button>提交</button><span>提交后继续被中断的操作</span></form>
         </div>
       </section>`,
@@ -67,6 +82,14 @@ export class FocusLens {
     $("focus-next").onclick = () => this.seekBeat(this.beat + 1);
     $("focus-play").onclick = () => (this.timer ? this.stop() : this.play());
     $("focus-why").onclick = () => this.toggleWhy();
+    this.bitsOpen = false;
+    this.bitsStep = 0;
+    $("focus-bits-toggle").onclick = () => {
+      this.bitsOpen = !this.bitsOpen;
+      this.bitsStep = 0;
+      this.stopBits();
+      this.renderBits();
+    };
     // The backdrop blocks the IDE console, so input waits are answered here.
     $("focus-input").onsubmit = async (e) => {
       e.preventDefault();
@@ -282,6 +305,8 @@ export class FocusLens {
   select(index) {
     if (!this.models.has(index)) return;
     this.stop();
+    this.stopBits();
+    this.bitsStep = 0;
     this.selected = index;
     this.beat = 0;
     this.render();
@@ -408,7 +433,7 @@ export class FocusLens {
                 <code>${esc(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "▾" : "▸"} ${machine.length} 条</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? `<div class="fhint">${hint.kind === "taken" ? "这次不跳到 " + esc(hint.label) : "这次不顺序执行到 " + esc(hint.label)}</div>` : ""}`;
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? this.untaken(hint, byIndex.get(hint.step), instructions) : ""}`;
             })
             .join("");
           // Staircase: one row per segment in visit order, alternating columns,
@@ -419,6 +444,16 @@ export class FocusLens {
     $("focus-path")
       .querySelectorAll("[data-step]")
       .forEach((b) => (b.onclick = () => this.select(Number(b.dataset.step))));
+    $("focus-path")
+      .querySelectorAll("[data-untaken]")
+      .forEach(
+        (d) =>
+          (d.ontoggle = () => {
+            const key = Number(d.dataset.untaken);
+            d.open ? this.untakenOpen.add(key) : this.untakenOpen.delete(key);
+            this.draw();
+          }),
+      );
     $("focus-path")
       .querySelectorAll(".frow")
       .forEach(
@@ -508,6 +543,7 @@ export class FocusLens {
       return;
     }
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
+    this.renderBits(step);
     $("focus-tag").textContent = step.predicted
       ? `预计 +${step.index + 1}`
       : step.index < -1
@@ -615,6 +651,103 @@ export class FocusLens {
       esc(f.text) +
       (f.note ? `<span class="value-note">${esc(f.note)}</span>` : "")
     );
+  }
+
+  // The other side of a conditional branch (classroom 2026-10-24): this run's
+  // comparison and where the branch would have gone, folded by default; the
+  // code there is shown as text only, never as executed or with values.
+  untaken(hint, step, instructions) {
+    const decision = step?.events?.length
+      ? lineDecision(step.events, {
+          symbols: this.host.getProgram().symbols,
+          instructions,
+          format: (v, name) =>
+            this.number(
+              { num: true, v, w: 4, k: addressRegisters.has(name) ? "address" : "value" },
+              false,
+            ),
+        })
+      : null;
+    const where =
+      hint.kind === "taken"
+        ? `条件成立时会跳到 ${hint.label}`
+        : `条件不成立时会顺序执行到 ${hint.label}`;
+    const key = hint.branch * 2 + (hint.kind === "taken" ? 1 : 0);
+    const lines = hint.target.address != null ? untakenLines(instructions, hint.target.address) : [];
+    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">未走的路径</span> ${esc(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? "预计" : "本次"}：${esc(decision)}</span>` : ""}</summary>${lines
+      .map(
+        (l) =>
+          `<div class="frow untaken"><span class="fbp"></span><span class="fln">${l.line}</span><code>${esc(splitComment(this.host.getSource(l.file, l.line) || "").code)}</code></div>`,
+      )
+      .join("")}<p class="funtaken-note">没有执行：只显示代码，寄存器、内存和输入输出都不会因此改变。</p></details>`;
+  }
+
+  // Bit by bit (classroom 2026-10-24): the selected step's machine instruction
+  // — for a pseudo-instruction line, the expanded instruction that computes —
+  // from its recorded reads and writes. Paused, stepped or replayed by hand;
+  // with reduced motion every step is listed at once instead.
+  stopBits() {
+    clearInterval(this.bitsTimer);
+    this.bitsTimer = null;
+  }
+  renderBits(step = this.layout?.steps.find((s) => s.index === this.selected)) {
+    const $ = (id) => document.getElementById(id),
+      events = step?.events || [],
+      k = events.map(supportsBits).lastIndexOf(true),
+      event = events[k];
+    $("focus-bits-toggle").hidden = !event;
+    $("focus-bits-toggle").setAttribute("aria-expanded", String(this.bitsOpen && !!event));
+    $("focus-bits-toggle").textContent = this.bitsOpen && event ? "收起逐位" : "逐位查看";
+    const panel = $("focus-bits");
+    if (!event || !this.bitsOpen) {
+      panel.hidden = true;
+      return;
+    }
+    const story = bitStory(event, (n) => "$" + registerNames[n]);
+    this.bitsStep = Math.min(this.bitsStep, story.steps.length - 1);
+    const where = `机器指令 ${event.instruction.basic || event.instruction.op}${events.length > 1 ? `（这一行伪指令展开后的第 ${k + 1} 条，共 ${events.length} 条）` : ""}${step.predicted ? " · 预计" : ""}`;
+    const reduced = this.motion.matches,
+      shown = reduced ? story.steps : [story.steps[this.bitsStep]];
+    const rowHTML = (r) =>
+      `<div class="brow${r.carry ? " carry" : ""}${r.result ? " result" : ""}"><span class="blabel">${esc(r.label)}</span><span class="bbits">${r.bits
+        .map(
+          (bit, j) =>
+            `<i class="${r.marks[j] || ""}${bit == null ? " pending" : ""}">${bit == null ? "·" : bit}</i>${(j + 1) % 4 === 0 && j < r.bits.length - 1 ? '<span class="bgap"></span>' : ""}`,
+        )
+        .join("")}</span>${r.out ? `<span class="bout">移出 ${r.out.bit}</span>` : ""}</div>`;
+    panel.hidden = false;
+    panel.innerHTML =
+      `<div class="bits-head"><b>${esc(story.title)}</b><span>${esc(where)}</span>${reduced ? "" : `<span class="bits-progress">第 ${this.bitsStep + 1}/${story.steps.length} 步</span>`}</div>` +
+      shown
+        .map((st) => `<div class="bits-step"><p>${esc(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`)
+        .join("") +
+      (reduced
+        ? ""
+        : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>◀ 上一步</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>下一步 ▶</button><button id="bits-play">${this.bitsTimer ? "暂停" : "播放"}</button><button id="bits-replay">重放</button></div>`);
+    if (reduced) return;
+    const go = (to) => {
+      this.bitsStep = Math.max(0, Math.min(story.steps.length - 1, to));
+      this.renderBits();
+    };
+    $("bits-prev").onclick = () => (this.stopBits(), go(this.bitsStep - 1));
+    $("bits-next").onclick = () => (this.stopBits(), go(this.bitsStep + 1));
+    $("bits-replay").onclick = () => {
+      this.stopBits();
+      this.bitsStep = 0;
+      $("bits-play").click();
+    };
+    $("bits-play").onclick = () => {
+      if (this.bitsTimer) return this.stopBits(), this.renderBits();
+      if (this.bitsStep >= story.steps.length - 1) this.bitsStep = 0;
+      this.bitsTimer = setInterval(() => {
+        if (this.bitsStep >= story.steps.length - 1) {
+          this.stopBits();
+          return this.renderBits();
+        }
+        go(this.bitsStep + 1);
+      }, 700);
+      this.renderBits();
+    };
   }
 
   // ---- drawing inside the lens ----
@@ -800,7 +933,8 @@ export class FocusLens {
       } catch {}
     }
     head.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button, select, label")) return;
+      if (e.target.closest("button, select, label, input, summary, details"))
+        return;
       const r = this.el.getBoundingClientRect(),
         dx = e.clientX - r.left,
         dy = e.clientY - r.top;

@@ -152,3 +152,17 @@ test("earlier executed lines stay in the window before the completed one", () =>
   const two = layoutPath({ last: history[3], history, earlier: 1, lookahead: look([[D, 0x14]]), instructions: [A, B, B2, C, D], mode: "fixed" });
   assert.deepEqual(two.steps.map((s) => s.index), [-2, -1, 0]);
 });
+
+import { untakenLines } from "../ui/path.js";
+test("the untaken side lists source lines through the first transfer, statically", () => {
+  const ins = [
+    { address: 0x400040, file: "m.s", line: 30, flow: "next" },
+    { address: 0x400044, file: "m.s", line: 31, flow: "next" },
+    { address: 0x400048, file: "m.s", line: 31, flow: "next" },
+    { address: 0x40004c, file: "m.s", line: 32, flow: "jump" },
+    { address: 0x400050, file: "m.s", line: 33, flow: "next" },
+  ];
+  assert.deepEqual(untakenLines(ins, 0x400040).map((l) => l.line), [30, 31, 32]);
+  assert.deepEqual(untakenLines(ins, 0x400040, 2).map((l) => l.line), [30, 31]);
+  assert.deepEqual(untakenLines(ins, 0x400999), []);
+});

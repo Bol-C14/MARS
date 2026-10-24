@@ -250,3 +250,11 @@ test("syscall lines read as the service, what it read and what it did", () => {
   assert.equal(lineDecision(sys(5, [r(2, "$v0", 5)], { status: "waiting-input" })), "$v0 = 5 读取整数 → 等待输入");
   assert.equal(lineDecision(sys(10, [r(2, "$v0", 10)])), "$v0 = 10 退出程序 → 程序结束");
 });
+
+import { genericTemplate } from "../ui/beats.js";
+test("general rules name operands by position, registers used twice included", () => {
+  assert.equal(genericTemplate("$s0 ← $s0 + $t0", "add $s0, $s0, $t0"), "$a ← $b + $c");
+  assert.equal(genericTemplate("$t0 ← $t1 − $t0", "loop: sub $t0,$t1,$t0 # x"), "$a ← $b − $c");
+  assert.equal(genericTemplate("$s0 ← $s0 + 1", "addi $s0, $s0, 1"), "$a ← $b + 立即数");
+  assert.equal(genericTemplate("内存[ $sp − 4 ] ← $t0", "sw $t0, -4($sp)"), "内存[ $b − 4 ] ← $a");
+});

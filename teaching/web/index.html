@@ -14,23 +14,41 @@
         <div>MARS <b>Trace</b><small>EXECUTION · CONNECTED</small></div>
       </div>
       <div class="project">
-        <button id="new-project">新建工程</button>
-        <button id="import">打开工程</button>
-        <button id="add-import">添加文件</button>
-        <button id="save-local" title="保存到此浏览器 · Cmd/Ctrl+S">保存</button>
-        <button id="save">导出工程</button>
-        <select id="example" aria-label="示例项目"><option value="">教学示例…</option></select>
+        <div class="menu-wrap">
+          <button id="project-menu-button" class="menu-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu">工程 ▾</button>
+          <div id="project-menu" class="menu" role="menu" hidden>
+            <button role="menuitem" id="new-project">新建工程<small>清空工作区，替换当前工程</small></button>
+            <button role="menuitem" id="import">打开工程…<small>用选择的文件或工程包替换当前工程</small></button>
+            <button role="menuitem" id="add-import">添加文件…<small>追加到当前工程，同名文件会先询问</small></button>
+            <hr />
+            <button role="menuitem" id="save-local">保存到此浏览器<small>Cmd/Ctrl+S · 不会写回电脑上的原文件</small></button>
+            <button role="menuitem" id="save">导出到电脑…<small>ZIP 或 JSON，可重新打开或发给老师</small></button>
+            <button role="menuitem" id="export-file">下载当前文件</button>
+            <hr />
+            <button role="menuitem" id="restore-project">恢复上次管理操作<small>找回替换、重命名或删除之前的工程</small></button>
+          </div>
+        </div>
+        <div class="project-state">
+          <button id="project-title" title="修改工程名称">我的工程</button>
+          <small id="workspace-status" role="status">自动保存到此浏览器</small>
+        </div>
         <input id="upload" type="file" multiple hidden />
         <input id="folder-upload" type="file" webkitdirectory multiple hidden />
       </div>
-      <button id="commands" title="命令面板 · Cmd/Ctrl+Shift+P 或 F1">
-        命令面板</button
-      ><button id="theme">◐</button
-      ><button id="zoom-out" title="缩小代码字号" aria-label="缩小代码字号">
-        A−</button
-      ><button id="zoom" title="放大代码字号" aria-label="放大代码字号">
-        A＋
-      </button>
+      <div class="learn" aria-label="学习">
+        <button id="start-tutorial" title="边写边学：Hello World 与输入名字">入门练习</button>
+        <button id="find-instruction" title="按名称或想做的事查指令和 syscall 服务">查指令</button>
+        <select id="example" aria-label="教学示例"><option value="">教学示例…</option></select>
+      </div>
+      <button id="commands" class="icon-button" data-tip="命令面板 · Cmd/Ctrl+Shift+P 或 F1" aria-label="命令面板">⌘ 命令</button>
+      <div class="menu-wrap">
+        <button id="view-menu-button" class="menu-button" aria-haspopup="menu" aria-expanded="false" aria-controls="view-menu">界面 ▾</button>
+        <div id="view-menu" class="menu menu-right" role="menu" hidden>
+          <button role="menuitem" id="theme">切换深色／浅色</button>
+          <div class="menu-row" role="group" aria-label="代码字号">代码字号<button id="zoom-out" title="缩小代码字号" aria-label="缩小代码字号">A−</button><button id="zoom" title="放大代码字号" aria-label="放大代码字号">A＋</button></div>
+          <button role="menuitem" id="reset-layout">恢复默认布局<small>栏宽、面板高度、折叠与侧栏标签</small></button>
+        </div>
+      </div>
     </header>
     <nav class="toolbar">
       <span class="split-button"
@@ -56,18 +74,17 @@
           <button role="menuitemradio" data-assembly-mode="manual">手动选择范围…<small>在文件树中勾选参与的源码并选择入口</small></button>
         </div></span
       ><span class="separator"></span
-      ><button id="back" title="回退一步 · Shift+F9">↶ 回退</button
-      ><button id="step" title="机器单步 · Alt+F11">→ 单步</button
-      ><button id="source" title="源码单步 · F11">源码步</button
-      ><button id="over" title="跨过调用 · F10">跨过</button
-      ><button id="out" title="跳出函数 · Shift+F11">跳出</button
-      ><button id="run" class="run" title="运行到断点或结束 · F5">▶ 运行</button
-      ><button id="demo" title="演示：逐条执行并跟随执行位置">▷ 演示</button
-      ><select id="demo-speed" aria-label="演示速度" title="演示速度">
-        <option value="900">慢</option>
-        <option value="450" selected>中</option>
-        <option value="150">快</option></select
-      ><button id="pause" title="暂停 · F6" disabled>Ⅱ 暂停</button
+      ><button id="run" class="run" data-tip="运行到断点或结束 · F5" aria-label="运行（F5）">▶ 运行</button
+      ><button id="pause" data-tip="暂停 · F6" aria-label="暂停（F6）" disabled>Ⅱ 暂停</button
+      ><span class="tool-group" role="group" aria-label="单步调试"
+        ><button id="back" class="tool" data-tip="回退一步 · Shift+F9" aria-label="回退一步（Shift+F9）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 2.5 6.5 6 10M3 6.5h6.5a3.5 3.5 0 0 1 0 7H7"/></svg><span class="tool-label">回退一步</span></button><button id="step" class="tool" data-tip="机器单步 · Alt+F11" aria-label="机器单步（Alt+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8.5M7.5 4.5 11 8l-3.5 3.5M13.5 3v10"/></svg><span class="tool-label">机器单步</span></button><button id="source" class="tool" data-tip="源码单步 · F11" aria-label="源码单步（F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v7.5M4.5 6 8 9.5 11.5 6"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">源码单步</span></button><button id="over" class="tool" data-tip="跨过调用 · F10" aria-label="跨过调用（F10）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 9.5a5.5 5.5 0 0 1 11 0M13.5 5.5v4h-4"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跨过调用</span></button><button id="out" class="tool" data-tip="跳出函数 · Shift+F11" aria-label="跳出函数（Shift+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V3M4.5 6.5 8 3l3.5 3.5"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跳出函数</span></button></span
+      ><span class="tool-group demo-group" role="group" aria-label="演示"
+        ><button id="demo" data-tip="演示：逐条执行并跟随执行位置" aria-label="演示">▷ 演示</button
+        ><select id="demo-speed" aria-label="演示速度" title="演示速度">
+          <option value="900">慢</option>
+          <option value="450" selected>中</option>
+          <option value="150">快</option></select
+        ></span
       ><label
         title="延迟分支：开启后，跳转或分支指令后面紧跟的那一条无论是否跳转都会先执行（MIPS 硬件的真实行为）。修改后需要重新汇编。"
         ><input type="checkbox" id="delay" />延迟分支</label
@@ -78,33 +95,38 @@
     <div id="banner" role="status"></div>
     <div class="workspace">
       <aside class="sidebar">
-        <div class="project-heading">
-          <button id="project-title" title="修改工程名称">我的工程</button>
-          <small id="workspace-status" role="status">自动保存到此浏览器</small>
+        <div class="side-tabs" role="tablist" aria-label="侧栏" aria-orientation="vertical">
+          <button role="tab" id="side-tab-files" data-side="files" aria-controls="side-files" aria-selected="true" title="文件">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3"/></svg><span>文件</span></button>
+          <button role="tab" id="side-tab-symbols" data-side="symbols" aria-controls="side-symbols" aria-selected="false" tabindex="-1" title="符号定位">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span>符号</span></button>
+          <button role="tab" id="side-tab-stops" data-side="stops" aria-controls="side-stops" aria-selected="false" tabindex="-1" title="断点与观察">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5"/></svg><span>断点</span><i id="stops-badge" class="side-badge" hidden></i></button>
         </div>
-        <div class="section-title explorer-heading">
-          工程文件 <span><button id="new-file" title="新建文件" aria-label="新建文件">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹">＋ 目录</button></span>
+        <div class="side-panels">
+          <section id="side-files" role="tabpanel" aria-labelledby="side-tab-files">
+            <div class="section-title explorer-heading">
+              工程文件 <span><button id="new-file" title="新建文件" aria-label="新建文件">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹">＋ 目录</button></span>
+            </div>
+            <div id="files"></div>
+            <div class="assembly-choice">
+              <div class="assembly-mode"><span>汇编方式</span><b id="assembly-mode-name">自动汇编</b><small>在汇编按钮右侧 ▾ 切换</small></div>
+              <div id="joint-settings" class="entry-choice" hidden><label for="entry-file">入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
+              <p id="assembly-hint" class="muted"></p>
+            </div>
+          </section>
+          <section id="side-symbols" role="tabpanel" aria-labelledby="side-tab-symbols" hidden>
+            <div class="section-title">符号与定位</div>
+            <input id="symbol-search" placeholder="搜索标签 / 地址" aria-label="搜索符号" />
+            <div id="symbols"></div>
+          </section>
+          <section id="side-stops" role="tabpanel" aria-labelledby="side-tab-stops" hidden>
+            <div class="section-title">断点</div>
+            <div id="breakpoints"></div>
+            <div class="section-title">观察点 <button id="add-watch" aria-label="添加观察点">＋</button></div>
+            <div id="watches"></div>
+          </section>
         </div>
-        <div id="files"></div>
-        <div class="assembly-choice">
-          <div class="assembly-mode"><span>汇编方式</span><b id="assembly-mode-name">自动汇编</b><small>在汇编按钮右侧 ▾ 切换</small></div>
-          <div id="joint-settings" class="entry-choice" hidden><label for="entry-file">入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
-          <p id="assembly-hint" class="muted"></p>
-        </div>
-        <div class="workspace-tools"><button id="export-file">下载当前文件</button><button id="restore-project">恢复上次管理操作</button></div>
-        <div class="section-title">符号与定位</div>
-        <input
-          id="symbol-search"
-          placeholder="搜索标签 / 地址"
-          aria-label="搜索符号"
-        />
-        <div id="symbols"></div>
-        <div class="section-title">BREAKPOINTS</div>
-        <div id="breakpoints"></div>
-        <div class="section-title">
-          WATCHPOINTS <button id="add-watch">＋</button>
-        </div>
-        <div id="watches"></div>
       </aside>
       <div
         class="splitter col"
@@ -180,37 +202,40 @@
         title="拖动调整大小，双击恢复默认"
       ></div>
       <aside class="inspector">
-        <div class="section-title">
-          CONTEXT <button id="clear-focus">清除聚焦</button>
-        </div>
-        <div id="context" tabindex="0">
-          <h3>沿着程序理解执行</h3>
-          <p>
-            悬停查看含义。Cmd/Ctrl＋点击或 F12
-            深入查询。点击寄存器、地址或指令固定上下文。
-          </p>
-        </div>
-        <div class="section-title">
-          REGISTERS
-          <select id="reg-filter" aria-label="寄存器过滤">
-            <option value="related">本步相关</option>
-            <option value="all" selected>全部</option>
-            <option value="pinned">已固定</option>
-          </select>
-        </div>
-        <div id="registers"></div>
-        <div class="section-title">
-          MEMORY <button id="stack">栈</button><button id="data">数据</button
-          ><small id="mem-radix" class="mem-radix"></small>
-        </div>
-        <form id="memory-form">
-          <input
-            id="address"
-            value="0x10010000"
-            aria-label="内存地址或符号"
-          /><button>定位</button>
-        </form>
-        <div id="memory"></div>
+        <section class="panel" id="panel-context">
+          <div class="section-title panel-head">
+            <button class="panel-toggle" aria-expanded="true" aria-controls="context">详细检查</button>
+            <button id="clear-focus" title="不再固定当前检查对象">取消固定</button>
+          </div>
+          <div id="context" class="panel-body" tabindex="0">
+            <p class="muted">还没有固定检查对象。悬停代码看简短说明；点浮窗里的“查看详细”、Cmd/Ctrl＋点击或按 F12，在这里查看完整说明。</p>
+          </div>
+        </section>
+        <div class="splitter row" id="split-context" role="separator" aria-orientation="horizontal" aria-label="调整详细检查高度" tabindex="0" title="拖动调整大小，双击恢复默认"></div>
+        <section class="panel" id="panel-registers">
+          <div class="section-title panel-head">
+            <button class="panel-toggle" aria-expanded="true" aria-controls="registers-body">寄存器</button>
+            <select id="reg-filter" aria-label="寄存器过滤">
+              <option value="related">本步相关</option>
+              <option value="all" selected>全部</option>
+              <option value="pinned">已固定</option>
+            </select>
+          </div>
+          <div id="registers-body" class="panel-body"><div id="registers"></div></div>
+        </section>
+        <div class="splitter row" id="split-registers" role="separator" aria-orientation="horizontal" aria-label="调整寄存器高度" tabindex="0" title="拖动调整大小，双击恢复默认"></div>
+        <section class="panel" id="panel-memory">
+          <div class="section-title panel-head">
+            <button class="panel-toggle" aria-expanded="true" aria-controls="memory-body">内存</button>
+            <span><button id="stack">栈</button><button id="data">数据</button><small id="mem-radix" class="mem-radix"></small></span>
+          </div>
+          <div id="memory-body" class="panel-body">
+            <form id="memory-form">
+              <input id="address" value="0x10010000" aria-label="内存地址或符号" /><button>定位</button>
+            </form>
+            <div id="memory"></div>
+          </div>
+        </section>
       </aside>
     </div>
     <footer>

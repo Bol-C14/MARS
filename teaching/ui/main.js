@@ -36,7 +36,15 @@ import {
   escapeByte,
 } from "./radix.js";
 import { termsIn } from "./glossary.js";
-import { lineDecision } from "./beats.js";
+import {
+  lineDecision,
+  beatModel,
+  lineSummary,
+  genericTemplate,
+} from "./beats.js";
+import { serviceAt, serviceGuide, syscallDetail } from "./syscalls.js";
+import { instructionIndex, searchInstructions } from "./instruction-index.js";
+import { Tutorial } from "./tutorial.js";
 import { projectManager } from "./project-manager.js";
 import { assemblyScope, scopeHints } from "./workspace.js";
 const $ = (id) => document.getElementById(id);
@@ -47,7 +55,8 @@ let workspace = null;
 // program that is loaded now. Execution only runs while the target is still
 // what the student is looking at.
 let target = null,
-  lastInTarget = "";
+  lastInTarget = "",
+  tutorial = null;
 const fileAccess = new Compartment();
 let state = null,
   files = {},
@@ -66,6 +75,7 @@ let state = null,
   exampleList = [],
   fontSize = 13;
 let inspecting = null,
+  inspectingPlace = null,
   program = { instructions: [], symbols: [], instructionDocs: {} },
   fileStates = new Map(),
   loadEditor = false;
@@ -426,7 +436,7 @@ function editorMenu(x, y, pos) {
     ],
     ["切换断点", address != null, () => toggleBreakpoint(line), "breakpoint"],
     ["编辑断点…", address != null, () => editBreakpoint(address)],
-    ["转到定义／说明", !!token, () => inspectToken(token)],
+    ["转到定义／说明", !!token, () => inspectToken(token, { file: activeFile, line })],
     ["查看引用", !!token, () => peekReferences()],
   ];
   const menu = document.createElement("div");
@@ -531,7 +541,11 @@ const editor = new EditorView({
         {
           key: "F12",
           run: () => {
-            inspectToken(tokenAt(editor.state.selection.main.head));
+            const head = editor.state.selection.main.head;
+            inspectToken(tokenAt(head), {
+              file: activeFile,
+              line: editor.state.doc.lineAt(head).number,
+            });
             return true;
           },
         },
@@ -570,13 +584,22 @@ const editor = new EditorView({
       }),
       EditorView.domEventHandlers({
         mousemove: (e) => hover(e),
-        mouseleave: () => {
-          $("tooltip").hidden = true;
+        mouseleave: () => hideTooltip(),
+        // Touch has no hover: a tap shows the same note, with its button.
+        pointerdown: (e) => {
+          if (e.pointerType === "touch") {
+            tipFor = "";
+            hover(e);
+          }
         },
         click: (e) => {
           if (e.metaKey || e.ctrlKey) {
             let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos != null) inspectToken(tokenAt(pos));
+            if (pos != null)
+              inspectToken(tokenAt(pos), {
+                file: activeFile,
+                line: editor.state.doc.lineAt(pos).number,
+              });
           }
         },
         contextmenu: (e) => {
@@ -623,6 +646,7 @@ const lens = new FocusLens({
   onClose: () => {
     followPC();
     overlay.schedule();
+    tutorial?.update();
   },
 });
 // Lookahead is only computed while the lens shows it (DESIGN §4).
@@ -650,23 +674,70 @@ function valueHTML(n) {
     c = v & 255;
   return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII低字节</span><span>${c >= 32 && c < 127 ? esc(String.fromCharCode(c)) : c === 0 ? "NUL" : "不可打印"} (${c})</span></div>`;
 }
-function summary(token, line = "") {
+// The syscall on a source line: which service (from before the call, never
+// the $v0 a read has overwritten), where that number came from, and the
+// values its parameters had or have.
+function syscallAt(place) {
+  const p = state?.preview?.instruction;
+  const next =
+    !dirty &&
+    p?.op === "syscall" &&
+    (!place || (p.file === place.file && p.line === place.line));
+  const event =
+    !next && !dirty && place
+      ? [...(state?.trace || [])]
+          .reverse()
+          .find(
+            (e) =>
+              e.step <= state.step &&
+              e.instruction.op === "syscall" &&
+              e.instruction.file === place.file &&
+              e.instruction.line === place.line,
+          )
+      : null;
+  const { n, from } = serviceAt({
+    next,
+    event,
+    v0: regValue("$v0"),
+    lines: place ? (files[place.file] || "").split("\n") : [],
+    line: place?.line || 0,
+  });
+  const values = {};
+  for (const [r] of serviceGuide[n]?.[2] || [])
+    values[r] = next
+      ? regValue(r)
+      : (event?.accesses.find(
+          (a) => a.kind === "register" && !a.write && a.name === r,
+        )?.value ?? null);
+  return {
+    n,
+    from,
+    values,
+    event,
+    waiting: next && state.status === "waiting",
+    esc,
+    show: (v, r) => fmt(v, 4, r ? regKind(r) : "value").text,
+  };
+}
+function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
     return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>当前快照 S${state?.step ?? 0} · Cmd/Ctrl＋点击固定</small>`;
   if (token === "syscall") {
-    let n = regValue("$v0"),
-      s = services[n];
-    return `<b>syscall ${n} · ${s?.[0] || "未支持服务"}</b><p>参数 ${s?.[1].join(", ") || "无"}；结果 ${s?.[2].join(", ") || "无"}</p>`;
+    const at = syscallAt(place),
+      g = serviceGuide[at.n];
+    return `<b>${esc(syscallDetail(at).title)}</b><p>${esc(g ? g[1] : "syscall 按调用时 $v0 的值选择服务。")}</p><small>${esc(
+      { next: "即将执行", ran: "最近一次执行", source: "按源码推测", unknown: "服务号执行时才确定" }[at.from],
+    )}</small>`;
   }
   if (explanations[token]) {
     const text = explanations[token];
-    return `<b>${esc(token)}</b><p>${esc(text)}</p>${definitions(text)}<small>指令／汇编器说明</small>`;
+    return `<b>${esc(token)}</b><p>${esc(text)}</p>${lineFormula(place)}<small>指令／汇编器说明</small>`;
   }
   if (program.instructionDocs[token]) {
     const doc = program.instructionDocs[token],
       mars = withOperands(doc.description, doc.example, line);
-    return `<b>${esc(token)}</b><p>${esc(mars.text)}</p><small>MARS 原文${mars.substituted ? "（已代入本行的操作数）" : `（示例：${esc(doc.example)}）`}</small>`;
+    return `<b>${esc(token)}</b><p>${esc(mars.text)}</p>${lineFormula(place)}<small>MARS 原文${mars.substituted ? "（已代入本行的操作数）" : `（示例：${esc(doc.example)}）`}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
@@ -681,24 +752,52 @@ function definitions(text) {
     ? `<dl class="defs">${terms.map(([t, d]) => `<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("")}</dl>`
     : "";
 }
+// Hover gives the brief; the details live in the inspector (classroom
+// 2026-10-24: the detailed view was hard to find and the hover too full).
+// The note stays put while the pointer is on the same word and can be
+// entered, so its “查看详细” is clickable without knowing the shortcut.
+const DETAIL_HINT = /Mac|iPhone|iPad/.test(navigator.platform)
+  ? "⌘＋点击查看详细"
+  : "Ctrl＋点击查看详细";
+let tipFor = "",
+  tipHide = null;
+function hideTooltip(delay = 300) {
+  clearTimeout(tipHide);
+  tipHide = setTimeout(() => {
+    $("tooltip").hidden = true;
+    tipFor = "";
+  }, delay);
+}
 function hover(e) {
   let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }),
     token = pos == null ? "" : tokenAt(pos);
-  if (!token) {
-    $("tooltip").hidden = true;
-    return;
-  }
-  $("tooltip").innerHTML = summary(token, editor.state.doc.lineAt(pos).text);
+  if (!token) return hideTooltip();
+  const line = editor.state.doc.lineAt(pos),
+    place = { file: activeFile, line: line.number },
+    key = `${token}@${activeFile}:${line.number}`;
+  clearTimeout(tipHide);
+  if (key === tipFor && !$("tooltip").hidden) return;
+  tipFor = key;
+  $("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">查看详细 →</button>`;
+  $("tooltip").querySelector(".tip-detail").onclick = () => {
+    inspectToken(token, place);
+    hideTooltip(0);
+  };
   $("tooltip").hidden = false;
   $("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
-  $("tooltip").style.top = Math.min(e.clientY + 18, innerHeight - 180) + "px";
+  $("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
 }
+$("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
+$("tooltip").addEventListener("mouseleave", () => hideTooltip());
+const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_HINT.replace("查看详细", "")}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
 function showContext(html) {
   $("context").innerHTML = html;
+  setTimeout(() => tutorial?.update());
 }
-function inspectToken(token) {
+function inspectToken(token, place = null) {
   if (!token) return;
   inspecting = token;
+  inspectingPlace = place;
   $("tooltip").hidden = true;
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
@@ -733,10 +832,9 @@ function inspectToken(token) {
     return;
   }
   if (token === "syscall") {
-    let n = regValue("$v0"),
-      s = services[n];
+    const detail = syscallDetail(syscallAt(place));
     showContext(
-      `<h3>syscall ${n} · ${s?.[0] || "未支持"}</h3><p>MARS 服务约定 · 当前快照</p>${(s?.[1] || []).map((r) => `<p><code>${r}</code> = ${hex(regValue(r))}</p>`).join("")}<p>结果：${s?.[2].join(", ") || "无返回值"}</p><p class="muted">服务编号与返回值可能复用 $v0。输入预览停在“等待输入”，不会消费输入。</p><button id="service-list">查看服务表</button>`,
+      `<h3>${esc(detail.title)}</h3>${detail.html}<button id="service-list">查看服务表</button>`,
     );
     $("service-list").onclick = () =>
       modal(
@@ -744,7 +842,7 @@ function inspectToken(token) {
         Object.entries(services)
           .map(
             ([id, s]) =>
-              `<p><b>${id}</b> ${s[0]} · ${s[1].join(", ") || "—"} → ${s[2].join(", ") || "—"}</p>`,
+              `<p><b>${id}</b> ${serviceGuide[id]?.[0] || s[0]} · ${serviceGuide[id]?.[1] || ""} <small class="muted">参数 ${s[1].join(", ") || "无"} → ${s[2].join(", ") || "无返回值"}</small></p>`,
           )
           .join(""),
       );
@@ -761,9 +859,145 @@ function inspectToken(token) {
     gotoSymbol(symbol);
     return;
   }
+  if (isInstruction(token) && place) return instructionDetail(token, place);
   showContext(
     `<h3>${esc(token)}</h3><p>${esc(explanations[token] || program.instructionDocs[token]?.description || "当前工程中的文本／立即数")}</p><p class="muted">${esc(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">查找引用</button></div>`,
   );
+  $("refs").onclick = () => showReferences(token);
+}
+const isInstruction = (token) =>
+  !!(explanations[token] || program.instructionDocs[token]);
+// The run of a source line the inspector explains: the line that just ran,
+// the line about to run (a preview), or its latest run in the history.
+function lineRun(place) {
+  if (!place || dirty || !state) return null;
+  const at = (e) =>
+    e?.instruction?.file === place.file && e.instruction.line === place.line;
+  const trace = (state.trace || []).filter((e) => e.step <= state.step);
+  const ending = (i) => {
+    const run = [trace[i]];
+    for (let j = i - 1; j >= 0 && at(trace[j]) && trace[j].pc + 4 === run[0].pc; j--)
+      run.unshift(trace[j]);
+    return run;
+  };
+  const latest = trace.length - 1;
+  if (latest >= 0 && trace[latest].step === state.step && at(trace[latest]))
+    return { kind: "last", events: ending(latest), step: state.step };
+  if (at(state.preview)) {
+    const machine = program.instructions.filter(
+      (i) => i.file === place.file && i.line === place.line,
+    );
+    return { kind: "next", events: machine.length === 1 ? [state.preview] : [], step: state.step + 1, pseudo: machine.length > 1 };
+  }
+  for (let i = latest; i >= 0; i--)
+    if (at(trace[i])) return { kind: "past", events: ending(i), step: trace[i].step };
+  return null;
+}
+// One line's explanation as a model (beats.js), or null without a record.
+function lineModel(place, events) {
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim();
+  const options = { delay: state?.delay, instructions: program.instructions, symbols: program.symbols };
+  if (events.length > 1) return lineSummary(events, { ...options, source });
+  if (events.length) return beatModel(events[0], options);
+  return null;
+}
+// The symbolic formula of a line without running it, when it is a single
+// machine instruction of the loaded program.
+function lineTemplate(place) {
+  if (!place || dirty) return null;
+  const machine = program.instructions.filter(
+    (i) => i.file === place.file && i.line === place.line,
+  );
+  if (machine.length !== 1) return null;
+  const run = lineRun(place);
+  if (run?.events.length === 1) return lineModel(place, run.events).template;
+  // Not run yet: the template only needs the operand names, so each register
+  // field is offered as read and written with a placeholder value.
+  const ins = machine[0],
+    fields = [(ins.binary >>> 21) & 31, (ins.binary >>> 16) & 31, (ins.binary >>> 11) & 31];
+  const reg = (number, write) => ({ kind: "register", number, name: "$" + registerNames[number], value: 0, before: 0, write });
+  try {
+    const m = beatModel({
+      instruction: ins,
+      accesses: [...fields.slice(0, 2).map((n) => reg(n, false)), ...fields.slice(1).map((n) => reg(n, true))],
+      nextPC: ins.address + 4,
+      status: "paused",
+    });
+    return m.template?.length ? m.template : null;
+  } catch {
+    return null;
+  }
+}
+const plainEq = (parts = []) =>
+  parts
+    .map((p) =>
+      typeof p === "string" ? p : p.num ? fmt(p.v, p.w, p.k).text : p.t,
+    )
+    .join("");
+function lineFormula(place) {
+  const t = lineTemplate(place);
+  return t ? `<p class="tip-formula">本行：<code>${esc(plainEq(t))}</code></p>` : "";
+}
+// The detailed inspector for an instruction on a line (classroom
+// 2026-10-24): the rule in general, this line substituted, the values before
+// it ran, the calculation, the result (or a preview, marked as such) and the
+// related reads and writes. Values come from the selected history state.
+function instructionDetail(token, place) {
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(),
+    doc = explanations[token] || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text,
+    run = lineRun(place),
+    model = run ? lineModel(place, run.events) : null,
+    template = model?.template || lineTemplate(place);
+  const where = `${place.file}:${place.line}`;
+  const status = dirty
+    ? "代码已修改 · 重新汇编后才有数值"
+    : !state
+      ? "尚未汇编"
+      : !run
+        ? "这次运行中还没有执行到这一行"
+        : run.kind === "last"
+          ? `刚执行（第 ${run.step} 步）`
+          : run.kind === "next"
+            ? "即将执行 · 下面是预览，尚未执行"
+            : `第 ${run.step} 步执行过（不是最近一步）`;
+  const value = (o, v) =>
+    fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
+  const label = (o) => (o.kind === "memory" ? `内存[${hex(o.address)}]` : o.name);
+  const reads = (model?.objects || []).filter((o) => o.read),
+    writes = (model?.objects || []).filter((o) => o.write);
+  const single = (template && !(run?.events?.length > 1) && !run?.pseudo);
+  const rows = [];
+  if (template && single)
+    rows.push(["通用规则", `<code>${esc(genericTemplate(template, source))}</code>`]);
+  if (template)
+    rows.push(["本行代入", `<code>${esc(plainEq(template))}</code>`]);
+  if (model) {
+    rows.push([
+      run.kind === "next" ? "执行前数值（现在）" : "执行前数值",
+      reads.length ? reads.map((o) => `${esc(label(o))} = <b>${esc(value(o, o.before))}</b>`).join("，") : "不读取寄存器或内存",
+    ]);
+    rows.push([
+      "计算过程",
+      `<ol>${model.beats.map((b) => `<li><code>${esc(plainEq(b.eq))}</code>${b.caption ? ` <small>${esc(b.caption)}</small>` : ""}</li>`).join("")}</ol>`,
+    ]);
+    rows.push([
+      "结果",
+      (writes.length
+        ? writes.map((o) => `${esc(label(o))}：${esc(value(o, o.before))} → <b>${esc(value(o, o.after))}</b>`).join("<br>")
+        : esc(model.summary || "没有写入寄存器或内存")) +
+        `<small class="detail-when">${run.kind === "next" ? "预览：尚未执行" : "执行后的实际结果"}</small>`,
+    ]);
+    const related = [
+      reads.length && "读 " + reads.map(label).join("、"),
+      writes.length && "写 " + writes.map(label).join("、"),
+    ].filter(Boolean);
+    if (related.length) rows.push(["关联读写", esc(related.join(" · "))]);
+  } else if (run?.pseudo)
+    rows.push(["结果", "这一行是伪指令，执行后可以看到整行的结果；在专注模式中可逐条查看展开的机器指令。"]);
+  showContext(
+    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button></div>`,
+  );
+  $("detail-source").onclick = () => gotoSource(place.file, place.line);
   $("refs").onclick = () => showReferences(token);
 }
 function showReferences(token) {
@@ -872,9 +1106,11 @@ async function command(name, extra = {}) {
       ...lookahead(),
       ...extra,
     });
+    const before = state;
     state = s;
     appendLogs(s.logs);
     render();
+    ioAttention(name, before, s);
     lens.update(dirty ? null : state);
     return s;
   } catch (e) {
@@ -1121,9 +1357,47 @@ function setView(v) {
   if (v === "cfg") renderCFG();
   overlay.schedule();
 }
+// Terminal attention (classroom 2026-10-24): only real execution draws the
+// eye to the console. New output pulses it once, and a new pulse replaces the
+// last so fast stepping never stacks flashes; reduced motion gets a static
+// mark instead. Waiting for input brings the console forward and lights the
+// input box until it is answered. Seeking, refreshing and previews never do,
+// and keyboard focus stays where it is.
+const PRODUCING = new Set(["step", "source", "over", "out", "run", "input"]);
+function ioAttention(name, before, after) {
+  if (!PRODUCING.has(name) || !after || after.programVersion !== before?.programVersion) return;
+  if (after.status === "waiting" && before.status !== "waiting" && bottom !== "console")
+    setBottom("console");
+  const grew = (after.output || "").length > (before.output || "").length;
+  if (!grew && name !== "input") return;
+  const tab = document.querySelector('[data-bottom="console"]');
+  if (bottom !== "console") tab.classList.add("unread");
+  const target =
+    bottom !== "console"
+      ? tab
+      : name === "input"
+        ? [...$("output").querySelectorAll(".echo")].at(-1) || $("output")
+        : $("output");
+  ioAttention.pulse?.cancel();
+  clearTimeout(ioAttention.timer);
+  document.querySelectorAll(".fresh-output").forEach((e) => e.classList.remove("fresh-output"));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    target.classList.add("fresh-output");
+    ioAttention.timer = setTimeout(() => target.classList.remove("fresh-output"), 1500);
+  } else
+    ioAttention.pulse = target.animate(
+      [
+        { background: "color-mix(in srgb, var(--green, #268058) 26%, transparent)" },
+        { background: "transparent" },
+      ],
+      { duration: 700, easing: "ease-out" },
+    );
+}
 function setBottom(v) {
   bottom = v;
   if (v === "logs") $("logs-tab").classList.remove("unread");
+  if (v === "console")
+    document.querySelector('[data-bottom="console"]').classList.remove("unread");
   for (let name of ["console", "trace", "calls", "problems", "logs"])
     $(name).hidden = name !== v;
   document
@@ -1205,6 +1479,7 @@ function updateControls() {
   $("back").disabled = busy || dirty || !!gate || running || !state?.step;
   $("assemble").disabled = busy;
   renderScope();
+  tutorial?.update();
   $("pause").disabled = !running;
   const info = statusInfo();
   $("status").textContent = info.text;
@@ -1333,6 +1608,131 @@ function renderScope() {
       }),
   );
 }
+// Menus in the header (classroom 2026-10-24): project actions and interface
+// settings each open from one button; a chosen item closes its menu.
+function setupMenu(buttonId, menuId) {
+  const button = $(buttonId),
+    menu = $(menuId);
+  const close = () => {
+    menu.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  };
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    document.querySelectorAll(".menu").forEach((m) => (m.hidden = true));
+    menu.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+    if (open) menu.querySelector("button:not(:disabled)")?.focus();
+  });
+  menu.addEventListener("click", (e) => {
+    if (e.target.closest('[role="menuitem"]')) close();
+  });
+  menu.addEventListener("keydown", (e) => {
+    const items = [...menu.querySelectorAll("button:not(:disabled)")],
+      at = items.indexOf(document.activeElement);
+    if (e.key === "Escape") {
+      close();
+      button.focus();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp")
+      items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".menu-wrap")) close();
+  });
+}
+setupMenu("project-menu-button", "project-menu");
+setupMenu("view-menu-button", "view-menu");
+// Left side: files, symbols, and breakpoints with watchpoints, one at a time.
+// A breakpoint or watchpoint hit while that group is hidden marks its tab.
+const SIDE_TABS = ["files", "symbols", "stops"];
+let sideTab = "files",
+  lastStopKey = "";
+function setSideTab(name, focusTab = false) {
+  sideTab = SIDE_TABS.includes(name) ? name : "files";
+  for (const n of SIDE_TABS) {
+    const tab = $("side-tab-" + n);
+    tab.setAttribute("aria-selected", String(n === sideTab));
+    tab.tabIndex = n === sideTab ? 0 : -1;
+    $("side-" + n).hidden = n !== sideTab;
+  }
+  if (sideTab === "stops") $("stops-badge").hidden = true;
+  if (focusTab) $("side-tab-" + sideTab).focus();
+  tutorial?.update();
+  try {
+    localStorage.setItem("side-tab", sideTab);
+  } catch {}
+}
+document.querySelectorAll("[data-side]").forEach((b) => {
+  b.onclick = () => setSideTab(b.dataset.side);
+});
+document.querySelector(".side-tabs").addEventListener("keydown", (e) => {
+  const at = SIDE_TABS.indexOf(sideTab);
+  const to =
+    e.key === "ArrowDown" || e.key === "ArrowRight"
+      ? (at + 1) % 3
+      : e.key === "ArrowUp" || e.key === "ArrowLeft"
+        ? (at + 2) % 3
+        : e.key === "Home"
+          ? 0
+          : e.key === "End"
+            ? 2
+            : -1;
+  if (to < 0) return;
+  e.preventDefault();
+  setSideTab(SIDE_TABS[to], true);
+});
+function noteStop() {
+  const key = `${state?.programVersion}:${state?.step}:${state?.stopReason}`;
+  if (key === lastStopKey) return;
+  lastStopKey = key;
+  if (/^(Breakpoint|Watchpoint)/.test(state?.stopReason || "") && sideTab !== "stops")
+    $("stops-badge").hidden = false;
+}
+// Right side: each panel folds to its title; the lowest open panel takes the
+// remaining height, and a splitter only sits between two open panels.
+const PANELS = ["context", "registers", "memory"];
+function layoutPanels() {
+  const open = PANELS.filter((n) => !$("panel-" + n).classList.contains("collapsed"));
+  for (const n of PANELS) $("panel-" + n).classList.toggle("fill", n === open.at(-1));
+  $("split-context").hidden = !open.includes("context") || open.at(-1) === "context";
+  $("split-registers").hidden = !open.includes("registers") || open.at(-1) === "registers";
+  editor.requestMeasure();
+  overlay.schedule();
+}
+function setPanel(name, collapsed) {
+  const panel = $("panel-" + name);
+  panel.classList.toggle("collapsed", collapsed);
+  panel.querySelector(".panel-toggle").setAttribute("aria-expanded", String(!collapsed));
+  try {
+    localStorage.setItem("panel-" + name, collapsed ? "collapsed" : "open");
+  } catch {}
+  layoutPanels();
+}
+document.querySelectorAll(".panel-toggle").forEach((b) => {
+  const name = b.closest(".panel").id.replace("panel-", "");
+  b.onclick = () => setPanel(name, !b.closest(".panel").classList.contains("collapsed"));
+});
+try {
+  setSideTab(localStorage.getItem("side-tab") || "files");
+  for (const n of PANELS)
+    if (localStorage.getItem("panel-" + n) === "collapsed") setPanel(n, true);
+} catch {}
+layoutPanels();
+$("reset-layout").onclick = () => {
+  for (const split of Object.values(panelSplits)) setSplit(split, null);
+  for (const n of PANELS) setPanel(n, false);
+  setSideTab("files");
+  notify("已恢复默认布局。", { transient: true });
+};
+// The main editor's relation lines are configured where those relations are
+// studied: in focus mode (classroom 2026-10-24). The settings move there
+// whole, so every option stays available.
+document.querySelector(".overlay-settings summary").textContent = "主界面连线";
+$("focus-keys").before(document.querySelector(".overlay-settings"));
 // The way of assembling sits beside the assemble button (2026-10-24): auto by
 // default, single file, or a manual scope checked in the file tree.
 function closeAssembleMenu() {
@@ -1409,6 +1809,17 @@ function renderRegisters() {
       all.filter((a) => a.kind === "register").map((a) => a.name),
     );
   let filter = $("reg-filter").value;
+  // BIN shows all 32 bits with leading zeros (classroom 2026-10-24: values
+  // were cut off); registers then take a full row each and wrap only at byte
+  // boundaries, so the bit order is never broken up or reflowed.
+  const bin = radix === "bin";
+  const shown = (r) =>
+    bin
+      ? esc(fmt(r.value, 4, regKind(r.name)).full).replace(/_/g, (m, i, all) =>
+          (all.slice(2, i).match(/_/g) || []).length % 2 ? "_<wbr>" : "_",
+        )
+      : esc(fmt(r.value, 4, regKind(r.name)).text);
+  $("registers").classList.toggle("bin", bin);
   $("registers").innerHTML = state.registers
     .filter((r) =>
       filter === "all" || filter === "pinned"
@@ -1417,7 +1828,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""} · 点击查看"><span class="name">${r.name}</span><span>${esc(fmt(r.value, 4, regKind(r.name)).text)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""} · 点击查看"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -1506,7 +1917,7 @@ function renderCards() {
     $(id).onclick = () => {
       if (e?.instruction) {
         gotoSource(e.instruction.file, e.instruction.line);
-        inspectToken(e.instruction.op);
+        inspectToken(e.instruction.op, e.instruction);
       }
     };
   }
@@ -1529,7 +1940,7 @@ function renderMachine() {
             return;
           }
           let ins = program.instructions.find((i) => i.address === address);
-          inspectToken(ins.op);
+          inspectToken(ins.op, ins);
         }),
     );
 }
@@ -1612,6 +2023,12 @@ function renderTrace() {
 }
 function render() {
   if (!state) return;
+  noteStop();
+  const waiting = state.status === "waiting" && !dirty;
+  $("console").classList.toggle("waiting", waiting);
+  $("stdin").placeholder = waiting
+    ? "程序在等待输入：在这里输入后按 Enter"
+    : "输入值，按 Enter 提交";
   renderFiles();
   renderTabs();
   renderSymbols();
@@ -1667,7 +2084,14 @@ function render() {
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
-  if (inspecting?.startsWith("$")) inspectToken(inspecting);
+  // The inspected object stays; its values follow the selected state.
+  if (
+    inspecting &&
+    (inspecting.startsWith("$") ||
+      inspecting === "syscall" ||
+      (isInstruction(inspecting) && inspectingPlace))
+  )
+    inspectToken(inspecting, inspectingPlace);
   overlay.schedule();
   updateControls();
 }
@@ -2060,6 +2484,7 @@ function commandList() {
       },
     ],
     ["syscall 服务表", () => inspectToken("syscall")],
+    ["查指令与用途（按名称或想做的事搜索）", () => findInstruction()],
   ];
   return commands.map(([label, run, action]) => ({
     label,
@@ -2072,11 +2497,193 @@ function openCommands() {
 }
 // One picker for files, labels, lines, addresses and commands (VS Code's
 // quick open with its > @ : prefixes).
+// Find an instruction or syscall service by name or by what one wants to do
+// (classroom 2026-10-24). Results say what it is for, its operands, the
+// general formula, an example and its limits, and where this project uses
+// it. Searching never edits code.
+function findInstruction(query = "") {
+  const items = instructionIndex(program.instructionDocs);
+  modal(
+    "查指令与用途",
+    `<input id="find-input" aria-label="搜索指令或用途" autocomplete="off" placeholder="例如：add、加法、比较大小、打印字符、读取整数、右移" style="width:100%"><div id="find-list" role="listbox" aria-label="搜索结果"></div><div id="find-detail" aria-live="polite"></div>`,
+  );
+  const input = $("find-input");
+  input.value = query;
+  let results = [],
+    selected = 0;
+  const kindOf = (x) => (x.kind === "service" ? "syscall 服务" : x.pseudo ? "伪指令" : "指令");
+  // Where this project uses it: lines with the instruction, or syscalls
+  // whose service number (from the li $v0 above) is this one.
+  const uses = (x) => {
+    const out = [];
+    for (const [file, text] of Object.entries(files)) {
+      const lines = text.split("\n");
+      lines.forEach((t, i) => {
+        const code = t.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "");
+        const op = code.trim().split(/\s+/)[0];
+        if (x.kind === "service"
+          ? op === "syscall" && serviceAt({ lines, line: i + 1 }).n === x.service
+          : op === x.op)
+          out.push({ file, line: i + 1, text: t.trim() });
+      });
+    }
+    return out.slice(0, 6);
+  };
+  const detail = () => {
+    const x = results[selected];
+    if (!x) {
+      $("find-detail").innerHTML = input.value.trim()
+        ? '<p class="muted">没有找到匹配的指令或服务。试试“加法”“比较大小”“打印字符”“读取整数”“右移”，或输入指令名。</p>'
+        : '<p class="muted">输入指令名，或用中文写想做的事。</p>';
+      return;
+    }
+    const used = uses(x);
+    const rows = [
+      ["用途", esc(x.purpose)],
+      ["格式", `<code class="find-code">${esc(x.format)}</code>`],
+      x.formula && ["通用公式", `<code>${esc(x.formula)}</code>`],
+      x.example && x.example !== x.format && ["例子", `<code class="find-code">${esc(x.example)}</code>`],
+      x.note && ["说明", esc(x.note)],
+    ].filter(Boolean);
+    $("find-detail").innerHTML = `<div class="inspect-head"><h3>${esc(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">本工程中用到的地方（点击查看这一行的详细检查）：</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${esc(u.file)}:${u.line} <small class="mono">${esc(u.text)}</small></button>`).join("")}` : '<p class="muted">本工程里还没有用到它。</p>'}`;
+    $("find-detail")
+      .querySelectorAll("[data-use]")
+      .forEach(
+        (b) =>
+          (b.onclick = () => {
+            const u = used[Number(b.dataset.use)];
+            $("modal").close();
+            gotoSource(u.file, u.line);
+            inspectToken(x.op, { file: u.file, line: u.line });
+          }),
+      );
+  };
+  const render = () => {
+    results = searchInstructions(input.value, items);
+    selected = Math.max(0, Math.min(selected, results.length - 1));
+    $("find-list").innerHTML = results
+      .map(
+        (x, i) =>
+          `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${esc(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${esc(x.purpose)}</span></button>`,
+      )
+      .join("");
+    $("find-list")
+      .querySelectorAll("[data-find]")
+      .forEach(
+        (b) =>
+          (b.onclick = () => {
+            selected = Number(b.dataset.find);
+            render();
+          }),
+      );
+    $("find-list").querySelector(".selected")?.scrollIntoView({ block: "nearest" });
+    detail();
+  };
+  input.oninput = () => {
+    selected = 0;
+    render();
+  };
+  input.onkeydown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      selected += e.key === "ArrowDown" ? 1 : -1;
+      render();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      $("find-detail").querySelector("[data-use]")?.focus();
+    }
+  };
+  render();
+  input.focus();
+}
+$("find-instruction").onclick = () => findInstruction();
+// The introduction runs in a project of its own; the student's project is
+// kept aside and can be restored at the end (classroom 2026-10-24).
+const TUTORIAL_BACKUP = "tutorial-backup";
+tutorial = new Tutorial({
+  context: () => ({
+    files,
+    activeFile,
+    state: dirty ? null : state,
+    target,
+    dirty,
+    breakpoints,
+    watches,
+    inspecting,
+    lensOpen: lens.isOpen,
+    sideTab,
+  }),
+  go: (action) => {
+    const [kind, arg] = action.split(/:(.*)/);
+    if (kind === "side") setSideTab(arg, true);
+    else if (kind === "panel") setPanel(arg, false);
+    else if (kind === "find") findInstruction(arg);
+    else if (kind === "focus") openFocus();
+    // After the current click finishes, or its bubbling would close the menu.
+    else if (kind === "menu") setTimeout(() => $("project-menu-button").click());
+  },
+  finish: (completed) => {
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(TUTORIAL_BACKUP) || "null");
+    } catch {}
+    modal(
+      completed ? "入门练习完成" : "退出入门练习",
+      `<p>${completed ? "做得好！" : ""}练习工程会留在工作区，可以继续修改或导出。${saved ? `也可以回到练习前的工程“${esc(saved.name || "我的工程")}”。` : ""}</p><div class="project-actions"><button id="tutorial-continue">继续练习</button>${saved ? '<button id="tutorial-restore">回到之前的工程</button>' : ""}<button class="primary" id="tutorial-keep">保留练习工程</button></div>`,
+    );
+    $("tutorial-continue").onclick = () => $("modal").close();
+    $("tutorial-keep").onclick = () => {
+      $("modal").close();
+      tutorial.stop();
+    };
+    if (saved)
+      $("tutorial-restore").onclick = async () => {
+        try {
+          await workspace.apply(saved);
+          $("modal").close();
+          tutorial.stop();
+          localStorage.removeItem(TUTORIAL_BACKUP);
+        } catch (e) {
+          notify(e.message);
+        }
+      };
+  },
+});
+$("start-tutorial").onclick = () => {
+  if (tutorial.active) {
+    tutorial.collapsed = false;
+    return tutorial.update();
+  }
+  modal(
+    "入门练习：Hello World",
+    `<p class="project-explanation">边写边学：从打印 Hello! 开始，读取你的名字，用断点、详细检查和专注模式看清它，找到一个溢出错误并修好，最后自己加一个功能并导出。</p><p class="muted">练习会打开一个单独的练习工程。当前工程会先保存一份，结束时可以回到它；你的代码不会被覆盖。</p><div class="project-actions"><button id="tutorial-cancel">取消</button><button class="primary" id="tutorial-begin">开始练习</button></div>`,
+  );
+  $("tutorial-cancel").onclick = () => $("modal").close();
+  $("tutorial-begin").onclick = async () => {
+    try {
+      localStorage.setItem(TUTORIAL_BACKUP, JSON.stringify(workspace.snapshot()));
+    } catch {}
+    try {
+      await workspace.apply({ name: "入门练习", files: {}, data: {}, folders: [] });
+      $("modal").close();
+      setSideTab("files");
+      tutorial.start();
+    } catch (e) {
+      notify(e.message);
+    }
+  };
+};
+document.addEventListener("click", (e) => {
+  if (tutorial.active && e.target.closest("#download-zip, #download-json")) {
+    tutorial.memo.exported = true;
+    setTimeout(() => tutorial.update());
+  }
+});
 function openPicker(prefix = "") {
   const commands = commandList();
   modal(
     prefix === ">" ? "命令面板" : "快速打开",
-    `<input id="picker-input" aria-label="搜索" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">文件或标签名 · @ 当前文件符号 · :行号 · 文件:行号 · 0x 地址 · > 命令</p>`,
+    `<input id="picker-input" aria-label="搜索" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">文件或标签名 · @ 当前文件符号 · :行号 · 文件:行号 · 0x 地址 · > 命令 · ? 查指令与用途</p>`,
   );
   const input = $("picker-input");
   input.value = prefix;
@@ -2121,6 +2728,9 @@ function openPicker(prefix = "") {
       ?.scrollIntoView({ block: "nearest" });
   };
   input.oninput = () => {
+    // "?" switches to the instruction and purpose search.
+    if (input.value.startsWith("?") || input.value.startsWith("？"))
+      return findInstruction(input.value.slice(1));
     selected = 0;
     render();
   };
@@ -2193,6 +2803,7 @@ function openFocus() {
   if (dirty || !state || state.status === "empty")
     return notify("请先汇编，再进入专注模式");
   lens.open();
+  tutorial?.update();
 }
 $("focus-open").onclick = openFocus;
 $("theme").onclick = () => {
@@ -2223,7 +2834,7 @@ const panelSplits = {
     prop: "--left-w",
     axis: "x",
     sign: 1,
-    min: 110,
+    min: 180,
     panel: ".sidebar",
   },
   "split-right": {
@@ -2240,14 +2851,38 @@ const panelSplits = {
     min: 70,
     panel: ".bottom",
   },
+  // Right-hand panels: the upper two have a height, memory takes the rest.
+  "split-context": {
+    prop: "--context-h",
+    axis: "y",
+    sign: 1,
+    min: 60,
+    panel: "#panel-context",
+    max: () =>
+      document.querySelector(".inspector").offsetHeight -
+      document.querySelector("#panel-registers").offsetHeight -
+      70,
+  },
+  "split-registers": {
+    prop: "--registers-h",
+    axis: "y",
+    sign: 1,
+    min: 60,
+    panel: "#panel-registers",
+    max: () =>
+      document.querySelector(".inspector").offsetHeight -
+      document.querySelector("#panel-context").offsetHeight -
+      70,
+  },
 };
-function setSplit({ prop, axis, min, panel }, px) {
+function setSplit({ prop, axis, min, panel, max: limit }, px) {
   const root = document.documentElement;
   if (px == null) root.style.removeProperty(prop);
   else {
     // Leave the code pane usable: at least 300px wide and 160px tall.
-    const max =
-      axis === "x"
+    const max = limit
+      ? limit()
+      : axis === "x"
         ? document.querySelector(".workspace").offsetWidth -
           document.querySelector(
             prop === "--left-w" ? ".inspector" : ".sidebar",
@@ -2315,6 +2950,8 @@ try {
 $("clear-focus").onclick = () => {
   focus = null;
   inspecting = null;
+  inspectingPlace = null;
+  showContext(CONTEXT_HINT);
   renderRegisters();
   overlay.schedule();
 };
@@ -2472,7 +3109,8 @@ workspace = projectManager({
     fileStates.clear(); navBack.length = navForward.length = 0;
     breakpoints = []; watches = []; debugLog = [];
     state = null; program = {instructions:[], symbols:[], instructionDocs:{}};
-    target = null; lastInTarget = "";
+    target = null; lastInTarget = ""; inspectingPlace = null;
+    showContext(CONTEXT_HINT);
     inspecting = null; focus = null; inlineCache.key = null;
     dirty = true; pendingResume = null;
     $("delay").checked = p.delay;
