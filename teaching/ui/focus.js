@@ -129,6 +129,12 @@ export class FocusLens {
     return this.mode === "auto" ? 8 : Number(this.mode);
   }
 
+  // Open on one step of the window: -1 the completed step, 0 the next one.
+  openAt(index, { bits = false } = {}) {
+    this.wanted = { index, bits };
+    if (this.isOpen) this.update(this.host.getState());
+    else this.open();
+  }
   async open() {
     if (this.isOpen) return;
     this.isOpen = true;
@@ -143,6 +149,11 @@ export class FocusLens {
   close() {
     if (!this.isOpen) return;
     this.stop();
+    this.stopBits();
+    // The bit view belongs to the step it was opened on; it starts closed
+    // next time instead of showing a previous program's bits.
+    this.bitsOpen = false;
+    document.getElementById("focus-bits").hidden = true;
     this.isOpen = false;
     document.getElementById("focus-backdrop").hidden = true;
     this.el.hidden = true;
@@ -186,6 +197,13 @@ export class FocusLens {
         ? -1
         : (this.layout.steps[0]?.index ?? -1);
       this.beat = 0;
+    }
+    // Opened from the inspector on a given step, possibly with its bits.
+    if (this.wanted && this.models.has(this.wanted.index)) {
+      this.selected = this.wanted.index;
+      this.bitsOpen = this.wanted.bits;
+      this.bitsStep = 0;
+      this.wanted = null;
     }
     this.render();
     if (moved && !this.host.isRunning() && !this.holding) this.autoplay();
@@ -719,7 +737,7 @@ export class FocusLens {
     panel.innerHTML =
       `<div class="bits-head"><b>${esc(story.title)}</b><span>${esc(where)}</span>${reduced ? "" : `<span class="bits-progress">第 ${this.bitsStep + 1}/${story.steps.length} 步</span>`}</div>` +
       shown
-        .map((st) => `<div class="bits-step"><p>${esc(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`)
+        .map((st) => `<div class="bits-step"><p>${glossify(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`)
         .join("") +
       (reduced
         ? ""
@@ -823,9 +841,9 @@ export class FocusLens {
     if (!this.layout) return (svg.innerHTML = "");
     const css = getComputedStyle(document.body),
       color = {
-        read: css.getPropertyValue("--blue").trim(),
-        write: css.getPropertyValue("--orange").trim(),
-        flow: css.getPropertyValue("--purple").trim(),
+        read: css.getPropertyValue("--read").trim(),
+        write: css.getPropertyValue("--write").trim(),
+        flow: css.getPropertyValue("--flow").trim(),
         edge: css.getPropertyValue("--muted").trim(),
       };
     const path = (p) =>

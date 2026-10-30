@@ -75,11 +75,11 @@ export class OverlayRenderer {
       focus = this.getFocus();
     const scope = document.querySelector("#relation-scope").value;
     let colors = {
-      read: getComputedStyle(document.body).getPropertyValue("--blue").trim(),
+      read: getComputedStyle(document.body).getPropertyValue("--read").trim(),
       write: getComputedStyle(document.body)
-        .getPropertyValue("--orange")
+        .getPropertyValue("--write")
         .trim(),
-      flow: getComputedStyle(document.body).getPropertyValue("--purple").trim(),
+      flow: getComputedStyle(document.body).getPropertyValue("--flow").trim(),
     };
     if (scope === "focus" && !focus) {
       this.svg.innerHTML = "";

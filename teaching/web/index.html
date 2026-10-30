@@ -123,7 +123,7 @@
           <section id="side-stops" role="tabpanel" aria-labelledby="side-tab-stops" hidden>
             <div class="section-title">断点</div>
             <div id="breakpoints"></div>
-            <div class="section-title">观察点 <button id="add-watch" aria-label="添加观察点">＋</button></div>
+            <div class="section-title">观察点 <button id="add-watch" aria-label="添加观察点">＋ 添加</button></div>
             <div id="watches"></div>
           </section>
         </div>
@@ -215,6 +215,7 @@
         <section class="panel" id="panel-registers">
           <div class="section-title panel-head">
             <button class="panel-toggle" aria-expanded="true" aria-controls="registers-body">寄存器</button>
+            <small id="reg-legend" class="reg-legend"></small>
             <select id="reg-filter" aria-label="寄存器过滤">
               <option value="related">本步相关</option>
               <option value="all" selected>全部</option>

@@ -88,7 +88,7 @@ test("jalr saves the link register and jr $ra is a return", () => {
 
 test("input syscalls stop at waiting and never invent the result", () => {
   const b = beatModel({ instruction: I("syscall", 12), service: 5, status: "waiting-input", accesses: [r(2, "$v0", 5)] });
-  assert.deepEqual(lines(b), ["syscall 5 · 读取整数", "等待输入"]);
+  assert.deepEqual(lines(b), ["$v0 = 5 → 读取整数", "等待输入"]);
   assert.ok(!b.beats.some((x) => x.lit.some((l) => l.mode === "write")));
 });
 
@@ -257,4 +257,9 @@ test("general rules name operands by position, registers used twice included", (
   assert.equal(genericTemplate("$t0 ← $t1 − $t0", "loop: sub $t0,$t1,$t0 # x"), "$a ← $b − $c");
   assert.equal(genericTemplate("$s0 ← $s0 + 1", "addi $s0, $s0, 1"), "$a ← $b + 立即数");
   assert.equal(genericTemplate("内存[ $sp − 4 ] ← $t0", "sw $t0, -4($sp)"), "内存[ $b − 4 ] ← $a");
+});
+
+test("printing a character says which code it is", () => {
+  const e = [step(I("syscall", 12, { source: "syscall" }), [r(2, "$v0", 11), r(4, "$a0", 50)], { service: 11, output: "2" })];
+  assert.equal(lineDecision(e), "$v0 = 11 打印字符 · $a0 = 50 → 输出 '2'（编码 50 是字符 '2'）");
 });

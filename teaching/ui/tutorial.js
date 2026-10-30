@@ -13,9 +13,9 @@ greeting: .asciiz "Hello!"
 .globl main
 main:
     la $a0, greeting   # 字符串第一个字节的地址
-    li $v0, 4          # 服务 4：打印字符串
+    li $v0, 4          # $v0 = 4：打印字符串
     syscall
-    li $v0, 10         # 服务 10：退出
+    li $v0, 10         # $v0 = 10：退出
     syscall`;
 const NAME = `.data
 greeting: .asciiz "Hello, "
@@ -26,7 +26,7 @@ name:     .space 32         # 存放名字的缓冲区（32 字节）
 main:
     la $a0, name        # 缓冲区地址
     li $a1, 32          # 最多占用 32 字节
-    li $v0, 8           # 服务 8：读取字符串
+    li $v0, 8           # $v0 = 8：读取字符串
     syscall
     la $a0, greeting
     li $v0, 4
@@ -41,10 +41,10 @@ main:
     syscall`;
 const OVERFLOW = `    li $t0, 0x7fffffff   # 最大的 32 位有符号整数
     addi $t0, $t0, 1     # 再加 1 会怎样？`;
-const AGE = `    li $v0, 5            # 服务 5：读取整数，结果在 $v0
+const AGE = `    li $v0, 5            # $v0 = 5：读取整数，结果在 $v0
     syscall
     addi $a0, $v0, 1     # 明年的年龄
-    li $v0, 1            # 服务 1：打印整数
+    li $v0, 1            # $v0 = 1：打印整数
     syscall`;
 
 const traceOf = (c) => (c.state?.trace || []).filter((e) => e.step <= (c.state?.step ?? 0));
@@ -77,7 +77,7 @@ export const STEPS = [
     ],
     hints: [
       "字符串放在 .data 段，用 .asciiz 写，末尾会自动补一个 \\0。",
-      "打印字符串是 syscall 服务 4：$v0 = 4，$a0 = 字符串的地址（用 la 取得）。最后用服务 10 退出。",
+      "打印字符串：$v0 = 4，$a0 = 字符串的地址（用 la 取得），然后 syscall。最后用 $v0 = 10 的 syscall 退出。",
     ],
     answer: HELLO,
     go: [["查“打印字符串”", "find:打印字符串"]],
@@ -95,10 +95,11 @@ export const STEPS = [
     ],
     hints: [
       "名字要先放进内存：在 .data 里用 .space 32 留出一块缓冲区。",
-      "读取字符串是服务 8：$a0 = 缓冲区地址，$a1 = 最多占用的字节数。打印名字时 $a0 仍然是这个地址。",
+      "读取字符串：$v0 = 8，$a0 = 缓冲区地址，$a1 = 最多占用的字节数。打印名字时 $a0 仍然是这个地址。",
       "你会发现 ! 跑到了下一行：读取字符串时回车也被存进了缓冲区。下一阶段用调试器看清楚。",
     ],
     answer: NAME,
+    doneNote: "! 换到了下一行，是因为读取字符串时回车（\\n）也存进了缓冲区。下一阶段可以在内存里看到它。",
     go: [["查“读取字符串”", "find:读取字符串"]],
   },
   {
@@ -107,7 +108,7 @@ export const STEPS = [
     goal: "打印名字之前，哪个寄存器决定输出什么？在打印名字的那个 syscall 行设断点，然后运行到那里。",
     checks: [
       ["设置了断点", (c) => c.breakpoints.some((b) => b.address != null)],
-      ["停在一个打印字符串（服务 4）的 syscall 之前", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)],
+      ["停在一个打印字符串（$v0 = 4）的 syscall 之前", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)],
     ],
     hints: ["点行号左边的空白处，或把光标放在那一行按 F9。", "打印名字的 syscall 前面一行是 li $v0, 4，再前面是 la $a0, name。"],
     go: [["打开断点标签", "side:stops"]],
@@ -117,7 +118,7 @@ export const STEPS = [
     title: "看懂这个 syscall",
     goal: "悬停在 syscall 上看简短说明，再点“查看详细”（或 Cmd/Ctrl＋点击）打开右侧的详细检查。它要的参数是什么？",
     checks: [["右侧详细检查显示了这个 syscall", (c) => c.inspecting === "syscall"]],
-    hints: ["详细检查里有“做什么 → 需要的参数 → 发生什么 → 变化”。", "服务 4 的参数 $a0 是地址，不是字符串本身。"],
+    hints: ["详细检查里有“做什么 → 需要的参数 → 发生什么 → 变化”。", "打印字符串时，$a0 是地址，不是字符串本身。"],
     go: [["展开详细检查", "panel:context"]],
   },
   {
@@ -129,7 +130,7 @@ export const STEPS = [
       return a >= base && a < base + (c.state?.memory?.length || 0);
     }]],
     hints: ["寄存器面板里点 $a0，右侧详细检查会出现“作为地址查看”。", "名字后面那个 0a 字节就是回车（\\n），最后的 00 是 \\0。"],
-    go: [["展开寄存器", "panel:registers"], ["展开内存", "panel:memory"]],
+    go: [["查看 $a0", "inspect:$a0"]],
   },
   {
     stage: "3 · 断点与检查",
@@ -185,7 +186,7 @@ export const STEPS = [
       const read = traceOf(c).filter((e) => e.service === 5 && e.instruction.op === "syscall").map((e) => e.accesses.find((a) => a.write && a.name === "$v0")?.value).filter((v) => v != null);
       return read.some((n) => (c.state?.output || "").includes(String(n + 1)));
     }]],
-    hints: ["读取整数是服务 5，读到的数在 $v0。", "打印整数是服务 1，参数放在 $a0。"],
+    hints: ["读取整数：$v0 = 5，读到的数会放在 $v0。", "打印整数：$v0 = 1，要打印的数放在 $a0。"],
     answer: AGE,
     go: [["查“读取整数”", "find:读取整数"]],
   },
@@ -279,6 +280,7 @@ export class Tutorial {
       <h4>${esc(step.title)}</h4><p class="tutorial-goal">${esc(step.goal)}</p>
       <ul class="tutorial-checks">${results.map(([label, ok]) => `<li class="${ok ? "ok" : ""}">${ok ? "✓" : "○"} ${esc(label)}</li>`).join("")}</ul>
       ${fail ? `<p class="tutorial-fail" role="alert">${esc(fail)}</p>` : ""}
+      ${done && step.doneNote ? `<p class="tutorial-hint">${esc(step.doneNote)}</p>` : ""}
       ${step.code ? `<pre class="tutorial-answer">${esc(step.code)}</pre>` : ""}
       ${step.hints.slice(0, this.shown).map((h, i) => `<p class="tutorial-hint">提示 ${i + 1}：${esc(h)}</p>`).join("")}
       ${this.answer && step.answer ? `<p class="tutorial-hint">参考答案（对照着自己写，不会自动填入）：</p><pre class="tutorial-answer">${esc(step.answer)}</pre>` : ""}

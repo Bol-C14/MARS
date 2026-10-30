@@ -24,3 +24,10 @@ test("results say real or pseudo, and syscall services show number plus paramete
   assert.equal(items.filter((x) => x.op === "add").length, 1, "curated entries win over MARS duplicates");
   assert.deepEqual(searchInstructions("zzzz不存在", items), []);
 });
+
+test("a shared word is a weak match that does not compete with real answers", () => {
+  const strong = (q) => searchInstructions(q, items).filter((x) => !x.weak).map((x) => x.label);
+  assert.deepEqual(strong("打印字符"), ["syscall 11 · 打印字符", "syscall 4 · 打印字符串"]);
+  assert.ok(!strong("读取整数").includes("lw"));
+  assert.ok(searchInstructions("读取整数", items).some((x) => x.op === "lw" && x.weak), "still there, folded");
+});

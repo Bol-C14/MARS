@@ -45,9 +45,28 @@ import {
 import { serviceAt, serviceGuide, syscallDetail } from "./syscalls.js";
 import { instructionIndex, searchInstructions } from "./instruction-index.js";
 import { Tutorial } from "./tutorial.js";
+import { supportsBits } from "./bits.js";
 import { projectManager } from "./project-manager.js";
 import { assemblyScope, scopeHints } from "./workspace.js";
 const $ = (id) => document.getElementById(id);
+// Jumps and branches take VS Code's control-keyword colour, the same purple
+// as control-flow arrows.
+const CONTROL_OPS =
+  /^(?:j|jal|jr|jalr|b|beq|bne|bgez|bgtz|blez|bltz|bgezal|bltzal|blt|bgt|ble|bge|bltu|bgtu|bleu|bgeu|beqz|bnez)$/;
+// A Chinese description of an instruction: the hand-written explanation,
+// else the purpose and limits from the instruction search table, and only
+// then MARS's English text (round-4 trial: sub showed "Subtraction with
+// overflow"). One table serves search, hover and the inspector.
+const CURATED = new Map(
+  instructionIndex({})
+    .filter((x) => x.kind === "instruction")
+    .map((x) => [x.op, x]),
+);
+function zhDoc(op) {
+  if (explanations[op]) return explanations[op];
+  const c = CURATED.get(op);
+  return c ? `${c.purpose}${c.note ? "；" + c.note : ""}。` : "";
+}
 let workspace = null;
 // Four different things (P0): the tab being edited (activeFile), the scope
 // the next assembly would use (nextScope: auto, single or manual), the way
@@ -56,7 +75,8 @@ let workspace = null;
 // what the student is looking at.
 let target = null,
   lastInTarget = "",
-  tutorial = null;
+  tutorial = null,
+  problemsShownForError = false;
 const fileAccess = new Compartment();
 let state = null,
   files = {},
@@ -76,6 +96,7 @@ let state = null,
   fontSize = 13;
 let inspecting = null,
   inspectingPlace = null,
+  following = true,
   program = { instructions: [], symbols: [], instructionDocs: {} },
   fileStates = new Map(),
   loadEditor = false;
@@ -290,20 +311,47 @@ const decorations = ViewPlugin.fromClass(
                 side: 1,
               }).range(l.to),
             );
+          // Strings and comments first: a # inside a string is text, and
+          // words inside a string are not instructions.
           let text = l.text,
-            comment = text.indexOf("#"),
-            code = comment < 0 ? text : text.slice(0, comment);
+            strings = [],
+            comment = -1;
+          for (let i = 0, quote = null; i < text.length; i++) {
+            const c = text[i];
+            if (quote) {
+              if (c === "\\") i++;
+              else if (c === quote) {
+                strings.at(-1)[1] = i + 1;
+                quote = null;
+              }
+            } else if (c === '"' || c === "'") {
+              quote = c;
+              strings.push([i, text.length]);
+            } else if (c === "#") {
+              comment = i;
+              break;
+            }
+          }
+          const code = comment < 0 ? text : text.slice(0, comment),
+            inString = (k) => strings.some(([a, b]) => k >= a && k < b);
+          for (const [a, b] of strings)
+            ranges.push(
+              Decoration.mark({ class: "cm-string" }).range(l.from + a, l.from + b),
+            );
           for (let m of code.matchAll(
             /\$\w+|\b0x[\da-fA-F]+\b|\b\d+\b|\b[a-zA-Z_]\w*:?/g,
           )) {
+            if (inString(m.index)) continue;
             let type = m[0].startsWith("$")
               ? "reg"
               : m[0].endsWith(":")
                 ? "label"
                 : /^\d/.test(m[0])
                   ? "number"
-                  : program.instructionDocs[m[0]] || explanations[m[0]]
-                    ? "op"
+                  : program.instructionDocs[m[0]] || zhDoc(m[0])
+                    ? CONTROL_OPS.test(m[0])
+                      ? "op cm-control"
+                      : "op"
                     : null;
             if (type)
               ranges.push(
@@ -695,7 +743,7 @@ function syscallAt(place) {
               e.instruction.line === place.line,
           )
       : null;
-  const { n, from } = serviceAt({
+  const { n, from, setter } = serviceAt({
     next,
     event,
     v0: regValue("$v0"),
@@ -709,9 +757,25 @@ function syscallAt(place) {
       : (event?.accesses.find(
           (a) => a.kind === "register" && !a.write && a.name === r,
         )?.value ?? null);
+  // The step that put the value into $v0, when the recorded history has it.
+  const before = next ? state.step : event ? event.step - 1 : null;
+  const writer =
+    setter && before != null
+      ? [...(state?.trace || [])]
+          .reverse()
+          .find(
+            (e) =>
+              e.step <= before &&
+              e.instruction.file === place?.file &&
+              e.instruction.line === setter.line &&
+              e.accesses.some((a) => a.write && a.name === "$v0"),
+          )
+      : null;
   return {
     n,
     from,
+    setter,
+    step: writer?.step ?? null,
     values,
     event,
     waiting: next && state.status === "waiting",
@@ -722,16 +786,14 @@ function syscallAt(place) {
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>当前快照 S${state?.step ?? 0} · Cmd/Ctrl＋点击固定</small>`;
+    return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>执行 ${state?.step ?? 0} 步后的值</small>`;
   if (token === "syscall") {
     const at = syscallAt(place),
       g = serviceGuide[at.n];
-    return `<b>${esc(syscallDetail(at).title)}</b><p>${esc(g ? g[1] : "syscall 按调用时 $v0 的值选择服务。")}</p><small>${esc(
-      { next: "即将执行", ran: "最近一次执行", source: "按源码推测", unknown: "服务号执行时才确定" }[at.from],
-    )}</small>`;
+    return `<b>${esc(at.n == null ? "syscall（$v0 未知）" : `syscall：${g ? g[0] : "不支持"}（$v0 = ${at.n}）`)}</b><p>${esc(g ? g[1] : "syscall 做什么由 $v0 里的数决定；要执行到这一行才知道。")}</p>${at.setter ? `<small>第 ${at.setter.line} 行 ${esc(at.setter.text)} 放入</small>` : ""}`;
   }
-  if (explanations[token]) {
-    const text = explanations[token];
+  if (zhDoc(token)) {
+    const text = zhDoc(token);
     return `<b>${esc(token)}</b><p>${esc(text)}</p>${lineFormula(place)}<small>指令／汇编器说明</small>`;
   }
   if (program.instructionDocs[token]) {
@@ -783,6 +845,19 @@ function hover(e) {
     inspectToken(token, place);
     hideTooltip(0);
   };
+  // A register may hold an address: follow it from here too (round-4 trial).
+  const reg = canonicalReg(token);
+  if (reg.startsWith("$") && state) {
+    const go = document.createElement("button");
+    go.className = "tip-detail";
+    go.type = "button";
+    go.textContent = "作为地址查看";
+    go.onclick = () => {
+      memoryAt(regValue(reg));
+      hideTooltip(0);
+    };
+    $("tooltip").append(" ", go);
+  }
   $("tooltip").hidden = false;
   $("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
@@ -790,22 +865,61 @@ function hover(e) {
 $("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
 $("tooltip").addEventListener("mouseleave", () => hideTooltip());
 const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_HINT.replace("查看详细", "")}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
+// The inspector follows execution by default, showing the line that just
+// ran (or, before anything ran, the next one as a preview); opening an object
+// pins it until "回到跟随执行" or "取消固定" (round-4 trial: a pinned syscall
+// from line 36 was read as describing the current line 11).
+function followInspector() {
+  if (!following || !state || dirty || running) return;
+  const e = state.last?.instruction ? state.last : state.preview,
+    ins = e?.instruction;
+  if (!ins) return showContext(CONTEXT_HINT);
+  const word = ((files[ins.file] || "").split("\n")[ins.line - 1] || "")
+    .replace(/#.*/, "")
+    .replace(/^\s*(?:[\w.$]+:\s*)*/, "")
+    .trim()
+    .split(/\s+/)[0];
+  const token =
+    ins.op === "syscall" ? "syscall" : isInstruction(word) ? word : ins.op;
+  inspectToken(token, { file: ins.file, line: ins.line }, { refresh: true });
+}
+function modeBar() {
+  if (!state || dirty) return "";
+  const at = (e) => e?.instruction && `${e.instruction.file}:${e.instruction.line}`;
+  if (following) {
+    const e = state.last?.instruction ? state.last : state.preview;
+    return e?.instruction
+      ? `<div class="inspect-mode">跟随执行 · ${state.last?.instruction ? "刚执行" : "即将执行"}的第 ${e.instruction.line} 行</div>`
+      : "";
+  }
+  if (!inspecting) return "";
+  const pinned = inspectingPlace ? `${inspectingPlace.file}:${inspectingPlace.line}` : "";
+  const here = program.instructions.find((i) => i.address === executionPC());
+  const away =
+    pinned && here && ![at(state.last), at(state.preview)].includes(pinned);
+  return `<div class="inspect-mode pinned">已固定 · ${esc(inspecting)}${inspectingPlace ? ` · 第 ${inspectingPlace.line} 行` : ""}${away ? ` · 执行已到第 ${here.line} 行` : ""}<button id="follow-again">回到跟随执行</button></div>`;
+}
 function showContext(html) {
-  $("context").innerHTML = html;
+  $("context").innerHTML = modeBar() + html;
+  $("clear-focus").hidden = following || !inspecting;
+  if ($("follow-again"))
+    $("follow-again").onclick = () => $("clear-focus").click();
   setTimeout(() => tutorial?.update());
 }
-function inspectToken(token, place = null) {
+function inspectToken(token, place = null, { refresh = false } = {}) {
   if (!token) return;
+  // Opening an object pins it; refreshing or following keeps the mode.
+  if (!refresh) following = false;
   inspecting = token;
   inspectingPlace = place;
-  $("tooltip").hidden = true;
+  if (!refresh) $("tooltip").hidden = true;
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
     let base = regValue(address[2]),
       offset = Number(address[1] || 0),
       effective = (base + offset) | 0;
     showContext(
-      `<h3>${esc(token)}</h3><p>当前快照中的有效地址</p><div class="values"><span>基址</span><span>${esc(address[2])} = ${hex(base)}</span><span>偏移</span><span>${offset} 字节</span><span>地址</span><span>${hex(effective)}</span></div><button id="inspect-memory">查看内存 →</button>`,
+      `<h3>${esc(token)}</h3><p>按执行 ${state?.step ?? 0} 步后的寄存器值算出的地址</p><div class="values"><span>基址</span><span>${esc(address[2])} = ${hex(base)}</span><span>偏移</span><span>${offset} 字节</span><span>地址</span><span>${hex(effective)}</span></div><button id="inspect-memory">查看内存 →</button>`,
     );
     $("inspect-memory").onclick = () => memoryAt(effective);
     return;
@@ -817,7 +931,7 @@ function inspectToken(token, place = null) {
     let value = regValue(token),
       last = state?.lastWriters?.[token];
     showContext(
-      `<h3>${esc(token)} <small class="muted">寄存器</small></h3><p>${esc(role(token))}</p>${valueHTML(value)}<p class="muted">当前快照 S${state?.step ?? 0} · 最后写入 ${last ? "#" + last : "初始状态"}</p><div class="context-actions"><button id="refs">查找引用</button><button id="pin">${pinned.has(token) ? "取消固定" : "固定"}</button><button id="point">作为地址查看</button><button id="last-write" ${last ? "" : "disabled"}>最后写入</button><button id="next-write">运行到下次写入</button></div>`,
+      `<h3>${esc(token)} <small class="muted">寄存器</small></h3><p>${esc(role(token))}</p>${valueHTML(value)}<p class="muted">执行 ${state?.step ?? 0} 步后的值 · ${last ? `最后一次写入在第 ${last} 步` : "还没有被写入过（初始值）"}</p><div class="context-actions"><button id="refs">查找引用</button><button id="pin">${pinned.has(token) ? "取消固定" : "固定"}</button><button id="point">作为地址查看</button><button id="last-write" ${last ? "" : "disabled"}>最后写入</button><button id="next-write">运行到下次写入</button></div>`,
     );
     $("refs").onclick = () => showReferences(token);
     $("pin").onclick = () => {
@@ -832,17 +946,20 @@ function inspectToken(token, place = null) {
     return;
   }
   if (token === "syscall") {
-    const detail = syscallDetail(syscallAt(place));
+    const at = syscallAt(place),
+      detail = syscallDetail({ ...at, regTitle: (r) => r + "：" + role(r) }),
+      words = (serviceGuide[at.n] || []).flat(2).join(" ") + " 寄存器 syscall";
     showContext(
-      `<h3>${esc(detail.title)}</h3>${detail.html}<button id="service-list">查看服务表</button>`,
+      `<h3>${esc(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? '<button id="char-table">查看字符编码表</button>' : ""}<button id="service-list">$v0 的值对应做什么</button></div>`,
     );
+    if ($("char-table")) $("char-table").onclick = () => $("radix-help").click();
     $("service-list").onclick = () =>
       modal(
-        "MARS 服务",
+        "syscall：$v0 选定做什么",
         Object.entries(services)
           .map(
             ([id, s]) =>
-              `<p><b>${id}</b> ${serviceGuide[id]?.[0] || s[0]} · ${serviceGuide[id]?.[1] || ""} <small class="muted">参数 ${s[1].join(", ") || "无"} → ${s[2].join(", ") || "无返回值"}</small></p>`,
+              `<p><b>$v0 = ${id}</b> ${serviceGuide[id]?.[0] || s[0]} · ${serviceGuide[id]?.[1] || ""} <small class="muted">参数 ${s[1].join(", ") || "无"} → ${s[2].join(", ") || "无返回值"}</small></p>`,
           )
           .join(""),
       );
@@ -861,12 +978,12 @@ function inspectToken(token, place = null) {
   }
   if (isInstruction(token) && place) return instructionDetail(token, place);
   showContext(
-    `<h3>${esc(token)}</h3><p>${esc(explanations[token] || program.instructionDocs[token]?.description || "当前工程中的文本／立即数")}</p><p class="muted">${esc(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">查找引用</button></div>`,
+    `<h3>${esc(token)}</h3><p>${esc(zhDoc(token) || program.instructionDocs[token]?.description || "当前工程中的文本／立即数")}</p><p class="muted">${esc(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">查找引用</button></div>`,
   );
   $("refs").onclick = () => showReferences(token);
 }
 const isInstruction = (token) =>
-  !!(explanations[token] || program.instructionDocs[token]);
+  !!(zhDoc(token) || program.instructionDocs[token]);
 // The run of a source line the inspector explains: the line that just ran,
 // the line about to run (a preview), or its latest run in the history.
 function lineRun(place) {
@@ -917,12 +1034,15 @@ function lineTemplate(place) {
     fields = [(ins.binary >>> 21) & 31, (ins.binary >>> 16) & 31, (ins.binary >>> 11) & 31];
   const reg = (number, write) => ({ kind: "register", number, name: "$" + registerNames[number], value: 0, before: 0, write });
   try {
-    const m = beatModel({
-      instruction: ins,
-      accesses: [...fields.slice(0, 2).map((n) => reg(n, false)), ...fields.slice(1).map((n) => reg(n, true))],
-      nextPC: ins.address + 4,
-      status: "paused",
-    });
+    const m = beatModel(
+      {
+        instruction: ins,
+        accesses: [...fields.slice(0, 2).map((n) => reg(n, false)), ...fields.slice(1).map((n) => reg(n, true))],
+        nextPC: ins.address + 4,
+        status: "paused",
+      },
+      { instructions: program.instructions, symbols: program.symbols },
+    );
     return m.template?.length ? m.template : null;
   } catch {
     return null;
@@ -944,7 +1064,7 @@ function lineFormula(place) {
 // related reads and writes. Values come from the selected history state.
 function instructionDetail(token, place) {
   const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(),
-    doc = explanations[token] || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text,
+    doc = zhDoc(token) || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text,
     run = lineRun(place),
     model = run ? lineModel(place, run.events) : null,
     template = model?.template || lineTemplate(place);
@@ -963,42 +1083,61 @@ function instructionDetail(token, place) {
   const value = (o, v) =>
     fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
   const label = (o) => (o.kind === "memory" ? `内存[${hex(o.address)}]` : o.name);
+  // Register names can be hovered for their conventional use.
+  const labelHTML = (o) =>
+    o.kind === "memory"
+      ? esc(label(o))
+      : `<abbr class="reg-term" title="${esc(o.name + "：" + role(o.name))}">${esc(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read),
     writes = (model?.objects || []).filter((o) => o.write);
   const single = (template && !(run?.events?.length > 1) && !run?.pseudo);
+  const bitsEvent = (run?.events || []).find(supportsBits);
   const rows = [];
   if (template && single)
     rows.push(["通用规则", `<code>${esc(genericTemplate(template, source))}</code>`]);
   if (template)
     rows.push(["本行代入", `<code>${esc(plainEq(template))}</code>`]);
   if (model) {
+    // A register both read and written: the right-hand side uses the value
+    // from before the write (round-4 trial: students had to infer this).
+    const both = writes.filter((w) => w.kind === "register" && reads.some((r) => r.name === w.name));
     rows.push([
-      run.kind === "next" ? "执行前数值（现在）" : "执行前数值",
-      reads.length ? reads.map((o) => `${esc(label(o))} = <b>${esc(value(o, o.before))}</b>`).join("，") : "不读取寄存器或内存",
+      run.kind === "next" ? "当前执行前数值" : "执行前数值",
+      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${esc(value(o, o.before))}</b>`).join("，") : "不读取寄存器或内存") +
+        both.map((o) => `<small class="detail-when">右边的 ${esc(o.name)} 用的是执行前的 ${esc(value(o, o.before))}，结果 ${esc(value(o, o.after))} 写回后 ${esc(o.name)} 才变。</small>`).join(""),
     ]);
     rows.push([
       "计算过程",
       `<ol>${model.beats.map((b) => `<li><code>${esc(plainEq(b.eq))}</code>${b.caption ? ` <small>${esc(b.caption)}</small>` : ""}</li>`).join("")}</ol>`,
     ]);
     rows.push([
-      "结果",
+      "完成执行后数值",
       (writes.length
-        ? writes.map((o) => `${esc(label(o))}：${esc(value(o, o.before))} → <b>${esc(value(o, o.after))}</b>`).join("<br>")
+        ? writes.map((o) => `${labelHTML(o)}：${esc(value(o, o.before))} → <b>${esc(value(o, o.after))}</b>`).join("<br>")
         : esc(model.summary || "没有写入寄存器或内存")) +
         `<small class="detail-when">${run.kind === "next" ? "预览：尚未执行" : "执行后的实际结果"}</small>`,
     ]);
     const related = [
-      reads.length && "读 " + reads.map(label).join("、"),
-      writes.length && "写 " + writes.map(label).join("、"),
+      reads.length && "读 " + reads.map(labelHTML).join("、"),
+      writes.length && "写 " + writes.map(labelHTML).join("、"),
     ].filter(Boolean);
-    if (related.length) rows.push(["关联读写", esc(related.join(" · "))]);
+    if (related.length) rows.push(["关联读写", related.join(" · ")]);
   } else if (run?.pseudo)
-    rows.push(["结果", "这一行是伪指令，执行后可以看到整行的结果；在专注模式中可逐条查看展开的机器指令。"]);
+    rows.push(["完成执行后数值", "这一行是伪指令，执行后可以看到整行的结果；在专注模式中可逐条查看展开的机器指令。"]);
   showContext(
-    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button></div>`,
+    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button>${bitsEvent ? `<button id="detail-bits">${run.kind === "past" ? "逐位查看（回退到那一步后可用）" : "在专注模式中逐位查看"}</button>` : ""}</div>`,
   );
   $("detail-source").onclick = () => gotoSource(place.file, place.line);
   $("refs").onclick = () => showReferences(token);
+  // The bit view lives in focus mode, which shows the steps around the
+  // current position: the line just run (-1) or about to run (0).
+  if (bitsEvent) {
+    $("detail-bits").disabled = run.kind === "past";
+    $("detail-bits").onclick = () => {
+      if (dirty || !state) return;
+      lens.openAt(run.kind === "next" ? 0 : -1, { bits: true });
+    };
+  }
 }
 function showReferences(token) {
   let refs = references(files, token);
@@ -1038,7 +1177,11 @@ function notify(message, { transient = false } = {}) {
     }, 4000);
 }
 // Every instruction the backend reports is shown with register names (C3).
+// After the program has ended, the backend's preview is merely the next
+// instruction in memory, which will never run (round-4 trial: an arrow on
+// helper.s after exit read as "not finished"), so it is dropped here.
 function named(s) {
+  if (s.status === "ended") s.preview = null;
   const fix = (i) => {
     if (i?.basic && !i.named) {
       i.basic = nameRegisters(i.basic);
@@ -1151,6 +1294,10 @@ async function assemble() {
       instructionDocs: state.instructionDocs || {},
     };
     dirty = false;
+    // An error had brought the problems list forward; a clean assembly puts
+    // the console back (round-4 trial: output stayed hidden behind it).
+    if (!state.error && problemsShownForError && bottom === "problems") setBottom("console");
+    problemsShownForError = false;
     // Breakpoints live on file:line. Those in files outside this assembly
     // stay listed but inactive, and come back when the file is assembled.
     breakpoints = breakpoints.map((b) => ({
@@ -1274,7 +1421,7 @@ function gotoSymbol(s) {
 // stop, and fast stepping left a trail of flashing lines).
 let arrivedAt = null;
 function arrive(jumped = false) {
-  const ins = program.instructions.find((i) => i.address === state?.pc);
+  const ins = program.instructions.find((i) => i.address === executionPC());
   if (!ins || view !== "source" || dirty) return;
   const far =
     jumped ||
@@ -1282,14 +1429,16 @@ function arrive(jumped = false) {
     arrivedAt.file !== ins.file ||
     Math.abs(arrivedAt.line - ins.line) > 1;
   arrivedAt = { file: ins.file, line: ins.line };
+  // An ended program has no next line to point at.
+  if (state.status === "ended") return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
     const line = editor.dom.querySelector(".cm-line.next-line");
     arrive.pulse?.cancel();
     arrive.pulse = line?.animate(
       [
-        { background: "color-mix(in srgb, var(--blue) 40%, var(--panel))" },
-        { background: "color-mix(in srgb, var(--blue) 12%, transparent)" },
+        { background: "color-mix(in srgb, var(--exec-strong) 45%, var(--panel))" },
+        { background: "color-mix(in srgb, var(--exec) 55%, transparent)" },
       ],
       { duration: 700, iterations: 1, easing: "ease-out" },
     );
@@ -1308,8 +1457,12 @@ let keepNotice = false;
 // The debugger moving the editor to where execution is, as opposed to the
 // student switching tabs: it never records navigation and only ever opens
 // files of the loaded program, so it cannot make the program look outdated.
+// Where execution is: the next instruction, or once the program has ended,
+// the last one that ran (the PC then points past the exit).
+const executionPC = () =>
+  state?.status === "ended" ? state.last?.pc : state?.pc;
 function followPC() {
-  let ins = program.instructions.find((i) => i.address === state?.pc);
+  let ins = program.instructions.find((i) => i.address === executionPC());
   if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
     const label = program.symbols
@@ -1413,9 +1566,11 @@ function statusInfo() {
       ? { file: i.file, line: i.line, text: `${i.file} 第 ${i.line} 行` }
       : null;
   };
+  // "Modified" only makes sense once a program was loaded (round-4 trial:
+  // a fresh project already said its source had been modified).
+  if (!target || !state || state.status === "empty")
+    return { kind: "idle", text: "尚未汇编 · 点“汇编”开始" };
   if (dirty) return { kind: "dirty", text: "源码已修改 · 重新汇编后继续" };
-  if (!state || state.status === "empty")
-    return { kind: "idle", text: "未汇编" };
   if (running)
     return {
       kind: "running",
@@ -1431,7 +1586,7 @@ function statusInfo() {
       at: next,
     };
   if (state.status === "ended")
-    return { kind: "ended", text: `已结束 · 退出码 ${state.exitCode}` };
+    return { kind: "ended", text: `已结束 · 退出码 ${state.exitCode}`, at: last };
   if (state.status === "error")
     return {
       kind: "error",
@@ -1466,8 +1621,33 @@ function statusInfo() {
     at: next,
   };
 }
+// Why execution buttons are unavailable, in the student's words (round-4
+// trial: a grey run button did not say whether the program had ended or the
+// open file was not the loaded one).
+function executionBlock() {
+  if (busy) return "正在处理上一个操作";
+  if (running) return "程序正在运行";
+  if (!state || state.status === "empty" || !target) return "还没有汇编：先点“汇编”";
+  if (dirty) return "代码已修改：先重新汇编";
+  const reason = scopeReason();
+  if (reason?.kind === "outside") return `正在查看 ${activeFile}，它不在现在能运行的程序里`;
+  if (reason) return "汇编方式或范围已更改：先重新汇编";
+  if (state.status === "ended") return "程序已结束";
+  if (state.status === "error") return "程序出错停下了：修改后重新汇编";
+  return "";
+}
+// After the program ends, run starts it again from the beginning: the
+// loaded program is assembled anew (breakpoints follow their file:line, and
+// input is asked for again rather than replayed) and then run.
+const canRestart = () =>
+  state?.status === "ended" && !busy && !running && !dirty && !blocked();
+async function restartRun() {
+  await assemble();
+  if (state?.status === "paused" && !state.error) await run("run");
+}
 function updateControls() {
-  const gate = blocked();
+  const gate = blocked(),
+    why = executionBlock();
   for (let name of ["step", "source", "over", "out", "run", "demo"])
     $(name).disabled =
       busy ||
@@ -1477,6 +1657,20 @@ function updateControls() {
       !state ||
       !["paused", "waiting"].includes(state.status);
   $("back").disabled = busy || dirty || !!gate || running || !state?.step;
+  const restart = canRestart();
+  if (restart) $("run").disabled = false;
+  $("run").textContent = restart ? "↻ 从头运行" : "▶ 运行";
+  $("run").setAttribute("aria-label", restart ? "从头运行（F5）" : "运行（F5）");
+  for (const name of ["back", "step", "source", "over", "out", "run", "demo"]) {
+    const b = $(name);
+    b.dataset.tipBase ??= b.dataset.tip || "";
+    b.dataset.tip =
+      name === "run" && restart
+        ? "从头运行：重新汇编当前程序并运行 · F5"
+        : b.disabled && why
+          ? `${b.dataset.tipBase}（${why}）`
+          : b.dataset.tipBase;
+  }
   $("assemble").disabled = busy;
   renderScope();
   tutorial?.update();
@@ -1512,8 +1706,14 @@ const sameFiles = (a, b) =>
 // switched to a source outside it, or changed the way or the manual scope.
 // Following execution into another file never causes this, because execution
 // only reaches files inside the target.
+// The loaded program in words: "hello.s", or "lab/main.s 和另外 1 个文件".
+const runnable = (t) =>
+  t.files.length > 1 ? `${t.entry} 和另外 ${t.files.length - 1} 个文件` : t.entry;
+// The banner says what can run now and what to click next (round-4 trial:
+// "已装入" needed thought, and "不会运行旧程序" read as "running is off").
 function scopeReason() {
   if (!state || !target || !workspace) return null;
+  const back = target.files.includes(lastInTarget) ? lastInTarget : target.entry;
   if (
     activeFile &&
     Object.hasOwn(files, activeFile) &&
@@ -1521,10 +1721,11 @@ function scopeReason() {
   )
     return {
       kind: "outside",
+      back,
       text:
-        target.files.length > 1
-          ? `${activeFile} 不属于已装入的程序（${describeScope(target)}）。运行和单步暂停使用，不会运行旧程序。`
-          : `正在查看 ${activeFile}；已装入的程序来自 ${target.entry}。运行和单步暂停使用，不会运行旧程序。`,
+        target.mode === "manual"
+          ? `${activeFile} 不在手动选择的范围里，现在能运行的是 ${runnable(target)}。`
+          : `你在看 ${activeFile}，现在能运行的是 ${runnable(target)}。要运行 ${activeFile}，先点［${assembleLabel()}］；也可以［回到 ${back}］继续调试。`,
     };
   const scope = nextScope();
   if (
@@ -1534,12 +1735,19 @@ function scopeReason() {
   )
     return {
       kind: "changed",
-      text: `汇编方式或范围已更改：下次将${describeScope(scope)}，已装入的仍是${describeScope(target)}。重新汇编后才能运行。`,
+      text: `${scope.mode !== target.mode ? `汇编方式改成了${{ auto: "自动汇编", single: "单文件汇编", manual: "手动选择范围" }[scope.mode]}` : "手动选择的范围改了"}，但现在能运行的还是之前装入的程序（${runnable(target)}）。点［重新汇编］按新方式装入。`,
     };
   return null;
 }
 function blocked() {
   return scopeReason()?.text || "";
+}
+// What the banner's assemble button says for the file being viewed.
+function assembleLabel() {
+  const scope = nextScope();
+  return !scope.error && scope.entry !== activeFile
+    ? `汇编（入口 ${scope.entry}）`
+    : `汇编 ${activeFile}`;
 }
 function renderScope() {
   const scope = nextScope(),
@@ -1550,8 +1758,9 @@ function renderScope() {
       ? `程序：${target.entry} ＋${target.files.length - 1} 个文件`
       : `程序：${target.entry}`;
   $("target").title = target
-    ? `${MODE_NAMES[target.mode]}，已装入的程序由这些源码汇编：\n` +
-      target.files.join("\n")
+    ? `${MODE_NAMES[target.mode]}，现在能运行的程序由这些源码汇编：\n` +
+      target.files.join("\n") +
+      "\n点“汇编”后会换成新的程序"
     : "还没有汇编";
   $("target").classList.toggle("stale", !!reason);
   $("assemble").title =
@@ -1573,17 +1782,12 @@ function renderScope() {
       ? [["assemble", "重新汇编"]]
       : target.mode === "manual"
         ? [
-            ["back", "回到已装入的程序"],
-            ["join", `把 ${activeFile} 加入汇编范围`],
+            ["back", `回到 ${reason.back}`],
+            ["join", `把 ${activeFile} 加入范围`],
           ]
         : [
-            [
-              "assemble",
-              !scope.error && scope.entry !== activeFile
-                ? `汇编（入口 ${scope.entry}）`
-                : `汇编 ${activeFile}`,
-            ],
-            ["back", `回到 ${lastInTarget || target.entry}`],
+            ["assemble", assembleLabel()],
+            ["back", `回到 ${reason.back}`],
           ];
   banner.innerHTML = `<span>${esc(reason.text)}</span>${actions
     .map(
@@ -1820,6 +2024,20 @@ function renderRegisters() {
         )
       : esc(fmt(r.value, 4, regKind(r.name)).text);
   $("registers").classList.toggle("bin", bin);
+  // What the prefixes mean, right where the values are (round-4 trial: the
+  // footer legend went unnoticed).
+  $("reg-legend").textContent = {
+    auto: "0d 十进制 · 0x 十六进制",
+    hex: "0x 十六进制",
+    dec: "0d 十进制",
+    bin: "0b 二进制",
+    ascii: "'…' 字符 · 0d 十进制",
+  }[radix];
+  // A negative value in BIN: the top bit says so (two's complement).
+  const signNote = (r) =>
+    bin && r.value < 0 && regKind(r.name) === "value"
+      ? `\n最高位是 1：按有符号数读是 ${r.value | 0}（补码）`
+      : "";
   $("registers").innerHTML = state.registers
     .filter((r) =>
       filter === "all" || filter === "pinned"
@@ -1828,7 +2046,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""} · 点击查看"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""}${esc(signNote(r))}\n前缀：${esc($("reg-legend").textContent)} · 点击查看"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -1880,6 +2098,7 @@ function memoryCell(v) {
   return v.toString(16).padStart(2, "0");
 }
 function inspectByte(address) {
+  following = false;
   focus = "mem:" + address;
   let value = state.memory.find((b) => b.address === address)?.value,
     last = state.lastWriters["mem:" + address];
@@ -1905,7 +2124,9 @@ function renderCards() {
   $("last-card").innerHTML =
     `<small>刚完成 ${last ? "#" + last.step : ""} · 实线</small><b>${esc(last?.instruction ? sourceOf(last.instruction) : "尚无执行记录")}</b>`;
   $("next-card").innerHTML =
-    `<small>即将执行 ${next?.instruction ? "#" + next.step : ""} · 虚线 ${next?.status === "waiting-input" ? "· 等待输入" : ""}</small><b>${esc(next?.instruction ? sourceOf(next.instruction) : "—")}</b>`;
+    state?.status === "ended"
+      ? `<small>即将执行</small><b>程序已结束 · 退出码 ${state.exitCode}</b>`
+      : `<small>即将执行 ${next?.instruction ? "#" + next.step : ""} · 虚线 ${next?.status === "waiting-input" ? "· 等待输入" : ""}</small><b>${esc(next?.instruction ? sourceOf(next.instruction) : "—")}</b>`;
   for (let [id, e] of [
     ["last-card", last],
     ["next-card", next],
@@ -1926,7 +2147,7 @@ function renderMachine() {
   $("machine").innerHTML = program.instructions
     .map(
       (i) =>
-        `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${esc(i.basic)}</span><small>${esc(i.file)}:${i.line} · ${hex(i.binary)} · ${esc(i.source?.trim())}</small></div>`,
+        `<div class="instruction ${i.address === state?.pc && state.status !== "ended" ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${esc(i.basic)}</span><small>${esc(i.file)}:${i.line} · ${hex(i.binary)} · ${esc(i.source?.trim())}</small></div>`,
     )
     .join("");
   $("machine")
@@ -2080,18 +2301,21 @@ function render() {
   if (state.error) {
     notify(hints.find(Boolean) || state.error);
     setBottom("problems");
+    problemsShownForError = true;
   } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
-  // The inspected object stays; its values follow the selected state.
-  if (
+  // A pinned object stays and its values follow the selected state;
+  // otherwise the inspector follows execution.
+  if (following) followInspector();
+  else if (
     inspecting &&
     (inspecting.startsWith("$") ||
       inspecting === "syscall" ||
       (isInstruction(inspecting) && inspectingPlace))
   )
-    inspectToken(inspecting, inspectingPlace);
+    inspectToken(inspecting, inspectingPlace, { refresh: true });
   overlay.schedule();
   updateControls();
 }
@@ -2336,6 +2560,7 @@ async function run(mode = "run", extra = {}) {
     finish();
   }
   arrive(mode !== "source");
+  followInspector();
   lens.settle();
 }
 async function runLoop(mode, extra) {
@@ -2483,7 +2708,7 @@ function commandList() {
         overlay.schedule();
       },
     ],
-    ["syscall 服务表", () => inspectToken("syscall")],
+    ["syscall 一览（$v0 的值对应做什么）", () => inspectToken("syscall")],
     ["查指令与用途（按名称或想做的事搜索）", () => findInstruction()],
   ];
   return commands.map(([label, run, action]) => ({
@@ -2511,7 +2736,7 @@ function findInstruction(query = "") {
   input.value = query;
   let results = [],
     selected = 0;
-  const kindOf = (x) => (x.kind === "service" ? "syscall 服务" : x.pseudo ? "伪指令" : "指令");
+  const kindOf = (x) => (x.kind === "service" ? "syscall" : x.pseudo ? "伪指令" : "指令");
   // Where this project uses it: lines with the instruction, or syscalls
   // whose service number (from the li $v0 above) is this one.
   const uses = (x) => {
@@ -2533,7 +2758,7 @@ function findInstruction(query = "") {
     const x = results[selected];
     if (!x) {
       $("find-detail").innerHTML = input.value.trim()
-        ? '<p class="muted">没有找到匹配的指令或服务。试试“加法”“比较大小”“打印字符”“读取整数”“右移”，或输入指令名。</p>'
+        ? '<p class="muted">没有找到匹配的指令或 syscall。试试“加法”“比较大小”“打印字符”“读取整数”“右移”，或输入指令名。</p>'
         : '<p class="muted">输入指令名，或用中文写想做的事。</p>';
       return;
     }
@@ -2558,15 +2783,29 @@ function findInstruction(query = "") {
           }),
       );
   };
+  // Loose matches fold away under "其他可能相关" when strong ones exist.
+  let moreOpen = false;
   const render = () => {
     results = searchInstructions(input.value, items);
-    selected = Math.max(0, Math.min(selected, results.length - 1));
-    $("find-list").innerHTML = results
-      .map(
-        (x, i) =>
-          `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${esc(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${esc(x.purpose)}</span></button>`,
-      )
-      .join("");
+    const strong = results.filter((x) => !x.weak).length,
+      folded = strong > 0 && strong < results.length && !moreOpen;
+    const visible = folded ? strong : results.length;
+    selected = Math.max(0, Math.min(selected, visible - 1));
+    const row = (x, i) =>
+      `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${esc(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${esc(x.purpose)}</span></button>`;
+    $("find-list").innerHTML =
+      strong > 0 && strong < results.length
+        ? results.slice(0, strong).map(row).join("") +
+          `<details class="find-more" ${moreOpen ? "open" : ""}><summary>其他可能相关（${results.length - strong} 个）</summary>${results.slice(strong).map((x, k) => row(x, strong + k)).join("")}</details>`
+        : results.map(row).join("");
+    const more = $("find-list").querySelector(".find-more");
+    if (more)
+      more.ontoggle = () => {
+        if (more.open !== moreOpen) {
+          moreOpen = more.open;
+          render();
+        }
+      };
     $("find-list")
       .querySelectorAll("[data-find]")
       .forEach(
@@ -2581,6 +2820,7 @@ function findInstruction(query = "") {
   };
   input.oninput = () => {
     selected = 0;
+    moreOpen = false;
     render();
   };
   input.onkeydown = (e) => {
@@ -2609,7 +2849,8 @@ tutorial = new Tutorial({
     dirty,
     breakpoints,
     watches,
-    inspecting,
+    // Only what the student opened counts, not what the inspector followed.
+    inspecting: following ? null : inspecting,
     lensOpen: lens.isOpen,
     sideTab,
   }),
@@ -2617,6 +2858,10 @@ tutorial = new Tutorial({
     const [kind, arg] = action.split(/:(.*)/);
     if (kind === "side") setSideTab(arg, true);
     else if (kind === "panel") setPanel(arg, false);
+    else if (kind === "inspect") {
+      setPanel("context", false);
+      inspectToken(arg);
+    }
     else if (kind === "find") findInstruction(arg);
     else if (kind === "focus") openFocus();
     // After the current click finishes, or its bubbling would close the menu.
@@ -2762,7 +3007,8 @@ $("back").onclick = () =>
     arrive();
   });
 for (let mode of ["source", "over", "out", "run"])
-  $(mode).onclick = () => run(mode);
+  $(mode).onclick = () =>
+    mode === "run" && canRestart() ? restartRun() : run(mode);
 $("pause").onclick = () => requestStop();
 $("commands").onclick = openCommands;
 $("radix").innerHTML = RADIXES.map(
@@ -2951,7 +3197,9 @@ $("clear-focus").onclick = () => {
   focus = null;
   inspecting = null;
   inspectingPlace = null;
+  following = true;
   showContext(CONTEXT_HINT);
+  followInspector();
   renderRegisters();
   overlay.schedule();
 };
@@ -2971,9 +3219,13 @@ for (let id of ["solid", "dashed", "reads", "writes", "flows"])
 document
   .querySelectorAll("[data-view]")
   .forEach((b) => (b.onclick = () => setView(b.dataset.view)));
-document
-  .querySelectorAll("[data-bottom]")
-  .forEach((b) => (b.onclick = () => setBottom(b.dataset.bottom)));
+document.querySelectorAll("[data-bottom]").forEach(
+  (b) =>
+    (b.onclick = () => {
+      problemsShownForError = false;
+      setBottom(b.dataset.bottom);
+    }),
+);
 $("input-form").onsubmit = async (e) => {
   e.preventDefault();
   let value = $("stdin").value;
@@ -3109,7 +3361,7 @@ workspace = projectManager({
     fileStates.clear(); navBack.length = navForward.length = 0;
     breakpoints = []; watches = []; debugLog = [];
     state = null; program = {instructions:[], symbols:[], instructionDocs:{}};
-    target = null; lastInTarget = ""; inspectingPlace = null;
+    target = null; lastInTarget = ""; inspectingPlace = null; following = true;
     showContext(CONTEXT_HINT);
     inspecting = null; focus = null; inlineCache.key = null;
     dirty = true; pendingResume = null;

@@ -68,7 +68,7 @@ const TABLE = [
   ["move", true, "复制寄存器的值", "move rd, rs", "rd ← rs", "move $s0, $v0", "伪指令：addu rd, rs, $zero", "复制 赋值 拷贝 保存"],
   ["neg", true, "取相反数", "neg rd, rs", "rd ← −rs", "neg $t0, $t1", "伪指令：sub rd, $zero, rs", "相反数 负数 取负"],
   ["abs", true, "取绝对值", "abs rd, rs", "rd ← |rs|", "abs $t0, $t1", "伪指令", "绝对值 正数"],
-  ["syscall", false, "系统调用：按 $v0 的服务号做输入、输出或退出", "syscall", "按 $v0 选择服务", "li $v0, 1\nsyscall", "先把服务号放进 $v0，参数放进 $a0 等", "系统调用 打印 输入 输出 读取 退出"],
+  ["syscall", false, "系统调用：做输入、输出或退出，做什么由 $v0 的值决定", "syscall", "按 $v0 的值做对应的事", "li $v0, 1\nsyscall", "先把对应的数放进 $v0，参数放进 $a0 等", "系统调用 打印 输入 输出 读取 退出"],
   ["nop", false, "什么也不做", "nop", "（无变化）", "nop", "常放在延迟槽里", "空 占位 延迟槽"],
 ];
 // Words people use for each service, beyond its name.
@@ -120,7 +120,7 @@ export function instructionIndex(docs = {}) {
       format: [`li $v0, ${n}`, ...args.map(([r, m]) => `${r} = ${m}`), "syscall"].join("\n"),
       formula: "",
       example: "",
-      note: `服务号 ${n} 放在 $v0`,
+      note: `先把 ${n} 放进 $v0，再执行 syscall`,
       words: `${name} ${SERVICE_WORDS[n] || ""}`,
     });
   // MARS's list covers the rest, in English.
@@ -161,9 +161,11 @@ function score(item, query) {
   const typed = q.split(/\s+/),
     words = item.words.toLowerCase().split(/\s+/).filter((w) => w.length > 1),
     found = words.filter((w) => (/^[a-z]+$/.test(w) ? typed.includes(w) : q.includes(w)));
+  // A saying that covers most of the query is a strong match; "字符" inside
+  // "打印字符" only shares a word (round-4 trial: lb and sb crowded the list).
   if (found.length) {
-    const hit = found.reduce((s, w) => s + w.length, 0);
-    return 500 + Math.min(150, (hit / q.length) * 150);
+    const cover = Math.min(1, found.reduce((s, w) => s + w.length, 0) / q.length);
+    return cover >= 0.6 ? 500 + cover * 150 : 300 + cover * 100;
   }
   // A misspelt name: every typed letter appears in order in the name.
   if (/^[a-z]+$/.test(q) && item.kind === "instruction") {
@@ -179,11 +181,14 @@ function score(item, query) {
   }
   return -1;
 }
+// Results best first; `weak` marks loose matches (a shared word or similar
+// letters) that the dialog folds away whenever strong matches exist.
+export const STRONG = 450;
 export function searchInstructions(query, items, limit = 30) {
   return items
     .map((item) => ({ item, s: score(item, query) }))
     .filter((r) => r.s >= 0)
     .sort((a, b) => b.s - a.s || a.item.label.length - b.item.label.length)
     .slice(0, limit)
-    .map((r) => r.item);
+    .map((r) => ({ ...r.item, weak: r.s < STRONG }));
 }

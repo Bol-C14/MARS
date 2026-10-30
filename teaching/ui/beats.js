@@ -777,20 +777,20 @@ export function beatModel(
   } else if (op === "syscall") {
     const v0 = readNamed("$v0"),
       n = event.service ?? v0?.value,
-      [title, args = []] = services[n] || ["系统服务"];
+      [title, args = []] = services[n] || ["系统调用"];
     // What the service does and what each argument means come from the
     // per-service guide (classroom 2026-10-24), e.g. 45 is '-' for service 11.
     const guide = serviceGuide[n];
     template = ["syscall（", dim("$v0"), "）"];
     if (v0)
       beat(
-        ["syscall ", fresh(N(n)), ` · ${guide?.[0] || title}`],
-        guide ? `按 $v0 选择服务：${guide[1]}` : "按 $v0 选择服务。",
+        ["$v0 = ", fresh(N(n)), ` → ${guide?.[0] || title}`],
+        guide ? `$v0 的值决定 syscall 做什么：${guide[1]}` : "$v0 的值决定 syscall 做什么。",
         {
           ...reading([v0]),
           why: guide
-            ? `调用前 $v0 = ${n} 是服务号。${guide[3]}变化：${guide[4]}。`
-            : `服务号 ${n} 不在支持范围内。`,
+            ? `$v0 = ${n} 选定了“${guide[0]}”。${guide[3]}变化：${guide[4]}。`
+            : `$v0 = ${n} 不在支持范围内。`,
         },
       );
     const params = reads.filter((a) => a !== v0 && args.includes(a.name));
@@ -817,7 +817,7 @@ export function beatModel(
     for (const a of writes)
       beat(
         [a.name, " = ", ok(N(a.value)), " ✓"],
-        `服务结果写入 ${a.name}。`,
+        `结果写入 ${a.name}。`,
         writing(a),
       );
     const stored = accesses.filter((a) => a.kind === "memory" && a.write);
@@ -828,7 +828,7 @@ export function beatModel(
           ok(`${stored.reduce((s, a) => s + a.width, 0)} 字节`),
           " ✓",
         ],
-        "服务把数据写入内存。",
+        "把数据写入内存。",
         {
           lit: stored.map((a) => ({
             id: id(a),
@@ -923,9 +923,9 @@ function roleOf(ins, number, name) {
     rd = (bits >>> 11) & 31;
   if (ins.op === "syscall") {
     if (name === "$v0")
-      return " syscall 的服务编号（syscall 按 $v0 决定做什么）";
-    if (/^\$a[0-3]$/.test(name)) return " syscall 服务的参数";
-    return " syscall 服务用到的寄存器";
+      return "（syscall 做什么由 $v0 的值决定）";
+    if (/^\$a[0-3]$/.test(name)) return "（syscall 的参数）";
+    return "（syscall 用到的寄存器）";
   }
   if (name === "hi" || name === "lo")
     return `${name.toUpperCase()} 寄存器（乘除法结果的存放处）`;
@@ -1337,7 +1337,7 @@ export function lineDecision(
     /^\$\d+$/.test(t) ? "$" + registerNames[Number(t.slice(1))] : t;
   if (ins.op === "syscall") {
     const n = last.service ?? val("$v0");
-    const [name, args = []] = services[n] || [`服务 ${n}`];
+    const [name, args = []] = services[n] || [`不支持的 $v0 = ${n}`];
     const parts = [`$v0 = ${format(n, "$v0")} ${name}`];
     const shown = args
       .filter((r) => r !== "memory" && val(r) != null)
@@ -1348,7 +1348,13 @@ export function lineDecision(
       const out = [...last.output]
         .map((c) => escapeByte(c.charCodeAt(0)))
         .join("");
-      results.push(`输出 "${out.length > 16 ? out.slice(0, 15) + "…" : out}"`);
+      // A character is a code looked up in the character table: say so for
+      // service 11 (round-4 trial: why does 50 print "2"?).
+      results.push(
+        n === 11 && val("$a0") != null
+          ? `输出 '${out}'（${argumentMeaning(11, "$a0", val("$a0"))}）`
+          : `输出 "${out.length > 16 ? out.slice(0, 15) + "…" : out}"`,
+      );
     }
     for (const a of last.accesses || [])
       if (a.write && a.kind === "register")

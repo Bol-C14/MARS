@@ -22774,7 +22774,7 @@ var explanations = {
   bne: "\u6BD4\u8F83\u4E24\u4E2A\u5BC4\u5B58\u5668\uFF1B\u4E0D\u76F8\u7B49\u65F6\u8DF3\u8F6C\u3002",
   jal: "\u5C06\u8FD4\u56DE\u5730\u5740\u5199\u5165 $ra\uFF0C\u5E76\u8C03\u7528\u76EE\u6807\uFF1B\u8FD4\u56DE\u5730\u5740\u53D7\u5EF6\u8FDF\u5206\u652F\u914D\u7F6E\u5F71\u54CD\u3002",
   jr: "\u8DF3\u8F6C\u5230\u5BC4\u5B58\u5668\u4E2D\u5B58\u50A8\u7684\u5730\u5740\uFF1Bjr $ra \u5E38\u7528\u4E8E\u8FD4\u56DE\u3002",
-  syscall: "\u6839\u636E $v0 \u7684\u670D\u52A1\u7F16\u53F7\u8C03\u7528 MARS \u670D\u52A1\uFF1B\u53C2\u6570\u548C\u8FD4\u56DE\u503C\u4F9D\u670D\u52A1\u800C\u5B9A\u3002",
+  syscall: "\u8BF7 MARS \u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF08\u4F8B\u5982 4 \u6253\u5370\u5B57\u7B26\u4E32\u30015 \u8BFB\u53D6\u6574\u6570\uFF09\uFF1B\u53C2\u6570\u548C\u7ED3\u679C\u4F9D\u6240\u505A\u7684\u4E8B\u800C\u5B9A\u3002",
   li: "\u4F2A\u6307\u4EE4\uFF1A\u5C06\u7ACB\u5373\u6570\u88C5\u5165\u5BC4\u5B58\u5668\uFF0C\u53EF\u80FD\u5C55\u5F00\u4E3A\u591A\u6761\u5B9E\u9645\u6307\u4EE4\u3002",
   la: "\u4F2A\u6307\u4EE4\uFF1A\u52A0\u8F7D\u5730\u5740\uFF1B\u5C55\u5F00\u53EF\u80FD\u4F7F\u7528 $at\u3002",
   move: "\u4F2A\u6307\u4EE4\uFF1A\u590D\u5236\u5BC4\u5B58\u5668\u5185\u5BB9\uFF0C\u4E0D\u6E05\u9664\u6E90\u5BC4\u5B58\u5668\u3002",
@@ -22784,7 +22784,7 @@ var explanations = {
 };
 function role(name2) {
   let n = registerNames.indexOf(name2.replace("$", ""));
-  return n === 0 ? "ISA\uFF1A\u6052\u4E3A 0\uFF0C\u5199\u5165\u4E0D\u63D0\u4EA4" : n === 1 ? "\u6C47\u7F16\u5668\u7EA6\u5B9A\uFF1A\u4F2A\u6307\u4EE4\u5C55\u5F00\u4E34\u65F6\u5BC4\u5B58\u5668" : n === 2 || n === 3 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u503C\uFF1B$v0 \u4E5F\u7528\u4E8E syscall \u670D\u52A1\u7F16\u53F7" : n >= 4 && n <= 7 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u53C2\u6570\u5BC4\u5B58\u5668" : n >= 16 && n <= 23 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u88AB\u8C03\u7528\u8005\u4FDD\u5B58\uFF1B\u786C\u4EF6\u4E0D\u4F1A\u81EA\u52A8\u4FDD\u5B58" : n === 29 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u6808\u6307\u9488\uFF0C\u5185\u5BB9\u901A\u5E38\u89E3\u91CA\u4E3A\u5730\u5740" : n === 31 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u5730\u5740\uFF1Bjal \u4F1A\u5199\u5165" : n === 28 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5168\u5C40\u6307\u9488" : n === 30 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5E27\u6307\u9488\uFF0F\u4FDD\u5B58\u5BC4\u5B58\u5668" : n === 26 || n === 27 ? "\u7EA6\u5B9A\uFF1A\u5185\u6838\u4FDD\u7559" : "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u4E34\u65F6\u5BC4\u5B58\u5668\uFF1B\u8DE8\u51FD\u6570\u8C03\u7528\u4E0D\u4FDD\u8BC1\u4FDD\u6301";
+  return n === 0 ? "ISA\uFF1A\u6052\u4E3A 0\uFF0C\u5199\u5165\u4E0D\u63D0\u4EA4" : n === 1 ? "\u6C47\u7F16\u5668\u7EA6\u5B9A\uFF1A\u4F2A\u6307\u4EE4\u5C55\u5F00\u4E34\u65F6\u5BC4\u5B58\u5668" : n === 2 || n === 3 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u503C\uFF1Bsyscall \u524D\u4E5F\u7528\u6765\u653E\u201C\u8981\u505A\u4EC0\u4E48\u201D\u7684\u6570" : n >= 4 && n <= 7 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u53C2\u6570\u5BC4\u5B58\u5668" : n >= 16 && n <= 23 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u88AB\u8C03\u7528\u8005\u4FDD\u5B58\uFF1B\u786C\u4EF6\u4E0D\u4F1A\u81EA\u52A8\u4FDD\u5B58" : n === 29 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u6808\u6307\u9488\uFF0C\u5185\u5BB9\u901A\u5E38\u89E3\u91CA\u4E3A\u5730\u5740" : n === 31 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u5730\u5740\uFF1Bjal \u4F1A\u5199\u5165" : n === 28 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5168\u5C40\u6307\u9488" : n === 30 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5E27\u6307\u9488\uFF0F\u4FDD\u5B58\u5BC4\u5B58\u5668" : n === 26 || n === 27 ? "\u7EA6\u5B9A\uFF1A\u5185\u6838\u4FDD\u7559" : "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u4E34\u65F6\u5BC4\u5B58\u5668\uFF1B\u8DE8\u51FD\u6570\u8C03\u7528\u4E0D\u4FDD\u8BC1\u4FDD\u6301";
 }
 function references(files2, token) {
   let out = [];
@@ -22972,9 +22972,9 @@ var OverlayRenderer = class {
     let paths = [], labels = [], focus2 = this.getFocus();
     const scope = document.querySelector("#relation-scope").value;
     let colors = {
-      read: getComputedStyle(document.body).getPropertyValue("--blue").trim(),
-      write: getComputedStyle(document.body).getPropertyValue("--orange").trim(),
-      flow: getComputedStyle(document.body).getPropertyValue("--purple").trim()
+      read: getComputedStyle(document.body).getPropertyValue("--read").trim(),
+      write: getComputedStyle(document.body).getPropertyValue("--write").trim(),
+      flow: getComputedStyle(document.body).getPropertyValue("--flow").trim()
     };
     if (scope === "focus" && !focus2) {
       this.svg.innerHTML = "";
@@ -23388,7 +23388,7 @@ var RADIX_HELP = {
   auto: "\u81EA\u52A8\uFF1A\u770B\u8D77\u6765\u50CF\u5730\u5740\u7684\u503C\uFF08\u843D\u5728\u4EE3\u7801\u3001\u6570\u636E\u6216\u6808\u7684\u8303\u56F4\u5185\uFF09\u7528\u5341\u516D\u8FDB\u5236\uFF0C\u5176\u4F59\u7528\u5341\u8FDB\u5236\u3002\u540C\u4E00\u4E2A\u503C\u4E0D\u4F1A\u56E0\u4E3A\u53D8\u5927\u800C\u6362\u5199\u6CD5\u3002",
   hex: "HEX\uFF1A\u5341\u516D\u8FDB\u5236\uFF0C\u524D\u7F00 0x\u3002\u6BCF\u4E00\u4F4D\u8868\u793A 0\u201315\uFF08a\u2013f \u8868\u793A 10\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u662F\u4E00\u4E2A\u5B57\u8282\u3002",
   dec: "DEC\uFF1A\u5341\u8FDB\u5236\uFF0C\u524D\u7F00 0d\u3002\u666E\u901A\u6570\u503C\u6309\u6709\u7B26\u53F7\u6570\u8BFB\uFF08\u53EF\u4EE5\u662F\u8D1F\u6570\uFF09\uFF1B\u539F\u59CB\u5B57\u8282\u548C\u5730\u5740\u6309\u65E0\u7B26\u53F7\u6570\u8BFB\u3002",
-  bin: "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002",
+  bin: "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002\u8D1F\u6570\u7528\u8865\u7801\uFF1A\u22121 \u662F 32 \u4E2A 1\uFF0C\u22127 \u662F 1\u20261111_1001\uFF1B\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
   ascii: "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\\0\u3001\\n\u3001\\t \u8868\u793A\u7A7A\u5B57\u7B26\u3001\u6362\u884C\u3001\u5236\u8868\u3002\u4E0D\u50CF\u5B57\u7B26\u7684\u503C\uFF08\u4F8B\u5982 11\uFF09\u4ECD\u7528\u5341\u8FDB\u5236\u663E\u793A\uFF0C\u5E76\u6CE8\u660E\u201C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\u201D\u3002"
 };
 var RADIXES = [
@@ -23437,14 +23437,14 @@ var serviceGuide = {
   2: ["\u6253\u5370\u5355\u7CBE\u5EA6\u6570", "\u628A $f12 \u7684\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
   3: ["\u6253\u5370\u53CC\u7CBE\u5EA6\u6570", "\u628A $f12/$f13 \u7EC4\u6210\u7684\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570\uFF08\u4F4E\u4F4D\u4E00\u534A\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
   4: ["\u6253\u5370\u5B57\u7B26\u4E32", "\u4ECE $a0 \u7ED9\u51FA\u7684\u5730\u5740\u5F00\u59CB\u9010\u4E2A\u5B57\u8282\u6253\u5370\uFF0C\u9047\u5230\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF08\\0\uFF09\u505C\u4E0B\u3002", [["$a0", "\u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740\uFF08\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u6BB5\u6587\u5B57\uFF1B\\0 \u672C\u8EAB\u4E0D\u6253\u5370\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  5: ["\u8BFB\u53D6\u6574\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6574\u6570\u5E76\u6309 Enter\u3002", [], "\u8BFB\u5230\u7684\u6574\u6570\u5199\u5165 $v0\uFF0C\u8986\u76D6\u539F\u6765\u7684\u670D\u52A1\u53F7 5\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  5: ["\u8BFB\u53D6\u6574\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6574\u6570\u5E76\u6309 Enter\u3002", [], "\u6267\u884C\u540E $v0 \u53D8\u6210\u8BFB\u5230\u7684\u6574\u6570\uFF0C\u539F\u6765\u7684 5 \u88AB\u8986\u76D6\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
   6: ["\u8BFB\u53D6\u5355\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0\u3002", "$f0\uFF08\u8FD4\u56DE\u503C\uFF09"],
   7: ["\u8BFB\u53D6\u53CC\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0/$f1\u3002", "$f0\u3001$f1\uFF08\u8FD4\u56DE\u503C\uFF09"],
   8: ["\u8BFB\u53D6\u5B57\u7B26\u4E32", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u884C\u6587\u5B57\uFF0C\u628A\u5B57\u7B26\u5B58\u8FDB\u5185\u5B58\u3002", [["$a0", "\u7F13\u51B2\u533A\uFF08\u5B58\u653E\u8F93\u5165\u7684\u5185\u5B58\uFF09\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740"], ["$a1", "\u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\uFF0C\u542B\u672B\u5C3E\u7684 \\0"]], "\u4ECE $a0 \u5F00\u59CB\u6700\u591A\u5199\u5165 $a1\u22121 \u4E2A\u5B57\u7B26\uFF08\u542B\u6362\u884C\uFF09\uFF0C\u672B\u5C3E\u8865 \\0\u3002", "\u5185\u5B58\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
   9: ["\u5206\u914D\u5806\u5185\u5B58", "\u5728\u5806\u4E0A\u7559\u51FA $a0 \u4E2A\u5B57\u8282\u3002", [["$a0", "\u9700\u8981\u7684\u5B57\u8282\u6570"]], "\u8FD9\u5757\u5185\u5B58\u7684\u8D77\u59CB\u5730\u5740\u5199\u5165 $v0\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
   10: ["\u9000\u51FA\u7A0B\u5E8F", "\u7ED3\u675F\u7A0B\u5E8F\u3002", [], "\u7A0B\u5E8F\u505C\u6B62\uFF0C\u4E0D\u518D\u6267\u884C\u540E\u9762\u7684\u6307\u4EE4\u3002", "\u6267\u884C\u7ED3\u675F"],
-  11: ["\u6253\u5370\u5B57\u7B26", "\u628A $a0 \u4F4E 8 \u4F4D\u6309\u5B57\u7B26\u7F16\u7801\u8868\u5F53\u4F5C\u4E00\u4E2A\u5B57\u7B26\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u5B57\u7B26\u7684\u7F16\u7801"]], "\u7EC8\u7AEF\u591A\u51FA\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 -\uFF08\u540C\u6837\u7684 45 \u7528\u670D\u52A1 1 \u4F1A\u6253\u5370\u6210 45\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  12: ["\u8BFB\u53D6\u5B57\u7B26", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u5B57\u7B26\u3002", [], "\u8FD9\u4E2A\u5B57\u7B26\u7684\u7F16\u7801\u5199\u5165 $v0\uFF0C\u8986\u76D6\u539F\u6765\u7684\u670D\u52A1\u53F7 12\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
+  11: ["\u6253\u5370\u5B57\u7B26", "\u628A $a0 \u4F4E 8 \u4F4D\u6309\u5B57\u7B26\u7F16\u7801\u8868\u5F53\u4F5C\u4E00\u4E2A\u5B57\u7B26\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u5B57\u7B26\u7684\u7F16\u7801"]], "\u7EC8\u7AEF\u591A\u51FA\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 -\uFF08\u540C\u6837\u7684 45\uFF0C$v0 = 1 \u65F6\u4F1A\u6253\u5370\u6210 45\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
+  12: ["\u8BFB\u53D6\u5B57\u7B26", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u5B57\u7B26\u3002", [], "\u6267\u884C\u540E $v0 \u53D8\u6210\u8FD9\u4E2A\u5B57\u7B26\u7684\u7F16\u7801\uFF0C\u539F\u6765\u7684 12 \u88AB\u8986\u76D6\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
   13: ["\u6253\u5F00\u865A\u62DF\u6587\u4EF6", "\u6309 $a0 \u7684\u6587\u4EF6\u540D\u6253\u5F00\u5DE5\u7A0B\u91CC\u7684\u8F93\u5165\u6587\u4EF6\uFF08\u4E0D\u4F1A\u8BBF\u95EE\u7535\u8111\u4E0A\u7684\u6587\u4EF6\uFF09\u3002", [["$a0", "\u6587\u4EF6\u540D\u5B57\u7B26\u4E32\u7684\u5730\u5740"], ["$a1", "\u6253\u5F00\u65B9\u5F0F\uFF1A0 \u8BFB\u30011 \u5199\u30019 \u8FFD\u52A0"], ["$a2", "\u6A21\u5F0F\uFF08\u5FFD\u7565\uFF09"]], "\u6587\u4EF6\u63CF\u8FF0\u7B26\u5199\u5165 $v0\uFF1B\u6253\u4E0D\u5F00\u65F6\u4E3A\u8D1F\u6570\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
   14: ["\u8BFB\u53D6\u6587\u4EF6", "\u4ECE\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u8BFB\u53D6\u5B57\u8282\u5230\u5185\u5B58\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u7F13\u51B2\u533A\u5730\u5740"], ["$a2", "\u6700\u591A\u8BFB\u53D6\u7684\u5B57\u8282\u6570"]], "\u8BFB\u5230\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\uFF080 \u8868\u793A\u8BFB\u5B8C\uFF0C\u8D1F\u6570\u8868\u793A\u51FA\u9519\uFF09\u3002", "\u5185\u5B58\u3001$v0"],
   15: ["\u5199\u5165\u6587\u4EF6", "\u628A\u5185\u5B58\u4E2D\u7684\u5B57\u8282\u5199\u5165\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u8981\u5199\u7684\u6570\u636E\u5730\u5740"], ["$a2", "\u5B57\u8282\u6570"]], "\u5199\u5165\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\u3002", "\u865A\u62DF\u6587\u4EF6\u3001$v0"],
@@ -23468,36 +23468,38 @@ function argumentMeaning(n, register, value) {
   return "";
 }
 function serviceAt({ next, event, v0, lines = [], line = 0 }) {
-  if (next) return { n: v0, from: "next" };
-  if (event) return { n: event.service, from: "ran", event };
+  let setter = null;
   for (let i = line - 2; i >= 0 && i >= line - 30; i--) {
     const text2 = lines[i].replace(/#.*/, "");
     const m = /^\s*(?:li|addiu?|ori)\s+\$(?:v0|2)\s*,\s*(?:\$(?:zero|0)\s*,\s*)?(-?(?:0x[\da-f]+|\d+))\s*$/i.exec(text2);
-    if (m) return { n: Number(m[1]), from: "source" };
+    if (m) {
+      setter = { n: Number(m[1]), line: i + 1, text: text2.trim() };
+      break;
+    }
     if (/^\s*[\w.$]+\s*:/.test(text2) || /^\s*(?:j|jal|jr|jalr|b\w*)\s/.test(text2) || /^\s*syscall\b/.test(text2) || /\$(?:v0|2)\s*,/.test(text2)) break;
   }
-  return { n: null, from: "unknown" };
+  const n = next ? v0 : event ? event.service : setter ? setter.n : null;
+  return { n, from: next ? "next" : event ? "ran" : setter ? "source" : "unknown", event, setter: setter?.n === n ? setter : null };
 }
-var serviceSource = {
-  next: "\u5373\u5C06\u6267\u884C\uFF1A\u670D\u52A1\u53F7\u53D6\u81EA\u5F53\u524D\u7684 $v0",
-  ran: "\u6700\u8FD1\u4E00\u6B21\u6267\u884C\uFF1A\u670D\u52A1\u53F7\u662F\u8C03\u7528\u524D\u7684 $v0",
-  source: "\u6309\u6E90\u7801\u63A8\u6D4B\uFF1A\u53D6\u81EA\u4E0A\u65B9\u7684 li $v0, N",
-  unknown: "\u670D\u52A1\u53F7\u8981\u5230\u6267\u884C\u65F6\u7531 $v0 \u51B3\u5B9A"
-};
-function syscallDetail({ n, from, values = {}, event, waiting, esc, show: show2 = String }) {
+function chosenBy(n, name2, setter, step) {
+  if (n == null) return "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\u3002\u8FD9\u4E00\u884C\u4E0A\u65B9\u6CA1\u6709\u76F4\u63A5\u8BBE\u7F6E $v0 \u7684\u6307\u4EE4\uFF0C$v0 \u7684\u503C\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002";
+  const where = setter ? `\uFF08\u7B2C ${setter.line} \u884C ${setter.text} \u653E\u5165${step ? `\uFF0C\u7B2C ${step} \u6B65` : ""}\uFF09` : "";
+  return `$v0 = ${n} \u9009\u5B9A\u4E86\u201C${name2}\u201D${where}\u3002`;
+}
+function syscallDetail({ n, values = {}, event, waiting, esc, show: show2 = String, regTitle = null, setter = null, step = null }) {
+  const reg2 = (r) => regTitle ? `<abbr class="reg-term" title="${esc(regTitle(r))}">${r}</abbr>` : r;
   const g = serviceGuide[n];
-  const head = n == null ? "syscall \xB7 \u670D\u52A1\u53F7\u672A\u77E5" : `syscall \xB7 ${g ? g[0] : "\u4E0D\u652F\u6301\u7684\u670D\u52A1"}\uFF08\u670D\u52A1 ${n}\uFF09`;
+  const head = n == null ? "syscall\uFF1A$v0 \u672A\u77E5" : `syscall\uFF1A${g ? g[0] : "\u4E0D\u652F\u6301"}`;
   if (n != null && !g)
-    return { title: head, html: `<p>\u670D\u52A1\u53F7 ${esc(String(n))} \u4E0D\u5728 MARS Trace \u652F\u6301\u7684\u8303\u56F4\u5185\uFF08\u652F\u6301 ${Object.keys(serviceGuide).join("\u3001")}\uFF09\uFF0C\u6267\u884C\u65F6\u4F1A\u62A5\u9519\u505C\u4E0B\u3002</p>` };
-  if (!g)
-    return { title: head, html: `<p>syscall \u6309\u8C03\u7528\u65F6 $v0 \u7684\u503C\u9009\u62E9\u670D\u52A1\u3002\u8FD9\u4E00\u884C\u4E0A\u65B9\u6CA1\u6709\u627E\u5230\u786E\u5B9A\u7684 li $v0, N\uFF0C\u8981\u6267\u884C\u5230\u8FD9\u91CC\u624D\u77E5\u9053\u3002</p>` };
+    return { title: head, html: `<p>$v0 = ${esc(String(n))}\uFF1AMARS Trace \u4E0D\u652F\u6301\u8FD9\u4E2A\u6570\uFF08\u652F\u6301 ${Object.keys(serviceGuide).join("\u3001")}\uFF09\uFF0C\u6267\u884C\u65F6\u4F1A\u62A5\u9519\u505C\u4E0B\u3002</p>` };
+  if (!g) return { title: head, html: `<p>${esc(chosenBy(null))}</p>` };
   const [, does, args, effect, changes] = g;
   const arg = ([r, meaning]) => {
     const v = values[r], m = argumentMeaning(n, r, v);
-    return `<li><code>${r}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show2(v, r))}</b>`}${m ? `<small> \xB7 ${esc(m)}</small>` : ""}</li>`;
+    return `<li><code>${reg2(r)}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show2(v, r))}</b>`}${m ? `<small> \xB7 ${esc(m)}</small>` : ""}</li>`;
   };
   const happened = [];
-  if (waiting) happened.push("\u6B63\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u8BF7\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540E\u6309 Enter\u3002\u8F93\u5165\u5B8C\u6210\u524D $v0 \u4ECD\u662F\u670D\u52A1\u53F7\uFF0C\u4E0D\u4F1A\u663E\u793A\u865A\u6784\u7684\u7ED3\u679C\u3002");
+  if (waiting) happened.push(`\u6B63\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u8BF7\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540E\u6309 Enter\u3002\u8F93\u5165\u5B8C\u6210\u524D $v0 \u4ECD\u662F ${n}\uFF0C\u4E0D\u4F1A\u663E\u793A\u865A\u6784\u7684\u7ED3\u679C\u3002`);
   if (event) {
     if (event.output) happened.push(`\u5B9E\u9645\u8F93\u51FA "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
     for (const a of event.accesses || [])
@@ -23508,7 +23510,7 @@ function syscallDetail({ n, from, values = {}, event, waiting, esc, show: show2 
   }
   return {
     title: head,
-    html: `<p class="muted">${esc(serviceSource[from] || "")}</p><dl class="syscall-steps"><dt>\u505A\u4EC0\u4E48</dt><dd>${esc(does)}</dd><dt>\u9700\u8981\u7684\u53C2\u6570</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : "\u65E0"}</dd><dt>\u53D1\u751F\u4EC0\u4E48</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>\u53D8\u5316</dt><dd>${esc(changes)}</dd></dl><p class="muted">\u8C03\u7528\u524D $v0 \u662F\u670D\u52A1\u53F7\uFF1B\u8BFB\u53D6\u7C7B\u670D\u52A1\u5B8C\u6210\u540E $v0 \u4F1A\u53D8\u6210\u8BFB\u5230\u7684\u7ED3\u679C\u3002</p>`
+    html: `<p class="syscall-chosen">${esc(chosenBy(n, g[0], setter, step))}</p><dl class="syscall-steps"><dt>\u505A\u4EC0\u4E48</dt><dd>${esc(does)}</dd><dt>\u9700\u8981\u7684\u53C2\u6570</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : "\u65E0"}</dd><dt>\u53D1\u751F\u4EC0\u4E48</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>\u53D8\u5316</dt><dd>${esc(changes)}</dd></dl>`
   };
 }
 
@@ -24151,16 +24153,16 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       }
     );
   } else if (op === "syscall") {
-    const v0 = readNamed("$v0"), n = event.service ?? v0?.value, [title, args = []] = services[n] || ["\u7CFB\u7EDF\u670D\u52A1"];
+    const v0 = readNamed("$v0"), n = event.service ?? v0?.value, [title, args = []] = services[n] || ["\u7CFB\u7EDF\u8C03\u7528"];
     const guide = serviceGuide[n];
     template = ["syscall\uFF08", dim("$v0"), "\uFF09"];
     if (v0)
       beat(
-        ["syscall ", fresh(N(n)), ` \xB7 ${guide?.[0] || title}`],
-        guide ? `\u6309 $v0 \u9009\u62E9\u670D\u52A1\uFF1A${guide[1]}` : "\u6309 $v0 \u9009\u62E9\u670D\u52A1\u3002",
+        ["$v0 = ", fresh(N(n)), ` \u2192 ${guide?.[0] || title}`],
+        guide ? `$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\uFF1A${guide[1]}` : "$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\u3002",
         {
           ...reading([v0]),
-          why: guide ? `\u8C03\u7528\u524D $v0 = ${n} \u662F\u670D\u52A1\u53F7\u3002${guide[3]}\u53D8\u5316\uFF1A${guide[4]}\u3002` : `\u670D\u52A1\u53F7 ${n} \u4E0D\u5728\u652F\u6301\u8303\u56F4\u5185\u3002`
+          why: guide ? `$v0 = ${n} \u9009\u5B9A\u4E86\u201C${guide[0]}\u201D\u3002${guide[3]}\u53D8\u5316\uFF1A${guide[4]}\u3002` : `$v0 = ${n} \u4E0D\u5728\u652F\u6301\u8303\u56F4\u5185\u3002`
         }
       );
     const params = reads.filter((a) => a !== v0 && args.includes(a.name));
@@ -24185,7 +24187,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     for (const a of writes)
       beat(
         [a.name, " = ", ok(N(a.value)), " \u2713"],
-        `\u670D\u52A1\u7ED3\u679C\u5199\u5165 ${a.name}\u3002`,
+        `\u7ED3\u679C\u5199\u5165 ${a.name}\u3002`,
         writing(a)
       );
     const stored = accesses2.filter((a) => a.kind === "memory" && a.write);
@@ -24196,7 +24198,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           ok(`${stored.reduce((s, a) => s + a.width, 0)} \u5B57\u8282`),
           " \u2713"
         ],
-        "\u670D\u52A1\u628A\u6570\u636E\u5199\u5165\u5185\u5B58\u3002",
+        "\u628A\u6570\u636E\u5199\u5165\u5185\u5B58\u3002",
         {
           lit: stored.map((a) => ({
             id: id(a),
@@ -24277,9 +24279,9 @@ function roleOf(ins, number2, name2) {
   const bits2 = ins.binary | 0, opcode = bits2 >>> 26, rs = bits2 >>> 21 & 31, rt = bits2 >>> 16 & 31, rd = bits2 >>> 11 & 31;
   if (ins.op === "syscall") {
     if (name2 === "$v0")
-      return " syscall \u7684\u670D\u52A1\u7F16\u53F7\uFF08syscall \u6309 $v0 \u51B3\u5B9A\u505A\u4EC0\u4E48\uFF09";
-    if (/^\$a[0-3]$/.test(name2)) return " syscall \u670D\u52A1\u7684\u53C2\u6570";
-    return " syscall \u670D\u52A1\u7528\u5230\u7684\u5BC4\u5B58\u5668";
+      return "\uFF08syscall \u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF09";
+    if (/^\$a[0-3]$/.test(name2)) return "\uFF08syscall \u7684\u53C2\u6570\uFF09";
+    return "\uFF08syscall \u7528\u5230\u7684\u5BC4\u5B58\u5668\uFF09";
   }
   if (name2 === "hi" || name2 === "lo")
     return `${name2.toUpperCase()} \u5BC4\u5B58\u5668\uFF08\u4E58\u9664\u6CD5\u7ED3\u679C\u7684\u5B58\u653E\u5904\uFF09`;
@@ -24589,14 +24591,16 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   const reg2 = (t3) => /^\$\d+$/.test(t3) ? "$" + registerNames[Number(t3.slice(1))] : t3;
   if (ins.op === "syscall") {
     const n = last2.service ?? val("$v0");
-    const [name2, args2 = []] = services[n] || [`\u670D\u52A1 ${n}`];
+    const [name2, args2 = []] = services[n] || [`\u4E0D\u652F\u6301\u7684 $v0 = ${n}`];
     const parts = [`$v0 = ${format(n, "$v0")} ${name2}`];
     const shown = args2.filter((r) => r !== "memory" && val(r) != null).map((r) => `${r} = ${format(val(r), r)}`);
     if (shown.length) parts.push(" \xB7 " + shown.join("\uFF0C"));
     const results = [];
     if (last2.output) {
       const out = [...last2.output].map((c) => escapeByte(c.charCodeAt(0))).join("");
-      results.push(`\u8F93\u51FA "${out.length > 16 ? out.slice(0, 15) + "\u2026" : out}"`);
+      results.push(
+        n === 11 && val("$a0") != null ? `\u8F93\u51FA '${out}'\uFF08${argumentMeaning(11, "$a0", val("$a0"))}\uFF09` : `\u8F93\u51FA "${out.length > 16 ? out.slice(0, 15) + "\u2026" : out}"`
+      );
     }
     for (const a of last2.accesses || [])
       if (a.write && a.kind === "register")
@@ -24667,13 +24671,14 @@ var glossary = {
   \u7B26\u53F7\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF0C\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002\u4F8B\u5982\u5B57\u8282 0xf0\uFF08\u6700\u9AD8\u4F4D\u662F 1\uFF09\u6269\u6210 0xfffffff0\uFF0C\u4E5F\u5C31\u662F \u221216\u3002",
   \u96F6\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002\u4F8B\u5982\u5B57\u8282 0xf0 \u6269\u6210 0x000000f0\uFF0C\u4E5F\u5C31\u662F 240\u3002",
   \u5C0F\u7AEF\u5E8F: "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002\u4F8B\u5982 7 \u5B58\u6210 07 00 00 00\uFF0C\u22122 \u5B58\u6210 fe ff ff ff\u3002",
-  \u8865\u7801: "\u6709\u7B26\u53F7\u6574\u6570\u7684\u4E8C\u8FDB\u5236\u8868\u793A\uFF1A\u8D1F\u6570 \u2212x \u5B58\u6210 2\xB3\xB2 \u2212 x\uFF0C\u6240\u4EE5\u6700\u9AD8\u4F4D\u4E3A 1 \u7684\u6570\u662F\u8D1F\u6570\u3002\u4F8B\u5982 \u22122 \u5B58\u6210 0xfffffffe\u3002",
+  \u8865\u7801: "\u8D1F\u6570\u7684\u4E8C\u8FDB\u5236\u5199\u6CD5\uFF1A\u628A\u8FD9\u4E2A\u6570\u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\uFF0C\u518D\u52A0 1\u3002\u4F8B\u5982 1 \u662F 0\u20260001\uFF0C\u53D6\u53CD\u5F97 1\u20261110\uFF0C\u52A0 1 \u5F97 1\u20261111\uFF0C\u6240\u4EE5 \u22121 \u662F 32 \u4E2A 1\u3002\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
+  \u8FDB\u4F4D: "\u4E24\u4F4D\u76F8\u52A0\u6EE1 2 \u65F6\uFF0C\u5411\u66F4\u9AD8\u4E00\u4F4D\u9001\u51FA\u7684 1\uFF0C\u5C31\u50CF\u5341\u8FDB\u5236\u6EE1 10 \u8FDB 1\u3002\u6700\u9AD8\u4F4D\u518D\u5411\u5916\u7684\u8FDB\u4F4D\u653E\u4E0D\u4E0B\uFF0C\u4F1A\u88AB\u4E22\u5F03\u3002",
   NUL: "\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF0C\u5199\u4F5C \\0\u3002\u5B57\u7B26\u4E32\u5E38\u7528\u5B83\u6807\u8BB0\u7ED3\u5C3E\uFF1A\u8BFB\u5230\u5B83\u5C31\u8868\u793A\u5B57\u7B26\u4E32\u7ED3\u675F\u4E86\u3002",
   \u7ACB\u5373\u6570: "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002\u4F8B\u5982 addiu $t0, $t0, 4 \u91CC\u7684 4\u3002",
   \u57FA\u5740: "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D $s0 \u662F\u57FA\u5740\u3002",
   \u504F\u79FB: "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D 4 \u662F\u504F\u79FB\uFF0C0($s0) \u8868\u793A\u504F\u79FB\u4E3A 0\uFF0C\u4E5F\u5C31\u662F\u6B63\u597D\u5728\u57FA\u5740\u90A3\u91CC\u3002",
   \u5BC4\u5B58\u5668: "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\uFF0C\u50CF 32 \u4E2A\u6709\u540D\u5B57\u7684\u53D8\u91CF\u3002\u4F8B\u5982 $t0\u3001$a0\u3001$sp\u3002",
-  syscall: "\u8BF7\u6C42\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u63D0\u4F9B\u670D\u52A1\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u7531 $v0 \u7684\u7F16\u53F7\u9009\u62E9\u54EA\u79CD\u670D\u52A1\uFF0C\u53C2\u6570\u653E\u5728 $a0 \u7B49\u5BC4\u5B58\u5668\u91CC\u3002\u4F8B\u5982 $v0 = 11 \u662F\u6253\u5370 $a0 \u91CC\u7684\u5B57\u7B26\u3002",
+  syscall: "\u8BF7\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u505A\u54EA\u4EF6\u4E8B\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF0C\u53C2\u6570\u653E\u5728 $a0 \u7B49\u5BC4\u5B58\u5668\u91CC\u3002\u4F8B\u5982 $v0 = 11 \u662F\u6253\u5370 $a0 \u91CC\u7684\u5B57\u7B26\u3002",
   \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002\u4F8B\u5982 0x7fffffff + 1 \u7528\u6709\u7B26\u53F7\u6570\u8868\u793A\u4E0D\u4E0B\u3002",
   \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\u3002\u4F8B\u5982\u8BFB 4 \u5B57\u8282\uFF08lw\uFF09\u65F6\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570\uFF0C\u6240\u4EE5\u76F8\u90BB\u7684\u5B57\u4E4B\u95F4\u5730\u5740\u5DEE 4\u3002",
   \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002jal \u5728\u8DF3\u8FDB\u51FD\u6570\u65F6\u628A\u5B83\u5B58\u8FDB $ra\uFF0C\u51FD\u6570\u672B\u5C3E\u7684 jr $ra \u518D\u8DF3\u56DE\u53BB\u3002",
@@ -24806,6 +24811,12 @@ var FocusLens = class {
   lookaheadLines() {
     return this.mode === "auto" ? 8 : Number(this.mode);
   }
+  // Open on one step of the window: -1 the completed step, 0 the next one.
+  openAt(index, { bits: bits2 = false } = {}) {
+    this.wanted = { index, bits: bits2 };
+    if (this.isOpen) this.update(this.host.getState());
+    else this.open();
+  }
   async open() {
     if (this.isOpen) return;
     this.isOpen = true;
@@ -24819,6 +24830,9 @@ var FocusLens = class {
   close() {
     if (!this.isOpen) return;
     this.stop();
+    this.stopBits();
+    this.bitsOpen = false;
+    document.getElementById("focus-bits").hidden = true;
     this.isOpen = false;
     document.getElementById("focus-backdrop").hidden = true;
     this.el.hidden = true;
@@ -24858,6 +24872,12 @@ var FocusLens = class {
       this.stop();
       this.selected = this.models.has(-1) ? -1 : this.layout.steps[0]?.index ?? -1;
       this.beat = 0;
+    }
+    if (this.wanted && this.models.has(this.wanted.index)) {
+      this.selected = this.wanted.index;
+      this.bitsOpen = this.wanted.bits;
+      this.bitsStep = 0;
+      this.wanted = null;
     }
     this.render();
     if (moved && !this.host.isRunning() && !this.holding) this.autoplay();
@@ -25261,7 +25281,7 @@ var FocusLens = class {
       (bit, j) => `<i class="${r.marks[j] || ""}${bit == null ? " pending" : ""}">${bit == null ? "\xB7" : bit}</i>${(j + 1) % 4 === 0 && j < r.bits.length - 1 ? '<span class="bgap"></span>' : ""}`
     ).join("")}</span>${r.out ? `<span class="bout">\u79FB\u51FA ${r.out.bit}</span>` : ""}</div>`;
     panel.hidden = false;
-    panel.innerHTML = `<div class="bits-head"><b>${escapeHTML(story.title)}</b><span>${escapeHTML(where)}</span>${reduced ? "" : `<span class="bits-progress">\u7B2C ${this.bitsStep + 1}/${story.steps.length} \u6B65</span>`}</div>` + shown.map((st) => `<div class="bits-step"><p>${escapeHTML(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`).join("") + (reduced ? "" : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>\u25C0 \u4E0A\u4E00\u6B65</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>\u4E0B\u4E00\u6B65 \u25B6</button><button id="bits-play">${this.bitsTimer ? "\u6682\u505C" : "\u64AD\u653E"}</button><button id="bits-replay">\u91CD\u653E</button></div>`);
+    panel.innerHTML = `<div class="bits-head"><b>${escapeHTML(story.title)}</b><span>${escapeHTML(where)}</span>${reduced ? "" : `<span class="bits-progress">\u7B2C ${this.bitsStep + 1}/${story.steps.length} \u6B65</span>`}</div>` + shown.map((st) => `<div class="bits-step"><p>${glossify(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`).join("") + (reduced ? "" : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>\u25C0 \u4E0A\u4E00\u6B65</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>\u4E0B\u4E00\u6B65 \u25B6</button><button id="bits-play">${this.bitsTimer ? "\u6682\u505C" : "\u64AD\u653E"}</button><button id="bits-replay">\u91CD\u653E</button></div>`);
     if (reduced) return;
     const go = (to) => {
       this.bitsStep = Math.max(0, Math.min(story.steps.length - 1, to));
@@ -25345,9 +25365,9 @@ var FocusLens = class {
     const svg2 = document.getElementById("focus-svg");
     if (!this.layout) return svg2.innerHTML = "";
     const css = getComputedStyle(document.body), color = {
-      read: css.getPropertyValue("--blue").trim(),
-      write: css.getPropertyValue("--orange").trim(),
-      flow: css.getPropertyValue("--purple").trim(),
+      read: css.getPropertyValue("--read").trim(),
+      write: css.getPropertyValue("--write").trim(),
+      flow: css.getPropertyValue("--flow").trim(),
       edge: css.getPropertyValue("--muted").trim()
     };
     const path = (p) => `M ${p[0].x} ${p[0].y} C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}, ${p[3].x} ${p[3].y}`;
@@ -25726,7 +25746,7 @@ var TABLE = [
   ["move", true, "\u590D\u5236\u5BC4\u5B58\u5668\u7684\u503C", "move rd, rs", "rd \u2190 rs", "move $s0, $v0", "\u4F2A\u6307\u4EE4\uFF1Aaddu rd, rs, $zero", "\u590D\u5236 \u8D4B\u503C \u62F7\u8D1D \u4FDD\u5B58"],
   ["neg", true, "\u53D6\u76F8\u53CD\u6570", "neg rd, rs", "rd \u2190 \u2212rs", "neg $t0, $t1", "\u4F2A\u6307\u4EE4\uFF1Asub rd, $zero, rs", "\u76F8\u53CD\u6570 \u8D1F\u6570 \u53D6\u8D1F"],
   ["abs", true, "\u53D6\u7EDD\u5BF9\u503C", "abs rd, rs", "rd \u2190 |rs|", "abs $t0, $t1", "\u4F2A\u6307\u4EE4", "\u7EDD\u5BF9\u503C \u6B63\u6570"],
-  ["syscall", false, "\u7CFB\u7EDF\u8C03\u7528\uFF1A\u6309 $v0 \u7684\u670D\u52A1\u53F7\u505A\u8F93\u5165\u3001\u8F93\u51FA\u6216\u9000\u51FA", "syscall", "\u6309 $v0 \u9009\u62E9\u670D\u52A1", "li $v0, 1\nsyscall", "\u5148\u628A\u670D\u52A1\u53F7\u653E\u8FDB $v0\uFF0C\u53C2\u6570\u653E\u8FDB $a0 \u7B49", "\u7CFB\u7EDF\u8C03\u7528 \u6253\u5370 \u8F93\u5165 \u8F93\u51FA \u8BFB\u53D6 \u9000\u51FA"],
+  ["syscall", false, "\u7CFB\u7EDF\u8C03\u7528\uFF1A\u505A\u8F93\u5165\u3001\u8F93\u51FA\u6216\u9000\u51FA\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A", "syscall", "\u6309 $v0 \u7684\u503C\u505A\u5BF9\u5E94\u7684\u4E8B", "li $v0, 1\nsyscall", "\u5148\u628A\u5BF9\u5E94\u7684\u6570\u653E\u8FDB $v0\uFF0C\u53C2\u6570\u653E\u8FDB $a0 \u7B49", "\u7CFB\u7EDF\u8C03\u7528 \u6253\u5370 \u8F93\u5165 \u8F93\u51FA \u8BFB\u53D6 \u9000\u51FA"],
   ["nop", false, "\u4EC0\u4E48\u4E5F\u4E0D\u505A", "nop", "\uFF08\u65E0\u53D8\u5316\uFF09", "nop", "\u5E38\u653E\u5728\u5EF6\u8FDF\u69FD\u91CC", "\u7A7A \u5360\u4F4D \u5EF6\u8FDF\u69FD"]
 ];
 var SERVICE_WORDS = {
@@ -25776,7 +25796,7 @@ function instructionIndex(docs = {}) {
       format: [`li $v0, ${n}`, ...args.map(([r, m]) => `${r} = ${m}`), "syscall"].join("\n"),
       formula: "",
       example: "",
-      note: `\u670D\u52A1\u53F7 ${n} \u653E\u5728 $v0`,
+      note: `\u5148\u628A ${n} \u653E\u8FDB $v0\uFF0C\u518D\u6267\u884C syscall`,
       words: `${name2} ${SERVICE_WORDS[n] || ""}`
     });
   const known = new Set(TABLE.map((t2) => t2[0]));
@@ -25812,8 +25832,8 @@ function score2(item, query) {
   if (text2.includes(q)) return 700 - (item.kind === "service" ? 0 : 5);
   const typed = q.split(/\s+/), words = item.words.toLowerCase().split(/\s+/).filter((w) => w.length > 1), found = words.filter((w) => /^[a-z]+$/.test(w) ? typed.includes(w) : q.includes(w));
   if (found.length) {
-    const hit = found.reduce((s, w) => s + w.length, 0);
-    return 500 + Math.min(150, hit / q.length * 150);
+    const cover = Math.min(1, found.reduce((s, w) => s + w.length, 0) / q.length);
+    return cover >= 0.6 ? 500 + cover * 150 : 300 + cover * 100;
   }
   if (/^[a-z]+$/.test(q) && item.kind === "instruction") {
     let j = 0;
@@ -25828,8 +25848,9 @@ function score2(item, query) {
   }
   return -1;
 }
+var STRONG = 450;
 function searchInstructions(query, items, limit = 30) {
-  return items.map((item) => ({ item, s: score2(item, query) })).filter((r) => r.s >= 0).sort((a, b) => b.s - a.s || a.item.label.length - b.item.label.length).slice(0, limit).map((r) => r.item);
+  return items.map((item) => ({ item, s: score2(item, query) })).filter((r) => r.s >= 0).sort((a, b) => b.s - a.s || a.item.label.length - b.item.label.length).slice(0, limit).map((r) => ({ ...r.item, weak: r.s < STRONG }));
 }
 
 // ui/tutorial.js
@@ -25839,9 +25860,9 @@ greeting: .asciiz "Hello!"
 .globl main
 main:
     la $a0, greeting   # \u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740
-    li $v0, 4          # \u670D\u52A1 4\uFF1A\u6253\u5370\u5B57\u7B26\u4E32
+    li $v0, 4          # $v0 = 4\uFF1A\u6253\u5370\u5B57\u7B26\u4E32
     syscall
-    li $v0, 10         # \u670D\u52A1 10\uFF1A\u9000\u51FA
+    li $v0, 10         # $v0 = 10\uFF1A\u9000\u51FA
     syscall`;
 var NAME = `.data
 greeting: .asciiz "Hello, "
@@ -25852,7 +25873,7 @@ name:     .space 32         # \u5B58\u653E\u540D\u5B57\u7684\u7F13\u51B2\u533A\u
 main:
     la $a0, name        # \u7F13\u51B2\u533A\u5730\u5740
     li $a1, 32          # \u6700\u591A\u5360\u7528 32 \u5B57\u8282
-    li $v0, 8           # \u670D\u52A1 8\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32
+    li $v0, 8           # $v0 = 8\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32
     syscall
     la $a0, greeting
     li $v0, 4
@@ -25867,10 +25888,10 @@ main:
     syscall`;
 var OVERFLOW = `    li $t0, 0x7fffffff   # \u6700\u5927\u7684 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570
     addi $t0, $t0, 1     # \u518D\u52A0 1 \u4F1A\u600E\u6837\uFF1F`;
-var AGE = `    li $v0, 5            # \u670D\u52A1 5\uFF1A\u8BFB\u53D6\u6574\u6570\uFF0C\u7ED3\u679C\u5728 $v0
+var AGE = `    li $v0, 5            # $v0 = 5\uFF1A\u8BFB\u53D6\u6574\u6570\uFF0C\u7ED3\u679C\u5728 $v0
     syscall
     addi $a0, $v0, 1     # \u660E\u5E74\u7684\u5E74\u9F84
-    li $v0, 1            # \u670D\u52A1 1\uFF1A\u6253\u5370\u6574\u6570
+    li $v0, 1            # $v0 = 1\uFF1A\u6253\u5370\u6574\u6570
     syscall`;
 var traceOf = (c) => (c.state?.trace || []).filter((e) => e.step <= (c.state?.step ?? 0));
 var ranFrom = (c, file) => !!c.target?.files.includes(file) && !c.dirty;
@@ -25899,7 +25920,7 @@ var STEPS = [
     ],
     hints: [
       "\u5B57\u7B26\u4E32\u653E\u5728 .data \u6BB5\uFF0C\u7528 .asciiz \u5199\uFF0C\u672B\u5C3E\u4F1A\u81EA\u52A8\u8865\u4E00\u4E2A \\0\u3002",
-      "\u6253\u5370\u5B57\u7B26\u4E32\u662F syscall \u670D\u52A1 4\uFF1A$v0 = 4\uFF0C$a0 = \u5B57\u7B26\u4E32\u7684\u5730\u5740\uFF08\u7528 la \u53D6\u5F97\uFF09\u3002\u6700\u540E\u7528\u670D\u52A1 10 \u9000\u51FA\u3002"
+      "\u6253\u5370\u5B57\u7B26\u4E32\uFF1A$v0 = 4\uFF0C$a0 = \u5B57\u7B26\u4E32\u7684\u5730\u5740\uFF08\u7528 la \u53D6\u5F97\uFF09\uFF0C\u7136\u540E syscall\u3002\u6700\u540E\u7528 $v0 = 10 \u7684 syscall \u9000\u51FA\u3002"
     ],
     answer: HELLO,
     go: [["\u67E5\u201C\u6253\u5370\u5B57\u7B26\u4E32\u201D", "find:\u6253\u5370\u5B57\u7B26\u4E32"]]
@@ -25917,10 +25938,11 @@ var STEPS = [
     ],
     hints: [
       "\u540D\u5B57\u8981\u5148\u653E\u8FDB\u5185\u5B58\uFF1A\u5728 .data \u91CC\u7528 .space 32 \u7559\u51FA\u4E00\u5757\u7F13\u51B2\u533A\u3002",
-      "\u8BFB\u53D6\u5B57\u7B26\u4E32\u662F\u670D\u52A1 8\uFF1A$a0 = \u7F13\u51B2\u533A\u5730\u5740\uFF0C$a1 = \u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\u3002\u6253\u5370\u540D\u5B57\u65F6 $a0 \u4ECD\u7136\u662F\u8FD9\u4E2A\u5730\u5740\u3002",
+      "\u8BFB\u53D6\u5B57\u7B26\u4E32\uFF1A$v0 = 8\uFF0C$a0 = \u7F13\u51B2\u533A\u5730\u5740\uFF0C$a1 = \u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\u3002\u6253\u5370\u540D\u5B57\u65F6 $a0 \u4ECD\u7136\u662F\u8FD9\u4E2A\u5730\u5740\u3002",
       "\u4F60\u4F1A\u53D1\u73B0 ! \u8DD1\u5230\u4E86\u4E0B\u4E00\u884C\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\u4E5F\u88AB\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u7528\u8C03\u8BD5\u5668\u770B\u6E05\u695A\u3002"
     ],
     answer: NAME,
+    doneNote: "! \u6362\u5230\u4E86\u4E0B\u4E00\u884C\uFF0C\u662F\u56E0\u4E3A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\uFF08\\n\uFF09\u4E5F\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u53EF\u4EE5\u5728\u5185\u5B58\u91CC\u770B\u5230\u5B83\u3002",
     go: [["\u67E5\u201C\u8BFB\u53D6\u5B57\u7B26\u4E32\u201D", "find:\u8BFB\u53D6\u5B57\u7B26\u4E32"]]
   },
   {
@@ -25929,7 +25951,7 @@ var STEPS = [
     goal: "\u6253\u5370\u540D\u5B57\u4E4B\u524D\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u51B3\u5B9A\u8F93\u51FA\u4EC0\u4E48\uFF1F\u5728\u6253\u5370\u540D\u5B57\u7684\u90A3\u4E2A syscall \u884C\u8BBE\u65AD\u70B9\uFF0C\u7136\u540E\u8FD0\u884C\u5230\u90A3\u91CC\u3002",
     checks: [
       ["\u8BBE\u7F6E\u4E86\u65AD\u70B9", (c) => c.breakpoints.some((b) => b.address != null)],
-      ["\u505C\u5728\u4E00\u4E2A\u6253\u5370\u5B57\u7B26\u4E32\uFF08\u670D\u52A1 4\uFF09\u7684 syscall \u4E4B\u524D", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)]
+      ["\u505C\u5728\u4E00\u4E2A\u6253\u5370\u5B57\u7B26\u4E32\uFF08$v0 = 4\uFF09\u7684 syscall \u4E4B\u524D", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)]
     ],
     hints: ["\u70B9\u884C\u53F7\u5DE6\u8FB9\u7684\u7A7A\u767D\u5904\uFF0C\u6216\u628A\u5149\u6807\u653E\u5728\u90A3\u4E00\u884C\u6309 F9\u3002", "\u6253\u5370\u540D\u5B57\u7684 syscall \u524D\u9762\u4E00\u884C\u662F li $v0, 4\uFF0C\u518D\u524D\u9762\u662F la $a0, name\u3002"],
     go: [["\u6253\u5F00\u65AD\u70B9\u6807\u7B7E", "side:stops"]]
@@ -25939,7 +25961,7 @@ var STEPS = [
     title: "\u770B\u61C2\u8FD9\u4E2A syscall",
     goal: "\u60AC\u505C\u5728 syscall \u4E0A\u770B\u7B80\u77ED\u8BF4\u660E\uFF0C\u518D\u70B9\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\uFF08\u6216 Cmd/Ctrl\uFF0B\u70B9\u51FB\uFF09\u6253\u5F00\u53F3\u4FA7\u7684\u8BE6\u7EC6\u68C0\u67E5\u3002\u5B83\u8981\u7684\u53C2\u6570\u662F\u4EC0\u4E48\uFF1F",
     checks: [["\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u663E\u793A\u4E86\u8FD9\u4E2A syscall", (c) => c.inspecting === "syscall"]],
-    hints: ["\u8BE6\u7EC6\u68C0\u67E5\u91CC\u6709\u201C\u505A\u4EC0\u4E48 \u2192 \u9700\u8981\u7684\u53C2\u6570 \u2192 \u53D1\u751F\u4EC0\u4E48 \u2192 \u53D8\u5316\u201D\u3002", "\u670D\u52A1 4 \u7684\u53C2\u6570 $a0 \u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\u3002"],
+    hints: ["\u8BE6\u7EC6\u68C0\u67E5\u91CC\u6709\u201C\u505A\u4EC0\u4E48 \u2192 \u9700\u8981\u7684\u53C2\u6570 \u2192 \u53D1\u751F\u4EC0\u4E48 \u2192 \u53D8\u5316\u201D\u3002", "\u6253\u5370\u5B57\u7B26\u4E32\u65F6\uFF0C$a0 \u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\u3002"],
     go: [["\u5C55\u5F00\u8BE6\u7EC6\u68C0\u67E5", "panel:context"]]
   },
   {
@@ -25951,7 +25973,7 @@ var STEPS = [
       return a >= base2 && a < base2 + (c.state?.memory?.length || 0);
     }]],
     hints: ["\u5BC4\u5B58\u5668\u9762\u677F\u91CC\u70B9 $a0\uFF0C\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u4F1A\u51FA\u73B0\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\u3002", "\u540D\u5B57\u540E\u9762\u90A3\u4E2A 0a \u5B57\u8282\u5C31\u662F\u56DE\u8F66\uFF08\\n\uFF09\uFF0C\u6700\u540E\u7684 00 \u662F \\0\u3002"],
-    go: [["\u5C55\u5F00\u5BC4\u5B58\u5668", "panel:registers"], ["\u5C55\u5F00\u5185\u5B58", "panel:memory"]]
+    go: [["\u67E5\u770B $a0", "inspect:$a0"]]
   },
   {
     stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
@@ -26009,7 +26031,7 @@ var STEPS = [
       const read = traceOf(c).filter((e) => e.service === 5 && e.instruction.op === "syscall").map((e) => e.accesses.find((a) => a.write && a.name === "$v0")?.value).filter((v) => v != null);
       return read.some((n) => (c.state?.output || "").includes(String(n + 1)));
     }]],
-    hints: ["\u8BFB\u53D6\u6574\u6570\u662F\u670D\u52A1 5\uFF0C\u8BFB\u5230\u7684\u6570\u5728 $v0\u3002", "\u6253\u5370\u6574\u6570\u662F\u670D\u52A1 1\uFF0C\u53C2\u6570\u653E\u5728 $a0\u3002"],
+    hints: ["\u8BFB\u53D6\u6574\u6570\uFF1A$v0 = 5\uFF0C\u8BFB\u5230\u7684\u6570\u4F1A\u653E\u5728 $v0\u3002", "\u6253\u5370\u6574\u6570\uFF1A$v0 = 1\uFF0C\u8981\u6253\u5370\u7684\u6570\u653E\u5728 $a0\u3002"],
     answer: AGE,
     go: [["\u67E5\u201C\u8BFB\u53D6\u6574\u6570\u201D", "find:\u8BFB\u53D6\u6574\u6570"]]
   },
@@ -26099,6 +26121,7 @@ var Tutorial = class {
       <h4>${escapeHTML(step.title)}</h4><p class="tutorial-goal">${escapeHTML(step.goal)}</p>
       <ul class="tutorial-checks">${results.map(([label2, ok2]) => `<li class="${ok2 ? "ok" : ""}">${ok2 ? "\u2713" : "\u25CB"} ${escapeHTML(label2)}</li>`).join("")}</ul>
       ${fail ? `<p class="tutorial-fail" role="alert">${escapeHTML(fail)}</p>` : ""}
+      ${done && step.doneNote ? `<p class="tutorial-hint">${escapeHTML(step.doneNote)}</p>` : ""}
       ${step.code ? `<pre class="tutorial-answer">${escapeHTML(step.code)}</pre>` : ""}
       ${step.hints.slice(0, this.shown).map((h, i) => `<p class="tutorial-hint">\u63D0\u793A ${i + 1}\uFF1A${escapeHTML(h)}</p>`).join("")}
       ${this.answer && step.answer ? `<p class="tutorial-hint">\u53C2\u8003\u7B54\u6848\uFF08\u5BF9\u7167\u7740\u81EA\u5DF1\u5199\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u586B\u5165\uFF09\uFF1A</p><pre class="tutorial-answer">${escapeHTML(step.answer)}</pre>` : ""}
@@ -27640,10 +27663,20 @@ function projectManager(hooks) {
 
 // ui/main.js
 var $2 = (id2) => document.getElementById(id2);
+var CONTROL_OPS = /^(?:j|jal|jr|jalr|b|beq|bne|bgez|bgtz|blez|bltz|bgezal|bltzal|blt|bgt|ble|bge|bltu|bgtu|bleu|bgeu|beqz|bnez)$/;
+var CURATED = new Map(
+  instructionIndex({}).filter((x) => x.kind === "instruction").map((x) => [x.op, x])
+);
+function zhDoc(op) {
+  if (explanations[op]) return explanations[op];
+  const c = CURATED.get(op);
+  return c ? `${c.purpose}${c.note ? "\uFF1B" + c.note : ""}\u3002` : "";
+}
 var workspace = null;
 var target = null;
 var lastInTarget = "";
 var tutorial = null;
+var problemsShownForError = false;
 var fileAccess = new Compartment();
 var state = null;
 var files = {};
@@ -27663,6 +27696,7 @@ var exampleList = [];
 var fontSize = 13;
 var inspecting = null;
 var inspectingPlace = null;
+var following = true;
 var program = { instructions: [], symbols: [], instructionDocs: {} };
 var fileStates = /* @__PURE__ */ new Map();
 var loadEditor = false;
@@ -27824,11 +27858,33 @@ var decorations2 = ViewPlugin.fromClass(
                 side: 1
               }).range(l.to)
             );
-          let text2 = l.text, comment2 = text2.indexOf("#"), code = comment2 < 0 ? text2 : text2.slice(0, comment2);
+          let text2 = l.text, strings = [], comment2 = -1;
+          for (let i = 0, quote = null; i < text2.length; i++) {
+            const c = text2[i];
+            if (quote) {
+              if (c === "\\") i++;
+              else if (c === quote) {
+                strings.at(-1)[1] = i + 1;
+                quote = null;
+              }
+            } else if (c === '"' || c === "'") {
+              quote = c;
+              strings.push([i, text2.length]);
+            } else if (c === "#") {
+              comment2 = i;
+              break;
+            }
+          }
+          const code = comment2 < 0 ? text2 : text2.slice(0, comment2), inString = (k) => strings.some(([a, b]) => k >= a && k < b);
+          for (const [a, b] of strings)
+            ranges.push(
+              Decoration.mark({ class: "cm-string" }).range(l.from + a, l.from + b)
+            );
           for (let m of code.matchAll(
             /\$\w+|\b0x[\da-fA-F]+\b|\b\d+\b|\b[a-zA-Z_]\w*:?/g
           )) {
-            let type = m[0].startsWith("$") ? "reg" : m[0].endsWith(":") ? "label" : /^\d/.test(m[0]) ? "number" : program.instructionDocs[m[0]] || explanations[m[0]] ? "op" : null;
+            if (inString(m.index)) continue;
+            let type = m[0].startsWith("$") ? "reg" : m[0].endsWith(":") ? "label" : /^\d/.test(m[0]) ? "number" : program.instructionDocs[m[0]] || zhDoc(m[0]) ? CONTROL_OPS.test(m[0]) ? "op cm-control" : "op" : null;
             if (type)
               ranges.push(
                 Decoration.mark({ class: "cm-" + type }).range(
@@ -28164,7 +28220,7 @@ function syscallAt(place) {
   const event = !next && !dirty && place ? [...state?.trace || []].reverse().find(
     (e) => e.step <= state.step && e.instruction.op === "syscall" && e.instruction.file === place.file && e.instruction.line === place.line
   ) : null;
-  const { n, from } = serviceAt({
+  const { n, from, setter } = serviceAt({
     next,
     event,
     v0: regValue("$v0"),
@@ -28176,9 +28232,15 @@ function syscallAt(place) {
     values[r] = next ? regValue(r) : event?.accesses.find(
       (a) => a.kind === "register" && !a.write && a.name === r
     )?.value ?? null;
+  const before = next ? state.step : event ? event.step - 1 : null;
+  const writer = setter && before != null ? [...state?.trace || []].reverse().find(
+    (e) => e.step <= before && e.instruction.file === place?.file && e.instruction.line === setter.line && e.accesses.some((a) => a.write && a.name === "$v0")
+  ) : null;
   return {
     n,
     from,
+    setter,
+    step: writer?.step ?? null,
     values,
     event,
     waiting: next && state.status === "waiting",
@@ -28189,15 +28251,13 @@ function syscallAt(place) {
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 Cmd/Ctrl\uFF0B\u70B9\u51FB\u56FA\u5B9A</small>`;
+    return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u503C</small>`;
   if (token === "syscall") {
     const at = syscallAt(place), g = serviceGuide[at.n];
-    return `<b>${escapeHTML(syscallDetail(at).title)}</b><p>${escapeHTML(g ? g[1] : "syscall \u6309\u8C03\u7528\u65F6 $v0 \u7684\u503C\u9009\u62E9\u670D\u52A1\u3002")}</p><small>${escapeHTML(
-      { next: "\u5373\u5C06\u6267\u884C", ran: "\u6700\u8FD1\u4E00\u6B21\u6267\u884C", source: "\u6309\u6E90\u7801\u63A8\u6D4B", unknown: "\u670D\u52A1\u53F7\u6267\u884C\u65F6\u624D\u786E\u5B9A" }[at.from]
-    )}</small>`;
+    return `<b>${escapeHTML(at.n == null ? "syscall\uFF08$v0 \u672A\u77E5\uFF09" : `syscall\uFF1A${g ? g[0] : "\u4E0D\u652F\u6301"}\uFF08$v0 = ${at.n}\uFF09`)}</b><p>${escapeHTML(g ? g[1] : "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF1B\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002")}</p>${at.setter ? `<small>\u7B2C ${at.setter.line} \u884C ${escapeHTML(at.setter.text)} \u653E\u5165</small>` : ""}`;
   }
-  if (explanations[token]) {
-    const text2 = explanations[token];
+  if (zhDoc(token)) {
+    const text2 = zhDoc(token);
     return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${lineFormula(place)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
   }
   if (program.instructionDocs[token]) {
@@ -28235,6 +28295,18 @@ function hover(e) {
     inspectToken(token, place);
     hideTooltip2(0);
   };
+  const reg2 = canonicalReg(token);
+  if (reg2.startsWith("$") && state) {
+    const go = document.createElement("button");
+    go.className = "tip-detail";
+    go.type = "button";
+    go.textContent = "\u4F5C\u4E3A\u5730\u5740\u67E5\u770B";
+    go.onclick = () => {
+      memoryAt(regValue(reg2));
+      hideTooltip2(0);
+    };
+    $2("tooltip").append(" ", go);
+  }
   $2("tooltip").hidden = false;
   $2("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $2("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
@@ -28242,20 +28314,45 @@ function hover(e) {
 $2("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
 $2("tooltip").addEventListener("mouseleave", () => hideTooltip2());
 var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_HINT.replace("\u67E5\u770B\u8BE6\u7EC6", "")}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
+function followInspector() {
+  if (!following || !state || dirty || running) return;
+  const e = state.last?.instruction ? state.last : state.preview, ins = e?.instruction;
+  if (!ins) return showContext(CONTEXT_HINT);
+  const word = ((files[ins.file] || "").split("\n")[ins.line - 1] || "").replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim().split(/\s+/)[0];
+  const token = ins.op === "syscall" ? "syscall" : isInstruction(word) ? word : ins.op;
+  inspectToken(token, { file: ins.file, line: ins.line }, { refresh: true });
+}
+function modeBar() {
+  if (!state || dirty) return "";
+  const at = (e) => e?.instruction && `${e.instruction.file}:${e.instruction.line}`;
+  if (following) {
+    const e = state.last?.instruction ? state.last : state.preview;
+    return e?.instruction ? `<div class="inspect-mode">\u8DDF\u968F\u6267\u884C \xB7 ${state.last?.instruction ? "\u521A\u6267\u884C" : "\u5373\u5C06\u6267\u884C"}\u7684\u7B2C ${e.instruction.line} \u884C</div>` : "";
+  }
+  if (!inspecting) return "";
+  const pinned2 = inspectingPlace ? `${inspectingPlace.file}:${inspectingPlace.line}` : "";
+  const here2 = program.instructions.find((i) => i.address === executionPC());
+  const away = pinned2 && here2 && ![at(state.last), at(state.preview)].includes(pinned2);
+  return `<div class="inspect-mode pinned">\u5DF2\u56FA\u5B9A \xB7 ${escapeHTML(inspecting)}${inspectingPlace ? ` \xB7 \u7B2C ${inspectingPlace.line} \u884C` : ""}${away ? ` \xB7 \u6267\u884C\u5DF2\u5230\u7B2C ${here2.line} \u884C` : ""}<button id="follow-again">\u56DE\u5230\u8DDF\u968F\u6267\u884C</button></div>`;
+}
 function showContext(html) {
-  $2("context").innerHTML = html;
+  $2("context").innerHTML = modeBar() + html;
+  $2("clear-focus").hidden = following || !inspecting;
+  if ($2("follow-again"))
+    $2("follow-again").onclick = () => $2("clear-focus").click();
   setTimeout(() => tutorial?.update());
 }
-function inspectToken(token, place = null) {
+function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
   if (!token) return;
+  if (!refresh2) following = false;
   inspecting = token;
   inspectingPlace = place;
-  $2("tooltip").hidden = true;
+  if (!refresh2) $2("tooltip").hidden = true;
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
     let base2 = regValue(address[2]), offset = Number(address[1] || 0), effective = base2 + offset | 0;
     showContext(
-      `<h3>${escapeHTML(token)}</h3><p>\u5F53\u524D\u5FEB\u7167\u4E2D\u7684\u6709\u6548\u5730\u5740</p><div class="values"><span>\u57FA\u5740</span><span>${escapeHTML(address[2])} = ${hex(base2)}</span><span>\u504F\u79FB</span><span>${offset} \u5B57\u8282</span><span>\u5730\u5740</span><span>${hex(effective)}</span></div><button id="inspect-memory">\u67E5\u770B\u5185\u5B58 \u2192</button>`
+      `<h3>${escapeHTML(token)}</h3><p>\u6309\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u5BC4\u5B58\u5668\u503C\u7B97\u51FA\u7684\u5730\u5740</p><div class="values"><span>\u57FA\u5740</span><span>${escapeHTML(address[2])} = ${hex(base2)}</span><span>\u504F\u79FB</span><span>${offset} \u5B57\u8282</span><span>\u5730\u5740</span><span>${hex(effective)}</span></div><button id="inspect-memory">\u67E5\u770B\u5185\u5B58 \u2192</button>`
     );
     $2("inspect-memory").onclick = () => memoryAt(effective);
     return;
@@ -28266,7 +28363,7 @@ function inspectToken(token, place = null) {
     pinned.add(token);
     let value = regValue(token), last2 = state?.lastWriters?.[token];
     showContext(
-      `<h3>${escapeHTML(token)} <small class="muted">\u5BC4\u5B58\u5668</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value)}<p class="muted">\u5F53\u524D\u5FEB\u7167 S${state?.step ?? 0} \xB7 \u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : "\u521D\u59CB\u72B6\u6001"}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button><button id="pin">${pinned.has(token) ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A"}</button><button id="point">\u4F5C\u4E3A\u5730\u5740\u67E5\u770B</button><button id="last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165</button><button id="next-write">\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165</button></div>`
+      `<h3>${escapeHTML(token)} <small class="muted">\u5BC4\u5B58\u5668</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value)}<p class="muted">\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u503C \xB7 ${last2 ? `\u6700\u540E\u4E00\u6B21\u5199\u5165\u5728\u7B2C ${last2} \u6B65` : "\u8FD8\u6CA1\u6709\u88AB\u5199\u5165\u8FC7\uFF08\u521D\u59CB\u503C\uFF09"}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button><button id="pin">${pinned.has(token) ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A"}</button><button id="point">\u4F5C\u4E3A\u5730\u5740\u67E5\u770B</button><button id="last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165</button><button id="next-write">\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165</button></div>`
     );
     $2("refs").onclick = () => showReferences(token);
     $2("pin").onclick = () => {
@@ -28281,14 +28378,15 @@ function inspectToken(token, place = null) {
     return;
   }
   if (token === "syscall") {
-    const detail = syscallDetail(syscallAt(place));
+    const at = syscallAt(place), detail = syscallDetail({ ...at, regTitle: (r) => r + "\uFF1A" + role(r) }), words = (serviceGuide[at.n] || []).flat(2).join(" ") + " \u5BC4\u5B58\u5668 syscall";
     showContext(
-      `<h3>${escapeHTML(detail.title)}</h3>${detail.html}<button id="service-list">\u67E5\u770B\u670D\u52A1\u8868</button>`
+      `<h3>${escapeHTML(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? '<button id="char-table">\u67E5\u770B\u5B57\u7B26\u7F16\u7801\u8868</button>' : ""}<button id="service-list">$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48</button></div>`
     );
+    if ($2("char-table")) $2("char-table").onclick = () => $2("radix-help").click();
     $2("service-list").onclick = () => modal(
-      "MARS \u670D\u52A1",
+      "syscall\uFF1A$v0 \u9009\u5B9A\u505A\u4EC0\u4E48",
       Object.entries(services).map(
-        ([id2, s]) => `<p><b>${id2}</b> ${serviceGuide[id2]?.[0] || s[0]} \xB7 ${serviceGuide[id2]?.[1] || ""} <small class="muted">\u53C2\u6570 ${s[1].join(", ") || "\u65E0"} \u2192 ${s[2].join(", ") || "\u65E0\u8FD4\u56DE\u503C"}</small></p>`
+        ([id2, s]) => `<p><b>$v0 = ${id2}</b> ${serviceGuide[id2]?.[0] || s[0]} \xB7 ${serviceGuide[id2]?.[1] || ""} <small class="muted">\u53C2\u6570 ${s[1].join(", ") || "\u65E0"} \u2192 ${s[2].join(", ") || "\u65E0\u8FD4\u56DE\u503C"}</small></p>`
       ).join("")
     );
     return;
@@ -28306,11 +28404,11 @@ function inspectToken(token, place = null) {
   }
   if (isInstruction(token) && place) return instructionDetail(token, place);
   showContext(
-    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(explanations[token] || program.instructionDocs[token]?.description || "\u5F53\u524D\u5DE5\u7A0B\u4E2D\u7684\u6587\u672C\uFF0F\u7ACB\u5373\u6570")}</p><p class="muted">${escapeHTML(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
+    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(zhDoc(token) || program.instructionDocs[token]?.description || "\u5F53\u524D\u5DE5\u7A0B\u4E2D\u7684\u6587\u672C\uFF0F\u7ACB\u5373\u6570")}</p><p class="muted">${escapeHTML(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
   );
   $2("refs").onclick = () => showReferences(token);
 }
-var isInstruction = (token) => !!(explanations[token] || program.instructionDocs[token]);
+var isInstruction = (token) => !!(zhDoc(token) || program.instructionDocs[token]);
 function lineRun(place) {
   if (!place || dirty || !state) return null;
   const at = (e) => e?.instruction?.file === place.file && e.instruction.line === place.line;
@@ -28352,12 +28450,15 @@ function lineTemplate(place) {
   const ins = machine[0], fields = [ins.binary >>> 21 & 31, ins.binary >>> 16 & 31, ins.binary >>> 11 & 31];
   const reg2 = (number2, write) => ({ kind: "register", number: number2, name: "$" + registerNames[number2], value: 0, before: 0, write });
   try {
-    const m = beatModel({
-      instruction: ins,
-      accesses: [...fields.slice(0, 2).map((n) => reg2(n, false)), ...fields.slice(1).map((n) => reg2(n, true))],
-      nextPC: ins.address + 4,
-      status: "paused"
-    });
+    const m = beatModel(
+      {
+        instruction: ins,
+        accesses: [...fields.slice(0, 2).map((n) => reg2(n, false)), ...fields.slice(1).map((n) => reg2(n, true))],
+        nextPC: ins.address + 4,
+        status: "paused"
+      },
+      { instructions: program.instructions, symbols: program.symbols }
+    );
     return m.template?.length ? m.template : null;
   } catch {
     return null;
@@ -28371,43 +28472,53 @@ function lineFormula(place) {
   return t2 ? `<p class="tip-formula">\u672C\u884C\uFF1A<code>${escapeHTML(plainEq(t2))}</code></p>` : "";
 }
 function instructionDetail(token, place) {
-  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = explanations[token] || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run2 = lineRun(place), model = run2 ? lineModel(place, run2.events) : null, template = model?.template || lineTemplate(place);
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = zhDoc(token) || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run2 = lineRun(place), model = run2 ? lineModel(place, run2.events) : null, template = model?.template || lineTemplate(place);
   const where = `${place.file}:${place.line}`;
   const status = dirty ? "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C" : !state ? "\u5C1A\u672A\u6C47\u7F16" : !run2 ? "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C" : run2.kind === "last" ? `\u521A\u6267\u884C\uFF08\u7B2C ${run2.step} \u6B65\uFF09` : run2.kind === "next" ? "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C" : `\u7B2C ${run2.step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09`;
   const value = (o, v) => fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
   const label2 = (o) => o.kind === "memory" ? `\u5185\u5B58[${hex(o.address)}]` : o.name;
+  const labelHTML = (o) => o.kind === "memory" ? escapeHTML(label2(o)) : `<abbr class="reg-term" title="${escapeHTML(o.name + "\uFF1A" + role(o.name))}">${escapeHTML(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read), writes = (model?.objects || []).filter((o) => o.write);
   const single = template && !(run2?.events?.length > 1) && !run2?.pseudo;
+  const bitsEvent = (run2?.events || []).find(supportsBits);
   const rows = [];
   if (template && single)
     rows.push(["\u901A\u7528\u89C4\u5219", `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
   if (template)
     rows.push(["\u672C\u884C\u4EE3\u5165", `<code>${escapeHTML(plainEq(template))}</code>`]);
   if (model) {
+    const both = writes.filter((w) => w.kind === "register" && reads.some((r) => r.name === w.name));
     rows.push([
-      run2.kind === "next" ? "\u6267\u884C\u524D\u6570\u503C\uFF08\u73B0\u5728\uFF09" : "\u6267\u884C\u524D\u6570\u503C",
-      reads.length ? reads.map((o) => `${escapeHTML(label2(o))} = <b>${escapeHTML(value(o, o.before))}</b>`).join("\uFF0C") : "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58"
+      run2.kind === "next" ? "\u5F53\u524D\u6267\u884C\u524D\u6570\u503C" : "\u6267\u884C\u524D\u6570\u503C",
+      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${escapeHTML(value(o, o.before))}</b>`).join("\uFF0C") : "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58") + both.map((o) => `<small class="detail-when">\u53F3\u8FB9\u7684 ${escapeHTML(o.name)} \u7528\u7684\u662F\u6267\u884C\u524D\u7684 ${escapeHTML(value(o, o.before))}\uFF0C\u7ED3\u679C ${escapeHTML(value(o, o.after))} \u5199\u56DE\u540E ${escapeHTML(o.name)} \u624D\u53D8\u3002</small>`).join("")
     ]);
     rows.push([
       "\u8BA1\u7B97\u8FC7\u7A0B",
       `<ol>${model.beats.map((b) => `<li><code>${escapeHTML(plainEq(b.eq))}</code>${b.caption ? ` <small>${escapeHTML(b.caption)}</small>` : ""}</li>`).join("")}</ol>`
     ]);
     rows.push([
-      "\u7ED3\u679C",
-      (writes.length ? writes.map((o) => `${escapeHTML(label2(o))}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run2.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
+      "\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C",
+      (writes.length ? writes.map((o) => `${labelHTML(o)}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run2.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
     ]);
     const related = [
-      reads.length && "\u8BFB " + reads.map(label2).join("\u3001"),
-      writes.length && "\u5199 " + writes.map(label2).join("\u3001")
+      reads.length && "\u8BFB " + reads.map(labelHTML).join("\u3001"),
+      writes.length && "\u5199 " + writes.map(labelHTML).join("\u3001")
     ].filter(Boolean);
-    if (related.length) rows.push(["\u5173\u8054\u8BFB\u5199", escapeHTML(related.join(" \xB7 "))]);
+    if (related.length) rows.push(["\u5173\u8054\u8BFB\u5199", related.join(" \xB7 ")]);
   } else if (run2?.pseudo)
-    rows.push(["\u7ED3\u679C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
+    rows.push(["\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
   showContext(
-    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
+    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run2.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
   );
   $2("detail-source").onclick = () => gotoSource(place.file, place.line);
   $2("refs").onclick = () => showReferences(token);
+  if (bitsEvent) {
+    $2("detail-bits").disabled = run2.kind === "past";
+    $2("detail-bits").onclick = () => {
+      if (dirty || !state) return;
+      lens.openAt(run2.kind === "next" ? 0 : -1, { bits: true });
+    };
+  }
 }
 function showReferences(token) {
   let refs = references(files, token);
@@ -28439,6 +28550,7 @@ function notify(message, { transient = false } = {}) {
     }, 4e3);
 }
 function named(s) {
+  if (s.status === "ended") s.preview = null;
   const fix = (i) => {
     if (i?.basic && !i.named) {
       i.basic = nameRegisters(i.basic);
@@ -28540,6 +28652,8 @@ async function assemble() {
       instructionDocs: state.instructionDocs || {}
     };
     dirty = false;
+    if (!state.error && problemsShownForError && bottom === "problems") setBottom("console");
+    problemsShownForError = false;
     breakpoints = breakpoints.map((b) => ({
       ...b,
       address: program.instructions.find(
@@ -28642,18 +28756,19 @@ function gotoSymbol(s) {
 }
 var arrivedAt = null;
 function arrive(jumped = false) {
-  const ins = program.instructions.find((i) => i.address === state?.pc);
+  const ins = program.instructions.find((i) => i.address === executionPC());
   if (!ins || view !== "source" || dirty) return;
   const far = jumped || !arrivedAt || arrivedAt.file !== ins.file || Math.abs(arrivedAt.line - ins.line) > 1;
   arrivedAt = { file: ins.file, line: ins.line };
+  if (state.status === "ended") return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
     const line = editor.dom.querySelector(".cm-line.next-line");
     arrive.pulse?.cancel();
     arrive.pulse = line?.animate(
       [
-        { background: "color-mix(in srgb, var(--blue) 40%, var(--panel))" },
-        { background: "color-mix(in srgb, var(--blue) 12%, transparent)" }
+        { background: "color-mix(in srgb, var(--exec-strong) 45%, var(--panel))" },
+        { background: "color-mix(in srgb, var(--exec) 55%, transparent)" }
       ],
       { duration: 700, iterations: 1, easing: "ease-out" }
     );
@@ -28667,8 +28782,9 @@ function arrive(jumped = false) {
   });
 }
 var keepNotice = false;
+var executionPC = () => state?.status === "ended" ? state.last?.pc : state?.pc;
 function followPC() {
-  let ins = program.instructions.find((i) => i.address === state?.pc);
+  let ins = program.instructions.find((i) => i.address === executionPC());
   if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
     const label2 = program.symbols.filter((s) => !s.data && s.address <= ins.address).filter(
@@ -28742,9 +28858,9 @@ function statusInfo() {
     const i = program.instructions.find((x) => x.address === address);
     return i ? { file: i.file, line: i.line, text: `${i.file} \u7B2C ${i.line} \u884C` } : null;
   };
+  if (!target || !state || state.status === "empty")
+    return { kind: "idle", text: "\u5C1A\u672A\u6C47\u7F16 \xB7 \u70B9\u201C\u6C47\u7F16\u201D\u5F00\u59CB" };
   if (dirty) return { kind: "dirty", text: "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED" };
-  if (!state || state.status === "empty")
-    return { kind: "idle", text: "\u672A\u6C47\u7F16" };
   if (running)
     return {
       kind: "running",
@@ -28758,7 +28874,7 @@ function statusInfo() {
       at: next
     };
   if (state.status === "ended")
-    return { kind: "ended", text: `\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}` };
+    return { kind: "ended", text: `\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}`, at: last2 };
   if (state.status === "error")
     return {
       kind: "error",
@@ -28793,11 +28909,37 @@ function statusInfo() {
     at: next
   };
 }
+function executionBlock() {
+  if (busy) return "\u6B63\u5728\u5904\u7406\u4E0A\u4E00\u4E2A\u64CD\u4F5C";
+  if (running) return "\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C";
+  if (!state || state.status === "empty" || !target) return "\u8FD8\u6CA1\u6709\u6C47\u7F16\uFF1A\u5148\u70B9\u201C\u6C47\u7F16\u201D";
+  if (dirty) return "\u4EE3\u7801\u5DF2\u4FEE\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16";
+  const reason = scopeReason();
+  if (reason?.kind === "outside") return `\u6B63\u5728\u67E5\u770B ${activeFile}\uFF0C\u5B83\u4E0D\u5728\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u91CC`;
+  if (reason) return "\u6C47\u7F16\u65B9\u5F0F\u6216\u8303\u56F4\u5DF2\u66F4\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16";
+  if (state.status === "ended") return "\u7A0B\u5E8F\u5DF2\u7ED3\u675F";
+  if (state.status === "error") return "\u7A0B\u5E8F\u51FA\u9519\u505C\u4E0B\u4E86\uFF1A\u4FEE\u6539\u540E\u91CD\u65B0\u6C47\u7F16";
+  return "";
+}
+var canRestart = () => state?.status === "ended" && !busy && !running && !dirty && !blocked();
+async function restartRun() {
+  await assemble();
+  if (state?.status === "paused" && !state.error) await run("run");
+}
 function updateControls() {
-  const gate = blocked();
+  const gate = blocked(), why = executionBlock();
   for (let name2 of ["step", "source", "over", "out", "run", "demo"])
     $2(name2).disabled = busy || dirty || !!gate || running || !state || !["paused", "waiting"].includes(state.status);
   $2("back").disabled = busy || dirty || !!gate || running || !state?.step;
+  const restart = canRestart();
+  if (restart) $2("run").disabled = false;
+  $2("run").textContent = restart ? "\u21BB \u4ECE\u5934\u8FD0\u884C" : "\u25B6 \u8FD0\u884C";
+  $2("run").setAttribute("aria-label", restart ? "\u4ECE\u5934\u8FD0\u884C\uFF08F5\uFF09" : "\u8FD0\u884C\uFF08F5\uFF09");
+  for (const name2 of ["back", "step", "source", "over", "out", "run", "demo"]) {
+    const b = $2(name2);
+    b.dataset.tipBase ??= b.dataset.tip || "";
+    b.dataset.tip = name2 === "run" && restart ? "\u4ECE\u5934\u8FD0\u884C\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\u5E76\u8FD0\u884C \xB7 F5" : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
+  }
   $2("assemble").disabled = busy;
   renderScope();
   tutorial?.update();
@@ -28821,29 +28963,36 @@ function nextScope() {
 var MODE_NAMES = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u8303\u56F4" };
 var describeScope = (s) => s.error ? "\uFF08\u5C1A\u672A\u9009\u597D\u6E90\u7801\uFF09" : s.files.length > 1 ? `${MODE_NAMES[s.mode]} ${s.files.length} \u4E2A\u6587\u4EF6\uFF08\u5165\u53E3 ${s.entry}\uFF09` : `${MODE_NAMES[s.mode]} ${s.entry}`;
 var sameFiles = (a, b) => [...a].sort().join("\n") === [...b].sort().join("\n");
+var runnable = (t2) => t2.files.length > 1 ? `${t2.entry} \u548C\u53E6\u5916 ${t2.files.length - 1} \u4E2A\u6587\u4EF6` : t2.entry;
 function scopeReason() {
   if (!state || !target || !workspace) return null;
+  const back = target.files.includes(lastInTarget) ? lastInTarget : target.entry;
   if (activeFile && Object.hasOwn(files, activeFile) && !target.files.includes(activeFile))
     return {
       kind: "outside",
-      text: target.files.length > 1 ? `${activeFile} \u4E0D\u5C5E\u4E8E\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\uFF08${describeScope(target)}\uFF09\u3002\u8FD0\u884C\u548C\u5355\u6B65\u6682\u505C\u4F7F\u7528\uFF0C\u4E0D\u4F1A\u8FD0\u884C\u65E7\u7A0B\u5E8F\u3002` : `\u6B63\u5728\u67E5\u770B ${activeFile}\uFF1B\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\u6765\u81EA ${target.entry}\u3002\u8FD0\u884C\u548C\u5355\u6B65\u6682\u505C\u4F7F\u7528\uFF0C\u4E0D\u4F1A\u8FD0\u884C\u65E7\u7A0B\u5E8F\u3002`
+      back,
+      text: target.mode === "manual" ? `${activeFile} \u4E0D\u5728\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u91CC\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F ${runnable(target)}\u3002` : `\u4F60\u5728\u770B ${activeFile}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F ${runnable(target)}\u3002\u8981\u8FD0\u884C ${activeFile}\uFF0C\u5148\u70B9\uFF3B${assembleLabel()}\uFF3D\uFF1B\u4E5F\u53EF\u4EE5\uFF3B\u56DE\u5230 ${back}\uFF3D\u7EE7\u7EED\u8C03\u8BD5\u3002`
     };
   const scope = nextScope();
   if (scope.mode !== target.mode || scope.mode === "manual" && (scope.entry !== target.entry || !sameFiles(scope.files, target.files)))
     return {
       kind: "changed",
-      text: `\u6C47\u7F16\u65B9\u5F0F\u6216\u8303\u56F4\u5DF2\u66F4\u6539\uFF1A\u4E0B\u6B21\u5C06${describeScope(scope)}\uFF0C\u5DF2\u88C5\u5165\u7684\u4ECD\u662F${describeScope(target)}\u3002\u91CD\u65B0\u6C47\u7F16\u540E\u624D\u80FD\u8FD0\u884C\u3002`
+      text: `${scope.mode !== target.mode ? `\u6C47\u7F16\u65B9\u5F0F\u6539\u6210\u4E86${{ auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u9009\u62E9\u8303\u56F4" }[scope.mode]}` : "\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u6539\u4E86"}\uFF0C\u4F46\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u8FD8\u662F\u4E4B\u524D\u88C5\u5165\u7684\u7A0B\u5E8F\uFF08${runnable(target)}\uFF09\u3002\u70B9\uFF3B\u91CD\u65B0\u6C47\u7F16\uFF3D\u6309\u65B0\u65B9\u5F0F\u88C5\u5165\u3002`
     };
   return null;
 }
 function blocked() {
   return scopeReason()?.text || "";
 }
+function assembleLabel() {
+  const scope = nextScope();
+  return !scope.error && scope.entry !== activeFile ? `\u6C47\u7F16\uFF08\u5165\u53E3 ${scope.entry}\uFF09` : `\u6C47\u7F16 ${activeFile}`;
+}
 function renderScope() {
   const scope = nextScope(), reason = scopeReason();
   $2("target").textContent = !target ? "\u7A0B\u5E8F\uFF1A\u672A\u6C47\u7F16" : target.files.length > 1 ? `\u7A0B\u5E8F\uFF1A${target.entry} \uFF0B${target.files.length - 1} \u4E2A\u6587\u4EF6` : `\u7A0B\u5E8F\uFF1A${target.entry}`;
-  $2("target").title = target ? `${MODE_NAMES[target.mode]}\uFF0C\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F\u7531\u8FD9\u4E9B\u6E90\u7801\u6C47\u7F16\uFF1A
-` + target.files.join("\n") : "\u8FD8\u6CA1\u6709\u6C47\u7F16";
+  $2("target").title = target ? `${MODE_NAMES[target.mode]}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u7531\u8FD9\u4E9B\u6E90\u7801\u6C47\u7F16\uFF1A
+` + target.files.join("\n") + "\n\u70B9\u201C\u6C47\u7F16\u201D\u540E\u4F1A\u6362\u6210\u65B0\u7684\u7A0B\u5E8F" : "\u8FD8\u6CA1\u6709\u6C47\u7F16";
   $2("target").classList.toggle("stale", !!reason);
   $2("assemble").title = (scope.error || describeScope(scope)) + " \xB7 Cmd/Ctrl+Enter\uFF1B\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F \xB7 Cmd/Ctrl+Shift+F5";
   document.querySelectorAll("[data-assembly-mode]").forEach(
@@ -28856,14 +29005,11 @@ function renderScope() {
   banner.hidden = !reason;
   if (!reason) return banner.replaceChildren();
   const actions2 = reason.kind === "changed" ? [["assemble", "\u91CD\u65B0\u6C47\u7F16"]] : target.mode === "manual" ? [
-    ["back", "\u56DE\u5230\u5DF2\u88C5\u5165\u7684\u7A0B\u5E8F"],
-    ["join", `\u628A ${activeFile} \u52A0\u5165\u6C47\u7F16\u8303\u56F4`]
+    ["back", `\u56DE\u5230 ${reason.back}`],
+    ["join", `\u628A ${activeFile} \u52A0\u5165\u8303\u56F4`]
   ] : [
-    [
-      "assemble",
-      !scope.error && scope.entry !== activeFile ? `\u6C47\u7F16\uFF08\u5165\u53E3 ${scope.entry}\uFF09` : `\u6C47\u7F16 ${activeFile}`
-    ],
-    ["back", `\u56DE\u5230 ${lastInTarget || target.entry}`]
+    ["assemble", assembleLabel()],
+    ["back", `\u56DE\u5230 ${reason.back}`]
   ];
   banner.innerHTML = `<span>${escapeHTML(reason.text)}</span>${actions2.map(
     ([a, label2]) => `<button data-scope-action="${a}">${escapeHTML(label2)}</button>`
@@ -29064,11 +29210,21 @@ function renderRegisters() {
     (m, i, all2) => (all2.slice(2, i).match(/_/g) || []).length % 2 ? "_<wbr>" : "_"
   ) : escapeHTML(fmt(r.value, 4, regKind(r.name)).text);
   $2("registers").classList.toggle("bin", bin);
+  $2("reg-legend").textContent = {
+    auto: "0d \u5341\u8FDB\u5236 \xB7 0x \u5341\u516D\u8FDB\u5236",
+    hex: "0x \u5341\u516D\u8FDB\u5236",
+    dec: "0d \u5341\u8FDB\u5236",
+    bin: "0b \u4E8C\u8FDB\u5236",
+    ascii: "'\u2026' \u5B57\u7B26 \xB7 0d \u5341\u8FDB\u5236"
+  }[radix];
+  const signNote = (r) => bin && r.value < 0 && regKind(r.name) === "value" ? `
+\u6700\u9AD8\u4F4D\u662F 1\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u8BFB\u662F ${r.value | 0}\uFF08\u8865\u7801\uFF09` : "";
   $2("registers").innerHTML = state.registers.filter(
     (r) => filter === "all" || filter === "pinned" ? filter === "all" || pinned.has(r.name) : related.has(r.name) || pinned.has(r.name)
   ).map(
     (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
-${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`
+${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""}${escapeHTML(signNote(r))}
+\u524D\u7F00\uFF1A${escapeHTML($2("reg-legend").textContent)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`
   ).join("");
   $2("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -29112,6 +29268,7 @@ function memoryCell(v) {
   return v.toString(16).padStart(2, "0");
 }
 function inspectByte(address) {
+  following = false;
   focus = "mem:" + address;
   let value = state.memory.find((b) => b.address === address)?.value, last2 = state.lastWriters["mem:" + address];
   inspecting = null;
@@ -29133,7 +29290,7 @@ async function memoryAt(address) {
 function renderCards() {
   let last2 = state?.last, next = state?.preview;
   $2("last-card").innerHTML = `<small>\u521A\u5B8C\u6210 ${last2 ? "#" + last2.step : ""} \xB7 \u5B9E\u7EBF</small><b>${escapeHTML(last2?.instruction ? sourceOf(last2.instruction) : "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55")}</b>`;
-  $2("next-card").innerHTML = `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction ? sourceOf(next.instruction) : "\u2014")}</b>`;
+  $2("next-card").innerHTML = state?.status === "ended" ? `<small>\u5373\u5C06\u6267\u884C</small><b>\u7A0B\u5E8F\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}</b>` : `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction ? sourceOf(next.instruction) : "\u2014")}</b>`;
   for (let [id2, e] of [
     ["last-card", last2],
     ["next-card", next]
@@ -29150,7 +29307,7 @@ function renderCards() {
 }
 function renderMachine() {
   $2("machine").innerHTML = program.instructions.map(
-    (i) => `<div class="instruction ${i.address === state?.pc ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${escapeHTML(i.basic)}</span><small>${escapeHTML(i.file)}:${i.line} \xB7 ${hex(i.binary)} \xB7 ${escapeHTML(i.source?.trim())}</small></div>`
+    (i) => `<div class="instruction ${i.address === state?.pc && state.status !== "ended" ? "next" : ""} ${i.address === state?.last?.pc ? "last" : ""}" data-instruction="${i.address}"><span data-machine-bp="${i.address}">${breakpointGlyph(breakpoints.find((b) => b.address === i.address))}</span><span>${hex(i.address).slice(2)}</span><span>${escapeHTML(i.basic)}</span><small>${escapeHTML(i.file)}:${i.line} \xB7 ${hex(i.binary)} \xB7 ${escapeHTML(i.source?.trim())}</small></div>`
   ).join("");
   $2("machine").querySelectorAll("[data-instruction]").forEach(
     (e) => e.onclick = (event) => {
@@ -29240,12 +29397,14 @@ function render() {
   if (state.error) {
     notify(hints.find(Boolean) || state.error);
     setBottom("problems");
+    problemsShownForError = true;
   } else if (!dirty && !keepNotice) notify("");
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
-  if (inspecting && (inspecting.startsWith("$") || inspecting === "syscall" || isInstruction(inspecting) && inspectingPlace))
-    inspectToken(inspecting, inspectingPlace);
+  if (following) followInspector();
+  else if (inspecting && (inspecting.startsWith("$") || inspecting === "syscall" || isInstruction(inspecting) && inspectingPlace))
+    inspectToken(inspecting, inspectingPlace, { refresh: true });
   overlay.schedule();
   updateControls();
 }
@@ -29447,6 +29606,7 @@ async function run(mode = "run", extra = {}) {
     finish();
   }
   arrive(mode !== "source");
+  followInspector();
   lens.settle();
 }
 async function runLoop(mode, extra) {
@@ -29564,7 +29724,7 @@ function commandList() {
         overlay.schedule();
       }
     ],
-    ["syscall \u670D\u52A1\u8868", () => inspectToken("syscall")],
+    ["syscall \u4E00\u89C8\uFF08$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48\uFF09", () => inspectToken("syscall")],
     ["\u67E5\u6307\u4EE4\u4E0E\u7528\u9014\uFF08\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u641C\u7D22\uFF09", () => findInstruction()]
   ];
   return commands.map(([label2, run2, action]) => ({
@@ -29585,7 +29745,7 @@ function findInstruction(query = "") {
   const input = $2("find-input");
   input.value = query;
   let results = [], selected = 0;
-  const kindOf = (x) => x.kind === "service" ? "syscall \u670D\u52A1" : x.pseudo ? "\u4F2A\u6307\u4EE4" : "\u6307\u4EE4";
+  const kindOf = (x) => x.kind === "service" ? "syscall" : x.pseudo ? "\u4F2A\u6307\u4EE4" : "\u6307\u4EE4";
   const uses = (x) => {
     const out = [];
     for (const [file, text2] of Object.entries(files)) {
@@ -29602,7 +29762,7 @@ function findInstruction(query = "") {
   const detail = () => {
     const x = results[selected];
     if (!x) {
-      $2("find-detail").innerHTML = input.value.trim() ? '<p class="muted">\u6CA1\u6709\u627E\u5230\u5339\u914D\u7684\u6307\u4EE4\u6216\u670D\u52A1\u3002\u8BD5\u8BD5\u201C\u52A0\u6CD5\u201D\u201C\u6BD4\u8F83\u5927\u5C0F\u201D\u201C\u6253\u5370\u5B57\u7B26\u201D\u201C\u8BFB\u53D6\u6574\u6570\u201D\u201C\u53F3\u79FB\u201D\uFF0C\u6216\u8F93\u5165\u6307\u4EE4\u540D\u3002</p>' : '<p class="muted">\u8F93\u5165\u6307\u4EE4\u540D\uFF0C\u6216\u7528\u4E2D\u6587\u5199\u60F3\u505A\u7684\u4E8B\u3002</p>';
+      $2("find-detail").innerHTML = input.value.trim() ? '<p class="muted">\u6CA1\u6709\u627E\u5230\u5339\u914D\u7684\u6307\u4EE4\u6216 syscall\u3002\u8BD5\u8BD5\u201C\u52A0\u6CD5\u201D\u201C\u6BD4\u8F83\u5927\u5C0F\u201D\u201C\u6253\u5370\u5B57\u7B26\u201D\u201C\u8BFB\u53D6\u6574\u6570\u201D\u201C\u53F3\u79FB\u201D\uFF0C\u6216\u8F93\u5165\u6307\u4EE4\u540D\u3002</p>' : '<p class="muted">\u8F93\u5165\u6307\u4EE4\u540D\uFF0C\u6216\u7528\u4E2D\u6587\u5199\u60F3\u505A\u7684\u4E8B\u3002</p>';
       return;
     }
     const used = uses(x);
@@ -29623,12 +29783,22 @@ function findInstruction(query = "") {
       }
     );
   };
+  let moreOpen = false;
   const render2 = () => {
     results = searchInstructions(input.value, items);
-    selected = Math.max(0, Math.min(selected, results.length - 1));
-    $2("find-list").innerHTML = results.map(
-      (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${escapeHTML(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${escapeHTML(x.purpose)}</span></button>`
-    ).join("");
+    const strong = results.filter((x) => !x.weak).length, folded = strong > 0 && strong < results.length && !moreOpen;
+    const visible = folded ? strong : results.length;
+    selected = Math.max(0, Math.min(selected, visible - 1));
+    const row2 = (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${escapeHTML(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${escapeHTML(x.purpose)}</span></button>`;
+    $2("find-list").innerHTML = strong > 0 && strong < results.length ? results.slice(0, strong).map(row2).join("") + `<details class="find-more" ${moreOpen ? "open" : ""}><summary>\u5176\u4ED6\u53EF\u80FD\u76F8\u5173\uFF08${results.length - strong} \u4E2A\uFF09</summary>${results.slice(strong).map((x, k) => row2(x, strong + k)).join("")}</details>` : results.map(row2).join("");
+    const more = $2("find-list").querySelector(".find-more");
+    if (more)
+      more.ontoggle = () => {
+        if (more.open !== moreOpen) {
+          moreOpen = more.open;
+          render2();
+        }
+      };
     $2("find-list").querySelectorAll("[data-find]").forEach(
       (b) => b.onclick = () => {
         selected = Number(b.dataset.find);
@@ -29640,6 +29810,7 @@ function findInstruction(query = "") {
   };
   input.oninput = () => {
     selected = 0;
+    moreOpen = false;
     render2();
   };
   input.onkeydown = (e) => {
@@ -29666,7 +29837,8 @@ tutorial = new Tutorial({
     dirty,
     breakpoints,
     watches,
-    inspecting,
+    // Only what the student opened counts, not what the inspector followed.
+    inspecting: following ? null : inspecting,
     lensOpen: lens.isOpen,
     sideTab
   }),
@@ -29674,7 +29846,10 @@ tutorial = new Tutorial({
     const [kind, arg] = action.split(/:(.*)/);
     if (kind === "side") setSideTab(arg, true);
     else if (kind === "panel") setPanel(arg, false);
-    else if (kind === "find") findInstruction(arg);
+    else if (kind === "inspect") {
+      setPanel("context", false);
+      inspectToken(arg);
+    } else if (kind === "find") findInstruction(arg);
     else if (kind === "focus") openFocus();
     else if (kind === "menu") setTimeout(() => $2("project-menu-button").click());
   },
@@ -29808,7 +29983,7 @@ $2("back").onclick = () => command2("back").then(() => {
   arrive();
 });
 for (let mode of ["source", "over", "out", "run"])
-  $2(mode).onclick = () => run(mode);
+  $2(mode).onclick = () => mode === "run" && canRestart() ? restartRun() : run(mode);
 $2("pause").onclick = () => requestStop();
 $2("commands").onclick = openCommands;
 $2("radix").innerHTML = RADIXES.map(
@@ -29969,7 +30144,9 @@ $2("clear-focus").onclick = () => {
   focus = null;
   inspecting = null;
   inspectingPlace = null;
+  following = true;
   showContext(CONTEXT_HINT);
+  followInspector();
   renderRegisters();
   overlay.schedule();
 };
@@ -29987,7 +30164,12 @@ $2("delay").onchange = () => {
 for (let id2 of ["solid", "dashed", "reads", "writes", "flows"])
   $2(id2).onchange = () => overlay.schedule();
 document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => setView(b.dataset.view));
-document.querySelectorAll("[data-bottom]").forEach((b) => b.onclick = () => setBottom(b.dataset.bottom));
+document.querySelectorAll("[data-bottom]").forEach(
+  (b) => b.onclick = () => {
+    problemsShownForError = false;
+    setBottom(b.dataset.bottom);
+  }
+);
 $2("input-form").onsubmit = async (e) => {
   e.preventDefault();
   let value = $2("stdin").value;
@@ -30138,6 +30320,7 @@ workspace = projectManager({
     target = null;
     lastInTarget = "";
     inspectingPlace = null;
+    following = true;
     showContext(CONTEXT_HINT);
     inspecting = null;
     focus = null;

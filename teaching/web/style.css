@@ -4,10 +4,26 @@
   --text: #26344a;
   --muted: #7d889b;
   --line: #e3e8f0;
-  --accent: #3067ce;
-  --blue: #2879d0;
-  --orange: #c47420;
-  --purple: #8258c6;
+  /* One meaning per colour (round-4 trial: next/last, read/write and syntax
+     shared hues). Execution position, syntax and accent follow VS Code
+     (debug stack frame yellow, Light+ / Dark+ tokens); read and write are
+     ours, chosen outside the syntax palette. */
+  --accent: #005fb8;
+  --exec: #ffe066;
+  --exec-strong: #b58900;
+  --done: #8a94a6;
+  --read: #0f8c8c;
+  --write: #c2185b;
+  --flow: #af00db;
+  --warn: #b26a00;
+  --bp: #e51400;
+  --syn-op: #0000ff;
+  --syn-control: #af00db;
+  --syn-reg: #001080;
+  --syn-num: #098658;
+  --syn-label: #795e26;
+  --syn-str: #a31515;
+  --syn-comment: #008000;
   --code: 13px;
   --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color-scheme: light;
@@ -31,10 +47,22 @@ body.dark {
   --text: #dce5f4;
   --muted: #899ab1;
   --line: #2b384d;
-  --accent: #8bb1ff;
-  --blue: #75b7ff;
-  --orange: #f2b76b;
-  --purple: #ba9af5;
+  --accent: #3794ff;
+  --exec: #ffd70066;
+  --exec-strong: #ffcc00;
+  --done: #7f8ba0;
+  --read: #4ec9b0;
+  --write: #f48fb1;
+  --flow: #c586c0;
+  --warn: #cca700;
+  --bp: #f14c4c;
+  --syn-op: #569cd6;
+  --syn-control: #c586c0;
+  --syn-reg: #9cdcfe;
+  --syn-num: #b5cea8;
+  --syn-label: #dcdcaa;
+  --syn-str: #ce9178;
+  --syn-comment: #6a9955;
   color-scheme: dark;
 }
 button,
@@ -119,7 +147,7 @@ header {
   min-height: 49px;
 }
 .primary {
-  background: #3067ce;
+  background: var(--accent);
   color: white;
 }
 .run {
@@ -215,7 +243,7 @@ header {
 .bp {
   font-size: 11px;
   white-space: normal;
-  color: var(--orange);
+  color: var(--bp);
 }
 .code-pane {
   background: var(--panel);
@@ -291,35 +319,43 @@ header {
 .cm-line {
   padding-left: 12px;
 }
+/* Execution position: about to run in VS Code's debug yellow, just ran in
+   a quiet grey (it is the past). */
 .cm-line.last-line {
-  background: color-mix(in srgb, var(--orange) 10%, transparent);
+  background: color-mix(in srgb, var(--done) 14%, transparent);
 }
 .cm-line.next-line {
-  background: color-mix(in srgb, var(--blue) 12%, transparent);
-  box-shadow: inset 3px 0 var(--blue);
+  background: color-mix(in srgb, var(--exec) 55%, transparent);
+  box-shadow: inset 3px 0 var(--exec-strong);
 }
 .cm-line.focus-line {
-  outline: 1px solid var(--purple);
+  outline: 1px solid var(--accent);
 }
+/* Syntax: VS Code Light+ / Dark+ roles for assembly. */
 .cm-reg {
-  color: var(--blue);
+  color: var(--syn-reg);
 }
 .cm-op {
-  color: var(--purple);
-  font-weight: 600;
+  color: var(--syn-op);
+}
+.cm-op.cm-control {
+  color: var(--syn-control);
 }
 .cm-label {
-  color: var(--orange);
+  color: var(--syn-label);
 }
 .cm-comment {
-  color: var(--muted);
+  color: var(--syn-comment);
   font-style: italic;
 }
 .cm-number {
-  color: #aa633a;
+  color: var(--syn-num);
+}
+.cm-string {
+  color: var(--syn-str);
 }
 .cm-gutterElement .break-dot {
-  color: #d65454;
+  color: var(--bp);
   cursor: pointer;
   font-size: 14px;
 }
@@ -354,10 +390,10 @@ header {
   white-space: nowrap;
 }
 .execution-strip #last-card {
-  border-left: 3px solid var(--orange);
+  border-left: 3px solid var(--done);
 }
 .execution-strip #next-card {
-  border-left: 3px dashed var(--blue);
+  border-left: 3px dashed var(--exec-strong);
 }
 .bottom {
   height: var(--bottom-h, 210px);
@@ -474,14 +510,14 @@ code,
   color: var(--muted);
 }
 .reg.read {
-  border-left: 3px solid var(--blue);
+  border-left: 3px solid var(--read);
 }
 .reg.write {
-  border-right: 3px solid var(--orange);
+  border-right: 3px solid var(--write);
 }
 .reg.pinned .name:before {
   content: "•";
-  color: var(--purple);
+  color: var(--accent);
 }
 .reg.focus {
   background: color-mix(in srgb, var(--accent) 12%, var(--panel));
@@ -523,10 +559,10 @@ code,
   background: var(--bg);
 }
 .byte.read {
-  background: color-mix(in srgb, var(--blue) 20%, var(--panel));
+  background: color-mix(in srgb, var(--read) 22%, var(--panel));
 }
 .byte.write {
-  background: color-mix(in srgb, var(--orange) 25%, var(--panel));
+  background: color-mix(in srgb, var(--write) 22%, var(--panel));
 }
 .byte.focus {
   outline: 1px solid var(--accent);
@@ -553,13 +589,13 @@ footer {
   flex: 1;
 }
 .read {
-  color: var(--blue);
+  color: var(--read);
 }
 .write {
-  color: var(--orange);
+  color: var(--write);
 }
 .flow {
-  color: var(--purple);
+  color: var(--flow);
 }
 #overlay {
   position: fixed;
@@ -604,10 +640,10 @@ footer {
   cursor: pointer;
 }
 .instruction.next {
-  background: color-mix(in srgb, var(--blue) 12%, var(--panel));
+  background: color-mix(in srgb, var(--exec) 55%, var(--panel));
 }
 .instruction.last {
-  border-left: 3px solid var(--orange);
+  border-left: 3px solid var(--done);
 }
 .instruction small {
   grid-column: 2/4;
@@ -645,7 +681,7 @@ footer {
 .block .edges button {
   border: 1px solid var(--line);
   font-size: 10px;
-  color: var(--purple);
+  color: var(--flow);
 }
 .trace-row {
   display: flex;
@@ -893,7 +929,7 @@ body.focusing #tooltip {
   border-left: 3px solid transparent;
 }
 .frow.done {
-  border-left-color: var(--accent);
+  border-left-color: var(--done);
 }
 .frow.pred {
   border-left: 3px dashed var(--line);
@@ -934,8 +970,8 @@ body.focusing #tooltip {
   border: 1px solid var(--line);
 }
 .fbadge.done {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--done);
+  color: var(--done);
 }
 .fbadge.pred {
   border-style: dashed;
@@ -990,13 +1026,13 @@ body.focusing #tooltip {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
 .fobj.lit-read {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--read);
   outline-offset: -1px;
 }
 .fobj.lit-write {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--write);
   outline-offset: -1px;
-  background: color-mix(in srgb, var(--orange) 15%, var(--panel));
+  background: color-mix(in srgb, var(--warn) 15%, var(--panel));
 }
 .fmore {
   font-size: 11px;
@@ -1062,13 +1098,13 @@ body.focusing #tooltip {
   color: var(--muted);
 }
 #focus-eq .fresh {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  color: var(--read);
+  background: color-mix(in srgb, var(--read) 12%, var(--panel));
   border-radius: 4px;
   padding: 0 3px;
 }
 #focus-eq .ok {
-  color: var(--orange);
+  color: var(--write);
 }
 #focus-caption {
   color: var(--muted);
@@ -1224,7 +1260,7 @@ body.focusing #tooltip {
 }
 #logs-tab.unread::after {
   content: " •";
-  color: var(--orange);
+  color: var(--warn);
 }
 #context-menu {
   position: fixed;
@@ -1265,13 +1301,13 @@ body.focusing #tooltip {
   animation: status-blink 1s steps(2, start) infinite;
 }
 .status[data-state="breakpoint"] {
-  background: color-mix(in srgb, #d65454 12%, var(--panel));
-  border-color: #d65454;
+  background: color-mix(in srgb, var(--bp) 12%, var(--panel));
+  border-color: var(--bp);
   color: #b23d3d;
 }
 .status[data-state="waiting"] {
-  background: color-mix(in srgb, var(--orange) 16%, var(--panel));
-  border-color: var(--orange);
+  background: color-mix(in srgb, var(--warn) 16%, var(--panel));
+  border-color: var(--warn);
 }
 .status[data-state="error"] {
   background: #fde7e7;
@@ -1424,9 +1460,9 @@ abbr.term {
 /* The lens input must be found at a glance (round-3 trial). */
 #focus-input {
   padding: 8px 10px;
-  border: 1px solid var(--orange);
+  border: 1px solid var(--warn);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--orange) 10%, var(--panel));
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
   color: var(--text);
 }
 #focus-input label {
@@ -1521,7 +1557,7 @@ header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
 .file-actions button { text-align:left; padding:10px; border:1px solid var(--line); }
 #project-form label { display:block; }
 #project-value { display:block; width:100%; margin-top:8px; }
-#project-error { color:var(--orange); line-height:1.5; }
+#project-error { color:var(--warn); line-height:1.5; }
 .project-explanation { overflow-wrap:anywhere; line-height:1.6; }
 .danger { color:#bf4040; }
 button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
@@ -1535,16 +1571,16 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .sidebar .joint-pick { width:auto; flex:0 0 auto; margin:0 0 0 8px; padding:0; }
 .tree-row.joined .tree-open { font-weight:600; }
 .viewbar .target-chip { margin-left:auto; padding:2px 7px; border:1px solid var(--line); border-radius:9px; color:var(--text); max-width:46%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.viewbar .target-chip.stale { border-color:var(--orange); color:var(--orange); }
+.viewbar .target-chip.stale { border-color:var(--warn); color:var(--warn); }
 .viewbar .target-chip + #location { margin-left:10px; }
-.scope-banner { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:7px 12px; font-size:12px; line-height:1.5; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--orange) 12%, var(--panel)); color:var(--text); flex-shrink:0; }
+.scope-banner { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:7px 12px; font-size:12px; line-height:1.5; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--warn) 12%, var(--panel)); color:var(--text); flex-shrink:0; }
 .scope-banner[hidden] { display:none; }
 .scope-banner span { flex:1 1 260px; }
 .scope-banner button { padding:4px 9px; border:1px solid var(--line); border-radius:5px; background:var(--panel); }
 .scope-banner button:first-of-type { border-color:var(--accent); color:var(--accent); }
 .break-dot.stale { opacity:.4; }
 .bp.stale { opacity:.6; }
-.scope-hint { display:block; margin-top:3px; color:var(--orange); white-space:normal; }
+.scope-hint { display:block; margin-top:3px; color:var(--warn); white-space:normal; }
 .split-button { position:relative; display:inline-flex; }
 .split-button #assemble { border-top-right-radius:0; border-bottom-right-radius:0; }
 .split-button #assemble-mode { border-top-left-radius:0; border-bottom-left-radius:0; border-left:1px solid color-mix(in srgb, white 35%, transparent); padding:6px 7px; }
@@ -1555,7 +1591,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .assemble-menu button[aria-checked="true"]::before { content:'✓'; position:absolute; left:9px; top:7px; color:var(--accent); }
 .assembly-mode b { color:var(--text); font-size:11px; }
 .assembly-mode small { flex-basis:100%; }
-.split-button .primary:hover, .split-button .primary[aria-expanded="true"] { background:#2858b5; border-color:transparent; }
+.split-button .primary:hover, .split-button .primary[aria-expanded="true"] { background:color-mix(in srgb, var(--accent) 82%, black); border-color:transparent; }
 /* BIN registers: the full 32-bit pattern, one register per row. */
 #registers.bin { grid-template-columns: 1fr; }
 #registers.bin .reg { gap: 8px; }
@@ -1564,7 +1600,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
    under reduced motion (the pulse itself is a Web Animation). */
 #console.waiting #input-form { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 8%, transparent); }
 #console.waiting #stdin { border-color: var(--accent); }
-[data-bottom="console"].unread::after { content: " •"; color: var(--orange); }
+[data-bottom="console"].unread::after { content: " •"; color: var(--warn); }
 .fresh-output { box-shadow: inset 3px 0 0 var(--accent); }
 /* Hover brief and detailed inspector (classroom 2026-10-24). */
 #tooltip { pointer-events: auto; }
@@ -1613,7 +1649,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .side-tabs { display: flex; flex-direction: column; gap: 3px; padding: 6px 3px; border-right: 1px solid var(--line); background: var(--bg); }
 .side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 1px; font-size: 10px; border-radius: 6px; color: var(--muted); position: relative; white-space: nowrap; }
 .side-tabs button[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--panel)); }
-.side-badge { position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+.side-badge { position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
 .side-panels { overflow: auto; min-height: 0; }
 .side-panels > section { padding-bottom: 12px; }
 /* Right: inspector, registers and memory share the height; each can be
@@ -1655,17 +1691,17 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .bbits i { font-style: normal; width: 1.15em; text-align: center; line-height: 1.5; border-radius: 3px; }
 .bbits i.pending { color: var(--muted); opacity: .5; }
 .bbits i.in, .bbits i.new { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-.bbits i.hi { background: color-mix(in srgb, var(--orange) 16%, transparent); }
-.bbits i.lo { background: color-mix(in srgb, var(--blue) 16%, transparent); }
+.bbits i.hi { background: color-mix(in srgb, var(--syn-label) 18%, transparent); }
+.bbits i.lo { background: color-mix(in srgb, var(--syn-num) 18%, transparent); }
 .bgap { width: 5px; }
 .brow.carry { font-size: 10px; color: var(--muted); }
 .brow.result .bbits i { font-weight: 700; }
-.bout { font-size: 10px; color: var(--orange); }
+.bout { font-size: 10px; color: var(--warn); }
 .bits-controls { display: flex; gap: 6px; margin-top: 6px; }
 #find-list { max-height: 220px; overflow: auto; margin: 8px 0; } #find-list .command-item span { font-size: 11px; } .find-code { white-space: pre-wrap; } #find-detail { border-top: 1px solid var(--line); padding-top: 6px; }
 /* Hands-on introduction card: it floats over the code pane and can shrink to
    a pill; it never blocks the editor or the toolbar. */
-.tutorial { position: fixed; z-index: 30; top: 128px; right: calc(var(--right-w, 345px) + 22px); width: min(360px, calc(100vw - 32px)); max-height: calc(100vh - 420px); min-height: 0; overflow: auto; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 10px 30px rgb(0 0 0 / .2); padding: 10px 12px; font-size: 12px; line-height: 1.6; }
+.tutorial { position: fixed; z-index: 55; top: 128px; right: calc(var(--right-w, 345px) + 22px); width: min(360px, calc(100vw - 32px)); max-height: calc(100vh - 420px); min-height: 0; overflow: auto; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 10px 30px rgb(0 0 0 / .2); padding: 10px 12px; font-size: 12px; line-height: 1.6; }
 .tutorial header { display: flex; align-items: center; gap: 8px; }
 .tutorial header span { flex: 1; color: var(--muted); font-size: 11px; }
 .tutorial h4 { margin: 6px 0 2px; font-size: 14px; }
@@ -1674,7 +1710,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .tutorial-checks li { color: var(--muted); }
 .tutorial-checks li.ok { color: var(--accent); }
 .tutorial-hint { margin: 4px 0; padding: 4px 8px; background: var(--bg); border-radius: 6px; }
-.tutorial-fail { color: var(--orange); margin: 4px 0; }
+.tutorial-fail { color: var(--warn); margin: 4px 0; }
 .tutorial-answer { font: 11px/1.5 ui-monospace, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; overflow: auto; max-height: 220px; user-select: text; }
 .tutorial-go { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 .tutorial-go button { border: 1px dashed var(--accent); color: var(--accent); padding: 3px 8px; }
@@ -1684,3 +1720,10 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .tutorial.collapsed { width: auto; padding: 0; border: 0; background: transparent; box-shadow: none; overflow: visible; }
 .tutorial-pill { background: var(--accent); color: white; border-radius: 16px; padding: 6px 12px; box-shadow: 0 6px 18px rgb(0 0 0 / .2); }
 @media (max-width: 900px) { .tutorial { right: 16px; } }
+/* Inspector mode: following execution or pinned to an object. */
+.inspect-mode { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 2px 0 6px; padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--muted); background: var(--bg); }
+.inspect-mode.pinned { color: var(--text); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+.inspect-mode button { margin-left: auto; padding: 2px 8px; border: 1px solid var(--line); font-size: 11px; }
+.reg-legend { flex: 1; text-align: right; margin-right: 6px; font-weight: 400; letter-spacing: 0; color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reg-term { text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+.find-more summary { cursor: pointer; color: var(--muted); font-size: 11px; padding: 4px 8px; }
