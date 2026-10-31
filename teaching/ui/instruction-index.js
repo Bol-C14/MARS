@@ -192,3 +192,73 @@ export function searchInstructions(query, items, limit = 30) {
     .slice(0, limit)
     .map((r) => ({ ...r.item, weak: r.s < STRONG }));
 }
+
+// How to write an instruction, part by part (classroom 2026-10-31: "beq 是比较"
+// did not say that it takes two registers and a label). The meaning of each
+// operand follows from its name and the entry's formula, so no instruction
+// needs its own text. `source` fills in what this line wrote for each part.
+const operandsOf = (source) => {
+  const code = source.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim();
+  const space = code.search(/\s/);
+  return space < 0 ? [] : code.slice(space).split(",").map((s) => s.trim()).filter(Boolean);
+};
+function partMeaning(name, x, index, count) {
+  const left = x.formula.split("←")[0],
+    named = (text) => new RegExp(`(^|[^a-z])${name}([^a-z]|$)`).test(text);
+  const branch = /^若/.test(x.formula),
+    memory = /offset/.test(x.format);
+  if (name === "label") {
+    if (x.op === "la") return "要取地址的标签（数据或代码中写 标签名: 的位置）";
+    return `${branch ? "条件成立时跳到这个标签" : "跳到这个标签"}（代码中写 标签名: 的位置）`;
+  }
+  if (name === "offset") return "字节偏移：基址寄存器 + 偏移 = 内存地址";
+  if (name === "imm") return "写在指令里的常数";
+  if (name === "sa") return "移动的位数（0–31）";
+  if (branch) return count > 2 ? `比较的${index ? "右边" : "左边"}` : "和 0 比较的寄存器";
+  if (memory && name === "rs") return "基址寄存器：内存地址从它算起";
+  if (memory) return named(left) ? "从内存读到的值放进这个寄存器" : "要写进内存的值在这个寄存器";
+  if (x.formula.includes(`PC ← ${name}`)) return "跳转目标地址在这个寄存器";
+  if (named(left)) return "结果写入这个寄存器";
+  if (/低 5 位/.test(x.formula) && name === "rs") return "取低 5 位作为移动的位数";
+  return "参与运算的寄存器";
+}
+export function usageOf(x, source = "") {
+  const op = x.format.split(/\s/)[0],
+    format = x.format.slice(op.length).trim();
+  const names = format ? format.split(/,\s*/) : [],
+    written = operandsOf(source),
+    fits = written.length === names.length;
+  const parts = [];
+  names.forEach((name, i) => {
+    const address = /^offset\(rs\)$/.test(name),
+      value = fits ? written[i] : "";
+    if (!address) return parts.push({ name, value, meaning: partMeaning(name, x, i, names.length) });
+    const m = /^(.*)\((\$\w+)\)$/.exec(value);
+    parts.push({ name: "offset", value: m ? m[1] || "0" : "", meaning: partMeaning("offset", x, i, names.length) });
+    parts.push({ name: "rs", value: m ? m[2] : "", meaning: partMeaning("rs", x, i, names.length) });
+  });
+  return { format: x.format, formula: x.formula, example: x.example, parts };
+}
+
+// [how it is written, what it does]; shown like an instruction's details.
+export const directiveGuide = {
+  ".data": [".data", "下面的内容放进数据段：变量、数组和字符串写在这里。"],
+  ".text": [".text", "下面的内容放进代码段：指令写在这里。"],
+  ".globl": [".globl 标签", "让其他文件也能使用这个标签，常用于 main 和被其他文件调用的函数。"],
+  ".word": ["标签: .word 值, 值, …", "在内存中放 4 字节的整数，写多个值就是数组。"],
+  ".half": ["标签: .half 值, 值, …", "在内存中放 2 字节的整数。"],
+  ".byte": ["标签: .byte 值, 值, …", "在内存中放 1 字节的值。"],
+  ".space": ["标签: .space 字节数", "在内存中留出这么多字节，常用作输入缓冲区。"],
+  ".ascii": ['标签: .ascii "文字"', "把文字按字节放进内存，末尾不加 \\0。"],
+  ".asciiz": ['标签: .asciiz "文字"', "把文字按字节放进内存，末尾自动加一个 \\0，打印字符串时靠它停下。"],
+  ".align": [".align n", "让下一项从 2ⁿ 的倍数地址开始。"],
+  ".float": ["标签: .float 值, …", "在内存中放单精度浮点数。"],
+  ".double": ["标签: .double 值, …", "在内存中放双精度浮点数。"],
+  ".eqv": [".eqv 名字 值", "给一个值起名字，汇编时直接替换。"],
+  ".include": ['.include "文件名"', "把另一个文件的内容插到这里。"],
+  ".macro": [".macro 名字", "开始定义宏，到 .end_macro 结束。"],
+  ".end_macro": [".end_macro", "结束宏定义。"],
+  ".extern": [".extern 标签 字节数", "声明一个全局变量。"],
+  ".kdata": [".kdata", "下面的内容放进内核数据段。"],
+  ".ktext": [".ktext", "下面的内容放进内核代码段。"],
+};

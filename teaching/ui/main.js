@@ -43,7 +43,7 @@ import {
   genericTemplate,
 } from "./beats.js";
 import { serviceAt, serviceGuide, syscallDetail } from "./syscalls.js";
-import { instructionIndex, searchInstructions } from "./instruction-index.js";
+import { directiveGuide, instructionIndex, searchInstructions, usageOf } from "./instruction-index.js";
 import { Tutorial } from "./tutorial.js";
 import { supportsBits } from "./bits.js";
 import { projectManager } from "./project-manager.js";
@@ -66,6 +66,13 @@ function zhDoc(op) {
   if (explanations[op]) return explanations[op];
   const c = CURATED.get(op);
   return c ? `${c.purpose}${c.note ? "；" + c.note : ""}。` : "";
+}
+// How an instruction is written, for the hover note and the inspector.
+function usage(op, source = "") {
+  const c = CURATED.get(op);
+  if (c) return usageOf(c, source);
+  const example = program.instructionDocs[op]?.example;
+  return example ? { format: example, example, parts: [] } : null;
 }
 let workspace = null;
 // Four different things (P0): the tab being edited (activeFile), the scope
@@ -484,7 +491,7 @@ function editorMenu(x, y, pos) {
     ],
     ["切换断点", address != null, () => toggleBreakpoint(line), "breakpoint"],
     ["编辑断点…", address != null, () => editBreakpoint(address)],
-    ["转到定义／说明", !!token, () => inspectToken(token, { file: activeFile, line })],
+    ["转到定义／说明", true, () => openDetail(pos)],
     ["查看引用", !!token, () => peekReferences()],
   ];
   const menu = document.createElement("div");
@@ -589,11 +596,7 @@ const editor = new EditorView({
         {
           key: "F12",
           run: () => {
-            const head = editor.state.selection.main.head;
-            inspectToken(tokenAt(head), {
-              file: activeFile,
-              line: editor.state.doc.lineAt(head).number,
-            });
+            openDetail(editor.state.selection.main.head);
             return true;
           },
         },
@@ -641,19 +644,18 @@ const editor = new EditorView({
           }
         },
         click: (e) => {
-          if (e.metaKey || e.ctrlKey) {
-            let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos != null)
-              inspectToken(tokenAt(pos), {
-                file: activeFile,
-                line: editor.state.doc.lineAt(pos).number,
-              });
-          }
+          if (e.metaKey || e.ctrlKey) openDetailAt(e);
         },
         contextmenu: (e) => {
           let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
           if (pos == null) return false;
           e.preventDefault();
+          // On macOS Ctrl+click arrives here and never as a click (classroom
+          // 2026-10-31: the detail "did nothing" for students using Ctrl).
+          if (e.ctrlKey && IS_MAC) {
+            openDetailAt(e);
+            return true;
+          }
           editorMenu(e.clientX, e.clientY, pos);
           return true;
         },
@@ -700,9 +702,22 @@ const lens = new FocusLens({
 // Lookahead is only computed while the lens shows it (DESIGN §4).
 const lookahead = () =>
   lens.isOpen ? { lookahead: lens.lookaheadLines() } : {};
+// Where a line's code stops: comments and text in quotes hold no tokens.
+function quotedOrComment(text, col) {
+  let quote = "";
+  for (let i = 0; i < col; i++) {
+    if (quote) {
+      if (text[i] === "\\") i++;
+      else if (text[i] === quote) quote = "";
+    } else if (text[i] === '"' || text[i] === "'") quote = text[i];
+    else if (text[i] === "#") return true;
+  }
+  return !!quote;
+}
 function tokenAt(pos) {
   let l = editor.state.doc.lineAt(pos),
     col = pos - l.from;
+  if (quotedOrComment(l.text, col)) return "";
   let address = [
     ...l.text.matchAll(/(?:-?(?:0x[\da-fA-F]+|\d+))?\(\$\w+\)/g),
   ].find((m) => col >= m.index && col <= m.index + m[0].length);
@@ -783,6 +798,11 @@ function syscallAt(place) {
     show: (v, r) => fmt(v, 4, r ? regKind(r) : "value").text,
   };
 }
+const tipUsage = (op) => {
+  const u = usage(op);
+  return u ? `<p class="tip-formula">写法：<code>${esc(u.format)}</code></p>` : "";
+};
+const isNumber = (token) => /^-?(?:0x[\da-f]+|\d+)$/i.test(token);
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
@@ -794,8 +814,11 @@ function summary(token, line = "", place = null) {
   }
   if (zhDoc(token)) {
     const text = zhDoc(token);
-    return `<b>${esc(token)}</b><p>${esc(text)}</p>${lineFormula(place)}<small>指令／汇编器说明</small>`;
+    return `<b>${esc(token)}</b><p>${esc(text)}</p>${tipUsage(token)}${lineFormula(place)}<small>指令／汇编器说明</small>`;
   }
+  if (directiveGuide[token])
+    return `<b>${esc(token)}</b><p>${esc(directiveGuide[token][1])}</p><p class="tip-formula">写法：<code>${esc(directiveGuide[token][0])}</code></p><small>汇编器指示，不是机器指令</small>`;
+  if (isNumber(token)) return `<b>${esc(token)}</b><p>写在代码里的常数</p>`;
   if (program.instructionDocs[token]) {
     const doc = program.instructionDocs[token],
       mars = withOperands(doc.description, doc.example, line);
@@ -803,8 +826,8 @@ function summary(token, line = "", place = null) {
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
-    return `<b>${esc(token)}</b><p>符号地址 ${hex(symbol.address)}</p><small>Cmd/Ctrl＋点击跳转定义</small>`;
-  return `<b>${esc(token)}</b><p>点击查询地址或源码引用</p>`;
+    return `<b>${esc(token)}</b><p>符号地址 ${hex(symbol.address)}</p><small>${DETAIL_KEYS}跳转定义</small>`;
+  return `<b>${esc(token)}</b><p>标签或名称；汇编后可查看地址</p>`;
 }
 // Term definitions under a tooltip (it moves with the pointer, so its words
 // cannot be hovered themselves).
@@ -818,9 +841,9 @@ function definitions(text) {
 // 2026-10-24: the detailed view was hard to find and the hover too full).
 // The note stays put while the pointer is on the same word and can be
 // entered, so its “查看详细” is clickable without knowing the shortcut.
-const DETAIL_HINT = /Mac|iPhone|iPad/.test(navigator.platform)
-  ? "⌘＋点击查看详细"
-  : "Ctrl＋点击查看详细";
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
+const DETAIL_KEYS = IS_MAC ? "⌘ 或 Ctrl＋点击" : "Ctrl＋点击";
+const DETAIL_HINT = `${DETAIL_KEYS}：详情在右侧“详细检查”`;
 let tipFor = "",
   tipHide = null;
 function hideTooltip(delay = 300) {
@@ -830,9 +853,19 @@ function hideTooltip(delay = 300) {
     tipFor = "";
   }, delay);
 }
+// Past the end of a line the editor reports the line's end, which is not the
+// last word: clicking the blank there must not open that word.
+function pointedPos(e) {
+  const pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
+  if (pos == null) return null;
+  const end = editor.state.doc.lineAt(pos).to,
+    right = editor.coordsAtPos(end)?.right;
+  return { pos, past: pos === end && right != null && e.clientX > right + 4 };
+}
 function hover(e) {
-  let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }),
-    token = pos == null ? "" : tokenAt(pos);
+  const at = pointedPos(e),
+    pos = at?.pos,
+    token = !at || at.past ? "" : tokenAt(pos);
   if (!token) return hideTooltip();
   const line = editor.state.doc.lineAt(pos),
     place = { file: activeFile, line: line.number },
@@ -840,7 +873,7 @@ function hover(e) {
   clearTimeout(tipHide);
   if (key === tipFor && !$("tooltip").hidden) return;
   tipFor = key;
-  $("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">查看详细 →</button>`;
+  $("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">在右侧查看详细 →</button>`;
   $("tooltip").querySelector(".tip-detail").onclick = () => {
     inspectToken(token, place);
     hideTooltip(0);
@@ -862,9 +895,40 @@ function hover(e) {
   $("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
 }
+// The word under the pointer or cursor; on a blank or a comment, the line's
+// instruction. Every way of asking for details ends up here, so a request
+// always answers: with the details or with the reason there are none.
+function openDetail(pos, past = false) {
+  const line = editor.state.doc.lineAt(pos),
+    place = { file: activeFile, line: line.number };
+  const word = line.text
+    .replace(/#.*/, "")
+    .replace(/^\s*(?:[\w.$]+:\s*)*/, "")
+    .trim()
+    .split(/\s+/)[0];
+  const token = (past ? "" : tokenAt(pos)) || word;
+  if (!token) return notify("这一行没有指令可以查看。", { transient: true });
+  inspectToken(token, place);
+}
+function openDetailAt(e) {
+  const at = pointedPos(e);
+  if (at) openDetail(at.pos, at.past);
+}
+// Details open in a panel away from the pointer: open it if it was folded,
+// start at the top, and draw the eye to it even if its content stays the same.
+function revealContext() {
+  if ($("panel-context").classList.contains("collapsed")) setPanel("context", false);
+  const panel = $("panel-context");
+  panel.classList.remove("attention");
+  void panel.offsetWidth;
+  panel.classList.add("attention");
+  $("context").scrollTop = 0;
+  clearTimeout(revealContext.timer);
+  revealContext.timer = setTimeout(() => panel.classList.remove("attention"), 1600);
+}
 $("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
 $("tooltip").addEventListener("mouseleave", () => hideTooltip());
-const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_HINT.replace("查看详细", "")}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
+const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_KEYS}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
 // The inspector follows execution by default, showing the line that just
 // ran (or, before anything ran, the next one as a preview); opening an object
 // pins it until "回到跟随执行" or "取消固定" (round-4 trial: a pinned syscall
@@ -912,7 +976,10 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
   if (!refresh) following = false;
   inspecting = token;
   inspectingPlace = place;
-  if (!refresh) $("tooltip").hidden = true;
+  if (!refresh) {
+    $("tooltip").hidden = true;
+    revealContext();
+  }
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
     let base = regValue(address[2]),
@@ -977,10 +1044,38 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
     return;
   }
   if (isInstruction(token) && place) return instructionDetail(token, place);
+  if (directiveGuide[token]) {
+    const [written, does] = directiveGuide[token];
+    showContext(
+      `<h3>${esc(token)} <small class="muted">汇编器指示</small></h3><p>${esc(does)}</p><dl class="detail-steps"><dt>写法</dt><dd><code>${esc(written)}</code></dd></dl><p class="muted">它告诉汇编器怎么安排内容，本身不是一条机器指令，不会单独执行。</p>`,
+    );
+    return;
+  }
+  if (isNumber(token)) {
+    showContext(`<h3>${esc(token)} <small class="muted">常数</small></h3><p>写在代码里的数，同一个值的几种写法：</p>${valueHTML(Number(token))}`);
+    return;
+  }
+  const known = zhDoc(token) || program.instructionDocs[token]?.description,
+    u = isInstruction(token) ? usage(token) : null;
   showContext(
-    `<h3>${esc(token)}</h3><p>${esc(zhDoc(token) || program.instructionDocs[token]?.description || "当前工程中的文本／立即数")}</p><p class="muted">${esc(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">查找引用</button></div>`,
+    `<h3>${esc(token)}</h3><p>${esc(known || "标签或名称。汇编后可以查看它的地址；也可以查找代码里哪些地方用到它。")}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">查找引用</button></div>`,
   );
   $("refs").onclick = () => showReferences(token);
+}
+// Which line a label is on, when the loaded program knows it.
+function labelLine(name) {
+  const symbol = program.symbols.find((s) => s.name === name),
+    ins = symbol && program.instructions.find((i) => i.address === symbol.address);
+  return ins?.line;
+}
+// The written form with each part's meaning and, for a line, what it wrote.
+function usageRows(u) {
+  const part = (p) => {
+    const line = p.name === "label" && p.value ? labelLine(p.value) : null;
+    return `<li><code>${esc(p.name)}</code>${p.value ? ` = <code>${esc(p.value)}</code>` : ""} ${esc(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>（第 ${line} 行）</small>` : ""}</li>`;
+  };
+  const written = u.parts.some((p) => p.value);
+  return `<dl class="detail-steps"><dt>写法</dt><dd><code>${esc(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>通用规则</dt><dd><code>${esc(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>例子</dt><dd><code>${esc(u.example)}</code></dd>` : ""}</dl>`;
 }
 const isInstruction = (token) =>
   !!(zhDoc(token) || program.instructionDocs[token]);
@@ -1091,9 +1186,10 @@ function instructionDetail(token, place) {
   const reads = (model?.objects || []).filter((o) => o.read),
     writes = (model?.objects || []).filter((o) => o.write);
   const single = (template && !(run?.events?.length > 1) && !run?.pseudo);
+  const written = usage(token, source);
   const bitsEvent = (run?.events || []).find(supportsBits);
   const rows = [];
-  if (template && single)
+  if (template && single && !written?.formula)
     rows.push(["通用规则", `<code>${esc(genericTemplate(template, source))}</code>`]);
   if (template)
     rows.push(["本行代入", `<code>${esc(plainEq(template))}</code>`]);
@@ -1125,7 +1221,7 @@ function instructionDetail(token, place) {
   } else if (run?.pseudo)
     rows.push(["完成执行后数值", "这一行是伪指令，执行后可以看到整行的结果；在专注模式中可逐条查看展开的机器指令。"]);
   showContext(
-    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button>${bitsEvent ? `<button id="detail-bits">${run.kind === "past" ? "逐位查看（回退到那一步后可用）" : "在专注模式中逐位查看"}</button>` : ""}</div>`,
+    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button>${bitsEvent ? `<button id="detail-bits">${run.kind === "past" ? "逐位查看（回退到那一步后可用）" : "在专注模式中逐位查看"}</button>` : ""}</div>`,
   );
   $("detail-source").onclick = () => gotoSource(place.file, place.line);
   $("refs").onclick = () => showReferences(token);
@@ -1659,22 +1755,35 @@ function updateControls() {
   $("back").disabled = busy || dirty || !!gate || running || !state?.step;
   const restart = canRestart();
   if (restart) $("run").disabled = false;
-  $("run").textContent = restart ? "↻ 从头运行" : "▶ 运行";
-  $("run").setAttribute("aria-label", restart ? "从头运行（F5）" : "运行（F5）");
+  // One button per action (classroom 2026-10-31): whichever started the
+  // machine pauses it, and a paused demonstration offers to continue.
+  if (!state?.step || state.status === "ended" || dirty) demoPaused = false;
+  const pausable = (demo) => running && !stopRequested && demo === demoing;
+  if (pausable(false)) $("run").disabled = false;
+  if (pausable(true)) $("demo").disabled = false;
+  $("run").textContent = pausable(false) ? "Ⅱ 暂停" : restart ? "↻ 从头运行" : "▶ 运行";
+  $("run").setAttribute("aria-label", pausable(false) ? "暂停（F6）" : restart ? "从头运行（F5）" : "运行（F5）");
+  $("demo").textContent = pausable(true) ? "Ⅱ 暂停" : demoPaused ? "▶ 继续" : "▷ 演示";
+  $("demo").setAttribute("aria-label", pausable(true) ? "暂停演示（F6）" : demoPaused ? "继续演示" : "演示");
   for (const name of ["back", "step", "source", "over", "out", "run", "demo"]) {
     const b = $(name);
     b.dataset.tipBase ??= b.dataset.tip || "";
     b.dataset.tip =
-      name === "run" && restart
-        ? "从头运行：重新汇编当前程序并运行 · F5"
-        : b.disabled && why
-          ? `${b.dataset.tipBase}（${why}）`
-          : b.dataset.tipBase;
+      (name === "run" || name === "demo") && running && !b.disabled
+        ? "暂停 · F6"
+        : name === "demo" && demoPaused && !b.disabled
+          ? "继续演示：从当前位置接着逐条执行"
+          : name === "run" && restart
+            ? "从头运行：重新汇编当前程序并运行 · F5"
+            : b.disabled && why
+              ? `${b.dataset.tipBase}（${why}）`
+              : b.dataset.tipBase;
   }
-  $("assemble").disabled = busy;
+  // Assembling first stops a run, so it stays available through one; tying
+  // it to `busy` alone blinked the button on every demonstration step.
+  $("assemble").disabled = busy && !running;
   renderScope();
   tutorial?.update();
-  $("pause").disabled = !running;
   const info = statusInfo();
   $("status").textContent = info.text;
   $("status").dataset.state = info.kind;
@@ -2312,6 +2421,9 @@ function render() {
   else if (
     inspecting &&
     (inspecting.startsWith("$") ||
+      inspecting === "hi" ||
+      inspecting === "lo" ||
+      /\(\$\w+\)$/.test(inspecting) ||
       inspecting === "syscall" ||
       (isInstruction(inspecting) && inspectingPlace))
   )
@@ -2533,6 +2645,8 @@ function renderStops() {
 // the UI keeps saying "running" (2026-10-22 trial: commands were dropped and a
 // late follow switched files when this flag was cleared early).
 let stopRequested = false,
+  demoing = false,
+  demoPaused = false,
   runDone = Promise.resolve();
 function requestStop() {
   if (running) {
@@ -2548,6 +2662,8 @@ async function run(mode = "run", extra = {}) {
     return;
   }
   running = true;
+  demoing = mode === "demo";
+  demoPaused = false;
   stopRequested = false;
   let finish;
   runDone = new Promise((resolve) => (finish = resolve));
@@ -2556,6 +2672,8 @@ async function run(mode = "run", extra = {}) {
   } finally {
     running = false;
     stopRequested = false;
+    demoPaused = demoing && ["paused", "waiting"].includes(state?.status);
+    demoing = false;
     updateControls();
     finish();
   }
@@ -3000,7 +3118,7 @@ $("step").onclick = () =>
     followPC();
     arrive();
   });
-$("demo").onclick = () => run("demo");
+$("demo").onclick = () => (running ? requestStop() : run("demo"));
 $("back").onclick = () =>
   command("back").then(() => {
     followPC();
@@ -3008,8 +3126,7 @@ $("back").onclick = () =>
   });
 for (let mode of ["source", "over", "out", "run"])
   $(mode).onclick = () =>
-    mode === "run" && canRestart() ? restartRun() : run(mode);
-$("pause").onclick = () => requestStop();
+    mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run(mode);
 $("commands").onclick = openCommands;
 $("radix").innerHTML = RADIXES.map(
   ([value, label]) =>
@@ -3275,7 +3392,7 @@ function hintOnce(key, text) {
 }
 const actions = {
   run: () => !running && $("run").click(),
-  pause: () => running && $("pause").click(),
+  pause: () => requestStop(),
   stop: async () => {
     await requestStop();
     if (state?.step) await command("seek", { step: 0 });

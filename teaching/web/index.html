@@ -75,7 +75,6 @@
         </div></span
       ><span class="separator"></span
       ><button id="run" class="run" data-tip="运行到断点或结束 · F5" aria-label="运行（F5）">▶ 运行</button
-      ><button id="pause" data-tip="暂停 · F6" aria-label="暂停（F6）" disabled>Ⅱ 暂停</button
       ><span class="tool-group" role="group" aria-label="单步调试"
         ><button id="back" class="tool" data-tip="回退一步 · Shift+F9" aria-label="回退一步（Shift+F9）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 2.5 6.5 6 10M3 6.5h6.5a3.5 3.5 0 0 1 0 7H7"/></svg><span class="tool-label">回退一步</span></button><button id="step" class="tool" data-tip="机器单步 · Alt+F11" aria-label="机器单步（Alt+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8.5M7.5 4.5 11 8l-3.5 3.5M13.5 3v10"/></svg><span class="tool-label">机器单步</span></button><button id="source" class="tool" data-tip="源码单步 · F11" aria-label="源码单步（F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v7.5M4.5 6 8 9.5 11.5 6"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">源码单步</span></button><button id="over" class="tool" data-tip="跨过调用 · F10" aria-label="跨过调用（F10）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 9.5a5.5 5.5 0 0 1 11 0M13.5 5.5v4h-4"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跨过调用</span></button><button id="out" class="tool" data-tip="跳出函数 · Shift+F11" aria-label="跳出函数（Shift+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V3M4.5 6.5 8 3l3.5 3.5"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跳出函数</span></button></span
       ><span class="tool-group demo-group" role="group" aria-label="演示"
@@ -92,7 +91,6 @@
         >未汇编</span
       >
     </nav>
-    <div id="banner" role="status"></div>
     <div class="workspace">
       <aside class="sidebar">
         <div class="side-tabs" role="tablist" aria-label="侧栏" aria-orientation="vertical">
@@ -127,6 +125,7 @@
             <div id="watches"></div>
           </section>
         </div>
+        <div id="banner" role="status"></div>
       </aside>
       <div
         class="splitter col"

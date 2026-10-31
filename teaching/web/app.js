@@ -25852,6 +25852,63 @@ var STRONG = 450;
 function searchInstructions(query, items, limit = 30) {
   return items.map((item) => ({ item, s: score2(item, query) })).filter((r) => r.s >= 0).sort((a, b) => b.s - a.s || a.item.label.length - b.item.label.length).slice(0, limit).map((r) => ({ ...r.item, weak: r.s < STRONG }));
 }
+var operandsOf = (source) => {
+  const code = source.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim();
+  const space = code.search(/\s/);
+  return space < 0 ? [] : code.slice(space).split(",").map((s) => s.trim()).filter(Boolean);
+};
+function partMeaning(name2, x, index, count) {
+  const left = x.formula.split("\u2190")[0], named2 = (text2) => new RegExp(`(^|[^a-z])${name2}([^a-z]|$)`).test(text2);
+  const branch = /^若/.test(x.formula), memory = /offset/.test(x.format);
+  if (name2 === "label") {
+    if (x.op === "la") return "\u8981\u53D6\u5730\u5740\u7684\u6807\u7B7E\uFF08\u6570\u636E\u6216\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09";
+    return `${branch ? "\u6761\u4EF6\u6210\u7ACB\u65F6\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E" : "\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E"}\uFF08\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09`;
+  }
+  if (name2 === "offset") return "\u5B57\u8282\u504F\u79FB\uFF1A\u57FA\u5740\u5BC4\u5B58\u5668 + \u504F\u79FB = \u5185\u5B58\u5730\u5740";
+  if (name2 === "imm") return "\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570";
+  if (name2 === "sa") return "\u79FB\u52A8\u7684\u4F4D\u6570\uFF080\u201331\uFF09";
+  if (branch) return count > 2 ? `\u6BD4\u8F83\u7684${index ? "\u53F3\u8FB9" : "\u5DE6\u8FB9"}` : "\u548C 0 \u6BD4\u8F83\u7684\u5BC4\u5B58\u5668";
+  if (memory && name2 === "rs") return "\u57FA\u5740\u5BC4\u5B58\u5668\uFF1A\u5185\u5B58\u5730\u5740\u4ECE\u5B83\u7B97\u8D77";
+  if (memory) return named2(left) ? "\u4ECE\u5185\u5B58\u8BFB\u5230\u7684\u503C\u653E\u8FDB\u8FD9\u4E2A\u5BC4\u5B58\u5668" : "\u8981\u5199\u8FDB\u5185\u5B58\u7684\u503C\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668";
+  if (x.formula.includes(`PC \u2190 ${name2}`)) return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668";
+  if (named2(left)) return "\u7ED3\u679C\u5199\u5165\u8FD9\u4E2A\u5BC4\u5B58\u5668";
+  if (/低 5 位/.test(x.formula) && name2 === "rs") return "\u53D6\u4F4E 5 \u4F4D\u4F5C\u4E3A\u79FB\u52A8\u7684\u4F4D\u6570";
+  return "\u53C2\u4E0E\u8FD0\u7B97\u7684\u5BC4\u5B58\u5668";
+}
+function usageOf(x, source = "") {
+  const op = x.format.split(/\s/)[0], format = x.format.slice(op.length).trim();
+  const names = format ? format.split(/,\s*/) : [], written = operandsOf(source), fits = written.length === names.length;
+  const parts = [];
+  names.forEach((name2, i) => {
+    const address = /^offset\(rs\)$/.test(name2), value = fits ? written[i] : "";
+    if (!address) return parts.push({ name: name2, value, meaning: partMeaning(name2, x, i, names.length) });
+    const m = /^(.*)\((\$\w+)\)$/.exec(value);
+    parts.push({ name: "offset", value: m ? m[1] || "0" : "", meaning: partMeaning("offset", x, i, names.length) });
+    parts.push({ name: "rs", value: m ? m[2] : "", meaning: partMeaning("rs", x, i, names.length) });
+  });
+  return { format: x.format, formula: x.formula, example: x.example, parts };
+}
+var directiveGuide = {
+  ".data": [".data", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u6570\u636E\u6BB5\uFF1A\u53D8\u91CF\u3001\u6570\u7EC4\u548C\u5B57\u7B26\u4E32\u5199\u5728\u8FD9\u91CC\u3002"],
+  ".text": [".text", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u4EE3\u7801\u6BB5\uFF1A\u6307\u4EE4\u5199\u5728\u8FD9\u91CC\u3002"],
+  ".globl": [".globl \u6807\u7B7E", "\u8BA9\u5176\u4ED6\u6587\u4EF6\u4E5F\u80FD\u4F7F\u7528\u8FD9\u4E2A\u6807\u7B7E\uFF0C\u5E38\u7528\u4E8E main \u548C\u88AB\u5176\u4ED6\u6587\u4EF6\u8C03\u7528\u7684\u51FD\u6570\u3002"],
+  ".word": ["\u6807\u7B7E: .word \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 4 \u5B57\u8282\u7684\u6574\u6570\uFF0C\u5199\u591A\u4E2A\u503C\u5C31\u662F\u6570\u7EC4\u3002"],
+  ".half": ["\u6807\u7B7E: .half \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 2 \u5B57\u8282\u7684\u6574\u6570\u3002"],
+  ".byte": ["\u6807\u7B7E: .byte \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 1 \u5B57\u8282\u7684\u503C\u3002"],
+  ".space": ["\u6807\u7B7E: .space \u5B57\u8282\u6570", "\u5728\u5185\u5B58\u4E2D\u7559\u51FA\u8FD9\u4E48\u591A\u5B57\u8282\uFF0C\u5E38\u7528\u4F5C\u8F93\u5165\u7F13\u51B2\u533A\u3002"],
+  ".ascii": ['\u6807\u7B7E: .ascii "\u6587\u5B57"', "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u4E0D\u52A0 \\0\u3002"],
+  ".asciiz": ['\u6807\u7B7E: .asciiz "\u6587\u5B57"', "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u81EA\u52A8\u52A0\u4E00\u4E2A \\0\uFF0C\u6253\u5370\u5B57\u7B26\u4E32\u65F6\u9760\u5B83\u505C\u4E0B\u3002"],
+  ".align": [".align n", "\u8BA9\u4E0B\u4E00\u9879\u4ECE 2\u207F \u7684\u500D\u6570\u5730\u5740\u5F00\u59CB\u3002"],
+  ".float": ["\u6807\u7B7E: .float \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002"],
+  ".double": ["\u6807\u7B7E: .double \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002"],
+  ".eqv": [".eqv \u540D\u5B57 \u503C", "\u7ED9\u4E00\u4E2A\u503C\u8D77\u540D\u5B57\uFF0C\u6C47\u7F16\u65F6\u76F4\u63A5\u66FF\u6362\u3002"],
+  ".include": ['.include "\u6587\u4EF6\u540D"', "\u628A\u53E6\u4E00\u4E2A\u6587\u4EF6\u7684\u5185\u5BB9\u63D2\u5230\u8FD9\u91CC\u3002"],
+  ".macro": [".macro \u540D\u5B57", "\u5F00\u59CB\u5B9A\u4E49\u5B8F\uFF0C\u5230 .end_macro \u7ED3\u675F\u3002"],
+  ".end_macro": [".end_macro", "\u7ED3\u675F\u5B8F\u5B9A\u4E49\u3002"],
+  ".extern": [".extern \u6807\u7B7E \u5B57\u8282\u6570", "\u58F0\u660E\u4E00\u4E2A\u5168\u5C40\u53D8\u91CF\u3002"],
+  ".kdata": [".kdata", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u6570\u636E\u6BB5\u3002"],
+  ".ktext": [".ktext", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u4EE3\u7801\u6BB5\u3002"]
+};
 
 // ui/tutorial.js
 var HELLO = `.data
@@ -27672,6 +27729,12 @@ function zhDoc(op) {
   const c = CURATED.get(op);
   return c ? `${c.purpose}${c.note ? "\uFF1B" + c.note : ""}\u3002` : "";
 }
+function usage(op, source = "") {
+  const c = CURATED.get(op);
+  if (c) return usageOf(c, source);
+  const example = program.instructionDocs[op]?.example;
+  return example ? { format: example, example, parts: [] } : null;
+}
 var workspace = null;
 var target = null;
 var lastInTarget = "";
@@ -27994,7 +28057,7 @@ function editorMenu(x, y, pos) {
     ],
     ["\u5207\u6362\u65AD\u70B9", address != null, () => toggleBreakpoint(line), "breakpoint"],
     ["\u7F16\u8F91\u65AD\u70B9\u2026", address != null, () => editBreakpoint(address)],
-    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", !!token, () => inspectToken(token, { file: activeFile, line })],
+    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", true, () => openDetail(pos)],
     ["\u67E5\u770B\u5F15\u7528", !!token, () => peekReferences()]
   ];
   const menu = document.createElement("div");
@@ -28092,11 +28155,7 @@ var editor = new EditorView({
         {
           key: "F12",
           run: () => {
-            const head = editor.state.selection.main.head;
-            inspectToken(tokenAt(head), {
-              file: activeFile,
-              line: editor.state.doc.lineAt(head).number
-            });
+            openDetail(editor.state.selection.main.head);
             return true;
           }
         },
@@ -28142,19 +28201,16 @@ var editor = new EditorView({
           }
         },
         click: (e) => {
-          if (e.metaKey || e.ctrlKey) {
-            let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos != null)
-              inspectToken(tokenAt(pos), {
-                file: activeFile,
-                line: editor.state.doc.lineAt(pos).number
-              });
-          }
+          if (e.metaKey || e.ctrlKey) openDetailAt(e);
         },
         contextmenu: (e) => {
           let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
           if (pos == null) return false;
           e.preventDefault();
+          if (e.ctrlKey && IS_MAC) {
+            openDetailAt(e);
+            return true;
+          }
           editorMenu(e.clientX, e.clientY, pos);
           return true;
         }
@@ -28198,8 +28254,20 @@ var lens = new FocusLens({
   }
 });
 var lookahead = () => lens.isOpen ? { lookahead: lens.lookaheadLines() } : {};
+function quotedOrComment(text2, col) {
+  let quote = "";
+  for (let i = 0; i < col; i++) {
+    if (quote) {
+      if (text2[i] === "\\") i++;
+      else if (text2[i] === quote) quote = "";
+    } else if (text2[i] === '"' || text2[i] === "'") quote = text2[i];
+    else if (text2[i] === "#") return true;
+  }
+  return !!quote;
+}
 function tokenAt(pos) {
   let l = editor.state.doc.lineAt(pos), col = pos - l.from;
+  if (quotedOrComment(l.text, col)) return "";
   let address = [
     ...l.text.matchAll(/(?:-?(?:0x[\da-fA-F]+|\d+))?\(\$\w+\)/g)
   ].find((m) => col >= m.index && col <= m.index + m[0].length);
@@ -28248,6 +28316,11 @@ function syscallAt(place) {
     show: (v, r) => fmt(v, 4, r ? regKind(r) : "value").text
   };
 }
+var tipUsage = (op) => {
+  const u = usage(op);
+  return u ? `<p class="tip-formula">\u5199\u6CD5\uFF1A<code>${escapeHTML(u.format)}</code></p>` : "";
+};
+var isNumber = (token) => /^-?(?:0x[\da-f]+|\d+)$/i.test(token);
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
@@ -28258,22 +28331,27 @@ function summary(token, line = "", place = null) {
   }
   if (zhDoc(token)) {
     const text2 = zhDoc(token);
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${lineFormula(place)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${tipUsage(token)}${lineFormula(place)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
   }
+  if (directiveGuide[token])
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(directiveGuide[token][1])}</p><p class="tip-formula">\u5199\u6CD5\uFF1A<code>${escapeHTML(directiveGuide[token][0])}</code></p><small>\u6C47\u7F16\u5668\u6307\u793A\uFF0C\u4E0D\u662F\u673A\u5668\u6307\u4EE4</small>`;
+  if (isNumber(token)) return `<b>${escapeHTML(token)}</b><p>\u5199\u5728\u4EE3\u7801\u91CC\u7684\u5E38\u6570</p>`;
   if (program.instructionDocs[token]) {
     const doc2 = program.instructionDocs[token], mars = withOperands(doc2.description, doc2.example, line);
     return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p>${lineFormula(place)}<small>MARS \u539F\u6587${mars.substituted ? "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09" : `\uFF08\u793A\u4F8B\uFF1A${escapeHTML(doc2.example)}\uFF09`}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
-    return `<b>${escapeHTML(token)}</b><p>\u7B26\u53F7\u5730\u5740 ${hex(symbol.address)}</p><small>Cmd/Ctrl\uFF0B\u70B9\u51FB\u8DF3\u8F6C\u5B9A\u4E49</small>`;
-  return `<b>${escapeHTML(token)}</b><p>\u70B9\u51FB\u67E5\u8BE2\u5730\u5740\u6216\u6E90\u7801\u5F15\u7528</p>`;
+    return `<b>${escapeHTML(token)}</b><p>\u7B26\u53F7\u5730\u5740 ${hex(symbol.address)}</p><small>${DETAIL_KEYS}\u8DF3\u8F6C\u5B9A\u4E49</small>`;
+  return `<b>${escapeHTML(token)}</b><p>\u6807\u7B7E\u6216\u540D\u79F0\uFF1B\u6C47\u7F16\u540E\u53EF\u67E5\u770B\u5730\u5740</p>`;
 }
 function definitions(text2) {
   const terms = termsIn(text2);
   return terms.length ? `<dl class="defs">${terms.map(([t2, d]) => `<dt>${escapeHTML(t2)}</dt><dd>${escapeHTML(d)}</dd>`).join("")}</dl>` : "";
 }
-var DETAIL_HINT = /Mac|iPhone|iPad/.test(navigator.platform) ? "\u2318\uFF0B\u70B9\u51FB\u67E5\u770B\u8BE6\u7EC6" : "Ctrl\uFF0B\u70B9\u51FB\u67E5\u770B\u8BE6\u7EC6";
+var IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
+var DETAIL_KEYS = IS_MAC ? "\u2318 \u6216 Ctrl\uFF0B\u70B9\u51FB" : "Ctrl\uFF0B\u70B9\u51FB";
+var DETAIL_HINT = `${DETAIL_KEYS}\uFF1A\u8BE6\u60C5\u5728\u53F3\u4FA7\u201C\u8BE6\u7EC6\u68C0\u67E5\u201D`;
 var tipFor = "";
 var tipHide = null;
 function hideTooltip2(delay = 300) {
@@ -28283,14 +28361,20 @@ function hideTooltip2(delay = 300) {
     tipFor = "";
   }, delay);
 }
+function pointedPos(e) {
+  const pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
+  if (pos == null) return null;
+  const end = editor.state.doc.lineAt(pos).to, right = editor.coordsAtPos(end)?.right;
+  return { pos, past: pos === end && right != null && e.clientX > right + 4 };
+}
 function hover(e) {
-  let pos = editor.posAtCoords({ x: e.clientX, y: e.clientY }), token = pos == null ? "" : tokenAt(pos);
+  const at = pointedPos(e), pos = at?.pos, token = !at || at.past ? "" : tokenAt(pos);
   if (!token) return hideTooltip2();
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number }, key = `${token}@${activeFile}:${line.number}`;
   clearTimeout(tipHide);
   if (key === tipFor && !$2("tooltip").hidden) return;
   tipFor = key;
-  $2("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u67E5\u770B\u8BE6\u7EC6 \u2192</button>`;
+  $2("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u5728\u53F3\u4FA7\u67E5\u770B\u8BE6\u7EC6 \u2192</button>`;
   $2("tooltip").querySelector(".tip-detail").onclick = () => {
     inspectToken(token, place);
     hideTooltip2(0);
@@ -28311,9 +28395,30 @@ function hover(e) {
   $2("tooltip").style.left = Math.min(e.clientX + 12, innerWidth - 380) + "px";
   $2("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
 }
+function openDetail(pos, past = false) {
+  const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number };
+  const word = line.text.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim().split(/\s+/)[0];
+  const token = (past ? "" : tokenAt(pos)) || word;
+  if (!token) return notify("\u8FD9\u4E00\u884C\u6CA1\u6709\u6307\u4EE4\u53EF\u4EE5\u67E5\u770B\u3002", { transient: true });
+  inspectToken(token, place);
+}
+function openDetailAt(e) {
+  const at = pointedPos(e);
+  if (at) openDetail(at.pos, at.past);
+}
+function revealContext() {
+  if ($2("panel-context").classList.contains("collapsed")) setPanel("context", false);
+  const panel = $2("panel-context");
+  panel.classList.remove("attention");
+  void panel.offsetWidth;
+  panel.classList.add("attention");
+  $2("context").scrollTop = 0;
+  clearTimeout(revealContext.timer);
+  revealContext.timer = setTimeout(() => panel.classList.remove("attention"), 1600);
+}
 $2("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
 $2("tooltip").addEventListener("mouseleave", () => hideTooltip2());
-var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_HINT.replace("\u67E5\u770B\u8BE6\u7EC6", "")}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
+var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_KEYS}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
 function followInspector() {
   if (!following || !state || dirty || running) return;
   const e = state.last?.instruction ? state.last : state.preview, ins = e?.instruction;
@@ -28347,7 +28452,10 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
   if (!refresh2) following = false;
   inspecting = token;
   inspectingPlace = place;
-  if (!refresh2) $2("tooltip").hidden = true;
+  if (!refresh2) {
+    $2("tooltip").hidden = true;
+    revealContext();
+  }
   let address = token.match(/^(-?(?:0x[\da-fA-F]+|\d+))?\((\$\w+)\)$/);
   if (address) {
     let base2 = regValue(address[2]), offset = Number(address[1] || 0), effective = base2 + offset | 0;
@@ -28403,10 +28511,34 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
     return;
   }
   if (isInstruction(token) && place) return instructionDetail(token, place);
+  if (directiveGuide[token]) {
+    const [written, does] = directiveGuide[token];
+    showContext(
+      `<h3>${escapeHTML(token)} <small class="muted">\u6C47\u7F16\u5668\u6307\u793A</small></h3><p>${escapeHTML(does)}</p><dl class="detail-steps"><dt>\u5199\u6CD5</dt><dd><code>${escapeHTML(written)}</code></dd></dl><p class="muted">\u5B83\u544A\u8BC9\u6C47\u7F16\u5668\u600E\u4E48\u5B89\u6392\u5185\u5BB9\uFF0C\u672C\u8EAB\u4E0D\u662F\u4E00\u6761\u673A\u5668\u6307\u4EE4\uFF0C\u4E0D\u4F1A\u5355\u72EC\u6267\u884C\u3002</p>`
+    );
+    return;
+  }
+  if (isNumber(token)) {
+    showContext(`<h3>${escapeHTML(token)} <small class="muted">\u5E38\u6570</small></h3><p>\u5199\u5728\u4EE3\u7801\u91CC\u7684\u6570\uFF0C\u540C\u4E00\u4E2A\u503C\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A</p>${valueHTML(Number(token))}`);
+    return;
+  }
+  const known = zhDoc(token) || program.instructionDocs[token]?.description, u = isInstruction(token) ? usage(token) : null;
   showContext(
-    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(zhDoc(token) || program.instructionDocs[token]?.description || "\u5F53\u524D\u5DE5\u7A0B\u4E2D\u7684\u6587\u672C\uFF0F\u7ACB\u5373\u6570")}</p><p class="muted">${escapeHTML(program.instructionDocs[token]?.example || "")}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
+    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(known || "\u6807\u7B7E\u6216\u540D\u79F0\u3002\u6C47\u7F16\u540E\u53EF\u4EE5\u67E5\u770B\u5B83\u7684\u5730\u5740\uFF1B\u4E5F\u53EF\u4EE5\u67E5\u627E\u4EE3\u7801\u91CC\u54EA\u4E9B\u5730\u65B9\u7528\u5230\u5B83\u3002")}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
   );
   $2("refs").onclick = () => showReferences(token);
+}
+function labelLine(name2) {
+  const symbol = program.symbols.find((s) => s.name === name2), ins = symbol && program.instructions.find((i) => i.address === symbol.address);
+  return ins?.line;
+}
+function usageRows(u) {
+  const part = (p) => {
+    const line = p.name === "label" && p.value ? labelLine(p.value) : null;
+    return `<li><code>${escapeHTML(p.name)}</code>${p.value ? ` = <code>${escapeHTML(p.value)}</code>` : ""} ${escapeHTML(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>\uFF08\u7B2C ${line} \u884C\uFF09</small>` : ""}</li>`;
+  };
+  const written = u.parts.some((p) => p.value);
+  return `<dl class="detail-steps"><dt>\u5199\u6CD5</dt><dd><code>${escapeHTML(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>\u901A\u7528\u89C4\u5219</dt><dd><code>${escapeHTML(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>\u4F8B\u5B50</dt><dd><code>${escapeHTML(u.example)}</code></dd>` : ""}</dl>`;
 }
 var isInstruction = (token) => !!(zhDoc(token) || program.instructionDocs[token]);
 function lineRun(place) {
@@ -28480,9 +28612,10 @@ function instructionDetail(token, place) {
   const labelHTML = (o) => o.kind === "memory" ? escapeHTML(label2(o)) : `<abbr class="reg-term" title="${escapeHTML(o.name + "\uFF1A" + role(o.name))}">${escapeHTML(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read), writes = (model?.objects || []).filter((o) => o.write);
   const single = template && !(run2?.events?.length > 1) && !run2?.pseudo;
+  const written = usage(token, source);
   const bitsEvent = (run2?.events || []).find(supportsBits);
   const rows = [];
-  if (template && single)
+  if (template && single && !written?.formula)
     rows.push(["\u901A\u7528\u89C4\u5219", `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
   if (template)
     rows.push(["\u672C\u884C\u4EE3\u5165", `<code>${escapeHTML(plainEq(template))}</code>`]);
@@ -28508,7 +28641,7 @@ function instructionDetail(token, place) {
   } else if (run2?.pseudo)
     rows.push(["\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
   showContext(
-    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run2.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
+    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run2.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
   );
   $2("detail-source").onclick = () => gotoSource(place.file, place.line);
   $2("refs").onclick = () => showReferences(token);
@@ -28933,17 +29066,22 @@ function updateControls() {
   $2("back").disabled = busy || dirty || !!gate || running || !state?.step;
   const restart = canRestart();
   if (restart) $2("run").disabled = false;
-  $2("run").textContent = restart ? "\u21BB \u4ECE\u5934\u8FD0\u884C" : "\u25B6 \u8FD0\u884C";
-  $2("run").setAttribute("aria-label", restart ? "\u4ECE\u5934\u8FD0\u884C\uFF08F5\uFF09" : "\u8FD0\u884C\uFF08F5\uFF09");
+  if (!state?.step || state.status === "ended" || dirty) demoPaused = false;
+  const pausable = (demo) => running && !stopRequested && demo === demoing;
+  if (pausable(false)) $2("run").disabled = false;
+  if (pausable(true)) $2("demo").disabled = false;
+  $2("run").textContent = pausable(false) ? "\u2161 \u6682\u505C" : restart ? "\u21BB \u4ECE\u5934\u8FD0\u884C" : "\u25B6 \u8FD0\u884C";
+  $2("run").setAttribute("aria-label", pausable(false) ? "\u6682\u505C\uFF08F6\uFF09" : restart ? "\u4ECE\u5934\u8FD0\u884C\uFF08F5\uFF09" : "\u8FD0\u884C\uFF08F5\uFF09");
+  $2("demo").textContent = pausable(true) ? "\u2161 \u6682\u505C" : demoPaused ? "\u25B6 \u7EE7\u7EED" : "\u25B7 \u6F14\u793A";
+  $2("demo").setAttribute("aria-label", pausable(true) ? "\u6682\u505C\u6F14\u793A\uFF08F6\uFF09" : demoPaused ? "\u7EE7\u7EED\u6F14\u793A" : "\u6F14\u793A");
   for (const name2 of ["back", "step", "source", "over", "out", "run", "demo"]) {
     const b = $2(name2);
     b.dataset.tipBase ??= b.dataset.tip || "";
-    b.dataset.tip = name2 === "run" && restart ? "\u4ECE\u5934\u8FD0\u884C\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\u5E76\u8FD0\u884C \xB7 F5" : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
+    b.dataset.tip = (name2 === "run" || name2 === "demo") && running && !b.disabled ? "\u6682\u505C \xB7 F6" : name2 === "demo" && demoPaused && !b.disabled ? "\u7EE7\u7EED\u6F14\u793A\uFF1A\u4ECE\u5F53\u524D\u4F4D\u7F6E\u63A5\u7740\u9010\u6761\u6267\u884C" : name2 === "run" && restart ? "\u4ECE\u5934\u8FD0\u884C\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\u5E76\u8FD0\u884C \xB7 F5" : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
   }
-  $2("assemble").disabled = busy;
+  $2("assemble").disabled = busy && !running;
   renderScope();
   tutorial?.update();
-  $2("pause").disabled = !running;
   const info = statusInfo();
   $2("status").textContent = info.text;
   $2("status").dataset.state = info.kind;
@@ -29403,7 +29541,7 @@ function render() {
   if (view === "machine") renderMachine();
   if (view === "cfg") renderCFG();
   if (following) followInspector();
-  else if (inspecting && (inspecting.startsWith("$") || inspecting === "syscall" || isInstruction(inspecting) && inspectingPlace))
+  else if (inspecting && (inspecting.startsWith("$") || inspecting === "hi" || inspecting === "lo" || /\(\$\w+\)$/.test(inspecting) || inspecting === "syscall" || isInstruction(inspecting) && inspectingPlace))
     inspectToken(inspecting, inspectingPlace, { refresh: true });
   overlay.schedule();
   updateControls();
@@ -29579,6 +29717,8 @@ function renderStops() {
   );
 }
 var stopRequested = false;
+var demoing = false;
+var demoPaused = false;
 var runDone = Promise.resolve();
 function requestStop() {
   if (running) {
@@ -29594,6 +29734,8 @@ async function run(mode = "run", extra = {}) {
     return;
   }
   running = true;
+  demoing = mode === "demo";
+  demoPaused = false;
   stopRequested = false;
   let finish;
   runDone = new Promise((resolve) => finish = resolve);
@@ -29602,6 +29744,8 @@ async function run(mode = "run", extra = {}) {
   } finally {
     running = false;
     stopRequested = false;
+    demoPaused = demoing && ["paused", "waiting"].includes(state?.status);
+    demoing = false;
     updateControls();
     finish();
   }
@@ -29977,14 +30121,13 @@ $2("step").onclick = () => command2("step").then((s) => {
   followPC();
   arrive();
 });
-$2("demo").onclick = () => run("demo");
+$2("demo").onclick = () => running ? requestStop() : run("demo");
 $2("back").onclick = () => command2("back").then(() => {
   followPC();
   arrive();
 });
 for (let mode of ["source", "over", "out", "run"])
-  $2(mode).onclick = () => mode === "run" && canRestart() ? restartRun() : run(mode);
-$2("pause").onclick = () => requestStop();
+  $2(mode).onclick = () => mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run(mode);
 $2("commands").onclick = openCommands;
 $2("radix").innerHTML = RADIXES.map(
   ([value, label2]) => `<option value="${value}" title="${escapeHTML(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label2}</option>`
@@ -30216,7 +30359,7 @@ function hintOnce(key, text2) {
 }
 var actions = {
   run: () => !running && $2("run").click(),
-  pause: () => running && $2("pause").click(),
+  pause: () => requestStop(),
   stop: async () => {
     await requestStop();
     if (state?.step) await command2("seek", { step: 0 });
