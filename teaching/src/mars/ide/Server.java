@@ -43,9 +43,9 @@ public final class Server {
             send(ex, 403, "{}", "application/json");
             return;
           }
-          byte[] bytes = ex.getRequestBody().readNBytes(2_000_001);
-          if (bytes.length > 2_000_000) throw new IllegalArgumentException(
-            "Request limit 2 MB"
+          byte[] bytes = ex.getRequestBody().readNBytes(8_000_001);
+          if (bytes.length > 8_000_000) throw new IllegalArgumentException(
+            "Request limit 8 MB"
           );
           var req = (Map<String, Object>) Json.parse(
             new String(bytes, StandardCharsets.UTF_8)

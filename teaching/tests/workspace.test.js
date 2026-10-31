@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {File} from 'node:buffer';
 import {zipSync,strToU8} from 'fflate';
-import {blankProject,normalizeProject,renamePath,removePath,mergeProject,readImports,projectZip,pathName} from '../ui/workspace.js';
+import {blankProject,normalizeProject,renamePath,removePath,mergeProject,underFolder,readImports,projectZip,pathName} from '../ui/workspace.js';
 const project=()=>normalizeProject({name:'练习',files:{'main.s':'.text\nmain: nop\n','src/helper.s':'.text\nhelper: nop\n'},data:{'input.txt':'1\n2\n'},folders:['empty'],entry:'src/helper.s',activeFile:'src/helper.s'});
 test('ZIP roundtrip preserves paths, source, UTF-8 inputs, empty folders and entry',async()=>{
  const p=project(); const restored=await readImports([new File([projectZip(p)],'练习.zip')]);
@@ -42,7 +42,7 @@ test('reject unsafe paths, invalid text, malformed project and oversized ZIP bef
  assert.throws(()=>normalizeProject({files:{'a.s':'x'},folders:['a.s']}));
  assert.throws(()=>normalizeProject({files:{'a.s':'x'},data:{'a.s':'x'}}));
  await assert.rejects(()=>readImports([new File([new Uint8Array([255,254])],'bad.s')]));
- const bytes=zipSync({'big.txt':new Uint8Array(1_600_000)},{level:6});
+ const bytes=zipSync({'big.txt':new Uint8Array(4_100_000)},{level:6});
  await assert.rejects(()=>readImports([new File([bytes],'too-big.zip')]));
  await assert.rejects(()=>readImports([new File([zipSync({'../outside.s':strToU8('x')})],'unsafe.zip')]));
 });
@@ -100,4 +100,25 @@ test('scope diagnostics name the files involved and the way out',()=>{
  const local=normalizeProject({files:{'main.s':'.text\nmain: jal f\n','f.s':'.text\nf: jr $ra\n'}});
  assert.match(scopeHints([{message:'Symbol "f" not found in symbol table.'}],local,assemblyScope(local,'main.s'))[0],/没有用 \.globl f 声明为全局标签/);
  assert.equal(scopeHints([{message:'Symbol "nowhere" not found in symbol table.'}],single,assemblyScope(single,'hello.s'))[0],'');
+});
+test('project limits fit a course folder and still stop runaway imports',async()=>{
+ const many=n=>Object.fromEntries(Array.from({length:n},(_,i)=>[`lab/${i}.s`,'.text\n']));
+ assert.equal(Object.keys(normalizeProject({files:many(500)}).files).length,500);
+ assert.throws(()=>normalizeProject({files:many(501)}),/500 个文件/);
+ assert.throws(()=>normalizeProject({files:{},data:{'big.txt':'x'.repeat(4_000_001)}}),/4 MB/);
+ const zip=zipSync(Object.fromEntries(Array.from({length:500},(_,i)=>[`lab/${i}.s`,strToU8('.text\n')])));
+ assert.equal(Object.keys((await readImports([new File([zip],'lab.zip')])).files).length,500);
+});
+test('imports say what they are and skip unreadable files only inside a folder or ZIP',async()=>{
+ const bad=new Uint8Array([255,254]);
+ let info={};const p=await readImports([new File([zipSync({'main.s':strToU8('.text\n'),'notes.pdf':bad})],'lab.zip')],info);
+ assert.equal(info.kind,'zip');assert.deepEqual(Object.keys(p.files),['main.s']);assert.deepEqual(info.skipped,['notes.pdf（不是 UTF-8 文本）']);
+ const a=new File(['.text\n'],'a.s'),b=new File([bad],'b.pdf');a.relativePath='lab/a.s';b.relativePath='lab/b.pdf';
+ info={};assert.deepEqual(Object.keys((await readImports([a,b],info)).files),['lab/a.s']);assert.equal(info.kind,'folder');assert.equal(info.skipped.length,1);
+ info={};await readImports([new File(['.text\n'],'a.s'),new File(['x'],'b.txt')],info);assert.equal(info.kind,undefined);
+ await assert.rejects(()=>readImports([new File([bad],'b.pdf')]));
+});
+test('a project can join another inside a folder',()=>{
+ const p=underFolder(normalizeProject({files:{'a/main.s':'.text\n'},data:{'in.txt':'x'}}),'labs/three');
+ assert.deepEqual(Object.keys(p.files),['labs/three/a/main.s']);assert.deepEqual(Object.keys(p.data),['labs/three/in.txt']);assert.ok(p.folders.includes('labs/three/a'));
 });

@@ -1529,24 +1529,24 @@ var Facet = class _Facet {
   In cases where your value depends only on a single field, you'll
   want to use the [`from`](https://codemirror.net/6/docs/ref/#state.Facet.from) method instead.
   */
-  compute(deps, get) {
+  compute(deps, get2) {
     if (this.isStatic)
       throw new Error("Can't compute a static facet");
-    return new FacetProvider(deps, this, 1, get);
+    return new FacetProvider(deps, this, 1, get2);
   }
   /**
   Create an extension that computes zero or more values for this
   facet from a state.
   */
-  computeN(deps, get) {
+  computeN(deps, get2) {
     if (this.isStatic)
       throw new Error("Can't compute a static facet");
-    return new FacetProvider(deps, this, 2, get);
+    return new FacetProvider(deps, this, 2, get2);
   }
-  from(field, get) {
-    if (!get)
-      get = (x) => x;
-    return this.compute([field], (state2) => get(state2.field(field)));
+  from(field, get2) {
+    if (!get2)
+      get2 = (x) => x;
+    return this.compute([field], (state2) => get2(state2.field(field)));
   }
 };
 function sameArray(a, b) {
@@ -1631,7 +1631,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
   let providerTypes = providers.map((p) => p.type);
   let dynamic = providerAddrs.filter((p) => !(p & 1));
   let idx = addresses[facet.id] >> 1;
-  function get(state2) {
+  function get2(state2) {
     let values = [];
     for (let i = 0; i < providerAddrs.length; i++) {
       let value = getAddr(state2, providerAddrs[i]);
@@ -1647,13 +1647,13 @@ function dynamicFacetSlot(addresses, facet, providers) {
     create(state2) {
       for (let addr of providerAddrs)
         ensureAddr(state2, addr);
-      state2.values[idx] = get(state2);
+      state2.values[idx] = get2(state2);
       return 1;
     },
     update(state2, tr) {
       if (!ensureAll(state2, dynamic))
         return 0;
-      let value = get(state2);
+      let value = get2(state2);
       if (facet.compare(value, state2.values[idx]))
         return 0;
       state2.values[idx] = value;
@@ -1666,7 +1666,7 @@ function dynamicFacetSlot(addresses, facet, providers) {
         state2.values[idx] = oldValue;
         return 0;
       }
-      let value = get(state2);
+      let value = get2(state2);
       if (facet.compare(value, oldValue)) {
         state2.values[idx] = oldValue;
         return 0;
@@ -19024,8 +19024,8 @@ var deleteByChar = (target2, forward, byIndentUnit) => deleteBy(target2, (range)
   if (byIndentUnit && !forward && pos > line.from && pos < line.from + 200 && !/[^ \t]/.test(before = line.text.slice(0, pos - line.from))) {
     if (before[before.length - 1] == "	")
       return pos - 1;
-    let col = countColumn(before, state2.tabSize), drop = col % getIndentUnit(state2) || getIndentUnit(state2);
-    for (let i = 0; i < drop && before[before.length - 1 - i] == " "; i++)
+    let col = countColumn(before, state2.tabSize), drop2 = col % getIndentUnit(state2) || getIndentUnit(state2);
+    for (let i = 0; i < drop2 && before[before.length - 1 - i] == " "; i++)
       pos--;
     targetPos = pos;
   } else {
@@ -25593,12 +25593,12 @@ function fuzzy(query, text2) {
   if (t2.startsWith(q)) return 1e3 - t2.length;
   const at = t2.indexOf(q);
   if (at >= 0) return 800 - at - t2.length;
-  let score3 = 0, j = 0, run2 = 0;
+  let score3 = 0, j = 0, run3 = 0;
   for (const c of q) {
     const k = t2.indexOf(c, j);
     if (k < 0) return -1;
-    run2 = k === j ? run2 + 1 : 0;
-    score3 += 10 + run2 * 5 - (k - j);
+    run3 = k === j ? run3 + 1 : 0;
+    score3 += 10 + run3 * 5 - (k - j);
     j = k + 1;
   }
   return score3;
@@ -27166,7 +27166,9 @@ function unzipSync(data2, opts) {
 }
 
 // ui/workspace.js
-var MAX_BYTES = 15e5;
+var MAX_BYTES = 4e6;
+var MAX_FILES = 500;
+var LIMIT = `${MAX_FILES} \u4E2A\u6587\u4EF6\u3001${MAX_BYTES / 1e6} MB`;
 var isSource = (name2) => /\.(s|asm)$/.test(name2);
 function pathName(value) {
   if (typeof value !== "string") throw Error("\u6587\u4EF6\u8DEF\u5F84\u5FC5\u987B\u662F\u6587\u5B57\u3002");
@@ -27192,7 +27194,7 @@ function normalizeProject(input) {
       if (kind === "data" && isSource(name2)) throw Error(`${name2} \u5E94\u653E\u5728\u6E90\u7801\u6587\u4EF6\u4E2D\u3002`);
       if (Object.hasOwn(files2, name2) || Object.hasOwn(data2, name2)) throw Error(`\u6587\u4EF6\u91CD\u590D\uFF1A${name2}`);
       size += strToU8(text2).length;
-      if (++count > 200 || size > MAX_BYTES) throw Error("\u5DE5\u7A0B\u6700\u591A 200 \u4E2A\u6587\u4EF6\u30011.5 MB \u6587\u672C\u5185\u5BB9\u3002");
+      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(`\u5DE5\u7A0B\u6700\u591A ${LIMIT} \u6587\u672C\u5185\u5BB9\u3002`);
       target2[name2] = text2;
     }
   }
@@ -27203,11 +27205,11 @@ function normalizeProject(input) {
     const parts = name2.split("/");
     for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join("/"));
   }
-  if (folders.size > 200) throw Error("\u5DE5\u7A0B\u6700\u591A 200 \u4E2A\u6587\u4EF6\u5939\u3002");
+  if (folders.size > MAX_FILES) throw Error(`\u5DE5\u7A0B\u6700\u591A ${MAX_FILES} \u4E2A\u6587\u4EF6\u5939\u3002`);
   for (const name2 of names) if (folders.has(name2)) throw Error(`${name2} \u4E0D\u80FD\u540C\u65F6\u4F5C\u4E3A\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u3002`);
   const entry = Object.hasOwn(files2, input.entry) ? input.entry : Object.hasOwn(files2, "main.s") ? "main.s" : Object.keys(files2)[0] || "";
   const activeFile2 = input.activeFile === "" ? "" : Object.hasOwn(files2, input.activeFile) ? input.activeFile : entry;
-  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files2, n) && a.indexOf(n) === i) : Object.keys(files2);
+  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files2, n) && a.indexOf(n) === i) : [];
   if (activeFile2 && !openTabs.includes(activeFile2)) openTabs.push(activeFile2);
   return { version: 3, name: String(input.name || "\u6211\u7684\u5DE5\u7A0B").slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files2) };
 }
@@ -27228,8 +27230,14 @@ function assemblyScope(p, activeFile2) {
   if (mode === "single") return { mode, files: [activeFile2], entry: activeFile2 };
   return autoScope(p.files, activeFile2);
 }
+var scans = /* @__PURE__ */ new Map();
+function scanned(name2, text2) {
+  let scan = scans.get(name2);
+  if (scan?.text !== text2) scans.set(name2, scan = { text: text2, ...labelsIn(text2), refs: referencesIn(text2) });
+  return scan;
+}
 function autoScope(sources, activeFile2) {
-  const info = new Map(Object.entries(sources).map(([n, t2]) => [n, { ...labelsIn(t2), refs: referencesIn(t2) }]));
+  const info = new Map(Object.entries(sources).map(([n, t2]) => [n, scanned(n, t2)]));
   const hasMain = (n) => info.get(n).defined.has("main");
   const fail = (error) => ({ mode: "auto", files: [], entry: "", error });
   let entry = activeFile2;
@@ -27282,6 +27290,12 @@ function mergeProject(current, incoming, overwrite = false) {
   if (conflicts.length && !overwrite) throw Error("\u540C\u540D\u6587\u4EF6\uFF1A" + conflicts.join("\u3001"));
   return normalizeProject({ ...a, files: { ...a.files, ...b.files }, data: { ...a.data, ...b.data }, folders: [...a.folders, ...b.folders] });
 }
+function underFolder(input, folder) {
+  const p = normalizeProject(input);
+  if (!folder) return p;
+  const remap = (obj) => Object.fromEntries(Object.entries(obj).map(([n, text2]) => [`${folder}/${n}`, text2]));
+  return normalizeProject({ ...p, files: remap(p.files), data: remap(p.data), folders: [folder, ...p.folders.map((n) => `${folder}/${n}`)], entry: "", activeFile: "", openTabs: [] });
+}
 function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name2, text2] of Object.entries({ ...p.files, ...p.data })) entries[name2] = strToU8(text2);
@@ -27297,9 +27311,10 @@ function textFile(bytes, name2) {
   }
 }
 var ignoredName = (name2) => name2.split("/").some((n) => ["__MACOSX", ".DS_Store", ".git"].includes(n) || n.startsWith("._"));
-async function readImports(selected) {
+async function readImports(selected, info = {}) {
+  info.skipped = [];
   let files2 = {}, data2 = {}, folders = [], metadata = {}, seen = /* @__PURE__ */ new Set(), total = 0;
-  const add2 = (raw, bytes) => {
+  const add2 = (raw, bytes, lenient = false) => {
     if (ignoredName(raw)) return;
     const directory = raw.endsWith("/");
     const name2 = pathName(directory ? raw.slice(0, -1) : raw);
@@ -27308,15 +27323,28 @@ async function readImports(selected) {
       return;
     }
     if (seen.has(name2)) throw Error(`\u5BFC\u5165\u4E2D\u5B58\u5728\u540C\u540D\u6587\u4EF6\uFF1A${name2}`);
+    let text2;
+    try {
+      text2 = textFile(bytes, name2);
+    } catch (error) {
+      if (!lenient) throw error;
+      info.skipped.push(`${name2}\uFF08\u4E0D\u662F UTF-8 \u6587\u672C\uFF09`);
+      return;
+    }
     seen.add(name2);
     total += bytes.length;
-    if (total > MAX_BYTES || seen.size > 200) throw Error("\u5BFC\u5165\u6700\u591A 200 \u4E2A\u6587\u4EF6\u30011.5 MB \u89E3\u538B\u540E\u6587\u672C\u5185\u5BB9\u3002");
-    (isSource(name2) ? files2 : data2)[name2] = textFile(bytes, name2);
+    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(`\u5BFC\u5165\u6700\u591A ${LIMIT} \u89E3\u538B\u540E\u6587\u672C\u5185\u5BB9\u3002`);
+    (isSource(name2) ? files2 : data2)[name2] = text2;
   };
   for (const f of selected) {
-    const name2 = f.webkitRelativePath || f.name;
+    const name2 = f.relativePath || f.webkitRelativePath || f.name, inFolder = name2 !== f.name;
     if (ignoredName(name2)) continue;
-    if (f.size > 4e6) throw Error("\u5355\u4E2A\u5BFC\u5165\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 4 MB\u3002");
+    if (inFolder) info.kind = "folder";
+    if (f.size > 2 * MAX_BYTES) {
+      if (!inFolder) throw Error(`\u5355\u4E2A\u5BFC\u5165\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 ${2 * MAX_BYTES / 1e6} MB\u3002`);
+      info.skipped.push(`${name2}\uFF08\u6587\u4EF6\u592A\u5927\uFF09`);
+      continue;
+    }
     const bytes = new Uint8Array(await f.arrayBuffer());
     if (name2.endsWith("/.mars-project.json")) {
       const m = JSON.parse(textFile(bytes, name2)), prefix = name2.slice(0, -".mars-project.json".length);
@@ -27325,6 +27353,7 @@ async function readImports(selected) {
       continue;
     }
     if (/\.zip$/i.test(f.name)) {
+      info.kind = "zip";
       let expanded = 0, entries = 0;
       const zipNames = /* @__PURE__ */ new Set();
       const archive = unzipSync(bytes, { filter: (e) => {
@@ -27332,7 +27361,7 @@ async function readImports(selected) {
         if (!e.name.endsWith("/") && zipNames.has(e.name)) throw Error("ZIP \u5185\u5B58\u5728\u91CD\u590D\u6587\u4EF6\uFF1A" + e.name);
         zipNames.add(e.name);
         expanded += e.originalSize;
-        if (expanded > MAX_BYTES + 16e3 || ++entries > 410) throw Error("ZIP \u8D85\u8FC7\u89E3\u538B\u5927\u5C0F\u6216\u6587\u4EF6\u6570\u91CF\u9650\u5236\u3002");
+        if (expanded > MAX_BYTES + 16e3 || ++entries > 2 * MAX_FILES + 10) throw Error("ZIP \u8D85\u8FC7\u89E3\u538B\u5927\u5C0F\u6216\u6587\u4EF6\u6570\u91CF\u9650\u5236\u3002");
         return true;
       } });
       if (archive[".mars-project.json"]) {
@@ -27340,16 +27369,19 @@ async function readImports(selected) {
         if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error("ZIP \u6587\u4EF6\u5939\u4FE1\u606F\u65E0\u6548\u3002");
         delete archive[".mars-project.json"];
       }
-      for (const [n, value] of Object.entries(archive)) add2(n, value);
+      for (const [n, value] of Object.entries(archive)) add2(n, value, true);
     } else if (selected.length === 1 && /\.json$/i.test(f.name)) {
       let parsed;
       try {
         parsed = JSON.parse(textFile(bytes, name2));
       } catch {
       }
-      if (parsed?.files) return normalizeProject(parsed);
+      if (parsed?.files) {
+        info.kind = "json";
+        return normalizeProject(parsed);
+      }
       add2(name2, bytes);
-    } else add2(name2, bytes);
+    } else add2(name2, bytes, inFolder);
   }
   if (!seen.size && !folders.length) throw Error("\u6CA1\u6709\u53EF\u5BFC\u5165\u7684\u6587\u4EF6\u3002");
   return normalizeProject({ ...metadata, files: files2, data: data2, folders: [...folders, ...metadata.folders || []] });
@@ -27400,12 +27432,59 @@ function scopeHints(diagnostics, project, scope) {
   });
 }
 
+// ui/store.js
+var opened;
+var db = () => opened ||= new Promise((resolve, reject) => {
+  const request = indexedDB.open("mars-trace", 1);
+  request.onupgradeneeded = () => request.result.createObjectStore("projects");
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+async function run(mode, action) {
+  const tx = (await db()).transaction("projects", mode), request = action(tx.objectStore("projects"));
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve(request.result);
+    tx.onerror = tx.onabort = () => reject(tx.error);
+  });
+}
+function put(key, value) {
+  const text2 = JSON.stringify(value);
+  try {
+    localStorage.setItem(key, text2);
+    return run("readwrite", (s) => s.delete(key)).catch(() => {
+    });
+  } catch {
+  }
+  try {
+    localStorage.removeItem(key);
+  } catch {
+  }
+  return run("readwrite", (s) => s.put(text2, key));
+}
+async function get(key) {
+  let text2 = null;
+  try {
+    text2 = localStorage.getItem(key);
+  } catch {
+  }
+  text2 ??= await run("readonly", (s) => s.get(key)).catch(() => null);
+  return text2 == null ? null : JSON.parse(text2);
+}
+function drop(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+  }
+  return run("readwrite", (s) => s.delete(key)).catch(() => {
+  });
+}
+
 // ui/project-manager.js
 var DRAFT_KEY = "mars-trace:project:v2";
 var BACKUP_KEY = "mars-trace:previous-project:v2";
 var $ = (id2) => document.getElementById(id2);
 function projectManager(hooks) {
-  let meta2 = blankProject(), timer, failed = false, replacing = false, draftLocked = false, previous = null;
+  let meta2 = blankProject(), timer, failed = false, replacing = false, draftLocked = false, previous = null, hasBackup = false, saving = Promise.resolve();
   const snapshot = () => normalizeProject({ ...meta2, ...hooks.snapshot() });
   const message = (text2) => {
     $("workspace-status").textContent = text2;
@@ -27416,16 +27495,16 @@ function projectManager(hooks) {
       message("\u65E7\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6 \xB7 \u672A\u8986\u76D6");
       return false;
     }
+    const done = (ok2) => {
+      failed = !ok2;
+      message(ok2 ? "\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668" : "\u672A\u80FD\u4FDD\u5B58 \xB7 \u8BF7\u5BFC\u51FA\u5DE5\u7A0B");
+    };
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(snapshot()));
-      failed = false;
-      message("\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668");
-      return true;
+      saving = put(DRAFT_KEY, snapshot()).then(() => done(true), () => done(false));
     } catch {
-      failed = true;
-      message("\u672A\u80FD\u4FDD\u5B58 \xB7 \u8BF7\u5BFC\u51FA\u5DE5\u7A0B");
-      return false;
+      done(false);
     }
+    return !failed;
   }
   function changed() {
     if (replacing) return;
@@ -27440,10 +27519,9 @@ function projectManager(hooks) {
     clearTimeout(timer);
     if (backup) {
       previous = snapshot();
-      try {
-        localStorage.setItem(BACKUP_KEY, JSON.stringify(previous));
-      } catch {
-      }
+      hasBackup = true;
+      put(BACKUP_KEY, previous).catch(() => {
+      });
     }
     meta2 = p;
     replacing = true;
@@ -27569,7 +27647,7 @@ function projectManager(hooks) {
       const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
       return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
-    $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\u6216\u6253\u5F00\u5DE5\u7A0B\u3002</li>'}</ul>`;
+    $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
     $("files").querySelectorAll("[data-data]").forEach((b) => b.onclick = () => hooks.editData(b.dataset.data));
     $("files").querySelectorAll("[data-node]").forEach((b) => b.onclick = (e) => {
@@ -27589,40 +27667,91 @@ function projectManager(hooks) {
     $("entry-file").innerHTML = chosen.map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === scopeEntry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || '<option value="">\u5148\u52FE\u9009\u6E90\u7801</option>';
     $("entry-file").disabled = !chosen.length;
     $("export-file").disabled = !p.activeFile;
-    try {
-      $("restore-project").disabled = !previous && !localStorage.getItem(BACKUP_KEY);
-    } catch {
-      $("restore-project").disabled = !previous;
-    }
+    $("restore-project").disabled = !previous && !hasBackup;
   }
-  function importDialog(mode = "replace") {
-    hooks.modal(mode === "replace" ? "\u6253\u5F00\u5DE5\u7A0B" : "\u6DFB\u52A0\u6587\u4EF6", `<p>${mode === "replace" ? "\u7528\u4F60\u9009\u62E9\u7684\u5185\u5BB9\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B\uFF0C\u6F14\u793A\u6587\u4EF6\u4E0D\u4F1A\u6DF7\u5165\u3002" : "\u628A\u6587\u4EF6\u6DFB\u52A0\u5230\u5F53\u524D\u5DE5\u7A0B\uFF0C\u9047\u5230\u540C\u540D\u6587\u4EF6\u65F6\u4F1A\u5148\u8BE2\u95EE\u3002"}</p><p class="muted">\u652F\u6301 .s / .asm\u3001UTF-8 \u8F93\u5165\u6587\u4EF6\u3001MARS \u5DE5\u7A0B JSON \u6216 ZIP\uFF1B\u53EF\u591A\u9009\u3002\u6700\u591A 200 \u4E2A\u6587\u4EF6\u30011.5 MB \u6587\u672C\u3002</p><div class="project-actions"><button id="choose-folder">\u9009\u62E9\u6574\u4E2A\u6587\u4EF6\u5939</button><button class="primary" id="choose-files">\u9009\u62E9\u6587\u4EF6\uFF0F\u5DE5\u7A0B\u5305</button></div>`);
-    $("choose-files").onclick = () => {
-      $("upload").dataset.mode = mode;
+  function importDialog() {
+    const folders = "webkitdirectory" in $("folder-upload") && !/Android|iPhone|iPad/i.test(navigator.userAgent) && !(/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+    hooks.modal("\u5BFC\u5165", `<button id="choose-files" class="drop-zone"><b>\u628A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u6216 ZIP \u62D6\u5230\u8FD9\u91CC\uFF0C\u6216\u70B9\u51FB\u9009\u62E9</b><small>\u652F\u6301 .s / .asm\u3001UTF-8 \u6587\u672C\u3001ZIP \u548C MARS \u5DE5\u7A0B JSON\uFF1B\u6700\u591A ${MAX_FILES} \u4E2A\u6587\u4EF6\u3001${MAX_BYTES / 1e6} MB \u6587\u672C\u3002</small></button><p class="muted import-folder">${folders ? '<button id="choose-folder" class="link-button">\u9009\u62E9\u6587\u4EF6\u5939\u2026</button>' : "\u8FD9\u4E2A\u6D4F\u89C8\u5668\u4E0D\u80FD\u9009\u62E9\u6587\u4EF6\u5939\u3002\u8BF7\u628A\u6587\u4EF6\u5939\u538B\u7F29\u6210 ZIP \u518D\u5BFC\u5165\u3002"}</p>`);
+    const zone = $("choose-files");
+    zone.onclick = () => {
       $("upload").value = "";
       $("upload").click();
     };
-    $("choose-folder").onclick = () => {
-      $("folder-upload").dataset.mode = mode;
+    if (folders) $("choose-folder").onclick = () => {
       $("folder-upload").value = "";
       $("folder-upload").click();
     };
+    zone.ondragover = () => zone.classList.add("over");
+    zone.ondragleave = () => zone.classList.remove("over");
+    zone.ondrop = async (e) => {
+      zone.classList.remove("over");
+      const list = [...e.dataTransfer.files], entries = [...e.dataTransfer.items].map((i) => i.webkitGetAsEntry?.()).filter(Boolean);
+      take(entries.length ? await droppedFiles(entries) : list);
+    };
+  }
+  async function droppedFiles(entries, prefix = "") {
+    const out = [];
+    for (const entry of entries) {
+      if (entry.isFile) {
+        const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+        if (prefix) file.relativePath = prefix + file.name;
+        out.push(file);
+      } else {
+        const reader = entry.createReader(), children = [];
+        for (let batch; (batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject))).length; ) children.push(...batch);
+        out.push(...await droppedFiles(children, `${prefix}${entry.name}/`));
+      }
+    }
+    return out;
   }
   async function receive(e) {
-    const selected = [...e.target.files], mode = e.target.dataset.mode;
+    const selected = [...e.target.files];
     e.target.value = "";
-    if (!selected.length) return;
+    if (selected.length) await take(selected);
+  }
+  async function take(selected) {
     try {
-      const incoming = await readImports(selected);
-      if (selected.length === 1 && !/\.(json|zip)$/i.test(selected[0].name)) incoming.name = selected[0].name.replace(/\.[^.]+$/, "");
-      if (mode === "replace") return confirm("\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B", `\u5C06\u6253\u5F00 ${Object.keys(incoming.files).length} \u4E2A\u6E90\u7801\u6587\u4EF6\u3001${Object.keys(incoming.data).length} \u4E2A\u8F93\u5165\u6587\u4EF6\u3002\u5F53\u524D\u5DE5\u7A0B\u4E2D\u7684\u5176\u4ED6\u6587\u4EF6\u5C06\u79FB\u51FA\u5DE5\u4F5C\u533A\u3002`, "\u66FF\u6362\u5DE5\u7A0B", () => apply(incoming));
-      const p = snapshot(), conflicts = [...Object.keys(incoming.files), ...Object.keys(incoming.data)].filter((n) => Object.hasOwn(p.files, n) || Object.hasOwn(p.data, n));
-      if (conflicts.length) return confirm("\u5B58\u5728\u540C\u540D\u6587\u4EF6", "\u4EE5\u4E0B\u6587\u4EF6\u4F1A\u88AB\u8986\u76D6\uFF1A" + conflicts.join("\u3001"), "\u8986\u76D6\u540C\u540D\u5E76\u6DFB\u52A0", () => apply(mergeProject(snapshot(), incoming, true)));
-      await apply(mergeProject(p, incoming));
-      $("modal").close();
+      const info = {}, incoming = await readImports(selected, info);
+      if (info.kind) preview(incoming, info);
+      else await add2(incoming);
     } catch (error) {
       hooks.modal("\u5BFC\u5165\u672A\u5B8C\u6210", `<p role="alert">${escapeHTML(error.message)}</p><p>\u5F53\u524D\u5DE5\u7A0B\u672A\u6539\u53D8\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u540E\u91CD\u8BD5\u3002</p>`);
     }
+  }
+  async function add2(incoming, folder = "") {
+    const p = snapshot(), b = underFolder(incoming, folder), names = [...Object.keys(b.files), ...Object.keys(b.data)];
+    const merge = (overwrite) => {
+      const m = mergeProject(snapshot(), b, overwrite);
+      return apply({ ...m, activeFile: m.activeFile || Object.keys(b.files)[0] || "" });
+    };
+    const conflicts = names.filter((n) => Object.hasOwn(p.files, n) || Object.hasOwn(p.data, n));
+    if (conflicts.length) return confirm("\u5B58\u5728\u540C\u540D\u6587\u4EF6", "\u4EE5\u4E0B\u6587\u4EF6\u4F1A\u88AB\u8986\u76D6\uFF1A" + conflicts.join("\u3001"), "\u8986\u76D6\u540C\u540D\u5E76\u6DFB\u52A0", () => merge(true));
+    await merge(false);
+    $("modal").close();
+    hooks.notify(`\u5DF2\u6DFB\u52A0 ${names.length} \u4E2A\u6587\u4EF6\u3002`, { transient: true });
+  }
+  function preview(incoming, { kind, skipped }) {
+    const sources = Object.keys(incoming.files), inputs = Object.keys(incoming.data), row2 = (n, tag) => `<li><span>${escapeHTML(n)}</span><small>${tag}</small></li>`;
+    hooks.modal("\u5BFC\u5165\u5DE5\u7A0B", `<p class="project-explanation"><b>${{ zip: "ZIP \u5DE5\u7A0B\u5305", json: "MARS \u5DE5\u7A0B", folder: "\u6587\u4EF6\u5939" }[kind]}</b>\uFF1A${sources.length} \u4E2A\u6E90\u7801\u3001${inputs.length} \u4E2A\u8F93\u5165\u6587\u4EF6${skipped.length ? `\uFF0C\u8DF3\u8FC7 ${skipped.length} \u4E2A` : ""}\u3002</p><ul class="import-preview" aria-label="\u5C06\u5BFC\u5165\u7684\u6587\u4EF6">${sources.map((n) => row2(n, "\u6E90\u7801")).join("")}${inputs.map((n) => row2(n, "\u8F93\u5165")).join("")}${skipped.map((n) => `<li class="skipped"><span>${escapeHTML(n)}</span><small>\u8DF3\u8FC7</small></li>`).join("")}</ul><fieldset class="import-target"><label><input type="radio" name="import-target" value="replace" checked> \u4F5C\u4E3A\u65B0\u5DE5\u7A0B\u6253\u5F00\uFF08\u66FF\u6362\u5F53\u524D\u5185\u5BB9\uFF09</label><label><input type="radio" name="import-target" value="add"> \u6DFB\u52A0\u5230\u5F53\u524D\u5DE5\u7A0B</label><label class="import-where">\u6DFB\u52A0\u5230 <select id="import-folder" disabled><option value="">\u6839\u76EE\u5F55</option>${snapshot().folders.map((f) => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join("")}</select></label></fieldset><p class="muted">\u5F53\u524D\u5DE5\u7A0B\u4F1A\u4FDD\u7559\u4E00\u4EFD\u5907\u4EFD\uFF0C\u53EF\u4ECE\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u3002</p><p id="project-error" role="alert"></p><div class="project-actions"><button id="project-cancel">\u53D6\u6D88</button><button id="project-confirm" class="primary">\u66FF\u6362\u5DE5\u7A0B</button></div>`);
+    const adding = () => document.querySelector("[name=import-target]:checked").value === "add";
+    document.querySelectorAll("[name=import-target]").forEach((r) => r.onchange = () => {
+      $("import-folder").disabled = !adding();
+      $("project-confirm").textContent = adding() ? "\u6DFB\u52A0\u5230\u5DE5\u7A0B" : "\u66FF\u6362\u5DE5\u7A0B";
+    });
+    $("project-cancel").onclick = () => $("modal").close();
+    $("project-confirm").onclick = async (e) => {
+      e.target.disabled = true;
+      try {
+        if (adding()) await add2(incoming, $("import-folder").value);
+        else {
+          await apply(incoming);
+          $("modal").close();
+        }
+      } catch (error) {
+        $("project-error").textContent = error.message;
+        e.target.disabled = false;
+      }
+    };
   }
   $("new-project").onclick = () => confirm("\u65B0\u5EFA\u7A7A\u767D\u5DE5\u7A0B", "\u6E05\u7A7A\u5F53\u524D\u5DE5\u4F5C\u533A\uFF0C\u521B\u5EFA\u4E00\u4E2A\u4E0D\u5E26\u6F14\u793A\u4EE3\u7801\u7684 main.s\u3002", "\u65B0\u5EFA\u5DE5\u7A0B", () => apply(blankProject()));
   $("project-title").onclick = () => form("\u5DE5\u7A0B\u540D\u79F0", "\u540D\u79F0", snapshot().name, (value) => {
@@ -27631,12 +27760,15 @@ function projectManager(hooks) {
   });
   $("new-file").onclick = () => create();
   $("new-folder").onclick = () => create("", true);
-  $("import").onclick = () => importDialog();
-  $("add-import").onclick = () => importDialog("add");
+  $("import").onclick = importDialog;
+  for (const type of ["dragover", "drop"]) document.addEventListener(type, (e) => {
+    if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
+  });
   $("upload").onchange = receive;
   $("folder-upload").onchange = receive;
-  $("save-local").onclick = () => {
+  $("save-local").onclick = async () => {
     save();
+    await saving;
     hooks.notify(failed ? "\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u4FDD\u5B58\u3002" : "\u6E90\u7801\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668\uFF1B\u6362\u8BBE\u5907\u524D\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u3002", { transient: true });
   };
   $("save").onclick = () => {
@@ -27654,9 +27786,9 @@ function projectManager(hooks) {
   };
   $("export-file").onclick = () => downloadFile(hooks.snapshot().activeFile);
   $("entry-file").onchange = (e) => setAssembly({}, e.target.value);
-  $("restore-project").onclick = () => {
+  $("restore-project").onclick = async () => {
     try {
-      const restore = previous || normalizeProject(JSON.parse(localStorage.getItem(BACKUP_KEY)));
+      const restore = previous || normalizeProject(await get(BACKUP_KEY));
       confirm("\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u524D\u7684\u5DE5\u7A0B", `\u6062\u590D\u201C${restore.name}\u201D\u7684\u6587\u4EF6\u3002\u5F53\u524D\u5185\u5BB9\u4F1A\u6210\u4E3A\u4E0B\u4E00\u4EFD\u5907\u4EFD\u3002`, "\u6062\u590D", () => apply(restore));
     } catch (error) {
       hooks.notify(error.message);
@@ -27703,17 +27835,18 @@ function projectManager(hooks) {
     async start() {
       let p;
       try {
-        const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) p = normalizeProject(JSON.parse(saved));
+        const saved = await get(DRAFT_KEY);
+        if (saved) p = normalizeProject(saved);
       } catch {
         draftLocked = true;
         render2();
         hooks.selectActive("");
-        hooks.notify("\u4E4B\u524D\u7684\u6D4F\u89C8\u5668\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u672A\u8986\u76D6\u65E7\u8349\u7A3F\u3002\u53EF\u6253\u5F00\u5DE5\u7A0B\u6062\u590D\uFF0C\u6216\u65B0\u5EFA\u5DE5\u7A0B\u91CD\u65B0\u5F00\u59CB\u3002");
+        hooks.notify("\u4E4B\u524D\u7684\u6D4F\u89C8\u5668\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u672A\u8986\u76D6\u65E7\u8349\u7A3F\u3002\u53EF\u5BFC\u5165\u5DE5\u7A0B\u6062\u590D\uFF0C\u6216\u65B0\u5EFA\u5DE5\u7A0B\u91CD\u65B0\u5F00\u59CB\u3002");
         return;
       }
+      hasBackup = await get(BACKUP_KEY).then(Boolean, () => false);
       await apply(p || blankProject(), false);
-      hooks.notify(p ? "\u5DF2\u6062\u590D\u6B64\u6D4F\u89C8\u5668\u4E2D\u7684\u5DE5\u7A0B\uFF1B\u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002" : "\u7A7A\u767D\u5DE5\u7A0B\u5DF2\u5C31\u7EEA\uFF1A\u53EF\u76F4\u63A5\u5199\u4EE3\u7801\uFF0C\u6216\u201C\u6253\u5F00\u5DE5\u7A0B\u201D\u5BFC\u5165\u81EA\u5DF1\u7684\u6587\u4EF6\u3002");
+      hooks.notify(p ? "\u5DF2\u6062\u590D\u6B64\u6D4F\u89C8\u5668\u4E2D\u7684\u5DE5\u7A0B\uFF1B\u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002" : "\u7A7A\u767D\u5DE5\u7A0B\u5DF2\u5C31\u7EEA\uFF1A\u53EF\u76F4\u63A5\u5199\u4EE3\u7801\uFF0C\u6216\u5728\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u81EA\u5DF1\u7684\u6587\u4EF6\u3002");
     }
   };
 }
@@ -28053,7 +28186,7 @@ function editorMenu(x, y, pos) {
     [
       "\u8FD0\u884C\u5230\u6B64\u884C",
       canRun && address != null,
-      () => run("run", { breakpoints: [...activeBreakpoints(), { address }] })
+      () => run2("run", { breakpoints: [...activeBreakpoints(), { address }] })
     ],
     ["\u5207\u6362\u65AD\u70B9", address != null, () => toggleBreakpoint(line), "breakpoint"],
     ["\u7F16\u8F91\u65AD\u70B9\u2026", address != null, () => editBreakpoint(address)],
@@ -28233,7 +28366,7 @@ var lens = new FocusLens({
   getProgram: () => program,
   getSource: (file, line) => files[file]?.split("\n")[line - 1],
   command: (name2, extra) => command2(name2, extra).then((s) => (followPC(), s)),
-  runSource: () => run("source"),
+  runSource: () => run2("source"),
   // Exactly n machine instructions: one batch, still stopping at breakpoints.
   runSteps: (n) => command2("run", {
     limit: n,
@@ -28546,10 +28679,10 @@ function lineRun(place) {
   const at = (e) => e?.instruction?.file === place.file && e.instruction.line === place.line;
   const trace = (state.trace || []).filter((e) => e.step <= state.step);
   const ending = (i) => {
-    const run2 = [trace[i]];
-    for (let j = i - 1; j >= 0 && at(trace[j]) && trace[j].pc + 4 === run2[0].pc; j--)
-      run2.unshift(trace[j]);
-    return run2;
+    const run3 = [trace[i]];
+    for (let j = i - 1; j >= 0 && at(trace[j]) && trace[j].pc + 4 === run3[0].pc; j--)
+      run3.unshift(trace[j]);
+    return run3;
   };
   const latest = trace.length - 1;
   if (latest >= 0 && trace[latest].step === state.step && at(trace[latest]))
@@ -28577,8 +28710,8 @@ function lineTemplate(place) {
     (i) => i.file === place.file && i.line === place.line
   );
   if (machine.length !== 1) return null;
-  const run2 = lineRun(place);
-  if (run2?.events.length === 1) return lineModel(place, run2.events).template;
+  const run3 = lineRun(place);
+  if (run3?.events.length === 1) return lineModel(place, run3.events).template;
   const ins = machine[0], fields = [ins.binary >>> 21 & 31, ins.binary >>> 16 & 31, ins.binary >>> 11 & 31];
   const reg2 = (number2, write) => ({ kind: "register", number: number2, name: "$" + registerNames[number2], value: 0, before: 0, write });
   try {
@@ -28604,16 +28737,16 @@ function lineFormula(place) {
   return t2 ? `<p class="tip-formula">\u672C\u884C\uFF1A<code>${escapeHTML(plainEq(t2))}</code></p>` : "";
 }
 function instructionDetail(token, place) {
-  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = zhDoc(token) || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run2 = lineRun(place), model = run2 ? lineModel(place, run2.events) : null, template = model?.template || lineTemplate(place);
+  const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = zhDoc(token) || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run3 = lineRun(place), model = run3 ? lineModel(place, run3.events) : null, template = model?.template || lineTemplate(place);
   const where = `${place.file}:${place.line}`;
-  const status = dirty ? "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C" : !state ? "\u5C1A\u672A\u6C47\u7F16" : !run2 ? "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C" : run2.kind === "last" ? `\u521A\u6267\u884C\uFF08\u7B2C ${run2.step} \u6B65\uFF09` : run2.kind === "next" ? "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C" : `\u7B2C ${run2.step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09`;
+  const status = dirty ? "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C" : !state ? "\u5C1A\u672A\u6C47\u7F16" : !run3 ? "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C" : run3.kind === "last" ? `\u521A\u6267\u884C\uFF08\u7B2C ${run3.step} \u6B65\uFF09` : run3.kind === "next" ? "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C" : `\u7B2C ${run3.step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09`;
   const value = (o, v) => fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
   const label2 = (o) => o.kind === "memory" ? `\u5185\u5B58[${hex(o.address)}]` : o.name;
   const labelHTML = (o) => o.kind === "memory" ? escapeHTML(label2(o)) : `<abbr class="reg-term" title="${escapeHTML(o.name + "\uFF1A" + role(o.name))}">${escapeHTML(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read), writes = (model?.objects || []).filter((o) => o.write);
-  const single = template && !(run2?.events?.length > 1) && !run2?.pseudo;
+  const single = template && !(run3?.events?.length > 1) && !run3?.pseudo;
   const written = usage(token, source);
-  const bitsEvent = (run2?.events || []).find(supportsBits);
+  const bitsEvent = (run3?.events || []).find(supportsBits);
   const rows = [];
   if (template && single && !written?.formula)
     rows.push(["\u901A\u7528\u89C4\u5219", `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
@@ -28622,7 +28755,7 @@ function instructionDetail(token, place) {
   if (model) {
     const both = writes.filter((w) => w.kind === "register" && reads.some((r) => r.name === w.name));
     rows.push([
-      run2.kind === "next" ? "\u5F53\u524D\u6267\u884C\u524D\u6570\u503C" : "\u6267\u884C\u524D\u6570\u503C",
+      run3.kind === "next" ? "\u5F53\u524D\u6267\u884C\u524D\u6570\u503C" : "\u6267\u884C\u524D\u6570\u503C",
       (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${escapeHTML(value(o, o.before))}</b>`).join("\uFF0C") : "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58") + both.map((o) => `<small class="detail-when">\u53F3\u8FB9\u7684 ${escapeHTML(o.name)} \u7528\u7684\u662F\u6267\u884C\u524D\u7684 ${escapeHTML(value(o, o.before))}\uFF0C\u7ED3\u679C ${escapeHTML(value(o, o.after))} \u5199\u56DE\u540E ${escapeHTML(o.name)} \u624D\u53D8\u3002</small>`).join("")
     ]);
     rows.push([
@@ -28631,25 +28764,25 @@ function instructionDetail(token, place) {
     ]);
     rows.push([
       "\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C",
-      (writes.length ? writes.map((o) => `${labelHTML(o)}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run2.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
+      (writes.length ? writes.map((o) => `${labelHTML(o)}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run3.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
     ]);
     const related = [
       reads.length && "\u8BFB " + reads.map(labelHTML).join("\u3001"),
       writes.length && "\u5199 " + writes.map(labelHTML).join("\u3001")
     ].filter(Boolean);
     if (related.length) rows.push(["\u5173\u8054\u8BFB\u5199", related.join(" \xB7 ")]);
-  } else if (run2?.pseudo)
+  } else if (run3?.pseudo)
     rows.push(["\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
   showContext(
-    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run2.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
+    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run3.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
   );
   $2("detail-source").onclick = () => gotoSource(place.file, place.line);
   $2("refs").onclick = () => showReferences(token);
   if (bitsEvent) {
-    $2("detail-bits").disabled = run2.kind === "past";
+    $2("detail-bits").disabled = run3.kind === "past";
     $2("detail-bits").onclick = () => {
       if (dirty || !state) return;
-      lens.openAt(run2.kind === "next" ? 0 : -1, { bits: true });
+      lens.openAt(run3.kind === "next" ? 0 : -1, { bits: true });
     };
   }
 }
@@ -28713,7 +28846,7 @@ async function api(body) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
-  }), s = await r.json();
+  }), s = r.status === 413 ? { error: "\u5DE5\u7A0B\u7684\u8F93\u5165\u6587\u4EF6\u592A\u5927\uFF0C\u6267\u884C\u670D\u52A1\u65E0\u6CD5\u63A5\u6536\u3002\u8BF7\u79FB\u8D70\u4E0D\u9700\u8981\u7684\u8F93\u5165\u6587\u4EF6\u518D\u6C47\u7F16\u3002" } : await r.json();
   if (!r.ok || !s.protocol) throw Error(s.error || "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001");
   return named(s);
 }
@@ -29057,7 +29190,7 @@ function executionBlock() {
 var canRestart = () => state?.status === "ended" && !busy && !running && !dirty && !blocked();
 async function restartRun() {
   await assemble();
-  if (state?.status === "paused" && !state.error) await run("run");
+  if (state?.status === "paused" && !state.error) await run2("run");
 }
 function updateControls() {
   const gate = blocked(), why = executionBlock();
@@ -29314,6 +29447,7 @@ function renderFiles() {
   workspace?.render();
 }
 function renderTabs() {
+  $2("editor").classList.toggle("no-file", !activeFile);
   const tabs = workspace?.tabs() || Object.keys(files);
   $2("tabs").innerHTML = tabs.map(
     (f) => `<span class="file-tab ${f === activeFile ? "active" : ""}"><button data-tab="${escapeHTML(f)}" title="${escapeHTML(f)}">${escapeHTML(f)}</button><button class="close-tab" data-close-tab="${escapeHTML(f)}" aria-label="\u5173\u95ED\u6807\u7B7E ${escapeHTML(f)}" title="\u5173\u95ED\u6807\u7B7E\uFF0C\u6587\u4EF6\u4ECD\u5728\u5DE5\u7A0B\u4E2D">\xD7</button></span>`
@@ -29727,7 +29861,7 @@ function requestStop() {
   }
   return runDone;
 }
-async function run(mode = "run", extra = {}) {
+async function run2(mode = "run", extra = {}) {
   if (busy || dirty || running) return;
   if (blocked()) {
     notify(blocked(), { transient: true });
@@ -29789,10 +29923,10 @@ async function submitInput(value) {
   pendingResume = null;
   if (!resume || state?.status !== "paused") return;
   if (resume.mode === "step") await command2("step").then(followPC);
-  else await run(resume.mode, resume.extra);
+  else await run2(resume.mode, resume.extra);
 }
 async function runUntilWrite(register) {
-  await run("run", { watches: [...watches, { register, access: "write" }] });
+  await run2("run", { watches: [...watches, { register, access: "write" }] });
 }
 function editData(name2) {
   modal(
@@ -29814,20 +29948,19 @@ function commandList() {
   const commands = [
     ["\u6C47\u7F16\u5DE5\u7A0B", assemble, "assemble"],
     ["\u65B0\u5EFA\u7A7A\u767D\u5DE5\u7A0B", () => $2("new-project").click()],
-    ["\u6253\u5F00\u5DE5\u7A0B\uFF08\u66FF\u6362\u5DE5\u4F5C\u533A\uFF09", () => $2("import").click()],
-    ["\u6DFB\u52A0\u6587\u4EF6\u5230\u5DE5\u7A0B", () => $2("add-import").click()],
+    ["\u5BFC\u5165\u6587\u4EF6\u6216\u5DE5\u7A0B", () => $2("import").click()],
     ["\u4FDD\u5B58\u5DE5\u7A0B\u5230\u6D4F\u89C8\u5668", () => $2("save-local").click()],
     ["\u5BFC\u51FA\u5DE5\u7A0B ZIP\uFF0FJSON", () => $2("save").click()],
     ["\u5FEB\u901F\u6253\u5F00\u6587\u4EF6\uFF0F\u6807\u7B7E\uFF0F\u5730\u5740", () => openPicker(""), "quickOpen"],
     ["\u8F6C\u5230\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u7B26\u53F7", () => openPicker("@"), "outline"],
     ["\u4E13\u6CE8\u6A21\u5F0F", () => openFocus(), "focus"],
     ["\u673A\u5668\u5355\u6B65", () => command2("step").then(followPC), "step"],
-    ["\u6E90\u7801\u5355\u6B65", () => run("source"), "source"],
-    ["\u8DE8\u8FC7\u8C03\u7528", () => run("over"), "over"],
-    ["\u8DF3\u51FA\u51FD\u6570", () => run("out"), "out"],
+    ["\u6E90\u7801\u5355\u6B65", () => run2("source"), "source"],
+    ["\u8DE8\u8FC7\u8C03\u7528", () => run2("over"), "over"],
+    ["\u8DF3\u51FA\u51FD\u6570", () => run2("out"), "out"],
     ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC), "back"],
-    ["\u8FD0\u884C\uFF0F\u7EE7\u7EED", () => run(), "run"],
-    ["\u6F14\u793A\u64AD\u653E\uFF08\u9010\u6761\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run("demo")],
+    ["\u8FD0\u884C\uFF0F\u7EE7\u7EED", () => run2(), "run"],
+    ["\u6F14\u793A\u64AD\u653E\uFF08\u9010\u6761\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run2("demo")],
     ["\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F", () => assemble(), "restart"],
     ["\u6682\u505C", () => requestStop(), "pause"],
     ["\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9", () => actions.stop(), "stop"],
@@ -29839,7 +29972,7 @@ function commandList() {
           editor.state.doc.lineAt(editor.state.selection.main.head).number
         );
         if (address != null)
-          run("run", {
+          run2("run", {
             breakpoints: [...activeBreakpoints(), { address }]
           });
       }
@@ -29871,9 +30004,9 @@ function commandList() {
     ["syscall \u4E00\u89C8\uFF08$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48\uFF09", () => inspectToken("syscall")],
     ["\u67E5\u6307\u4EE4\u4E0E\u7528\u9014\uFF08\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u641C\u7D22\uFF09", () => findInstruction()]
   ];
-  return commands.map(([label2, run2, action]) => ({
+  return commands.map(([label2, run3, action]) => ({
     label: label2,
-    run: run2,
+    run: run3,
     keys: action && keys2.find(action) ? label(keys2.find(action), mac2) : ""
   }));
 }
@@ -29997,12 +30130,8 @@ tutorial = new Tutorial({
     else if (kind === "focus") openFocus();
     else if (kind === "menu") setTimeout(() => $2("project-menu-button").click());
   },
-  finish: (completed) => {
-    let saved = null;
-    try {
-      saved = JSON.parse(localStorage.getItem(TUTORIAL_BACKUP) || "null");
-    } catch {
-    }
+  finish: async (completed) => {
+    const saved = await get(TUTORIAL_BACKUP).catch(() => null);
     modal(
       completed ? "\u5165\u95E8\u7EC3\u4E60\u5B8C\u6210" : "\u9000\u51FA\u5165\u95E8\u7EC3\u4E60",
       `<p>${completed ? "\u505A\u5F97\u597D\uFF01" : ""}\u7EC3\u4E60\u5DE5\u7A0B\u4F1A\u7559\u5728\u5DE5\u4F5C\u533A\uFF0C\u53EF\u4EE5\u7EE7\u7EED\u4FEE\u6539\u6216\u5BFC\u51FA\u3002${saved ? `\u4E5F\u53EF\u4EE5\u56DE\u5230\u7EC3\u4E60\u524D\u7684\u5DE5\u7A0B\u201C${escapeHTML(saved.name || "\u6211\u7684\u5DE5\u7A0B")}\u201D\u3002` : ""}</p><div class="project-actions"><button id="tutorial-continue">\u7EE7\u7EED\u7EC3\u4E60</button>${saved ? '<button id="tutorial-restore">\u56DE\u5230\u4E4B\u524D\u7684\u5DE5\u7A0B</button>' : ""}<button class="primary" id="tutorial-keep">\u4FDD\u7559\u7EC3\u4E60\u5DE5\u7A0B</button></div>`
@@ -30018,7 +30147,7 @@ tutorial = new Tutorial({
           await workspace.apply(saved);
           $2("modal").close();
           tutorial.stop();
-          localStorage.removeItem(TUTORIAL_BACKUP);
+          await drop(TUTORIAL_BACKUP);
         } catch (e) {
           notify(e.message);
         }
@@ -30037,8 +30166,10 @@ $2("start-tutorial").onclick = () => {
   $2("tutorial-cancel").onclick = () => $2("modal").close();
   $2("tutorial-begin").onclick = async () => {
     try {
-      localStorage.setItem(TUTORIAL_BACKUP, JSON.stringify(workspace.snapshot()));
+      await put(TUTORIAL_BACKUP, workspace.snapshot());
     } catch {
+      $2("modal").close();
+      return notify("\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u65E0\u6CD5\u5148\u4FDD\u5B58\u5F53\u524D\u5DE5\u7A0B\u3002\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u540E\u518D\u5F00\u59CB\u7EC3\u4E60\u3002");
     }
     try {
       await workspace.apply({ name: "\u5165\u95E8\u7EC3\u4E60", files: {}, data: {}, folders: [] });
@@ -30121,13 +30252,13 @@ $2("step").onclick = () => command2("step").then((s) => {
   followPC();
   arrive();
 });
-$2("demo").onclick = () => running ? requestStop() : run("demo");
+$2("demo").onclick = () => running ? requestStop() : run2("demo");
 $2("back").onclick = () => command2("back").then(() => {
   followPC();
   arrive();
 });
 for (let mode of ["source", "over", "out", "run"])
-  $2(mode).onclick = () => mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run(mode);
+  $2(mode).onclick = () => mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run2(mode);
 $2("commands").onclick = openCommands;
 $2("radix").innerHTML = RADIXES.map(
   ([value, label2]) => `<option value="${value}" title="${escapeHTML(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label2}</option>`
@@ -30503,7 +30634,7 @@ window.marsIDE = {
   memoryAt,
   command: command2,
   assemble,
-  run,
+  run: run2,
   loadExample,
   get files() {
     return files;

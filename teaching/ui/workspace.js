@@ -1,6 +1,7 @@
 import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
 
-export const MAX_BYTES = 1_500_000;
+export const MAX_BYTES = 4_000_000, MAX_FILES = 500;
+const LIMIT = `${MAX_FILES} 个文件、${MAX_BYTES / 1_000_000} MB`;
 export const isSource = (name) => /\.(s|asm)$/.test(name);
 export function pathName(value) {
   if (typeof value !== 'string') throw Error('文件路径必须是文字。');
@@ -26,7 +27,7 @@ export function normalizeProject(input) {
       if (kind === 'data' && isSource(name)) throw Error(`${name} 应放在源码文件中。`);
       if (Object.hasOwn(files, name) || Object.hasOwn(data, name)) throw Error(`文件重复：${name}`);
       size += strToU8(text).length;
-      if (++count > 200 || size > MAX_BYTES) throw Error('工程最多 200 个文件、1.5 MB 文本内容。');
+      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(`工程最多 ${LIMIT} 文本内容。`);
       target[name] = text;
     }
   }
@@ -37,11 +38,11 @@ export function normalizeProject(input) {
     const parts = name.split('/');
     for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join('/'));
   }
-  if (folders.size > 200) throw Error('工程最多 200 个文件夹。');
+  if (folders.size > MAX_FILES) throw Error(`工程最多 ${MAX_FILES} 个文件夹。`);
   for (const name of names) if (folders.has(name)) throw Error(`${name} 不能同时作为文件和文件夹。`);
   const entry = Object.hasOwn(files, input.entry) ? input.entry : Object.hasOwn(files, 'main.s') ? 'main.s' : Object.keys(files)[0] || '';
   const activeFile = input.activeFile === '' ? '' : Object.hasOwn(files, input.activeFile) ? input.activeFile : entry;
-  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files, n) && a.indexOf(n) === i) : Object.keys(files);
+  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files, n) && a.indexOf(n) === i) : [];
   if (activeFile && !openTabs.includes(activeFile)) openTabs.push(activeFile);
   return {version: 3, name: String(input.name || '我的工程').slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files)};
 }
@@ -72,6 +73,13 @@ export function assemblyScope(p, activeFile) {
   if (mode === 'single') return {mode, files: [activeFile], entry: activeFile};
   return autoScope(p.files, activeFile);
 }
+// The scope is worked out on every keystroke; only the edited file changes.
+const scans = new Map();
+function scanned(name, text) {
+  let scan = scans.get(name);
+  if (scan?.text !== text) scans.set(name, scan = {text, ...labelsIn(text), refs: referencesIn(text)});
+  return scan;
+}
 // Auto: the open file is the program when it defines main. Otherwise the
 // one file in its folder that defines main is, and the open file joins it;
 // with no main anywhere the open file runs from its first instruction. Then
@@ -79,7 +87,7 @@ export function assemblyScope(p, activeFile) {
 // it, preferring the entry's folder. Files with their own main are other
 // programs and are never linked, so the open file is the only main source.
 function autoScope(sources, activeFile) {
-  const info = new Map(Object.entries(sources).map(([n, t]) => [n, {...labelsIn(t), refs: referencesIn(t)}]));
+  const info = new Map(Object.entries(sources).map(([n, t]) => [n, scanned(n, t)]));
   const hasMain = n => info.get(n).defined.has('main');
   const fail = error => ({mode: 'auto', files: [], entry: '', error});
   let entry = activeFile;
@@ -133,6 +141,13 @@ export function mergeProject(current, incoming, overwrite = false) {
   // Added files never join the current joint-assembly selection by themselves.
   return normalizeProject({...a, files: {...a.files, ...b.files}, data: {...a.data, ...b.data}, folders: [...a.folders, ...b.folders]});
 }
+// The same project, placed inside a folder of the one it joins.
+export function underFolder(input, folder) {
+  const p = normalizeProject(input);
+  if (!folder) return p;
+  const remap = obj => Object.fromEntries(Object.entries(obj).map(([n, text]) => [`${folder}/${n}`, text]));
+  return normalizeProject({...p, files: remap(p.files), data: remap(p.data), folders: [folder, ...p.folders.map(n => `${folder}/${n}`)], entry: '', activeFile: '', openTabs: []});
+}
 export function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name, text] of Object.entries({...p.files, ...p.data})) entries[name] = strToU8(text);
@@ -145,23 +160,35 @@ function textFile(bytes, name) {
   catch { throw Error(`${name} 不是 UTF-8 文本，请先转换编码。`); }
 }
 const ignoredName = name => name.split('/').some(n => ['__MACOSX','.DS_Store','.git'].includes(n) || n.startsWith('._'));
-export async function readImports(selected) {
+// `info` reports what was read: kind (zip, json or folder, unset for loose
+// files) and skipped. A folder or ZIP usually holds handouts next to the code,
+// so what cannot be read is listed there instead of stopping the import.
+export async function readImports(selected, info = {}) {
+  info.skipped = [];
   let files = {}, data = {}, folders = [], metadata = {}, seen = new Set(), total = 0;
-  const add = (raw, bytes) => {
+  const add = (raw, bytes, lenient = false) => {
     if (ignoredName(raw)) return;
     const directory = raw.endsWith('/');
     const name = pathName(directory ? raw.slice(0, -1) : raw);
     if (directory) { folders.push(name); return; }
     if (seen.has(name)) throw Error(`导入中存在同名文件：${name}`);
+    let text;
+    try { text = textFile(bytes, name); }
+    catch (error) { if (!lenient) throw error; info.skipped.push(`${name}（不是 UTF-8 文本）`); return; }
     seen.add(name);
     total += bytes.length;
-    if (total > MAX_BYTES || seen.size > 200) throw Error('导入最多 200 个文件、1.5 MB 解压后文本内容。');
-    (isSource(name) ? files : data)[name] = textFile(bytes, name);
+    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(`导入最多 ${LIMIT} 解压后文本内容。`);
+    (isSource(name) ? files : data)[name] = text;
   };
   for (const f of selected) {
-    const name = f.webkitRelativePath || f.name;
+    const name = f.relativePath || f.webkitRelativePath || f.name, inFolder = name !== f.name;
     if (ignoredName(name)) continue;
-    if (f.size > 4_000_000) throw Error('单个导入文件不能超过 4 MB。');
+    if (inFolder) info.kind = 'folder';
+    if (f.size > 2 * MAX_BYTES) {
+      if (!inFolder) throw Error(`单个导入文件不能超过 ${2 * MAX_BYTES / 1_000_000} MB。`);
+      info.skipped.push(`${name}（文件太大）`);
+      continue;
+    }
     const bytes = new Uint8Array(await f.arrayBuffer());
     if (name.endsWith('/.mars-project.json')) {
       const m = JSON.parse(textFile(bytes,name)), prefix=name.slice(0,-'.mars-project.json'.length);
@@ -170,6 +197,7 @@ export async function readImports(selected) {
       continue;
     }
     if (/\.zip$/i.test(f.name)) {
+      info.kind = 'zip';
       let expanded = 0, entries = 0;
       const zipNames = new Set();
       const archive = unzipSync(bytes, {filter: e => {
@@ -177,7 +205,7 @@ export async function readImports(selected) {
         if (!e.name.endsWith('/') && zipNames.has(e.name)) throw Error('ZIP 内存在重复文件：' + e.name);
         zipNames.add(e.name);
         expanded += e.originalSize;
-        if (expanded > MAX_BYTES + 16000 || ++entries > 410) throw Error('ZIP 超过解压大小或文件数量限制。');
+        if (expanded > MAX_BYTES + 16000 || ++entries > 2 * MAX_FILES + 10) throw Error('ZIP 超过解压大小或文件数量限制。');
         return true;
       }});
       if (archive['.mars-project.json']) {
@@ -185,13 +213,13 @@ export async function readImports(selected) {
         if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error('ZIP 文件夹信息无效。');
         delete archive['.mars-project.json'];
       }
-      for (const [n, value] of Object.entries(archive)) add(n, value);
+      for (const [n, value] of Object.entries(archive)) add(n, value, true);
     } else if (selected.length === 1 && /\.json$/i.test(f.name)) {
       let parsed;
       try { parsed = JSON.parse(textFile(bytes, name)); } catch {}
-      if (parsed?.files) return normalizeProject(parsed);
+      if (parsed?.files) { info.kind = 'json'; return normalizeProject(parsed); }
       add(name, bytes);
-    } else add(name, bytes);
+    } else add(name, bytes, inFolder);
   }
   if (!seen.size && !folders.length) throw Error('没有可导入的文件。');
   return normalizeProject({...metadata, files, data, folders: [...folders, ...(metadata.folders || [])]});

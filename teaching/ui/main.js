@@ -48,6 +48,7 @@ import { Tutorial } from "./tutorial.js";
 import { supportsBits } from "./bits.js";
 import { projectManager } from "./project-manager.js";
 import { assemblyScope, scopeHints } from "./workspace.js";
+import { put, get, drop } from "./store.js";
 const $ = (id) => document.getElementById(id);
 // Jumps and branches take VS Code's control-keyword colour, the same purple
 // as control-flow arrows.
@@ -1313,7 +1314,7 @@ async function api(body) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
-    s = await r.json();
+    s = r.status === 413 ? { error: "工程的输入文件太大，执行服务无法接收。请移走不需要的输入文件再汇编。" } : await r.json();
   if (!r.ok || !s.protocol) throw Error(s.error || "执行服务未返回状态");
   return named(s);
 }
@@ -2090,6 +2091,7 @@ function renderFiles() {
   workspace?.render();
 }
 function renderTabs() {
+  $("editor").classList.toggle("no-file", !activeFile);
   const tabs = workspace?.tabs() || Object.keys(files);
   $("tabs").innerHTML = tabs.map(f =>
     `<span class="file-tab ${f === activeFile ? 'active' : ''}"><button data-tab="${esc(f)}" title="${esc(f)}">${esc(f)}</button><button class="close-tab" data-close-tab="${esc(f)}" aria-label="关闭标签 ${esc(f)}" title="关闭标签，文件仍在工程中">×</button></span>`
@@ -2772,8 +2774,7 @@ function commandList() {
   const commands = [
     ["汇编工程", assemble, "assemble"],
     ["新建空白工程", () => $("new-project").click()],
-    ["打开工程（替换工作区）", () => $("import").click()],
-    ["添加文件到工程", () => $("add-import").click()],
+    ["导入文件或工程", () => $("import").click()],
     ["保存工程到浏览器", () => $("save-local").click()],
     ["导出工程 ZIP／JSON", () => $("save").click()],
     ["快速打开文件／标签／地址", () => openPicker(""), "quickOpen"],
@@ -2985,11 +2986,8 @@ tutorial = new Tutorial({
     // After the current click finishes, or its bubbling would close the menu.
     else if (kind === "menu") setTimeout(() => $("project-menu-button").click());
   },
-  finish: (completed) => {
-    let saved = null;
-    try {
-      saved = JSON.parse(localStorage.getItem(TUTORIAL_BACKUP) || "null");
-    } catch {}
+  finish: async (completed) => {
+    const saved = await get(TUTORIAL_BACKUP).catch(() => null);
     modal(
       completed ? "入门练习完成" : "退出入门练习",
       `<p>${completed ? "做得好！" : ""}练习工程会留在工作区，可以继续修改或导出。${saved ? `也可以回到练习前的工程“${esc(saved.name || "我的工程")}”。` : ""}</p><div class="project-actions"><button id="tutorial-continue">继续练习</button>${saved ? '<button id="tutorial-restore">回到之前的工程</button>' : ""}<button class="primary" id="tutorial-keep">保留练习工程</button></div>`,
@@ -3005,7 +3003,7 @@ tutorial = new Tutorial({
           await workspace.apply(saved);
           $("modal").close();
           tutorial.stop();
-          localStorage.removeItem(TUTORIAL_BACKUP);
+          await drop(TUTORIAL_BACKUP);
         } catch (e) {
           notify(e.message);
         }
@@ -3024,8 +3022,11 @@ $("start-tutorial").onclick = () => {
   $("tutorial-cancel").onclick = () => $("modal").close();
   $("tutorial-begin").onclick = async () => {
     try {
-      localStorage.setItem(TUTORIAL_BACKUP, JSON.stringify(workspace.snapshot()));
-    } catch {}
+      await put(TUTORIAL_BACKUP, workspace.snapshot());
+    } catch {
+      $("modal").close();
+      return notify("浏览器存储不可用，无法先保存当前工程。请导出工程后再开始练习。");
+    }
     try {
       await workspace.apply({ name: "入门练习", files: {}, data: {}, folders: [] });
       $("modal").close();
