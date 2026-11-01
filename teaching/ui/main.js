@@ -5,9 +5,10 @@ import {
   GutterMarker,
   WidgetType,
   gutter,
+  gutterLineClass,
   keymap,
 } from "@codemirror/view";
-import { EditorState, StateEffect, StateField, Compartment } from "@codemirror/state";
+import { EditorState, RangeSet, StateEffect, StateField, Compartment } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { autocompletion } from "@codemirror/autocomplete";
 import {
@@ -49,6 +50,7 @@ import { supportsBits } from "./bits.js";
 import { projectManager } from "./project-manager.js";
 import { assemblyScope, scopeHints } from "./workspace.js";
 import { put, get, drop } from "./store.js";
+import { liveCheck } from "./live-check.js";
 const $ = (id) => document.getElementById(id);
 // Jumps and branches take VS Code's control-keyword colour, the same purple
 // as control-flow arrows.
@@ -540,6 +542,119 @@ function closePeek() {
   if (editor.state.field(peekField))
     editor.dispatch({ effects: setPeek.of(null) });
 }
+// Assembly errors drawn on the code. They stay with their text while the
+// student edits elsewhere and go when that text changes: the error is then
+// no longer known, until the next assembly checks it again.
+const setErrorMarks = StateEffect.define();
+const errorField = StateField.define({
+  create: () => Decoration.none,
+  update(marks, tr) {
+    if (tr.docChanged) {
+      const touched = [];
+      tr.changes.iterChangedRanges((_a, _b, from, to) => touched.push([from, to]));
+      marks = marks
+        .map(tr.changes)
+        .update({ filter: (from, to) => !touched.some(([a, b]) => a <= to && b >= from) });
+    }
+    for (const e of tr.effects) if (e.is(setErrorMarks)) marks = e.value;
+    return marks;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+class ErrorLine extends GutterMarker {
+  constructor(warning) {
+    super();
+    this.elementClass = warning ? "warning-gutter" : "error-gutter";
+  }
+}
+const errorLines = gutterLineClass.compute([errorField], (s) => {
+  const lines = new Map();
+  s.field(errorField).between(0, s.doc.length, (from, _to, mark) => {
+    const at = s.doc.lineAt(from).from;
+    lines.set(at, lines.get(at) === false ? false : mark.spec.warning);
+  });
+  return RangeSet.of([...lines].map(([at, warning]) => new ErrorLine(warning).range(at)), true);
+});
+// The diagnostics of the last assembly, and the text they were found in.
+let errorReport = { list: [], sources: {} };
+// A diagnostic marks the word MARS points at, or the code on the line when
+// its column says nothing.
+function errorRange(doc, d) {
+  if (d.line < 1 || d.line > doc.lines) return null;
+  const line = doc.line(d.line),
+    code = line.text.replace(/\s*#.*$/, "");
+  const start = d.column > 0 && d.column <= code.length ? d.column - 1 : code.search(/\S/);
+  if (start < 0) return null;
+  const word = /^[^\s,()]+/.exec(code.slice(start))?.[0].length || code.length - start;
+  return { from: line.from + start, to: line.from + start + word };
+}
+// Drawn only on the text the assembler saw: positions mean nothing elsewhere.
+function drawErrors() {
+  const marks = [];
+  if (activeFile && errorReport.sources[activeFile] === editor.state.doc.toString())
+    for (const d of errorReport.list.filter((d) => d.file === activeFile)) {
+      const r = errorRange(editor.state.doc, d);
+      if (r)
+        marks.push(
+          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: d.message, warning: d.warning }).range(r.from, r.to),
+        );
+    }
+  editor.dispatch({ effects: setErrorMarks.of(Decoration.set(marks, true)) });
+}
+// Line checks add to what is shown: only the lines they looked at change.
+function showLineProblems(lines, list) {
+  const doc = editor.state.doc,
+    looked = new Set(lines),
+    kept = [];
+  editor.state.field(errorField).between(0, doc.length, (from, to, mark) => {
+    if (!mark.spec.live || !looked.has(doc.lineAt(from).number)) kept.push(mark.range(from, to));
+  });
+  for (const d of list) {
+    const r = errorRange(doc, d);
+    if (r && !kept.some((k) => k.from === r.from))
+      kept.push(Decoration.mark({ class: "cm-error-mark", message: d.message, warning: false, live: true }).range(r.from, r.to));
+  }
+  editor.dispatch({ effects: setErrorMarks.of(Decoration.set(kept, true)) });
+}
+const live = liveCheck({
+  post: async (body) => {
+    const r = await fetch("/api/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if ([404, 405, 501].includes(r.status)) return null;
+    if (!r.ok) return undefined;
+    const reply = await r.json().catch(() => null);
+    return reply?.protocol === 1 ? reply : null;
+  },
+  current: () => ({ file: activeFile, doc: editor.state.doc }),
+  scope: () => {
+    const s = nextScope();
+    return s.error ? null : { files: Object.fromEntries(s.files.map((n) => [n, files[n]])), entry: s.entry, delay: $("delay").checked };
+  },
+  ready: () => !running && !busy,
+  held: () => {
+    let found = false;
+    editor.state.field(errorField).between(0, editor.state.doc.length, (_f, _t, mark) => {
+      if (mark.spec.live) found = true;
+    });
+    return found;
+  },
+  showLines: showLineProblems,
+  showScope: (list, sources) => {
+    errorReport = { list, sources };
+    drawErrors();
+    renderFiles();
+  },
+});
+function errorAt(pos) {
+  let message = "";
+  editor.state.field(errorField).between(pos, pos, (_from, _to, mark) => {
+    message = mark.spec.message;
+  });
+  return message;
+}
 const breakpointGutter = gutter({
   class: "breakpoints-gutter",
   lineMarker: (v, line) =>
@@ -617,10 +732,13 @@ const editor = new EditorView({
           },
         },
       ]),
+      errorField,
+      errorLines,
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
           if (!activeFile) return;
           files[activeFile] = u.state.doc.toString();
+          live.edited(u.changes);
           workspace?.changed();
           renderTabs();
           // Editing another exercise leaves the loaded program valid (P0).
@@ -866,19 +984,24 @@ function pointedPos(e) {
 function hover(e) {
   const at = pointedPos(e),
     pos = at?.pos,
-    token = !at || at.past ? "" : tokenAt(pos);
-  if (!token) return hideTooltip();
+    token = !at || at.past ? "" : tokenAt(pos),
+    problem = !at || at.past ? "" : errorAt(pos);
+  if (!token && !problem) return hideTooltip();
   const line = editor.state.doc.lineAt(pos),
     place = { file: activeFile, line: line.number },
     key = `${token}@${activeFile}:${line.number}`;
   clearTimeout(tipHide);
   if (key === tipFor && !$("tooltip").hidden) return;
   tipFor = key;
-  $("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">在右侧查看详细 →</button>`;
-  $("tooltip").querySelector(".tip-detail").onclick = () => {
-    inspectToken(token, place);
-    hideTooltip(0);
-  };
+  const report = problem ? `<div class="tip-error" role="alert">${esc(problem)}</div>` : "";
+  $("tooltip").innerHTML = token
+    ? `${report}<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">在右侧查看详细 →</button>`
+    : report;
+  if (token)
+    $("tooltip").querySelector(".tip-detail").onclick = () => {
+      inspectToken(token, place);
+      hideTooltip(0);
+    };
   // A register may hold an address: follow it from here too (round-4 trial).
   const reg = canonicalReg(token);
   if (reg.startsWith("$") && state) {
@@ -1383,6 +1506,13 @@ async function assemble() {
       delay: $("delay").checked,
       ...lookahead(),
     });
+    live.reset();
+    errorReport = {
+      list: state.diagnostics || [],
+      sources: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
+    };
+    drawErrors();
+    renderFiles();
     target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
     lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
@@ -1430,6 +1560,7 @@ function savedEditor() {
 function switchFile(file) {
   if (!Object.hasOwn(files, file)) return;
   savedEditor();
+  live.reset();
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
   if (target?.files.includes(file)) lastInTarget = file;
@@ -1441,6 +1572,7 @@ function switchFile(file) {
     selection: fileStates.get(file) || { anchor: 0 },
   });
   loadEditor = false;
+  drawErrors();
   renderTabs();
   renderFiles();
   updateControls();
@@ -3455,6 +3587,7 @@ async function loadExample(index) {
 function selectActiveFile(name) {
   if (name) { switchFile(name); return; }
   savedEditor();
+  live.reset();
   activeFile = "";
   loadEditor = true;
   editor.dispatch({changes:{from:0,to:editor.state.doc.length,insert:""}, effects:fileAccess.reconfigure([EditorState.readOnly.of(true), EditorView.editable.of(false)])});
@@ -3468,6 +3601,7 @@ workspace = projectManager({
   openFile: name => {setView("source");switchFile(name);editor.focus();},
   selectActive: name => { selectActiveFile(name); renderTabs(); },
   modal, notify, editData, assemble,
+  hasError: (name) => errorReport.list.some((d) => d.file === name && !d.warning),
   scopeChanged: () => updateControls(),
   replace: async p => {
     await requestStop();
@@ -3475,6 +3609,8 @@ workspace = projectManager({
     lens.close();
     lens.update(null);
     activeFile = "";
+    live.reset();
+    errorReport = { list: [], sources: {} };
     files = {...p.files}; data = {...p.data};
     fileStates.clear(); navBack.length = navForward.length = 0;
     breakpoints = []; watches = []; debugLog = [];

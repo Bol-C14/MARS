@@ -27645,7 +27645,7 @@ function projectManager(hooks) {
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
     $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
@@ -27848,6 +27848,73 @@ function projectManager(hooks) {
       await apply(p || blankProject(), false);
       hooks.notify(p ? "\u5DF2\u6062\u590D\u6B64\u6D4F\u89C8\u5668\u4E2D\u7684\u5DE5\u7A0B\uFF1B\u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002" : "\u7A7A\u767D\u5DE5\u7A0B\u5DF2\u5C31\u7EEA\uFF1A\u53EF\u76F4\u63A5\u5199\u4EE3\u7801\uFF0C\u6216\u5728\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u81EA\u5DF1\u7684\u6587\u4EF6\u3002");
     }
+  };
+}
+
+// ui/live-check.js
+var MAX_LINES = 200;
+function liveCheck({ post, current, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3 }) {
+  let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "";
+  const flying = {}, waiting = {};
+  async function send(kind, body, accept, asked = version) {
+    if (!enabled || asked !== version) return;
+    if (flying[kind]) {
+      waiting[kind] = [body, accept, asked];
+      return;
+    }
+    flying[kind] = true;
+    const reply = await post({ protocol: 1, id: asked, ...body }).catch(() => void 0);
+    flying[kind] = false;
+    if (reply === null) enabled = false;
+    else if (reply?.status === "ok" && asked === version) accept(reply);
+    const next = waiting[kind];
+    delete waiting[kind];
+    if (next) send(kind, ...next);
+  }
+  function checkLines() {
+    const { file, doc: doc2 } = current();
+    if (!changed || !file) return;
+    const first = doc2.lineAt(Math.min(changed.from, doc2.length)).number, last2 = Math.min(doc2.lineAt(Math.min(changed.to, doc2.length)).number, first + MAX_LINES);
+    changed = null;
+    const lines = Array.from({ length: last2 - first + 1 }, (_, i) => first + i);
+    send("line", { command: "line", file, text: doc2.toString(), lines }, (r) => showLines(lines, r.diagnostics));
+  }
+  function checkScope() {
+    if (!ready()) {
+      fullTimer = setTimeout(checkScope, 1e3);
+      return;
+    }
+    const s = scope();
+    if (held() || !s) return;
+    const key = JSON.stringify(s);
+    if (key === checked) return;
+    send("full", { command: "full", ...s }, (r) => {
+      checked = key;
+      showScope(r.diagnostics, s.files);
+    });
+  }
+  return {
+    edited(changes) {
+      version++;
+      const mapped = changed && { from: changes.mapPos(changed.from, -1), to: changes.mapPos(changed.to, 1) };
+      changed = mapped;
+      changes.iterChangedRanges((_a3, _b2, from, to) => {
+        changed = { from: Math.min(changed?.from ?? from, from), to: Math.max(changed?.to ?? to, to) };
+      });
+      clearTimeout(lineTimer);
+      clearTimeout(fullTimer);
+      lineTimer = setTimeout(checkLines, lineDelay);
+      fullTimer = setTimeout(checkScope, fullDelay);
+    },
+    // The file, the project or the loaded program changed: what is on its way
+    // no longer applies.
+    reset() {
+      version++;
+      changed = null;
+      clearTimeout(lineTimer);
+      clearTimeout(fullTimer);
+    },
+    enabled: () => enabled
   };
 }
 
@@ -28234,6 +28301,106 @@ function closePeek() {
   if (editor.state.field(peekField))
     editor.dispatch({ effects: setPeek.of(null) });
 }
+var setErrorMarks = StateEffect.define();
+var errorField = StateField.define({
+  create: () => Decoration.none,
+  update(marks2, tr) {
+    if (tr.docChanged) {
+      const touched = [];
+      tr.changes.iterChangedRanges((_a3, _b2, from, to) => touched.push([from, to]));
+      marks2 = marks2.map(tr.changes).update({ filter: (from, to) => !touched.some(([a, b]) => a <= to && b >= from) });
+    }
+    for (const e of tr.effects) if (e.is(setErrorMarks)) marks2 = e.value;
+    return marks2;
+  },
+  provide: (f) => EditorView.decorations.from(f)
+});
+var ErrorLine = class extends GutterMarker {
+  constructor(warning) {
+    super();
+    this.elementClass = warning ? "warning-gutter" : "error-gutter";
+  }
+};
+var errorLines = gutterLineClass.compute([errorField], (s) => {
+  const lines = /* @__PURE__ */ new Map();
+  s.field(errorField).between(0, s.doc.length, (from, _to, mark) => {
+    const at = s.doc.lineAt(from).from;
+    lines.set(at, lines.get(at) === false ? false : mark.spec.warning);
+  });
+  return RangeSet.of([...lines].map(([at, warning]) => new ErrorLine(warning).range(at)), true);
+});
+var errorReport = { list: [], sources: {} };
+function errorRange(doc2, d) {
+  if (d.line < 1 || d.line > doc2.lines) return null;
+  const line = doc2.line(d.line), code = line.text.replace(/\s*#.*$/, "");
+  const start = d.column > 0 && d.column <= code.length ? d.column - 1 : code.search(/\S/);
+  if (start < 0) return null;
+  const word = /^[^\s,()]+/.exec(code.slice(start))?.[0].length || code.length - start;
+  return { from: line.from + start, to: line.from + start + word };
+}
+function drawErrors() {
+  const marks2 = [];
+  if (activeFile && errorReport.sources[activeFile] === editor.state.doc.toString())
+    for (const d of errorReport.list.filter((d2) => d2.file === activeFile)) {
+      const r = errorRange(editor.state.doc, d);
+      if (r)
+        marks2.push(
+          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: d.message, warning: d.warning }).range(r.from, r.to)
+        );
+    }
+  editor.dispatch({ effects: setErrorMarks.of(Decoration.set(marks2, true)) });
+}
+function showLineProblems(lines, list) {
+  const doc2 = editor.state.doc, looked = new Set(lines), kept = [];
+  editor.state.field(errorField).between(0, doc2.length, (from, to, mark) => {
+    if (!mark.spec.live || !looked.has(doc2.lineAt(from).number)) kept.push(mark.range(from, to));
+  });
+  for (const d of list) {
+    const r = errorRange(doc2, d);
+    if (r && !kept.some((k) => k.from === r.from))
+      kept.push(Decoration.mark({ class: "cm-error-mark", message: d.message, warning: false, live: true }).range(r.from, r.to));
+  }
+  editor.dispatch({ effects: setErrorMarks.of(Decoration.set(kept, true)) });
+}
+var live = liveCheck({
+  post: async (body) => {
+    const r = await fetch("/api/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if ([404, 405, 501].includes(r.status)) return null;
+    if (!r.ok) return void 0;
+    const reply = await r.json().catch(() => null);
+    return reply?.protocol === 1 ? reply : null;
+  },
+  current: () => ({ file: activeFile, doc: editor.state.doc }),
+  scope: () => {
+    const s = nextScope();
+    return s.error ? null : { files: Object.fromEntries(s.files.map((n) => [n, files[n]])), entry: s.entry, delay: $2("delay").checked };
+  },
+  ready: () => !running && !busy,
+  held: () => {
+    let found = false;
+    editor.state.field(errorField).between(0, editor.state.doc.length, (_f, _t, mark) => {
+      if (mark.spec.live) found = true;
+    });
+    return found;
+  },
+  showLines: showLineProblems,
+  showScope: (list, sources) => {
+    errorReport = { list, sources };
+    drawErrors();
+    renderFiles();
+  }
+});
+function errorAt(pos) {
+  let message = "";
+  editor.state.field(errorField).between(pos, pos, (_from, _to, mark) => {
+    message = mark.spec.message;
+  });
+  return message;
+}
 var breakpointGutter = gutter({
   class: "breakpoints-gutter",
   lineMarker: (v, line) => new Dot(
@@ -28308,10 +28475,13 @@ var editor = new EditorView({
           }
         }
       ]),
+      errorField,
+      errorLines,
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
           if (!activeFile) return;
           files[activeFile] = u.state.doc.toString();
+          live.edited(u.changes);
           workspace?.changed();
           renderTabs();
           if (!target || target.files.includes(activeFile)) {
@@ -28501,17 +28671,19 @@ function pointedPos(e) {
   return { pos, past: pos === end && right != null && e.clientX > right + 4 };
 }
 function hover(e) {
-  const at = pointedPos(e), pos = at?.pos, token = !at || at.past ? "" : tokenAt(pos);
-  if (!token) return hideTooltip2();
+  const at = pointedPos(e), pos = at?.pos, token = !at || at.past ? "" : tokenAt(pos), problem = !at || at.past ? "" : errorAt(pos);
+  if (!token && !problem) return hideTooltip2();
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number }, key = `${token}@${activeFile}:${line.number}`;
   clearTimeout(tipHide);
   if (key === tipFor && !$2("tooltip").hidden) return;
   tipFor = key;
-  $2("tooltip").innerHTML = `<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u5728\u53F3\u4FA7\u67E5\u770B\u8BE6\u7EC6 \u2192</button>`;
-  $2("tooltip").querySelector(".tip-detail").onclick = () => {
-    inspectToken(token, place);
-    hideTooltip2(0);
-  };
+  const report = problem ? `<div class="tip-error" role="alert">${escapeHTML(problem)}</div>` : "";
+  $2("tooltip").innerHTML = token ? `${report}<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u5728\u53F3\u4FA7\u67E5\u770B\u8BE6\u7EC6 \u2192</button>` : report;
+  if (token)
+    $2("tooltip").querySelector(".tip-detail").onclick = () => {
+      inspectToken(token, place);
+      hideTooltip2(0);
+    };
   const reg2 = canonicalReg(token);
   if (reg2.startsWith("$") && state) {
     const go = document.createElement("button");
@@ -28910,6 +29082,13 @@ async function assemble() {
       delay: $2("delay").checked,
       ...lookahead()
     });
+    live.reset();
+    errorReport = {
+      list: state.diagnostics || [],
+      sources: Object.fromEntries(scope.files.map((n) => [n, files[n]]))
+    };
+    drawErrors();
+    renderFiles();
     target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
     lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
@@ -28946,6 +29125,7 @@ function savedEditor() {
 function switchFile(file) {
   if (!Object.hasOwn(files, file)) return;
   savedEditor();
+  live.reset();
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
   if (target?.files.includes(file)) lastInTarget = file;
@@ -28957,6 +29137,7 @@ function switchFile(file) {
     selection: fileStates.get(file) || { anchor: 0 }
   });
   loadEditor = false;
+  drawErrors();
   renderTabs();
   renderFiles();
   updateControls();
@@ -30549,6 +30730,7 @@ function selectActiveFile(name2) {
     return;
   }
   savedEditor();
+  live.reset();
   activeFile = "";
   loadEditor = true;
   editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: "" }, effects: fileAccess.reconfigure([EditorState.readOnly.of(true), EditorView.editable.of(false)]) });
@@ -30575,6 +30757,7 @@ workspace = projectManager({
   notify,
   editData,
   assemble,
+  hasError: (name2) => errorReport.list.some((d) => d.file === name2 && !d.warning),
   scopeChanged: () => updateControls(),
   replace: async (p) => {
     await requestStop();
@@ -30582,6 +30765,8 @@ workspace = projectManager({
     lens.close();
     lens.update(null);
     activeFile = "";
+    live.reset();
+    errorReport = { list: [], sources: {} };
     files = { ...p.files };
     data = { ...p.data };
     fileStates.clear();

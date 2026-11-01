@@ -338,6 +338,28 @@ header {
 .cm-line.last-line {
   background: color-mix(in srgb, var(--done) 14%, transparent);
 }
+.cm-error-mark {
+  text-decoration: underline wavy var(--bp);
+  text-decoration-skip-ink: none;
+}
+.cm-warning-mark {
+  text-decoration: underline wavy var(--warn);
+  text-decoration-skip-ink: none;
+}
+.cm-lineNumbers .error-gutter {
+  color: var(--bp);
+  font-weight: 700;
+  box-shadow: inset 2px 0 var(--bp);
+}
+.cm-lineNumbers .warning-gutter {
+  color: var(--warn);
+  box-shadow: inset 2px 0 var(--warn);
+}
+.tip-error {
+  margin-bottom: 6px;
+  color: var(--bp);
+  overflow-wrap: anywhere;
+}
 .cm-line.next-line {
   background: color-mix(in srgb, var(--exec) 55%, transparent);
   box-shadow: inset 3px 0 var(--exec-strong);
@@ -1549,6 +1571,7 @@ header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
 .file-tree details[open] > summary::before { content:'▾'; }
 .folder-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tree-row { display:flex; align-items:center; padding-right:5px; min-width:0; border-left:2px solid transparent; }
+.tree-row.has-error .tree-open { color:var(--bp); }
 .tree-row.active { background:color-mix(in srgb,var(--accent) 9%,var(--panel)); border-left-color:var(--accent); }
 .tree-open { display:flex; gap:7px; align-items:center; min-width:0; flex:1; padding:7px 8px; text-align:left; border-radius:0; font-size:12px; }
 .tree-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

@@ -12,6 +12,7 @@ public final class Server {
   public static void main(String[] args) throws Exception {
     int port = args.length > 0 ? Integer.parseInt(args[0]) : 8765;
     var session = new DebugSession();
+    var checker = new CheckerClient();
     var server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
     server.createContext("/", ex -> {
       try {
@@ -26,7 +27,7 @@ public final class Server {
           );
           return;
         }
-        if (path.equals("/api")) {
+        if (path.equals("/api") || path.equals("/api/check")) {
           if (
             !ex.getRequestMethod().equals("POST") ||
             !Optional.ofNullable(
@@ -50,6 +51,11 @@ public final class Server {
           var req = (Map<String, Object>) Json.parse(
             new String(bytes, StandardCharsets.UTF_8)
           );
+          // Checks go to their own process, never to the debug session.
+          if (path.equals("/api/check")) {
+            send(ex, 200, checker.call(req), "application/json");
+            return;
+          }
           synchronized (session) {
             send(
               ex,
@@ -138,6 +144,8 @@ public final class Server {
         ex.close();
       }
     });
+    // A check waiting for the checker must not hold up debugging.
+    server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
     server.start();
     System.out.println("MARS Teaching IDE http://127.0.0.1:" + port);
   }

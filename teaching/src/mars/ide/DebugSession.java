@@ -74,12 +74,7 @@ public final class DebugSession {
     status = "empty";
     error = "";
     stopReason = "";
-    if (projectDir != null) {
-      try (var walk = Files.walk(projectDir)) {
-        for (var p : walk.sorted(Comparator.reverseOrder()).toList())
-          Files.deleteIfExists(p);
-      }
-    }
+    removeProject();
     projectDir = Files.createTempDirectory("mars-teaching-");
     Map<String, Object> files = (Map<String, Object>) request.get("files");
     if (files == null || files.isEmpty()) throw new IllegalArgumentException(
@@ -184,6 +179,15 @@ public final class DebugSession {
     }
     memoryBase = Memory.dataBaseAddress;
     return state(true);
+  }
+
+  void removeProject() throws java.io.IOException {
+    if (projectDir == null) return;
+    try (var walk = Files.walk(projectDir)) {
+      for (var p : walk.sorted(Comparator.reverseOrder()).toList())
+        Files.deleteIfExists(p);
+    }
+    projectDir = null;
   }
 
   private String relative(String path) {

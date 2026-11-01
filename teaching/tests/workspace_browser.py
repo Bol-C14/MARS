@@ -168,6 +168,7 @@ def main():
             package={'name':'lab.zip','mimeType':'application/zip','buffer':package.getvalue()}
             page.locator('#new-folder').click();form(page,'labs')
             upload(page,[package])
+            page.locator('#import-folder').wait_for(state='attached')
             shown=page.locator('#modal').inner_text()
             check('a ZIP is previewed with its files and what was skipped',all(w in shown for w in ('ZIP 工程包','1 个源码','1 个输入文件','跳过 1 个','student.s','notes.pdf')))
             check('a whole project offers replace by default',page.locator('[name=import-target][value=replace]').is_checked() and page.locator('#import-folder').is_disabled())
