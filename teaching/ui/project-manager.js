@@ -119,15 +119,26 @@ export function projectManager(hooks) {
     // auto and single assembly need neither.
     const joint = p.assembly.mode === 'manual', chosen = p.assembly.files;
     const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes('main.s') ? 'main.s' : chosen[0];
+    const generated = hooks.generatedFiles?.() || {};
+    const outputPaths = Object.keys(generated).filter(name => {
+      try { return pathName(name) === name; } catch { return false; }
+    });
+    const folders = new Set(p.folders);
+    for (const name of outputPaths) {
+      const parts = name.split('/');
+      for (let i=1; i<parts.length; i++) folders.add(parts.slice(0,i).join('/'));
+    }
     const rows = parent => {
       const base = parent ? parent + '/' : '';
       const immediate = name => name.startsWith(base) && !name.slice(base.length).includes('/');
-      const directories = p.folders.filter(immediate);
-      const paths = [...Object.keys(p.files),...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary><span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => `<li class="tree-row ${path===p.activeFile ? 'active' : ''} ${hooks.hasError(path) ? 'has-error' : ''} ${joint && chosen.includes(path) ? 'joined' : ''}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${esc(path)}" ${chosen.includes(path) ? 'checked' : ''} aria-label="${esc(path)} 参与汇编" title="参与汇编">` : ''}<button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}"><span aria-hidden="true">${isSource(path) ? '◇' : '▤'}</span><span class="tree-name">${esc(path.slice(base.length))}</span>${joint && path===scopeEntry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
+      const directories = [...folders].filter(immediate).sort();
+      const paths = [...new Set([...Object.keys(p.files),...Object.keys(p.data),...outputPaths])].filter(immediate).sort();
+      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary><span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => outputPaths.includes(path) && !Object.hasOwn(p.files,path) ? `<li class="tree-row"><button class="tree-open" data-generated="${esc(path)}" title="${esc(path)} · 程序输出 · ${generated[path].size} 字节"><span aria-hidden="true">▤</span><span class="tree-name">${esc(path.slice(base.length))}</span><small class="entry-badge">输出</small></button><button class="tree-menu" data-generated-download="${esc(path)}" title="下载 ${esc(path)}" aria-label="下载 ${esc(path)}">↓</button></li>` : `<li class="tree-row ${path===p.activeFile ? 'active' : ''} ${hooks.hasError(path) ? 'has-error' : ''} ${joint && chosen.includes(path) ? 'joined' : ''}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${esc(path)}" ${chosen.includes(path) ? 'checked' : ''} aria-label="${esc(path)} 参与汇编" title="参与汇编">` : ''}<button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}"><span aria-hidden="true">${isSource(path) ? '◇' : '▤'}</span><span class="tree-name">${esc(path.slice(base.length))}</span>${joint && path===scopeEntry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
     };
     $('files').innerHTML = `<ul class="file-tree" aria-label="工程文件树">${rows('') || '<li class="tree-empty">工程为空，点击 ＋ 新建文件，或从“工程”菜单导入。</li>'}</ul>`;
     $('files').querySelectorAll('[data-file]').forEach(b => b.onclick = () => hooks.openFile(b.dataset.file));
+    $('files').querySelectorAll('[data-generated]').forEach(b => b.onclick = () => hooks.openGenerated(b.dataset.generated));
+    $('files').querySelectorAll('[data-generated-download]').forEach(b => b.onclick = () => hooks.downloadGenerated(b.dataset.generatedDownload));
     $('files').querySelectorAll('[data-data]').forEach(b => b.onclick = () => hooks.editData(b.dataset.data));
     $('files').querySelectorAll('[data-node]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); menu(b.dataset.node, b.dataset.directory==='true'); });
     $('files').querySelectorAll('details').forEach(d => d.ontoggle = () => { if (d.open) collapsed.delete(d.dataset.folder); else collapsed.add(d.dataset.folder); });

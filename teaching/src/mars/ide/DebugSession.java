@@ -723,6 +723,15 @@ public final class DebugSession {
     stopReason = "Batch complete";
   }
 
+  private Map<String, Object> generatedFiles() {
+    var out = new LinkedHashMap<String, Object>();
+    if (VirtualIO.current != null) for (String name : VirtualIO.current.written) {
+      byte[] bytes = VirtualIO.current.files.get(name);
+      out.put(name, obj("base64", Base64.getEncoder().encodeToString(bytes), "size", bytes.length));
+    }
+    return out;
+  }
+
   /** Consumed inputs with the output offset where the console shows them. */
   private List<Object> inputEchoes() {
     var out = new ArrayList<Object>();
@@ -930,6 +939,8 @@ public final class DebugSession {
       calls,
       "output",
       VirtualIO.current == null ? "" : VirtualIO.current.output,
+      "generatedFiles",
+      generatedFiles(),
       "handles",
       VirtualIO.current == null ? List.of() : VirtualIO.current.describe(),
       "inputCursor",

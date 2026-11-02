@@ -2219,6 +2219,20 @@ $("assemble-menu").addEventListener("keydown", (e) => {
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".split-button")) closeAssembleMenu();
 });
+function outputBytes(name) {
+  return Uint8Array.from(atob(state.generatedFiles[name].base64), c => c.charCodeAt(0));
+}
+function downloadGenerated(name) {
+  const url = URL.createObjectURL(new Blob([outputBytes(name)], {type:"application/octet-stream"}));
+  const a = document.createElement("a"); a.href = url; a.download = name.split("/").at(-1); a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function openGenerated(name) {
+  const f = state.generatedFiles[name];
+  modal(name, `<p class="muted">程序输出 · ${f.size} 字节 · 当前执行状态，只读预览</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto">${esc(new TextDecoder().decode(outputBytes(name)))}</pre><button id="download-generated">下载文件</button>${Object.hasOwn(data,name) ? '<button id="view-original-input">查看工程中的原始输入</button>' : ''}`);
+  $("download-generated").onclick = () => downloadGenerated(name);
+  if ($("view-original-input")) $("view-original-input").onclick = () => editData(name);
+}
 function renderFiles() {
   workspace?.render();
 }
@@ -3602,6 +3616,8 @@ workspace = projectManager({
   selectActive: name => { selectActiveFile(name); renderTabs(); },
   modal, notify, editData, assemble,
   hasError: (name) => errorReport.list.some((d) => d.file === name && !d.warning),
+  generatedFiles: () => state?.generatedFiles || {},
+  openGenerated, downloadGenerated,
   scopeChanged: () => updateControls(),
   replace: async p => {
     await requestStop();

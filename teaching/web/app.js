@@ -27640,15 +27640,30 @@ function projectManager(hooks) {
     $("project-title").title = "\u4FEE\u6539\u5DE5\u7A0B\u540D\u79F0";
     const joint = p.assembly.mode === "manual", chosen = p.assembly.files;
     const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes("main.s") ? "main.s" : chosen[0];
+    const generated = hooks.generatedFiles?.() || {};
+    const outputPaths = Object.keys(generated).filter((name2) => {
+      try {
+        return pathName(name2) === name2;
+      } catch {
+        return false;
+      }
+    });
+    const folders = new Set(p.folders);
+    for (const name2 of outputPaths) {
+      const parts = name2.split("/");
+      for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join("/"));
+    }
     const rows = (parent) => {
       const base2 = parent ? parent + "/" : "";
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
-      const directories = p.folders.filter(immediate);
-      const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      const directories = [...folders].filter(immediate).sort();
+      const paths = [.../* @__PURE__ */ new Set([...Object.keys(p.files), ...Object.keys(p.data), ...outputPaths])].filter(immediate).sort();
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => outputPaths.includes(path) && !Object.hasOwn(p.files, path) ? `<li class="tree-row"><button class="tree-open" data-generated="${escapeHTML(path)}" title="${escapeHTML(path)} \xB7 \u7A0B\u5E8F\u8F93\u51FA \xB7 ${generated[path].size} \u5B57\u8282"><span aria-hidden="true">\u25A4</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span><small class="entry-badge">\u8F93\u51FA</small></button><button class="tree-menu" data-generated-download="${escapeHTML(path)}" title="\u4E0B\u8F7D ${escapeHTML(path)}" aria-label="\u4E0B\u8F7D ${escapeHTML(path)}">\u2193</button></li>` : `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
     $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
+    $("files").querySelectorAll("[data-generated]").forEach((b) => b.onclick = () => hooks.openGenerated(b.dataset.generated));
+    $("files").querySelectorAll("[data-generated-download]").forEach((b) => b.onclick = () => hooks.downloadGenerated(b.dataset.generatedDownload));
     $("files").querySelectorAll("[data-data]").forEach((b) => b.onclick = () => hooks.editData(b.dataset.data));
     $("files").querySelectorAll("[data-node]").forEach((b) => b.onclick = (e) => {
       e.preventDefault();
@@ -29624,6 +29639,23 @@ $2("assemble-menu").addEventListener("keydown", (e) => {
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".split-button")) closeAssembleMenu();
 });
+function outputBytes(name2) {
+  return Uint8Array.from(atob(state.generatedFiles[name2].base64), (c) => c.charCodeAt(0));
+}
+function downloadGenerated(name2) {
+  const url = URL.createObjectURL(new Blob([outputBytes(name2)], { type: "application/octet-stream" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name2.split("/").at(-1);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1e3);
+}
+function openGenerated(name2) {
+  const f = state.generatedFiles[name2];
+  modal(name2, `<p class="muted">\u7A0B\u5E8F\u8F93\u51FA \xB7 ${f.size} \u5B57\u8282 \xB7 \u5F53\u524D\u6267\u884C\u72B6\u6001\uFF0C\u53EA\u8BFB\u9884\u89C8</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto">${escapeHTML(new TextDecoder().decode(outputBytes(name2)))}</pre><button id="download-generated">\u4E0B\u8F7D\u6587\u4EF6</button>${Object.hasOwn(data, name2) ? '<button id="view-original-input">\u67E5\u770B\u5DE5\u7A0B\u4E2D\u7684\u539F\u59CB\u8F93\u5165</button>' : ""}`);
+  $2("download-generated").onclick = () => downloadGenerated(name2);
+  if ($2("view-original-input")) $2("view-original-input").onclick = () => editData(name2);
+}
 function renderFiles() {
   workspace?.render();
 }
@@ -30758,6 +30790,9 @@ workspace = projectManager({
   editData,
   assemble,
   hasError: (name2) => errorReport.list.some((d) => d.file === name2 && !d.warning),
+  generatedFiles: () => state?.generatedFiles || {},
+  openGenerated,
+  downloadGenerated,
   scopeChanged: () => updateControls(),
   replace: async (p) => {
     await requestStop();

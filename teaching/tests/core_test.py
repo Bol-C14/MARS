@@ -69,7 +69,7 @@ class CoreTests(unittest.TestCase):
    s=self.call('state')
    if s['preview'].get('service')==15:break
    self.call('step')
-  before=s['step'];self.assertEqual(s['handles'][0]['position'],0);s=self.call('step');self.assertEqual(s['handles'][0]['position'],2);s=self.call('seek',step=before);self.assertEqual(s['handles'][0]['position'],0);self.assertEqual(self.call('step')['handles'][0]['position'],2)
+  before=s['step'];self.assertEqual(s['handles'][0]['position'],0);s=self.call('step');self.assertEqual(s['handles'][0]['position'],2);self.assertEqual(s['generatedFiles']['out.txt'], {'base64':'T0s=','size':2});s=self.call('seek',step=before);self.assertEqual(s['handles'][0]['position'],0);self.assertEqual(s['generatedFiles']['out.txt']['size'],0);self.assertEqual(self.call('step')['generatedFiles']['out.txt']['base64'],'T0s=')
  def observable(self,s):
   return {k:s[k] for k in ('pc','step','registers','memory','output','inputCursor','handles','status','exitCode','preview')}
  def test_lookahead_matches_execution_without_side_effects(self):

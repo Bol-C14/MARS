@@ -11,6 +11,7 @@ public final class VirtualIO {
   public static final class NeedsInput extends RuntimeException {}
 
   public Map<String, byte[]> files = new LinkedHashMap<>();
+  public Set<String> written = new LinkedHashSet<>();
   public List<String> inputs = new ArrayList<>();
   public int cursor = 0;
   public String output = "";
@@ -23,6 +24,7 @@ public final class VirtualIO {
   public VirtualIO copy() {
     var v = new VirtualIO();
     v.files = new LinkedHashMap<>(files);
+    v.written = new LinkedHashSet<>(written);
     v.inputs = inputs;
     v.cursor = cursor;
     v.output = output;
@@ -58,6 +60,7 @@ public final class VirtualIO {
     while (handles.containsKey(fd)) fd++;
     if (fd >= 32) return -1;
     if (flags == 1 || !files.containsKey(name)) files.put(name, new byte[0]);
+    if (flags != 0) written.add(name);
     handles.put(
       fd,
       new Handle(name, flags, flags == 9 ? files.get(name).length : 0)
@@ -98,6 +101,7 @@ public final class VirtualIO {
     );
     System.arraycopy(data, 0, next, h.position, n);
     files.put(h.name, next);
+    written.add(h.name);
     handles.put(fd, new Handle(h.name, h.flags, h.position + n));
     return n;
   }
