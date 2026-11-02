@@ -78,10 +78,7 @@
         ><button id="back" class="tool" data-tip="回退一步 · Shift+F9" aria-label="回退一步（Shift+F9）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 2.5 6.5 6 10M3 6.5h6.5a3.5 3.5 0 0 1 0 7H7"/></svg><span class="tool-label">回退一步</span></button><button id="step" class="tool" data-tip="机器单步 · Alt+F11" aria-label="机器单步（Alt+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8.5M7.5 4.5 11 8l-3.5 3.5M13.5 3v10"/></svg><span class="tool-label">机器单步</span></button><button id="source" class="tool" data-tip="源码单步 · F11" aria-label="源码单步（F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v7.5M4.5 6 8 9.5 11.5 6"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">源码单步</span></button><button id="over" class="tool" data-tip="跨过调用 · F10" aria-label="跨过调用（F10）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 9.5a5.5 5.5 0 0 1 11 0M13.5 5.5v4h-4"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跨过调用</span></button><button id="out" class="tool" data-tip="跳出函数 · Shift+F11" aria-label="跳出函数（Shift+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V3M4.5 6.5 8 3l3.5 3.5"/><circle cx="8" cy="13.3" r="1.4"/></svg><span class="tool-label">跳出函数</span></button></span
       ><span class="tool-group demo-group" role="group" aria-label="演示"
         ><button id="demo" data-tip="演示：逐条执行并跟随执行位置" aria-label="演示">▷ 演示</button
-        ><select id="demo-speed" aria-label="演示速度" title="演示速度">
-          <option value="900">慢</option>
-          <option value="450" selected>中</option>
-          <option value="150">快</option></select
+        > <label class="demo-speed-control"><span class="demo-speed-end" aria-hidden="true">慢</span><input type="range" id="demo-speed" min="1" max="5" step="1" value="3" aria-label="演示速度" aria-valuetext="中速，第 3 档，共 5 档" title="演示速度：中速（3/5）" /><span class="demo-speed-end" aria-hidden="true">快</span><output id="demo-speed-label" for="demo-speed">3/5</output></label
         ></span
       ><label
         title="延迟分支：开启后，跳转或分支指令后面紧跟的那一条无论是否跳转都会先执行（MIPS 硬件的真实行为）。修改后需要重新汇编。"

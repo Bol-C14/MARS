@@ -201,7 +201,15 @@ def scenario(r, page, mod):
     r.check("spotlight marks where execution stopped after a jump", True)
     r.until("() => !document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
     r.check("spotlight fades by itself", True)
-    page.select_option("#demo-speed", "150")
+    speed = page.locator("#demo-speed")
+    r.check("demo speed is a five-position slider with middle default", speed.get_attribute("type") == "range" and speed.get_attribute("min") == "1" and speed.get_attribute("max") == "5" and speed.get_attribute("step") == "1" and speed.input_value() == "3")
+    speed.focus(); speed.press("Home")
+    levels = []
+    for n in range(1, 6):
+        levels.append(speed.input_value())
+        r.check("demo speed announces level " + str(n), page.locator("#demo-speed-label").inner_text() == str(n) + "/5" and "第 " + str(n) + " 档" in speed.get_attribute("aria-valuetext"))
+        if n < 5: speed.press("ArrowRight")
+    r.check("keyboard reaches all five demo speeds", levels == ["1", "2", "3", "4", "5"])
     r.js("""() => { window.assembleBlinks = 0; window.editorTop = document.getElementById('editor').getBoundingClientRect().top;
         new MutationObserver(() => window.assembleBlinks++).observe(document.getElementById('assemble'), { attributes: true, attributeFilter: ['disabled'] }); }""")
     page.locator("#demo").click()

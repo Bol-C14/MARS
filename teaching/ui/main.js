@@ -2829,6 +2829,17 @@ async function run(mode = "run", extra = {}) {
   followInspector();
   lens.settle();
 }
+const DEMO_SPEEDS = [1500, 900, 450, 150, 75];
+const DEMO_SPEED_NAMES = ["很慢", "慢速", "中速", "快速", "很快"];
+function updateDemoSpeed() {
+  const level = Number($("demo-speed").value), name = DEMO_SPEED_NAMES[level - 1];
+  $("demo-speed-label").textContent = `${level}/5`;
+  $("demo-speed").setAttribute("aria-valuetext", `${name}，第 ${level} 档，共 5 档`);
+  $("demo-speed").title = `演示速度：${name}（${level}/5）`;
+}
+$("demo-speed").addEventListener("input", updateDemoSpeed);
+updateDemoSpeed();
+
 async function runLoop(mode, extra) {
   updateControls();
   let first = true;
@@ -2858,7 +2869,7 @@ async function runLoop(mode, extra) {
     if (demonstrate && s?.last) {
       followPC();
       await new Promise((resolve) =>
-        setTimeout(resolve, Number($("demo-speed").value)),
+        setTimeout(resolve, DEMO_SPEEDS[Number($("demo-speed").value) - 1]),
       );
     }
     if (

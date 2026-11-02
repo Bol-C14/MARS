@@ -1367,12 +1367,25 @@ body.focusing #tooltip {
   color: var(--accent);
   font-weight: 600;
 }
-#demo-speed {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 4px 6px;
-  background: var(--panel);
+.demo-speed-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
+#demo-speed {
+  width: 88px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.demo-speed-end, #demo-speed-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+#demo-speed-label { min-width: 22px; font-variant-numeric: tabular-nums; }
 /* Arrival spotlight: everything but the next line dims briefly after a jump. */
 .cm-editor.arrival-spotlight .cm-line:not(.next-line),
 .cm-editor.arrival-spotlight .cm-gutterElement {

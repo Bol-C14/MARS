@@ -30100,6 +30100,16 @@ async function run2(mode = "run", extra = {}) {
   followInspector();
   lens.settle();
 }
+var DEMO_SPEEDS = [1500, 900, 450, 150, 75];
+var DEMO_SPEED_NAMES = ["\u5F88\u6162", "\u6162\u901F", "\u4E2D\u901F", "\u5FEB\u901F", "\u5F88\u5FEB"];
+function updateDemoSpeed() {
+  const level = Number($2("demo-speed").value), name2 = DEMO_SPEED_NAMES[level - 1];
+  $2("demo-speed-label").textContent = `${level}/5`;
+  $2("demo-speed").setAttribute("aria-valuetext", `${name2}\uFF0C\u7B2C ${level} \u6863\uFF0C\u5171 5 \u6863`);
+  $2("demo-speed").title = `\u6F14\u793A\u901F\u5EA6\uFF1A${name2}\uFF08${level}/5\uFF09`;
+}
+$2("demo-speed").addEventListener("input", updateDemoSpeed);
+updateDemoSpeed();
 async function runLoop(mode, extra) {
   updateControls();
   let first = true;
@@ -30118,7 +30128,7 @@ async function runLoop(mode, extra) {
     if (demonstrate && s?.last) {
       followPC();
       await new Promise(
-        (resolve) => setTimeout(resolve, Number($2("demo-speed").value))
+        (resolve) => setTimeout(resolve, DEMO_SPEEDS[Number($2("demo-speed").value) - 1])
       );
     }
     if (!s || s.status !== "paused" || s.stopReason !== "Batch complete" || mode !== "run")
