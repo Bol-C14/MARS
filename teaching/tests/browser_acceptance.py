@@ -417,6 +417,7 @@ def scenario(r, page, mod):
     page.locator("#theme").click()
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: e.state.doc.length, insert: '\\n# edit test' } }) }")
     r.check("dirty source blocks stale execution", page.locator("#step").is_disabled())
+    r.check("editing clears stale execution dimming immediately", page.locator(".cm-line.delay-nop, .cm-line.last-line, .cm-line.next-line").count() == 0 and "arrival-spotlight" not in page.locator(".cm-editor").get_attribute("class"))
     page.locator("#assemble").click()
     r.until("() => window.marsIDE.state?.step === 0 && !document.querySelector('#step').disabled")
     r.check("reassembly restores execution", True)

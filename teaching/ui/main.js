@@ -290,24 +290,25 @@ const decorations = ViewPlugin.fromClass(
     }
     build(v) {
       if (!Object.hasOwn(files, activeFile)) return Decoration.none;
+      const currentExecution = !dirty && target?.sources?.[activeFile] === v.state.doc.toString();
       let ranges = [];
       for (let { from, to } of v.visibleRanges) {
         for (let pos = from; pos <= to;) {
           let l = v.state.doc.lineAt(pos);
           let cls = [];
           if (
-            !dirty &&
+            currentExecution &&
             state?.last?.instruction?.file === activeFile &&
             state.last.instruction.line === l.number
           )
             cls.push("last-line");
           if (
-            !dirty &&
+            currentExecution &&
             state?.preview?.instruction?.file === activeFile &&
             state.preview.instruction.line === l.number
           )
             cls.push("next-line");
-          const slot = delaySlots().has(activeFile + ":" + l.number);
+          const slot = currentExecution && delaySlots().has(activeFile + ":" + l.number);
           if (slot) cls.push("delay-nop");
           if (cls.length)
             ranges.push(
@@ -316,7 +317,7 @@ const decorations = ViewPlugin.fromClass(
                 attributes: slot ? { title: DELAY_NOP } : {},
               }).range(l.from),
             );
-          const inline = inlineValues().get(activeFile + ":" + l.number);
+          const inline = currentExecution && inlineValues().get(activeFile + ":" + l.number);
           if (inline)
             ranges.push(
               Decoration.widget({
@@ -740,6 +741,9 @@ const editor = new EditorView({
       errorLines,
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
+          clearTimeout(arrive.timer);
+          arrive.pulse?.cancel();
+          editor.dom.classList.remove("arrival-spotlight");
           if (!activeFile) return;
           const source = Object.hasOwn(files, activeFile);
           if (!source && !Object.hasOwn(data, activeFile)) return;
@@ -1522,9 +1526,10 @@ async function assemble() {
     const scope = nextScope();
     if (scope.error) throw Error(scope.error);
     runtimeFiles = {};
+    const sourceFiles = Object.fromEntries(scope.files.map((n) => [n, files[n]]));
     state = await api({
       command: "assemble",
-      files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
+      files: sourceFiles,
       data,
       entry: scope.entry,
       delay: $("delay").checked,
@@ -1533,11 +1538,11 @@ async function assemble() {
     live.reset();
     errorReport = {
       list: state.diagnostics || [],
-      sources: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
+      sources: sourceFiles,
     };
     drawErrors();
     renderFiles();
-    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
+    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry, sources: sourceFiles };
     lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
       instructions: state.instructions || [],
@@ -1687,6 +1692,7 @@ function arrive(jumped = false) {
   if (state.status === "ended") return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
+    if (dirty || target?.sources?.[activeFile] !== editor.state.doc.toString()) return;
     const line = editor.dom.querySelector(".cm-line.next-line");
     arrive.pulse?.cancel();
     arrive.pulse = line?.animate(

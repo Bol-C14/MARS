@@ -27862,8 +27862,8 @@ function projectManager(hooks) {
 
 // ui/live-check.js
 var MAX_LINES = 200;
-function liveCheck({ post, current, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3 }) {
-  let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "";
+function liveCheck({ post, current, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
+  let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
   const flying = {}, waiting = {};
   async function send(kind, body, accept, asked = version) {
     if (!enabled || asked !== version) return;
@@ -27874,31 +27874,63 @@ function liveCheck({ post, current, scope, ready, held, showLines, showScope, li
     flying[kind] = true;
     const reply = await post({ protocol: 1, id: asked, ...body }).catch(() => void 0);
     flying[kind] = false;
-    if (reply === null) enabled = false;
-    else if (reply?.status === "ok" && asked === version) accept(reply);
+    if (reply === null) {
+      enabled = false;
+      clearTimeout(lineTimer);
+      clearTimeout(fullTimer);
+    } else if (asked === version) {
+      if (reply?.status === "ok") accept(reply);
+      else if (reply?.status === "undetermined" && kind === "line") accept({ unavailable: true });
+      else if (!reply) {
+        if (kind === "line") lineTimer = setTimeout(checkLines, retryDelay);
+        else fullTimer = setTimeout(checkScope, retryDelay);
+      }
+    }
     const next = waiting[kind];
     delete waiting[kind];
     if (next) send(kind, ...next);
   }
   function checkLines() {
+    if (!enabled) return;
+    if (!ready()) {
+      lineTimer = setTimeout(checkLines, retryDelay);
+      return;
+    }
     const { file, doc: doc2 } = current();
     if (!changed || !file) return;
     const first = doc2.lineAt(Math.min(changed.from, doc2.length)).number, last2 = Math.min(doc2.lineAt(Math.min(changed.to, doc2.length)).number, first + MAX_LINES);
-    changed = null;
     const lines = Array.from({ length: last2 - first + 1 }, (_, i) => first + i);
-    send("line", { command: "line", file, text: doc2.toString(), lines }, (r) => showLines(lines, r.diagnostics));
+    send("line", { command: "line", file, text: doc2.toString(), lines }, (r) => {
+      if (changed && doc2.lineAt(Math.min(changed.to, doc2.length)).number > last2) {
+        changed = { from: doc2.line(last2 + 1).from, to: changed.to };
+        lineTimer = setTimeout(checkLines, 0);
+      } else changed = null;
+      if (r.unavailable === true) forceFull = true;
+      else showLines(lines, r.diagnostics);
+      if (Date.now() >= fullDue) {
+        clearTimeout(fullTimer);
+        fullTimer = setTimeout(checkScope, 0);
+      }
+    });
   }
   function checkScope() {
+    if (!enabled) return;
     if (!ready()) {
-      fullTimer = setTimeout(checkScope, 1e3);
+      fullTimer = setTimeout(checkScope, retryDelay);
       return;
     }
+    if (changed || flying.line || waiting.line) return;
     const s = scope();
-    if (held() || !s) return;
+    if (!forceFull && held() || !s) return;
     const key = JSON.stringify(s);
-    if (key === checked) return;
+    if (key === checked) {
+      if (cached) showScope(cached, s.files);
+      return;
+    }
     send("full", { command: "full", ...s }, (r) => {
       checked = key;
+      cached = r.diagnostics;
+      forceFull = false;
       showScope(r.diagnostics, s.files);
     });
   }
@@ -27913,6 +27945,7 @@ function liveCheck({ post, current, scope, ready, held, showLines, showScope, li
       clearTimeout(lineTimer);
       clearTimeout(fullTimer);
       lineTimer = setTimeout(checkLines, lineDelay);
+      fullDue = Date.now() + fullDelay;
       fullTimer = setTimeout(checkScope, fullDelay);
     },
     // The file, the project or the loaded program changed: what is on its way
@@ -27920,6 +27953,11 @@ function liveCheck({ post, current, scope, ready, held, showLines, showScope, li
     reset() {
       version++;
       changed = null;
+      checked = "";
+      cached = null;
+      forceFull = false;
+      delete waiting.line;
+      delete waiting.full;
       clearTimeout(lineTimer);
       clearTimeout(fullTimer);
     },
@@ -28107,16 +28145,17 @@ var decorations2 = ViewPlugin.fromClass(
     }
     build(v) {
       if (!Object.hasOwn(files, activeFile)) return Decoration.none;
+      const currentExecution = !dirty && target?.sources?.[activeFile] === v.state.doc.toString();
       let ranges = [];
       for (let { from, to } of v.visibleRanges) {
         for (let pos = from; pos <= to; ) {
           let l = v.state.doc.lineAt(pos);
           let cls = [];
-          if (!dirty && state?.last?.instruction?.file === activeFile && state.last.instruction.line === l.number)
+          if (currentExecution && state?.last?.instruction?.file === activeFile && state.last.instruction.line === l.number)
             cls.push("last-line");
-          if (!dirty && state?.preview?.instruction?.file === activeFile && state.preview.instruction.line === l.number)
+          if (currentExecution && state?.preview?.instruction?.file === activeFile && state.preview.instruction.line === l.number)
             cls.push("next-line");
-          const slot = delaySlots().has(activeFile + ":" + l.number);
+          const slot = currentExecution && delaySlots().has(activeFile + ":" + l.number);
           if (slot) cls.push("delay-nop");
           if (cls.length)
             ranges.push(
@@ -28125,7 +28164,7 @@ var decorations2 = ViewPlugin.fromClass(
                 attributes: slot ? { title: DELAY_NOP } : {}
               }).range(l.from)
             );
-          const inline = inlineValues().get(activeFile + ":" + l.number);
+          const inline = currentExecution && inlineValues().get(activeFile + ":" + l.number);
           if (inline)
             ranges.push(
               Decoration.widget({
@@ -28492,6 +28531,9 @@ var editor = new EditorView({
       errorLines,
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
+          clearTimeout(arrive.timer);
+          arrive.pulse?.cancel();
+          editor.dom.classList.remove("arrival-spotlight");
           if (!activeFile) return;
           const source = Object.hasOwn(files, activeFile);
           if (!source && !Object.hasOwn(data, activeFile)) return;
@@ -29106,9 +29148,10 @@ async function assemble() {
     const scope = nextScope();
     if (scope.error) throw Error(scope.error);
     runtimeFiles = {};
+    const sourceFiles = Object.fromEntries(scope.files.map((n) => [n, files[n]]));
     state = await api({
       command: "assemble",
-      files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
+      files: sourceFiles,
       data,
       entry: scope.entry,
       delay: $2("delay").checked,
@@ -29117,11 +29160,11 @@ async function assemble() {
     live.reset();
     errorReport = {
       list: state.diagnostics || [],
-      sources: Object.fromEntries(scope.files.map((n) => [n, files[n]]))
+      sources: sourceFiles
     };
     drawErrors();
     renderFiles();
-    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry };
+    target = { mode: scope.mode, files: [...scope.files], entry: scope.entry, sources: sourceFiles };
     lastInTarget = target.files.includes(activeFile) ? activeFile : target.entry;
     program = {
       instructions: state.instructions || [],
@@ -29248,6 +29291,7 @@ function arrive(jumped = false) {
   if (state.status === "ended") return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
+    if (dirty || target?.sources?.[activeFile] !== editor.state.doc.toString()) return;
     const line = editor.dom.querySelector(".cm-line.next-line");
     arrive.pulse?.cancel();
     arrive.pulse = line?.animate(
