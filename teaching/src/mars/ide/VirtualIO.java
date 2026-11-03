@@ -11,6 +11,7 @@ public final class VirtualIO {
   public static final class NeedsInput extends RuntimeException {}
 
   public Map<String, byte[]> files = new LinkedHashMap<>();
+  public String directory = "";
   public Set<String> written = new LinkedHashSet<>();
   public List<String> inputs = new ArrayList<>();
   public int cursor = 0;
@@ -24,6 +25,7 @@ public final class VirtualIO {
   public VirtualIO copy() {
     var v = new VirtualIO();
     v.files = new LinkedHashMap<>(files);
+    v.directory = directory;
     v.written = new LinkedHashSet<>(written);
     v.inputs = inputs;
     v.cursor = cursor;
@@ -55,6 +57,13 @@ public final class VirtualIO {
 
   public int open(String name, int flags) {
     if (!Set.of(0, 1, 9).contains(flags)) return -1;
+    while (name.startsWith("./")) name = name.substring(2);
+    // Relative runtime paths start beside the selected entry source. Keep
+    // existing project-root spellings such as MIPS/input.txt usable too.
+    if (!directory.isEmpty() && !name.startsWith(directory)) {
+      String local = directory + name;
+      if (flags != 0 || files.containsKey(local)) name = local;
+    }
     if (flags == 0 && !files.containsKey(name)) return -1;
     int fd = 3;
     while (handles.containsKey(fd)) fd++;

@@ -152,6 +152,7 @@ public final class DebugSession {
     ) throw new IllegalArgumentException(
       "Entry file " + entry + " is not one of the assembled sources"
     );
+    VirtualIO.current.directory = entry.contains("/") ? entry.substring(0, entry.lastIndexOf('/') + 1) : "";
     try {
       ArrayList programs = program.prepareFilesForAssembly(
         names,
