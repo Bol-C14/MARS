@@ -28509,14 +28509,14 @@ var editor = new EditorView({
         overlay?.schedule();
       }),
       EditorView.domEventHandlers({
-        mousemove: (e) => hover(e),
+        mousemove: (e) => e.buttons ? hideTooltip2(0) : hover(e),
         mouseleave: () => hideTooltip2(),
         // Touch has no hover: a tap shows the same note, with its button.
         pointerdown: (e) => {
           if (e.pointerType === "touch") {
             tipFor = "";
             hover(e);
-          }
+          } else hideTooltip2(0);
         },
         click: (e) => {
           if (e.metaKey || e.ctrlKey) openDetailAt(e);
@@ -28672,13 +28672,26 @@ var DETAIL_KEYS = IS_MAC ? "\u2318 \u6216 Ctrl\uFF0B\u70B9\u51FB" : "Ctrl\uFF0B\
 var DETAIL_HINT = `${DETAIL_KEYS}\uFF1A\u8BE6\u60C5\u5728\u53F3\u4FA7\u201C\u8BE6\u7EC6\u68C0\u67E5\u201D`;
 var tipFor = "";
 var tipHide = null;
-function hideTooltip2(delay = 300) {
+function cancelTooltipHide() {
   clearTimeout(tipHide);
-  tipHide = setTimeout(() => {
+  tipHide = null;
+}
+function hideTooltip2(delay = 100) {
+  const close = () => {
     $2("tooltip").hidden = true;
     tipFor = "";
-  }, delay);
+    tipHide = null;
+  };
+  if (delay === 0) {
+    cancelTooltipHide();
+    close();
+  } else if (tipHide === null) {
+    tipHide = setTimeout(close, delay);
+  }
 }
+for (const event of ["keydown", "beforeinput", "compositionstart"])
+  editor.dom.addEventListener(event, () => hideTooltip2(0), true);
+editor.scrollDOM.addEventListener("scroll", () => hideTooltip2(0));
 function pointedPos(e) {
   const pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
   if (pos == null) return null;
@@ -28689,7 +28702,7 @@ function hover(e) {
   const at = pointedPos(e), pos = at?.pos, token = !at || at.past ? "" : tokenAt(pos), problem = !at || at.past ? "" : errorAt(pos);
   if (!token && !problem) return hideTooltip2();
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number }, key = `${token}@${activeFile}:${line.number}`;
-  clearTimeout(tipHide);
+  cancelTooltipHide();
   if (key === tipFor && !$2("tooltip").hidden) return;
   tipFor = key;
   const report = problem ? `<div class="tip-error" role="alert">${escapeHTML(problem)}</div>` : "";
@@ -28736,7 +28749,7 @@ function revealContext() {
   clearTimeout(revealContext.timer);
   revealContext.timer = setTimeout(() => panel.classList.remove("attention"), 1600);
 }
-$2("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
+$2("tooltip").addEventListener("mouseenter", cancelTooltipHide);
 $2("tooltip").addEventListener("mouseleave", () => hideTooltip2());
 var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_KEYS}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
 function followInspector() {

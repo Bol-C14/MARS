@@ -753,14 +753,14 @@ const editor = new EditorView({
         overlay?.schedule();
       }),
       EditorView.domEventHandlers({
-        mousemove: (e) => hover(e),
+        mousemove: (e) => e.buttons ? hideTooltip(0) : hover(e),
         mouseleave: () => hideTooltip(),
         // Touch has no hover: a tap shows the same note, with its button.
         pointerdown: (e) => {
           if (e.pointerType === "touch") {
             tipFor = "";
             hover(e);
-          }
+          } else hideTooltip(0);
         },
         click: (e) => {
           if (e.metaKey || e.ctrlKey) openDetailAt(e);
@@ -965,13 +965,27 @@ const DETAIL_KEYS = IS_MAC ? "⌘ 或 Ctrl＋点击" : "Ctrl＋点击";
 const DETAIL_HINT = `${DETAIL_KEYS}：详情在右侧“详细检查”`;
 let tipFor = "",
   tipHide = null;
-function hideTooltip(delay = 300) {
+function cancelTooltipHide() {
   clearTimeout(tipHide);
-  tipHide = setTimeout(() => {
+  tipHide = null;
+}
+function hideTooltip(delay = 100) {
+  const close = () => {
     $("tooltip").hidden = true;
     tipFor = "";
-  }, delay);
+    tipHide = null;
+  };
+  if (delay === 0) {
+    cancelTooltipHide();
+    close();
+  } else if (tipHide === null) {
+    // Blank-space mousemoves must not keep postponing dismissal.
+    tipHide = setTimeout(close, delay);
+  }
 }
+for (const event of ["keydown", "beforeinput", "compositionstart"])
+  editor.dom.addEventListener(event, () => hideTooltip(0), true);
+editor.scrollDOM.addEventListener("scroll", () => hideTooltip(0));
 // Past the end of a line the editor reports the line's end, which is not the
 // last word: clicking the blank there must not open that word.
 function pointedPos(e) {
@@ -990,7 +1004,7 @@ function hover(e) {
   const line = editor.state.doc.lineAt(pos),
     place = { file: activeFile, line: line.number },
     key = `${token}@${activeFile}:${line.number}`;
-  clearTimeout(tipHide);
+  cancelTooltipHide();
   if (key === tipFor && !$("tooltip").hidden) return;
   tipFor = key;
   const report = problem ? `<div class="tip-error" role="alert">${esc(problem)}</div>` : "";
@@ -1050,7 +1064,7 @@ function revealContext() {
   clearTimeout(revealContext.timer);
   revealContext.timer = setTimeout(() => panel.classList.remove("attention"), 1600);
 }
-$("tooltip").addEventListener("mouseenter", () => clearTimeout(tipHide));
+$("tooltip").addEventListener("mouseenter", cancelTooltipHide);
 $("tooltip").addEventListener("mouseleave", () => hideTooltip());
 const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_KEYS}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
 // The inspector follows execution by default, showing the line that just
