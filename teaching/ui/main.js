@@ -48,7 +48,7 @@ import { directiveGuide, instructionIndex, searchInstructions, usageOf } from ".
 import { Tutorial } from "./tutorial.js";
 import { supportsBits } from "./bits.js";
 import { projectManager } from "./project-manager.js";
-import { assemblyScope, scopeHints } from "./workspace.js";
+import { assemblyScope, scopeHints, pathName } from "./workspace.js";
 import { put, get, drop } from "./store.js";
 import { liveCheck } from "./live-check.js";
 const $ = (id) => document.getElementById(id);
@@ -92,6 +92,8 @@ let state = null,
   files = {},
   data = {},
   activeFile = "",
+  lastSourceFile = "",
+  runtimeFiles = {},
   view = "source",
   bottom = "console",
   dirty = false,
@@ -287,6 +289,7 @@ const decorations = ViewPlugin.fromClass(
         this.decorations = this.build(u.view);
     }
     build(v) {
+      if (!Object.hasOwn(files, activeFile)) return Decoration.none;
       let ranges = [];
       for (let { from, to } of v.visibleRanges) {
         for (let pos = from; pos <= to;) {
@@ -675,6 +678,7 @@ const breakpointGutter = gutter({
   },
 });
 function completion(context) {
+  if (!Object.hasOwn(files, activeFile)) return null;
   let word = context.matchBefore(/[\w.$]*/);
   if (!word || (word.from === word.to && !context.explicit)) return null;
   return {
@@ -737,15 +741,17 @@ const editor = new EditorView({
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
           if (!activeFile) return;
-          files[activeFile] = u.state.doc.toString();
-          live.edited(u.changes);
+          const source = Object.hasOwn(files, activeFile);
+          if (!source && !Object.hasOwn(data, activeFile)) return;
+          (source ? files : data)[activeFile] = u.state.doc.toString();
+          if (source) live.edited(u.changes);
           workspace?.changed();
           renderTabs();
-          // Editing another exercise leaves the loaded program valid (P0).
-          if (!target || target.files.includes(activeFile)) {
+          if (!source || !target || target.files.includes(activeFile)) {
             dirty = true;
-            $("banner").textContent =
-              "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本";
+            $("banner").textContent = source
+              ? "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本"
+              : "输入文件已修改 · 重新汇编后使用新内容";
             $("banner").className = "visible";
           }
           updateControls();
@@ -996,6 +1002,7 @@ function pointedPos(e) {
   return { pos, past: pos === end && right != null && e.clientX > right + 4 };
 }
 function hover(e) {
+  if (!Object.hasOwn(files, activeFile)) return hideTooltip(0);
   const at = pointedPos(e),
     pos = at?.pos,
     token = !at || at.past ? "" : tokenAt(pos),
@@ -1037,6 +1044,7 @@ function hover(e) {
 // instruction. Every way of asking for details ends up here, so a request
 // always answers: with the details or with the reason there are none.
 function openDetail(pos, past = false) {
+  if (!Object.hasOwn(files, activeFile)) return;
   const line = editor.state.doc.lineAt(pos),
     place = { file: activeFile, line: line.number };
   const word = line.text
@@ -1485,6 +1493,7 @@ async function command(name, extra = {}) {
     });
     const before = state;
     state = s;
+    syncRuntimeFiles(s);
     appendLogs(s.logs);
     render();
     ioAttention(name, before, s);
@@ -1512,6 +1521,7 @@ async function assemble() {
     // stay in the tree (P0).
     const scope = nextScope();
     if (scope.error) throw Error(scope.error);
+    runtimeFiles = {};
     state = await api({
       command: "assemble",
       files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
@@ -1569,28 +1579,29 @@ async function assemble() {
   }
 }
 function savedEditor() {
-  if (activeFile && Object.hasOwn(files, activeFile)) files[activeFile] = editor.state.doc.toString();
+  if (Object.hasOwn(files, activeFile)) files[activeFile] = editor.state.doc.toString();
+  else if (Object.hasOwn(data, activeFile)) data[activeFile] = editor.state.doc.toString();
 }
 function switchFile(file) {
-  if (!Object.hasOwn(files, file)) return;
+  if (!Object.hasOwn(files,file) && !Object.hasOwn(data,file)) return;
   savedEditor();
-  live.reset();
+  live.reset(); hideTooltip(0);
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
+  const source = Object.hasOwn(files,file);
+  if (source) lastSourceFile = file;
   if (target?.files.includes(file)) lastInTarget = file;
   workspace?.opened(file);
+  const text = source ? files[file] : data[file];
+  const saved = fileStates.get(file);
   loadEditor = true;
   editor.dispatch({
     effects: fileAccess.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
-    changes: { from: 0, to: editor.state.doc.length, insert: files[file] },
-    selection: fileStates.get(file) || { anchor: 0 },
+    changes: { from: 0, to: editor.state.doc.length, insert: text },
+    selection: saved ? {anchor: Math.min(saved.main.anchor,text.length), head: Math.min(saved.main.head,text.length)} : {anchor:0},
   });
   loadEditor = false;
-  drawErrors();
-  renderTabs();
-  renderFiles();
-  updateControls();
-  overlay.schedule();
+  drawErrors(); renderTabs(); renderFiles(); updateControls(); overlay.schedule();
 }
 // Cursor navigation history (VS Code Go Back / Go Forward). Following the PC
 // is not a navigation and passes record = false.
@@ -1602,7 +1613,7 @@ function here() {
     : null;
 }
 function restorePlace(place) {
-  if (!place || !files.hasOwnProperty(place.file)) return;
+  if (!place || (!Object.hasOwn(files,place.file) && !Object.hasOwn(data,place.file))) return;
   if (place.file !== activeFile) switchFile(place.file);
   setView("source");
   const pos = Math.min(place.pos, editor.state.doc.length);
@@ -1622,7 +1633,7 @@ function navigate(direction) {
   restorePlace(place);
 }
 function gotoSource(file, line, record = true) {
-  if (!files.hasOwnProperty(file)) return;
+  if (!Object.hasOwn(files,file) && !Object.hasOwn(data,file)) return;
   const before = here();
   if (record && before) {
     navBack.push(before);
@@ -1946,7 +1957,7 @@ function nextScope() {
       assembly: workspace?.assembly() || { mode: "auto", files: [] },
       entry: workspace?.entry() || "",
     },
-    activeFile,
+    Object.hasOwn(files,activeFile) ? activeFile : lastSourceFile || target?.entry || workspace?.entry(),
   );
 }
 const MODE_NAMES = { auto: "自动汇编", single: "单文件汇编", manual: "手动范围" };
@@ -2233,26 +2244,33 @@ $("assemble-menu").addEventListener("keydown", (e) => {
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".split-button")) closeAssembleMenu();
 });
-function outputBytes(name) {
-  return Uint8Array.from(atob(state.generatedFiles[name].base64), c => c.charCodeAt(0));
-}
-function downloadGenerated(name) {
-  const url = URL.createObjectURL(new Blob([outputBytes(name)], {type:"application/octet-stream"}));
-  const a = document.createElement("a"); a.href = url; a.download = name.split("/").at(-1); a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-function openGenerated(name) {
-  const f = state.generatedFiles[name];
-  modal(name, `<p class="muted">程序输出 · ${f.size} 字节 · 当前执行状态，只读预览</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto">${esc(new TextDecoder().decode(outputBytes(name)))}</pre><button id="download-generated">下载文件</button>${Object.hasOwn(data,name) ? '<button id="view-original-input">查看工程中的原始输入</button>' : ''}`);
-  $("download-generated").onclick = () => downloadGenerated(name);
-  if ($("view-original-input")) $("view-original-input").onclick = () => editData(name);
+// Runtime writes become ordinary project files. Apply only changed runtime
+// bytes, so state polls do not overwrite edits made in the text editor.
+function syncRuntimeFiles(next) {
+  const changed = next.generatedFiles || {};
+  let updated = false;
+  for (const [name, file] of Object.entries(changed)) {
+    if (runtimeFiles[name] === file.base64) continue;
+    try { if (pathName(name) !== name) continue; } catch { continue; }
+    if (Object.hasOwn(files,name)) continue;
+    const text = new TextDecoder().decode(Uint8Array.from(atob(file.base64),c=>c.charCodeAt(0)));
+    data[name] = text;
+    updated = true;
+    if (activeFile === name && editor.state.doc.toString() !== text) {
+      loadEditor = true;
+      editor.dispatch({changes:{from:0,to:editor.state.doc.length,insert:text},selection:{anchor:Math.min(editor.state.selection.main.head,text.length)}});
+      loadEditor = false;
+    }
+  }
+  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n,f])=>[n,f.base64]));
+  if (updated) workspace?.changed();
 }
 function renderFiles() {
   workspace?.render();
 }
 function renderTabs() {
-  $("editor").classList.toggle("no-file", !activeFile);
   const tabs = workspace?.tabs() || Object.keys(files);
+  $("editor").classList.toggle("no-file", !activeFile);
   $("tabs").innerHTML = tabs.map(f =>
     `<span class="file-tab ${f === activeFile ? 'active' : ''}"><button data-tab="${esc(f)}" title="${esc(f)}">${esc(f)}</button><button class="close-tab" data-close-tab="${esc(f)}" aria-label="关闭标签 ${esc(f)}" title="关闭标签，文件仍在工程中">×</button></span>`
   ).join('') || '<span class="empty-tab">从左侧选择文件，或新建文件</span>';
@@ -2671,6 +2689,7 @@ function editBreakpoint(address) {
   $("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
+  if (!Object.hasOwn(files, activeFile)) return;
   const kept = breakpoints.find(
     (b) => b.file === activeFile && b.line === line && b.address == null,
   );
@@ -2926,20 +2945,7 @@ function ask(title, value, callback) {
   $("ask-value").focus();
 }
 function editData(name) {
-  modal(
-    "虚拟文件 · " + name,
-    `<textarea id="data-edit" aria-label="虚拟文件内容">${esc(data[name])}</textarea><button id="data-save" class="primary">保存并重新汇编</button><button id="data-delete">删除文件</button>`,
-  );
-  $("data-save").onclick = () => {
-    data[name] = $("data-edit").value;
-    workspace?.changed();
-    $("modal").close();
-    assemble();
-  };
-  $("data-delete").onclick = () => {
-    $("modal").close();
-    workspace.apply({...workspace.snapshot(), data: Object.fromEntries(Object.entries(data).filter(([n])=>n!==name))}).catch(e=>notify(e.message));
-  };
+  setView("source"); switchFile(name); editor.focus();
 }
 function commandList() {
   const commands = [
@@ -3240,7 +3246,7 @@ function openPicker(prefix = "") {
   };
   const render = () => {
     items = quickOpenItems(input.value, {
-      files,
+      files, data,
       symbols: program.symbols,
       activeFile,
       commands,
@@ -3641,8 +3647,7 @@ workspace = projectManager({
   selectActive: name => { selectActiveFile(name); renderTabs(); },
   modal, notify, editData, assemble,
   hasError: (name) => errorReport.list.some((d) => d.file === name && !d.warning),
-  generatedFiles: () => state?.generatedFiles || {},
-  openGenerated, downloadGenerated,
+  sourceFile: () => Object.hasOwn(files,activeFile) ? activeFile : lastSourceFile,
   scopeChanged: () => updateControls(),
   replace: async p => {
     await requestStop();
@@ -3653,6 +3658,8 @@ workspace = projectManager({
     live.reset();
     errorReport = { list: [], sources: {} };
     files = {...p.files}; data = {...p.data};
+    lastSourceFile = Object.hasOwn(files,p.activeFile) ? p.activeFile : p.entry;
+    runtimeFiles = {};
     fileStates.clear(); navBack.length = navForward.length = 0;
     breakpoints = []; watches = []; debugLog = [];
     state = null; program = {instructions:[], symbols:[], instructionDocs:{}};

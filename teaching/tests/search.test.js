@@ -41,3 +41,10 @@ test("prefixes: > commands, @ current-file symbols, :line, file:line, 0x address
   assert.deepEqual(quickOpenItems(":99", ctx), []);
   assert.deepEqual(quickOpenItems("0x400010", ctx).map((x) => [x.kind, x.address, x.detail]), [["address", 0x400010, "sum"]]);
 });
+
+test('text files can be opened and located by line without creating assembly symbols',()=>{
+ const ctx={files:{'main.s':'.text'},data:{'notes.txt':'label: ordinary text\nsecond line'},activeFile:'notes.txt'};
+ assert.equal(quickOpenItems('notes',ctx)[0].file,'notes.txt');
+ assert.equal(quickOpenItems('notes.txt:2',ctx)[0].line,2);
+ assert.deepEqual(quickOpenItems('@',ctx),[]);
+});

@@ -25624,7 +25624,8 @@ function outline(files2, file, symbols = []) {
   return out;
 }
 var rank = (items, query, key = (x) => x.label) => items.map((x) => ({ x, score: fuzzy(query, key(x)) })).filter((r) => r.score >= 0).sort((a, b) => b.score - a.score).map((r) => r.x);
-function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: activeFile2 = "", commands = [], limit = 50 } = {}) {
+function quickOpenItems(input, { files: files2 = {}, data: data2 = {}, symbols = [], activeFile: activeFile2 = "", commands = [], limit = 50 } = {}) {
+  const texts = { ...data2, ...files2 };
   const query = input.trim();
   if (query.startsWith(">"))
     return rank(
@@ -25643,16 +25644,16 @@ function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: a
     ).slice(0, limit);
   const line = query.match(/^(?:(.+?))?:(\d+)$/);
   if (line) {
-    const file = line[1] ? Object.keys(files2).find(
+    const file = line[1] ? Object.keys(texts).find(
       (f) => f === line[1] || f.endsWith("/" + line[1])
     ) : activeFile2;
     const n = Number(line[2]);
-    const total = file ? files2[file].split("\n").length : 0;
+    const total = file ? texts[file].split("\n").length : 0;
     return file && n >= 1 && n <= total ? [
       {
         kind: "line",
         label: `${file}:${n}`,
-        detail: files2[file].split("\n")[n - 1].trim(),
+        detail: texts[file].split("\n")[n - 1].trim(),
         file,
         line: n
       }
@@ -25670,7 +25671,7 @@ function quickOpenItems(input, { files: files2 = {}, symbols = [], activeFile: a
       }
     ];
   }
-  const fileItems = Object.keys(files2).map((f) => ({
+  const fileItems = Object.keys(texts).map((f) => ({
     kind: "file",
     label: f,
     detail: "\u6587\u4EF6",
@@ -27208,8 +27209,8 @@ function normalizeProject(input) {
   if (folders.size > MAX_FILES) throw Error(`\u5DE5\u7A0B\u6700\u591A ${MAX_FILES} \u4E2A\u6587\u4EF6\u5939\u3002`);
   for (const name2 of names) if (folders.has(name2)) throw Error(`${name2} \u4E0D\u80FD\u540C\u65F6\u4F5C\u4E3A\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u3002`);
   const entry = Object.hasOwn(files2, input.entry) ? input.entry : Object.hasOwn(files2, "main.s") ? "main.s" : Object.keys(files2)[0] || "";
-  const activeFile2 = input.activeFile === "" ? "" : Object.hasOwn(files2, input.activeFile) ? input.activeFile : entry;
-  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files2, n) && a.indexOf(n) === i) : [];
+  const activeFile2 = input.activeFile === "" ? "" : Object.hasOwn(files2, input.activeFile) || Object.hasOwn(data2, input.activeFile) ? input.activeFile : entry;
+  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => (Object.hasOwn(files2, n) || Object.hasOwn(data2, n)) && a.indexOf(n) === i) : [];
   if (activeFile2 && !openTabs.includes(activeFile2)) openTabs.push(activeFile2);
   return { version: 3, name: String(input.name || "\u6211\u7684\u5DE5\u7A0B").slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files2) };
 }
@@ -27300,7 +27301,7 @@ function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name2, text2] of Object.entries({ ...p.files, ...p.data })) entries[name2] = strToU8(text2);
   for (const f of p.folders) entries[f + "/"] = new Uint8Array();
-  entries[".mars-project.json"] = strToU8(JSON.stringify({ version: 3, name: p.name, entry: p.entry, folders: p.folders, delay: p.delay, assembly: p.assembly }, null, 2));
+  entries[".mars-project.json"] = strToU8(JSON.stringify({ version: 3, name: p.name, entry: p.entry, folders: p.folders, delay: p.delay, assembly: p.assembly, activeFile: p.activeFile, openTabs: p.openTabs }, null, 2));
   return zipSync(entries, { level: 6 });
 }
 function textFile(bytes, name2) {
@@ -27539,7 +27540,7 @@ function projectManager(hooks) {
       render2();
       return;
     }
-    const current = hooks.snapshot().activeFile, assembly = { ...meta2.assembly, ...patch };
+    const current = hooks.sourceFile?.() || hooks.snapshot().activeFile, assembly = { ...meta2.assembly, ...patch };
     if (patch.mode === "manual" && !assembly.files.length) {
       const auto = assemblyScope({ ...snapshot(), assembly: { mode: "auto", files: [] } }, current);
       if (!auto.error) {
@@ -27599,7 +27600,11 @@ function projectManager(hooks) {
         p.activeFile = name2;
         p.openTabs.push(name2);
         if (!p.entry) p.entry = name2;
-      } else p.data[name2] = "";
+      } else {
+        p.data[name2] = "";
+        p.activeFile = name2;
+        p.openTabs.push(name2);
+      }
       await apply(p);
       if (!directory && !isSource(name2)) setTimeout(() => hooks.editData(name2));
     }, directory ? "\u6587\u4EF6\u5939\u53EF\u4EE5\u5D4C\u5957\uFF1B\u5C55\u5F00\u6587\u4EF6\u5939\u53F3\u4FA7\u7684 \u22EF \u53EF\u5728\u5176\u4E2D\u65B0\u5EFA\u3002" : "\u5C0F\u5199 .s / .asm \u662F\u6E90\u7801\uFF1B.txt \u7B49\u6587\u4EF6\u7528\u4F5C\u7A0B\u5E8F\u7684\u865A\u62DF\u8F93\u5165\u3002");
@@ -27640,30 +27645,15 @@ function projectManager(hooks) {
     $("project-title").title = "\u4FEE\u6539\u5DE5\u7A0B\u540D\u79F0";
     const joint = p.assembly.mode === "manual", chosen = p.assembly.files;
     const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes("main.s") ? "main.s" : chosen[0];
-    const generated = hooks.generatedFiles?.() || {};
-    const outputPaths = Object.keys(generated).filter((name2) => {
-      try {
-        return pathName(name2) === name2;
-      } catch {
-        return false;
-      }
-    });
-    const folders = new Set(p.folders);
-    for (const name2 of outputPaths) {
-      const parts = name2.split("/");
-      for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join("/"));
-    }
     const rows = (parent) => {
       const base2 = parent ? parent + "/" : "";
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
-      const directories = [...folders].filter(immediate).sort();
-      const paths = [.../* @__PURE__ */ new Set([...Object.keys(p.files), ...Object.keys(p.data), ...outputPaths])].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => outputPaths.includes(path) && !Object.hasOwn(p.files, path) ? `<li class="tree-row"><button class="tree-open" data-generated="${escapeHTML(path)}" title="${escapeHTML(path)} \xB7 \u7A0B\u5E8F\u8F93\u51FA \xB7 ${generated[path].size} \u5B57\u8282"><span aria-hidden="true">\u25A4</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span><small class="entry-badge">\u8F93\u51FA</small></button><button class="tree-menu" data-generated-download="${escapeHTML(path)}" title="\u4E0B\u8F7D ${escapeHTML(path)}" aria-label="\u4E0B\u8F7D ${escapeHTML(path)}">\u2193</button></li>` : `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      const directories = p.folders.filter(immediate);
+      const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
     $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
-    $("files").querySelectorAll("[data-generated]").forEach((b) => b.onclick = () => hooks.openGenerated(b.dataset.generated));
-    $("files").querySelectorAll("[data-generated-download]").forEach((b) => b.onclick = () => hooks.downloadGenerated(b.dataset.generatedDownload));
     $("files").querySelectorAll("[data-data]").forEach((b) => b.onclick = () => hooks.editData(b.dataset.data));
     $("files").querySelectorAll("[data-node]").forEach((b) => b.onclick = (e) => {
       e.preventDefault();
@@ -27676,7 +27666,7 @@ function projectManager(hooks) {
     });
     $("files").querySelectorAll("[data-joint]").forEach((c) => c.onchange = () => setAssembly({ files: c.checked ? [...chosen, c.dataset.joint] : chosen.filter((n) => n !== c.dataset.joint) }));
     $("joint-settings").hidden = !joint;
-    const scope = assemblyScope(p, p.activeFile);
+    const scope = assemblyScope(p, hooks.sourceFile?.() || p.activeFile);
     $("assembly-mode-name").textContent = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u9009\u62E9\u8303\u56F4" }[p.assembly.mode];
     $("assembly-hint").textContent = scope.error ? scope.error : joint ? `\u52FE\u9009\u7684 ${chosen.length} \u4E2A\u6E90\u7801\u4E00\u8D77\u6C47\u7F16\uFF0C\u4ECE\u5165\u53E3\u5F00\u59CB\u6267\u884C\uFF1B\u672A\u52FE\u9009\u7684\u4E0D\u53C2\u4E0E\u3002` : p.assembly.mode === "single" ? `\u53EA\u6C47\u7F16 ${scope.entry}\u3002` : `\u4ECE ${scope.entry} \u7684 main \u5F00\u59CB${scope.files.length > 1 ? `\uFF0C\u94FE\u63A5 ${scope.files.filter((n) => n !== scope.entry).join("\u3001")}` : ""}\uFF1B\u5176\u4ED6\u6587\u4EF6\u4E0D\u53C2\u4E0E\u3002`;
     $("entry-file").innerHTML = chosen.map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === scopeEntry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || '<option value="">\u5148\u52FE\u9009\u6E90\u7801</option>';
@@ -27831,7 +27821,10 @@ function projectManager(hooks) {
     entry: () => meta2.entry,
     assembly: () => meta2.assembly,
     setAssembly,
-    tabs: () => meta2.openTabs.filter((n) => Object.hasOwn(hooks.snapshot().files, n)),
+    tabs: () => {
+      const p = hooks.snapshot();
+      return [...meta2.openTabs.filter((n) => Object.hasOwn(p.files, n) || Object.hasOwn(p.data, n))];
+    },
     opened: (name2) => {
       if (!meta2.openTabs.includes(name2)) meta2.openTabs.push(name2);
       changed();
@@ -27839,7 +27832,8 @@ function projectManager(hooks) {
     closeTab: (name2) => {
       const active = hooks.snapshot().activeFile;
       meta2.openTabs = meta2.openTabs.filter((n) => n !== name2);
-      hooks.selectActive(active === name2 ? meta2.openTabs.at(-1) || "" : active);
+      const remaining = meta2.openTabs;
+      hooks.selectActive(active === name2 ? remaining.at(-1) || "" : active);
       render2();
       save();
     },
@@ -27960,6 +27954,8 @@ var state = null;
 var files = {};
 var data = {};
 var activeFile = "";
+var lastSourceFile = "";
+var runtimeFiles = {};
 var view = "source";
 var bottom = "console";
 var dirty = false;
@@ -28110,6 +28106,7 @@ var decorations2 = ViewPlugin.fromClass(
         this.decorations = this.build(u.view);
     }
     build(v) {
+      if (!Object.hasOwn(files, activeFile)) return Decoration.none;
       let ranges = [];
       for (let { from, to } of v.visibleRanges) {
         for (let pos = from; pos <= to; ) {
@@ -28433,6 +28430,7 @@ var breakpointGutter = gutter({
   }
 });
 function completion(context) {
+  if (!Object.hasOwn(files, activeFile)) return null;
   let word = context.matchBefore(/[\w.$]*/);
   if (!word || word.from === word.to && !context.explicit) return null;
   return {
@@ -28495,13 +28493,15 @@ var editor = new EditorView({
       EditorView.updateListener.of((u) => {
         if (u.docChanged && !loadEditor) {
           if (!activeFile) return;
-          files[activeFile] = u.state.doc.toString();
-          live.edited(u.changes);
+          const source = Object.hasOwn(files, activeFile);
+          if (!source && !Object.hasOwn(data, activeFile)) return;
+          (source ? files : data)[activeFile] = u.state.doc.toString();
+          if (source) live.edited(u.changes);
           workspace?.changed();
           renderTabs();
-          if (!target || target.files.includes(activeFile)) {
+          if (!source || !target || target.files.includes(activeFile)) {
             dirty = true;
-            $2("banner").textContent = "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C";
+            $2("banner").textContent = source ? "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C" : "\u8F93\u5165\u6587\u4EF6\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u4F7F\u7528\u65B0\u5185\u5BB9";
             $2("banner").className = "visible";
           }
           updateControls();
@@ -28699,6 +28699,7 @@ function pointedPos(e) {
   return { pos, past: pos === end && right != null && e.clientX > right + 4 };
 }
 function hover(e) {
+  if (!Object.hasOwn(files, activeFile)) return hideTooltip2(0);
   const at = pointedPos(e), pos = at?.pos, token = !at || at.past ? "" : tokenAt(pos), problem = !at || at.past ? "" : errorAt(pos);
   if (!token && !problem) return hideTooltip2();
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number }, key = `${token}@${activeFile}:${line.number}`;
@@ -28729,6 +28730,7 @@ function hover(e) {
   $2("tooltip").style.top = Math.min(e.clientY + 14, innerHeight - 220) + "px";
 }
 function openDetail(pos, past = false) {
+  if (!Object.hasOwn(files, activeFile)) return;
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number };
   const word = line.text.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim().split(/\s+/)[0];
   const token = (past ? "" : tokenAt(pos)) || word;
@@ -29078,6 +29080,7 @@ async function command2(name2, extra = {}) {
     });
     const before = state;
     state = s;
+    syncRuntimeFiles(s);
     appendLogs(s.logs);
     render();
     ioAttention(name2, before, s);
@@ -29102,6 +29105,7 @@ async function assemble() {
     if (!Object.keys(files).length) throw Error("\u8BF7\u5148\u65B0\u5EFA\u6216\u5BFC\u5165\u4E00\u4E2A .s / .asm \u6E90\u7801\u6587\u4EF6\u3002");
     const scope = nextScope();
     if (scope.error) throw Error(scope.error);
+    runtimeFiles = {};
     state = await api({
       command: "assemble",
       files: Object.fromEntries(scope.files.map((n) => [n, files[n]])),
@@ -29148,21 +29152,27 @@ async function assemble() {
   }
 }
 function savedEditor() {
-  if (activeFile && Object.hasOwn(files, activeFile)) files[activeFile] = editor.state.doc.toString();
+  if (Object.hasOwn(files, activeFile)) files[activeFile] = editor.state.doc.toString();
+  else if (Object.hasOwn(data, activeFile)) data[activeFile] = editor.state.doc.toString();
 }
 function switchFile(file) {
-  if (!Object.hasOwn(files, file)) return;
+  if (!Object.hasOwn(files, file) && !Object.hasOwn(data, file)) return;
   savedEditor();
   live.reset();
+  hideTooltip2(0);
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
   activeFile = file;
+  const source = Object.hasOwn(files, file);
+  if (source) lastSourceFile = file;
   if (target?.files.includes(file)) lastInTarget = file;
   workspace?.opened(file);
+  const text2 = source ? files[file] : data[file];
+  const saved = fileStates.get(file);
   loadEditor = true;
   editor.dispatch({
     effects: fileAccess.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
-    changes: { from: 0, to: editor.state.doc.length, insert: files[file] },
-    selection: fileStates.get(file) || { anchor: 0 }
+    changes: { from: 0, to: editor.state.doc.length, insert: text2 },
+    selection: saved ? { anchor: Math.min(saved.main.anchor, text2.length), head: Math.min(saved.main.head, text2.length) } : { anchor: 0 }
   });
   loadEditor = false;
   drawErrors();
@@ -29177,7 +29187,7 @@ function here() {
   return activeFile ? { file: activeFile, pos: editor.state.selection.main.head } : null;
 }
 function restorePlace(place) {
-  if (!place || !files.hasOwnProperty(place.file)) return;
+  if (!place || !Object.hasOwn(files, place.file) && !Object.hasOwn(data, place.file)) return;
   if (place.file !== activeFile) switchFile(place.file);
   setView("source");
   const pos = Math.min(place.pos, editor.state.doc.length);
@@ -29196,7 +29206,7 @@ function navigate(direction) {
   restorePlace(place);
 }
 function gotoSource(file, line, record = true) {
-  if (!files.hasOwnProperty(file)) return;
+  if (!Object.hasOwn(files, file) && !Object.hasOwn(data, file)) return;
   const before = here();
   if (record && before) {
     navBack.push(before);
@@ -29437,7 +29447,7 @@ function nextScope() {
       assembly: workspace?.assembly() || { mode: "auto", files: [] },
       entry: workspace?.entry() || ""
     },
-    activeFile
+    Object.hasOwn(files, activeFile) ? activeFile : lastSourceFile || target?.entry || workspace?.entry()
   );
 }
 var MODE_NAMES = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u8303\u56F4" };
@@ -29652,29 +29662,35 @@ $2("assemble-menu").addEventListener("keydown", (e) => {
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".split-button")) closeAssembleMenu();
 });
-function outputBytes(name2) {
-  return Uint8Array.from(atob(state.generatedFiles[name2].base64), (c) => c.charCodeAt(0));
-}
-function downloadGenerated(name2) {
-  const url = URL.createObjectURL(new Blob([outputBytes(name2)], { type: "application/octet-stream" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name2.split("/").at(-1);
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1e3);
-}
-function openGenerated(name2) {
-  const f = state.generatedFiles[name2];
-  modal(name2, `<p class="muted">\u7A0B\u5E8F\u8F93\u51FA \xB7 ${f.size} \u5B57\u8282 \xB7 \u5F53\u524D\u6267\u884C\u72B6\u6001\uFF0C\u53EA\u8BFB\u9884\u89C8</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto">${escapeHTML(new TextDecoder().decode(outputBytes(name2)))}</pre><button id="download-generated">\u4E0B\u8F7D\u6587\u4EF6</button>${Object.hasOwn(data, name2) ? '<button id="view-original-input">\u67E5\u770B\u5DE5\u7A0B\u4E2D\u7684\u539F\u59CB\u8F93\u5165</button>' : ""}`);
-  $2("download-generated").onclick = () => downloadGenerated(name2);
-  if ($2("view-original-input")) $2("view-original-input").onclick = () => editData(name2);
+function syncRuntimeFiles(next) {
+  const changed = next.generatedFiles || {};
+  let updated = false;
+  for (const [name2, file] of Object.entries(changed)) {
+    if (runtimeFiles[name2] === file.base64) continue;
+    try {
+      if (pathName(name2) !== name2) continue;
+    } catch {
+      continue;
+    }
+    if (Object.hasOwn(files, name2)) continue;
+    const text2 = new TextDecoder().decode(Uint8Array.from(atob(file.base64), (c) => c.charCodeAt(0)));
+    data[name2] = text2;
+    updated = true;
+    if (activeFile === name2 && editor.state.doc.toString() !== text2) {
+      loadEditor = true;
+      editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: text2 }, selection: { anchor: Math.min(editor.state.selection.main.head, text2.length) } });
+      loadEditor = false;
+    }
+  }
+  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n, f]) => [n, f.base64]));
+  if (updated) workspace?.changed();
 }
 function renderFiles() {
   workspace?.render();
 }
 function renderTabs() {
-  $2("editor").classList.toggle("no-file", !activeFile);
   const tabs = workspace?.tabs() || Object.keys(files);
+  $2("editor").classList.toggle("no-file", !activeFile);
   $2("tabs").innerHTML = tabs.map(
     (f) => `<span class="file-tab ${f === activeFile ? "active" : ""}"><button data-tab="${escapeHTML(f)}" title="${escapeHTML(f)}">${escapeHTML(f)}</button><button class="close-tab" data-close-tab="${escapeHTML(f)}" aria-label="\u5173\u95ED\u6807\u7B7E ${escapeHTML(f)}" title="\u5173\u95ED\u6807\u7B7E\uFF0C\u6587\u4EF6\u4ECD\u5728\u5DE5\u7A0B\u4E2D">\xD7</button></span>`
   ).join("") || '<span class="empty-tab">\u4ECE\u5DE6\u4FA7\u9009\u62E9\u6587\u4EF6\uFF0C\u6216\u65B0\u5EFA\u6587\u4EF6</span>';
@@ -29980,6 +29996,7 @@ function editBreakpoint(address) {
   $2("bp-condition").focus();
 }
 function toggleBreakpoint(line, conditional = false) {
+  if (!Object.hasOwn(files, activeFile)) return;
   const kept = breakpoints.find(
     (b) => b.file === activeFile && b.line === line && b.address == null
   );
@@ -30165,20 +30182,9 @@ async function runUntilWrite(register) {
   await run2("run", { watches: [...watches, { register, access: "write" }] });
 }
 function editData(name2) {
-  modal(
-    "\u865A\u62DF\u6587\u4EF6 \xB7 " + name2,
-    `<textarea id="data-edit" aria-label="\u865A\u62DF\u6587\u4EF6\u5185\u5BB9">${escapeHTML(data[name2])}</textarea><button id="data-save" class="primary">\u4FDD\u5B58\u5E76\u91CD\u65B0\u6C47\u7F16</button><button id="data-delete">\u5220\u9664\u6587\u4EF6</button>`
-  );
-  $2("data-save").onclick = () => {
-    data[name2] = $2("data-edit").value;
-    workspace?.changed();
-    $2("modal").close();
-    assemble();
-  };
-  $2("data-delete").onclick = () => {
-    $2("modal").close();
-    workspace.apply({ ...workspace.snapshot(), data: Object.fromEntries(Object.entries(data).filter(([n]) => n !== name2)) }).catch((e) => notify(e.message));
-  };
+  setView("source");
+  switchFile(name2);
+  editor.focus();
 }
 function commandList() {
   const commands = [
@@ -30449,6 +30455,7 @@ function openPicker(prefix = "") {
   const render2 = () => {
     items = quickOpenItems(input.value, {
       files,
+      data,
       symbols: program.symbols,
       activeFile,
       commands
@@ -30813,9 +30820,7 @@ workspace = projectManager({
   editData,
   assemble,
   hasError: (name2) => errorReport.list.some((d) => d.file === name2 && !d.warning),
-  generatedFiles: () => state?.generatedFiles || {},
-  openGenerated,
-  downloadGenerated,
+  sourceFile: () => Object.hasOwn(files, activeFile) ? activeFile : lastSourceFile,
   scopeChanged: () => updateControls(),
   replace: async (p) => {
     await requestStop();
@@ -30827,6 +30832,8 @@ workspace = projectManager({
     errorReport = { list: [], sources: {} };
     files = { ...p.files };
     data = { ...p.data };
+    lastSourceFile = Object.hasOwn(files, p.activeFile) ? p.activeFile : p.entry;
+    runtimeFiles = {};
     fileStates.clear();
     navBack.length = navForward.length = 0;
     breakpoints = [];

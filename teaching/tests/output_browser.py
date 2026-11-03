@@ -1,4 +1,4 @@
-"""Generated files join the tree without overwriting project inputs; isolated browser only."""
+"""Generated txt files use the same editable project files and tabs."""
 import sys,json
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -13,14 +13,20 @@ with sync_playwright() as p:
   page.goto(sys.argv[1] if len(sys.argv)>1 else 'http://127.0.0.1:8765/');page.wait_for_function('()=>Boolean(window.marsIDE)')
   page.locator('#assemble').click();page.wait_for_function('()=>window.marsIDE.state?.status==="paused"')
   page.locator('#run').click();page.wait_for_function('()=>window.marsIDE.state?.status==="ended"')
-  row=page.locator('.file-tree [data-generated="MIPS/output.txt"]');row.wait_for()
-  assert page.locator('[data-folder="MIPS"] [data-generated="MIPS/output.txt"]').count()==1
-  assert page.locator('.tree-name',has_text='output.txt').count()==1
-  row.click();assert page.locator('#modal pre').inner_text()=='OK'
-  with page.expect_download() as dl:page.locator('#download-generated').click()
-  assert open(dl.value.path(),'rb').read()==b'OK'
-  page.locator('#view-original-input').click();assert 'ORIGINAL' in page.locator('#modal').inner_text() or page.locator('#modal textarea').input_value()=='ORIGINAL'
+  row=page.locator('.file-tree [data-data="MIPS/output.txt"]');row.wait_for()
+  assert page.locator('[data-folder="MIPS"] [data-data="MIPS/output.txt"]').count()==1
+  row.click();assert page.locator('.cm-content').inner_text()=='OK' and not page.locator('#modal').is_visible()
+  assert page.locator('.cm-content').get_attribute('contenteditable')=='true'
+  from workspace_browser import write,project_action
+  write(page,'EDITED');page.keyboard.press('Meta+S' if sys.platform=='darwin' else 'Control+S')
+  page.evaluate('window.marsIDE.command("state")')
+  assert page.locator('.cm-content').inner_text()=='EDITED'
+  project_action(page,'save')
+  with page.expect_download() as dl:page.locator('#download-zip').click()
+  import zipfile
+  with zipfile.ZipFile(dl.value.path()) as z: assert z.read('MIPS/output.txt')==b'EDITED'
   saved=json.loads(page.evaluate('localStorage.getItem("mars-trace:project:v2")'))
-  assert saved['data']['MIPS/output.txt']=='ORIGINAL' and saved['data']['MIPS/input.txt']=='KEEP' and saved['files']['main.s']==src
-  print('PASS: output in existing MIPS tree, one node, correct preview/download; original input and source unchanged')
+  assert saved['data']['MIPS/output.txt']=='EDITED' and saved['data']['MIPS/input.txt']=='KEEP' and saved['files']['main.s']==src
+  assert page.evaluate('window.marsIDE.state.generatedFiles["MIPS/output.txt"].base64')=='T0s='
+  print('PASS: generated txt is an ordinary editable tree/tab file; save/export retain edits; state polls do not overwrite them; execution snapshot remains intact')
  finally:b.close()

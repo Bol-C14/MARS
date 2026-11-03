@@ -122,3 +122,11 @@ test('a project can join another inside a folder',()=>{
  const p=underFolder(normalizeProject({files:{'a/main.s':'.text\n'},data:{'in.txt':'x'}}),'labs/three');
  assert.deepEqual(Object.keys(p.files),['labs/three/a/main.s']);assert.deepEqual(Object.keys(p.data),['labs/three/in.txt']);assert.ok(p.folders.includes('labs/three/a'));
 });
+
+test('text tabs and selection survive save, rename and export without joining assembly',async()=>{
+ const p=normalizeProject({files:{'main.s':one(1)},data:{'lab/input.txt':'hello'},activeFile:'lab/input.txt',openTabs:['main.s','lab/input.txt'],assembly:{mode:'manual',files:['main.s','lab/input.txt']}});
+ assert.equal(p.activeFile,'lab/input.txt');assert.deepEqual(p.openTabs,['main.s','lab/input.txt']);assert.deepEqual(p.assembly.files,['main.s']);
+ const moved=renamePath(p,'lab','io');assert.equal(moved.activeFile,'io/input.txt');assert.deepEqual(moved.openTabs,['main.s','io/input.txt']);
+ const restored=await readImports([new File([projectZip(moved)],'text-tabs.zip')]);assert.equal(restored.activeFile,'io/input.txt');assert.equal(restored.data['io/input.txt'],'hello');
+ assert.ok(!removePath(moved,'io/input.txt').openTabs.includes('io/input.txt'));
+});

@@ -54,8 +54,9 @@ const rank = (items, query, key = (x) => x.label) =>
 
 export function quickOpenItems(
   input,
-  { files = {}, symbols = [], activeFile = "", commands = [], limit = 50 } = {},
+  { files = {}, data = {}, symbols = [], activeFile = "", commands = [], limit = 50 } = {},
 ) {
+  const texts = {...data, ...files};
   const query = input.trim();
   if (query.startsWith(">"))
     return rank(
@@ -75,18 +76,18 @@ export function quickOpenItems(
   const line = query.match(/^(?:(.+?))?:(\d+)$/);
   if (line) {
     const file = line[1]
-      ? Object.keys(files).find(
+      ? Object.keys(texts).find(
           (f) => f === line[1] || f.endsWith("/" + line[1]),
         )
       : activeFile;
     const n = Number(line[2]);
-    const total = file ? files[file].split("\n").length : 0;
+    const total = file ? texts[file].split("\n").length : 0;
     return file && n >= 1 && n <= total
       ? [
           {
             kind: "line",
             label: `${file}:${n}`,
-            detail: files[file].split("\n")[n - 1].trim(),
+            detail: texts[file].split("\n")[n - 1].trim(),
             file,
             line: n,
           },
@@ -105,7 +106,7 @@ export function quickOpenItems(
       },
     ];
   }
-  const fileItems = Object.keys(files).map((f) => ({
+  const fileItems = Object.keys(texts).map((f) => ({
     kind: "file",
     label: f,
     detail: "文件",

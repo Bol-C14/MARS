@@ -41,8 +41,8 @@ export function normalizeProject(input) {
   if (folders.size > MAX_FILES) throw Error(`工程最多 ${MAX_FILES} 个文件夹。`);
   for (const name of names) if (folders.has(name)) throw Error(`${name} 不能同时作为文件和文件夹。`);
   const entry = Object.hasOwn(files, input.entry) ? input.entry : Object.hasOwn(files, 'main.s') ? 'main.s' : Object.keys(files)[0] || '';
-  const activeFile = input.activeFile === '' ? '' : Object.hasOwn(files, input.activeFile) ? input.activeFile : entry;
-  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => Object.hasOwn(files, n) && a.indexOf(n) === i) : [];
+  const activeFile = input.activeFile === '' ? '' : (Object.hasOwn(files, input.activeFile) || Object.hasOwn(data, input.activeFile)) ? input.activeFile : entry;
+  const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => (Object.hasOwn(files, n) || Object.hasOwn(data, n)) && a.indexOf(n) === i) : [];
   if (activeFile && !openTabs.includes(activeFile)) openTabs.push(activeFile);
   return {version: 3, name: String(input.name || '我的工程').slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files)};
 }
@@ -152,7 +152,7 @@ export function projectZip(project) {
   const p = normalizeProject(project), entries = {};
   for (const [name, text] of Object.entries({...p.files, ...p.data})) entries[name] = strToU8(text);
   for (const f of p.folders) entries[f + '/'] = new Uint8Array();
-  entries['.mars-project.json'] = strToU8(JSON.stringify({version: 3, name:p.name, entry:p.entry, folders:p.folders, delay:p.delay, assembly:p.assembly}, null, 2));
+  entries['.mars-project.json'] = strToU8(JSON.stringify({version: 3, name:p.name, entry:p.entry, folders:p.folders, delay:p.delay, assembly:p.assembly, activeFile:p.activeFile, openTabs:p.openTabs}, null, 2));
   return zipSync(entries, {level: 6});
 }
 function textFile(bytes, name) {
