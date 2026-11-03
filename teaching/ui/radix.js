@@ -96,3 +96,17 @@ export function looksLikeAddress(u) {
 
 // Registers whose contents are conventionally addresses.
 export const addressRegisters = new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
+
+// Bits as dots (classroom 2026-11-03): filled for 1, hollow for 0, a byte
+// per group so a narrow column can wrap them. `label` is the digits, for
+// screen readers and hover.
+export function bitDots(value, bytes = 4, label = "") {
+  const groups = [];
+  for (let b = bytes - 1; b >= 0; b--) {
+    let dots = "";
+    for (let i = 7; i >= 0; i--)
+      dots += `<i class="${(value >>> (b * 8 + i)) & 1 ? "one" : "zero"}"></i>`;
+    groups.push(`<span class="bit-byte">${dots}</span>`);
+  }
+  return `<span class="bit-dots" role="img" aria-label="${label.replace(/[&"<>]/g, (c) => `&#${c.charCodeAt(0)};`)}" title="${label.replace(/[&"<>]/g, (c) => `&#${c.charCodeAt(0)};`)}">${groups.join("")}</span>`;
+}

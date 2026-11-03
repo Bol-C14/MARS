@@ -14,7 +14,7 @@ import {
   lineSummary,
   lineDecision,
 } from "./beats.js";
-import { formatValue, addressRegisters } from "./radix.js";
+import { formatValue, addressRegisters, bitDots } from "./radix.js";
 import { glossify } from "./glossary.js";
 // Focus mode (DESIGN §3.7): a floating lens over a blurred IDE that narrates
 // the completed step and the predicted path. It owns its own state panel and
@@ -27,6 +27,8 @@ const stopText = {
   "instruction-limit": "超过 64 条指令，未继续预计",
 };
 const BEAT_MS = 900;
+// Transfers that continue with the next address: drawn in the same column.
+const SEQUENTIAL = new Set(["next", "fallthrough"]);
 
 export class FocusLens {
   constructor(host) {
@@ -428,9 +430,38 @@ export class FocusLens {
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
     const selectedStep = byIndex.get(this.selected);
     const instructions = this.host.getProgram().instructions;
+    // Placement (classroom 2026-11-03): code reached in address order stays in
+    // the same column under a short straight arrow; a transfer elsewhere
+    // (taken branch, jump, call, return) crosses to the other column. The
+    // untaken side of a branch is a box of its own, placed by the same rule.
+    const cells = new Set(),
+      take = (row, col) => {
+        while (cells.has(row + ":" + col)) row++;
+        cells.add(row + ":" + col);
+        return row;
+      },
+      placed = new Map(),
+      ghosts = [];
+    let lastRow = 0,
+      lastCol = 1;
+    for (const seg of L.segments) {
+      const e = L.edges.find((x) => x.to === seg.id && placed.has(x.from)),
+        from = e && placed.get(e.from),
+        col = from ? (SEQUENTIAL.has(e.kind) ? from.col : 1 - from.col) : 1 - lastCol,
+        row = take(lastRow + 1, col);
+      placed.set(seg.id, { col, row });
+      lastRow = row;
+      lastCol = col;
+      for (const hint of L.hints.filter((h) => h.segment === seg.id)) {
+        const gcol = hint.kind === "fallthrough" ? col : 1 - col;
+        ghosts.push({ hint, col: gcol, row: take(row + 1, gcol) });
+      }
+    }
+    this.placed = placed;
+    this.ghosts = ghosts;
     $("focus-path").innerHTML =
       L.segments
-        .map((seg, n) => {
+        .map((seg) => {
           const iteration =
             selectedStep?.segment === seg.id ? selectedStep.iteration : null;
           const head = `${esc(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${iteration ? `第 ${iteration} 次 / ` : ""}共 ${seg.iterations} 次</span>` : ""}`;
@@ -441,24 +472,27 @@ export class FocusLens {
                 (i) => i.file === line.file && i.line === line.line,
               );
               const open = this.expanded.has(line.address);
-              const hint = L.hints.find(
-                (h) => h.segment === seg.id && h.line === line.line,
-              );
               const bp = this.host.hasBreakpoint(line.address);
-              return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}">
+              return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}" data-line="${line.line}">
                 <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "删除断点" : "设置断点"}">${bp ? "●" : "○"}</button>
                 <span class="fln">${line.line}</span>
                 <code>${esc(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "▾" : "▸"} ${machine.length} 条</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}${hint ? this.untaken(hint, byIndex.get(hint.step), instructions) : ""}`;
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}`;
             })
             .join("");
-          // Staircase: one row per segment in visit order, alternating columns,
-          // so every transfer crosses the gutter instead of running down a list.
-          return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${(n % 2) + 1};grid-row:${n + 1}"><div class="fseg-head">${head}</div>${rows}</div>`;
+          const at = placed.get(seg.id);
+          return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${at.col + 1};grid-row:${at.row}"><div class="fseg-head">${head}</div>${rows}</div>`;
         })
-        .join("") + this.stopNote();
+        .join("") +
+      ghosts
+        .map(
+          (g, k) =>
+            `<div class="fseg fghost" data-ghost="${k}" style="grid-column:${g.col + 1};grid-row:${g.row}">${this.untaken(g.hint, byIndex.get(g.hint.step), instructions)}</div>`,
+        )
+        .join("") +
+      this.stopNote();
     $("focus-path")
       .querySelectorAll("[data-step]")
       .forEach((b) => (b.onclick = () => this.select(Number(b.dataset.step))));
@@ -634,11 +668,17 @@ export class FocusLens {
             o.kind === "register"
               ? o.name
               : `[${hex(o.address)}${grouped ? "…" : ""}]·${o.width}B`;
+          // Binary words are dots that can wrap in this narrow column, and
+          // show only the value now, like the register panel.
+          const dots = this.host.getRadix() === "bin" && !grouped && (o.kind === "register" || o.width > 1),
+            now = o.touched && o.write ? o.after : o.value;
           const v = grouped
-            ? (o.text ?? `${o.bytes.length} 字节`)
-            : o.touched && o.write && o.before !== o.after
-              ? `${value(o, o.before)} → ${value(o, o.after)}`
-              : value(o, o.value);
+            ? esc(o.text ?? `${o.bytes.length} 字节`)
+            : dots
+              ? bitDots(now, o.kind === "memory" ? Math.min(4, o.width) : 4, value(o, now))
+              : esc(o.touched && o.write && o.before !== o.after
+                  ? `${value(o, o.before)} → ${value(o, o.after)}`
+                  : value(o, o.value));
           // The raw form stays visible, small and grey, under the readable one.
           const raw = grouped
             ? `<small class="fraw">${o.bytes
@@ -647,7 +687,7 @@ export class FocusLens {
                 .join(" ")}${o.bytes.length > 16 ? " …" : ""}</small>`
             : "";
           const mode = litMode(o);
-          return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${esc(label)}</span><span>${esc(v)}</span>${raw}</div>`;
+          return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${esc(label)}</span><span class="fval">${v}</span>${raw}</div>`;
         })
         .join("") +
       (objects.length > 12
@@ -851,15 +891,29 @@ export class FocusLens {
     const out = [];
     // Segment edges: from the row that left the segment to the row entered next.
     const order = this.layout.steps;
+    const body = document.getElementById("focus-body").getBoundingClientRect();
     for (const e of this.layout.edges) {
       const i = order.findIndex((s) => s.index === e.step);
       if (i < 0 || !order[i + 1]) continue;
       const from = this.rowOf(e.step),
         to = this.rowOf(order[i + 1].index);
       if (!from || !to) continue;
-      const body = document
-        .getElementById("focus-body")
-        .getBoundingClientRect();
+      const label = e.label + (e.count > 1 ? ` ×${e.count}` : "");
+      // In address order, straight down to the box right below.
+      const a = this.placed?.get(e.from),
+        z = this.placed?.get(e.to);
+      if (SEQUENTIAL.has(e.kind) && a && z && a.col === z.col && z.row > a.row) {
+        const top = from.closest(".fseg").getBoundingClientRect(),
+          bottom = to.closest(".fseg").getBoundingClientRect(),
+          x = top.left - body.left + 26,
+          y1 = top.bottom - body.top,
+          y2 = bottom.top - body.top - 2;
+        out.push(
+          `<path d="M ${x} ${y1} L ${x} ${y2}" fill="none" stroke="${color.edge}" stroke-width="1.4" marker-end="url(#farrow-edge)" opacity=".8"/>`,
+          `<text x="${x + 8}" y="${(y1 + y2) / 2 + 4}" font-size="11" fill="${color.edge}">${esc(label)}</text>`,
+        );
+        continue;
+      }
       const p = this.route(
         from.getBoundingClientRect(),
         to.getBoundingClientRect(),
@@ -869,9 +923,35 @@ export class FocusLens {
         `<path d="${path(p)}" fill="none" stroke="${color.edge}" stroke-width="1.4" marker-end="url(#farrow-edge)" opacity=".8"/>`,
       );
       const mid = bezier(p, 0.5);
-      const label = e.label + (e.count > 1 ? ` ×${e.count}` : "");
       out.push(
         `<g><rect x="${mid.x - label.length * 6 - 4}" y="${mid.y - 9}" width="${label.length * 12 + 8}" height="16" rx="4" fill="var(--panel)" opacity=".95"/><text x="${mid.x}" y="${mid.y + 3}" text-anchor="middle" font-size="11" fill="${color.edge}">${esc(label)}</text></g>`,
+      );
+    }
+    // The untaken side: a dashed line cut by a cross, from the branch line to
+    // its box, straight down when it is the code right below.
+    for (const [k, g] of (this.ghosts || []).entries()) {
+      const box = document.querySelector(`#focus-path [data-ghost="${k}"]`),
+        seg = document.querySelector(`#focus-path [data-seg="${g.hint.segment}"]`),
+        row = seg?.querySelector(`.frow[data-line="${g.hint.line}"]`);
+      if (!box || !row) continue;
+      const at = this.placed.get(g.hint.segment),
+        r = box.getBoundingClientRect();
+      let d, mid;
+      if (at && at.col === g.col) {
+        const top = seg.getBoundingClientRect(),
+          x = top.left - body.left + 26,
+          y1 = top.bottom - body.top,
+          y2 = r.top - body.top;
+        d = `M ${x} ${y1} L ${x} ${y2}`;
+        mid = { x, y: (y1 + y2) / 2 };
+      } else {
+        const p = this.route(row.getBoundingClientRect(), r, body);
+        d = path(p);
+        mid = bezier(p, 0.5);
+      }
+      out.push(
+        `<path d="${d}" fill="none" stroke="${color.edge}" stroke-width="1.4" stroke-dasharray="4 4" opacity=".8"/>`,
+        `<path d="M ${mid.x - 5} ${mid.y - 5} L ${mid.x + 5} ${mid.y + 5} M ${mid.x + 5} ${mid.y - 5} L ${mid.x - 5} ${mid.y + 5}" stroke="${color.edge}" stroke-width="1.8"/>`,
       );
     }
     // Current beat: its data and control arrows, solid for the completed step.

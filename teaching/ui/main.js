@@ -35,6 +35,7 @@ import {
   RADIX_HELP,
   addressRegisters,
   escapeByte,
+  bitDots,
 } from "./radix.js";
 import { termsIn } from "./glossary.js";
 import {
@@ -995,7 +996,26 @@ function hideTooltip(delay = 100) {
 }
 for (const event of ["keydown", "beforeinput", "compositionstart"])
   editor.dom.addEventListener(event, () => hideTooltip(0), true);
-editor.scrollDOM.addEventListener("scroll", () => hideTooltip(0));
+editor.scrollDOM.addEventListener("scroll", () => {
+  hideTooltip(0);
+  requestAnimationFrame(updateReturn);
+});
+for (const event of ["wheel", "touchmove", "pointerdown"])
+  editor.scrollDOM.addEventListener(event, leftExecution, { passive: true });
+editor.dom.addEventListener("keydown", leftExecution, true);
+$("follow-return").onclick = () => {
+  followHold = 0;
+  const ins = executionInstruction();
+  if (!ins) return;
+  autoMoving = true;
+  try {
+    gotoSource(ins.file, ins.line, false);
+  } finally {
+    autoMoving = false;
+  }
+  arrive(true);
+  requestAnimationFrame(updateReturn);
+};
 // Past the end of a line the editor reports the line's end, which is not the
 // last word: clicking the blank there must not open that word.
 function pointedPos(e) {
@@ -1113,8 +1133,29 @@ function modeBar() {
     pinned && here && ![at(state.last), at(state.preview)].includes(pinned);
   return `<div class="inspect-mode pinned">已固定 · ${esc(inspecting)}${inspectingPlace ? ` · 第 ${inspectingPlace.line} 行` : ""}${away ? ` · 执行已到第 ${here.line} 行` : ""}<button id="follow-again">回到跟随执行</button></div>`;
 }
+// Actions people miss at the bottom of a long detail sit as icons in the
+// panel's title row, beside 取消固定 (classroom 2026-11-03).
+const CONTEXT_ICONS = {
+  // The same mark as the return-to-execution button: go to a line.
+  "detail-source": '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/><circle cx="8" cy="8" r="5"/>',
+  refs: '<circle cx="4" cy="11" r="2.5"/><circle cx="12" cy="11" r="2.5"/><path d="M6.5 11h3M2.5 9 4.5 3.5h2L7 9M13.5 9 11.5 3.5h-2L9 9"/>',
+  "detail-bits": '<path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><circle cx="8" cy="8" r="2.5"/>',
+};
 function showContext(html) {
   $("context").innerHTML = modeBar() + html;
+  const tools = $("context-tools");
+  tools.replaceChildren();
+  for (const [id, icon] of Object.entries(CONTEXT_ICONS)) {
+    const b = $("context").querySelector("#" + id);
+    if (!b) continue;
+    const name = b.textContent.trim();
+    b.classList.add("tool");
+    b.dataset.tip = name;
+    b.setAttribute("aria-label", name);
+    b.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${icon}</svg><span class="tool-label">${esc(name)}</span>`;
+    tools.append(b);
+  }
+  $("context").querySelectorAll(".context-actions:empty").forEach((e) => e.remove());
   $("clear-focus").hidden = following || !inspecting;
   if ($("follow-again"))
     $("follow-again").onclick = () => $("clear-focus").click();
@@ -1550,6 +1591,7 @@ async function assemble() {
       instructionDocs: state.instructionDocs || {},
     };
     dirty = false;
+    runMode = "";
     // An error had brought the problems list forward; a clean assembly puts
     // the console back (round-4 trial: output stayed hidden behind it).
     if (!state.error && problemsShownForError && bottom === "problems") setBottom("console");
@@ -1589,6 +1631,7 @@ function savedEditor() {
 }
 function switchFile(file) {
   if (!Object.hasOwn(files,file) && !Object.hasOwn(data,file)) return;
+  if (!autoMoving) leftExecution();
   savedEditor();
   live.reset(); hideTooltip(0);
   if (activeFile) fileStates.set(activeFile, editor.state.selection);
@@ -1721,7 +1764,44 @@ let keepNotice = false;
 // the last one that ran (the PC then points past the exit).
 const executionPC = () =>
   state?.status === "ended" ? state.last?.pc : state?.pc;
+// During a step-by-step run the student may scroll or open another file for
+// a moment; following resumes after FOLLOW_IDLE ms without such an action,
+// or at once from the return button (classroom 2026-11-03).
+const FOLLOW_IDLE = 4000;
+let followHold = 0,
+  autoMoving = false;
+function leftExecution() {
+  if (running && demoing) followHold = Date.now() + FOLLOW_IDLE;
+  requestAnimationFrame(updateReturn);
+}
+function executionInstruction() {
+  const ins = program.instructions.find((i) => i.address === executionPC());
+  return ins && (!target || target.files.includes(ins.file)) ? ins : null;
+}
+// The return button shows whenever the executing line is out of sight.
+function updateReturn() {
+  const ins = state && !dirty && view === "source" ? executionInstruction() : null;
+  let away = false;
+  if (ins && ins.file !== activeFile) away = true;
+  else if (ins) {
+    const l = editor.state.doc.line(Math.min(ins.line, editor.state.doc.lines)),
+      c = editor.coordsAtPos(l.from),
+      r = editor.scrollDOM.getBoundingClientRect();
+    away = !c || c.bottom < r.top || c.top > r.bottom;
+  }
+  $("follow-return").hidden = !away;
+}
 function followPC() {
+  if (running && demoing && Date.now() < followHold) return updateReturn();
+  autoMoving = true;
+  try {
+    movePC();
+  } finally {
+    autoMoving = false;
+  }
+  requestAnimationFrame(updateReturn);
+}
+function movePC() {
   let ins = program.instructions.find((i) => i.address === executionPC());
   if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
@@ -1759,6 +1839,7 @@ function followPC() {
 }
 function setView(v) {
   view = v;
+  requestAnimationFrame(updateReturn);
   $("editor").hidden = v !== "source";
   $("editor").style.display = v === "source" ? "" : "none";
   $("machine").hidden = v !== "machine";
@@ -1896,7 +1977,7 @@ function executionBlock() {
   if (state.status === "error") return "程序出错停下了：修改后重新汇编";
   return "";
 }
-// After the program ends, run starts it again from the beginning: the
+// After the program ends, F5 starts it again from the beginning: the
 // loaded program is assembled anew (breakpoints follow their file:line, and
 // input is asked for again rather than replayed) and then run.
 const canRestart = () =>
@@ -1905,10 +1986,35 @@ async function restartRun() {
   await assemble();
   if (state?.status === "paused" && !state.error) await run("run");
 }
+// Once anything has run, the first button goes back to the start: the loaded
+// program is assembled anew, so edits are picked up and input is asked again.
+const started = () => running || !!state?.step || ["ended", "error"].includes(state?.status);
+async function backToStart() {
+  await requestStop();
+  await assemble();
+  followPC();
+  arrive(true);
+}
+const RUN_ICONS = {
+  full: '<path d="M1.5 3.5 7.5 8l-6 4.5zM8 3.5 14 8l-6 4.5z"/>',
+  steps: '<path d="M1.5 2 7 6 1.5 10z"/><circle cx="10.5" cy="10.5" r="4.5"/><path d="M10.5 8v2.5l1.8 1.2"/>',
+  back: '<path d="M3.5 3v10"/><path d="M12.5 3.5 6 8l6.5 4.5z"/>',
+  pause: '<path d="M5.5 3.5v9M10.5 3.5v9"/>',
+  resume: '<path d="M5 3.5 12 8l-7 4.5z"/>',
+};
+// An icon whose name shows on hover, keyboard focus and touch screens.
+function face(button, icon, name) {
+  if (button.dataset.face === icon) return;
+  button.dataset.face = icon;
+  button.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${RUN_ICONS[icon]}</svg><span class="tool-label">${name}</span>`;
+}
+// Two buttons for every way of running (classroom 2026-11-03): full run /
+// back to start, and step-by-step run / pause / continue. Continue resumes
+// the way the program was started.
 function updateControls() {
   const gate = blocked(),
     why = executionBlock();
-  for (let name of ["step", "source", "over", "out", "run", "demo"])
+  for (let name of ["step", "source", "over", "out", "run", "demo", "next-bp"])
     $(name).disabled =
       busy ||
       dirty ||
@@ -1917,29 +2023,43 @@ function updateControls() {
       !state ||
       !["paused", "waiting"].includes(state.status);
   $("back").disabled = busy || dirty || !!gate || running || !state?.step;
-  const restart = canRestart();
-  if (restart) $("run").disabled = false;
-  // One button per action (classroom 2026-10-31): whichever started the
-  // machine pauses it, and a paused demonstration offers to continue.
-  if (!state?.step || state.status === "ended" || dirty) demoPaused = false;
-  const pausable = (demo) => running && !stopRequested && demo === demoing;
-  if (pausable(false)) $("run").disabled = false;
-  if (pausable(true)) $("demo").disabled = false;
-  $("run").textContent = pausable(false) ? "Ⅱ 暂停" : restart ? "↻ 从头运行" : "▶ 运行";
-  $("run").setAttribute("aria-label", pausable(false) ? "暂停（F6）" : restart ? "从头运行（F5）" : "运行（F5）");
-  $("demo").textContent = pausable(true) ? "Ⅱ 暂停" : demoPaused ? "▶ 继续" : "▷ 演示";
-  $("demo").setAttribute("aria-label", pausable(true) ? "暂停演示（F6）" : demoPaused ? "继续演示" : "演示");
-  for (const name of ["back", "step", "source", "over", "out", "run", "demo"]) {
+  // Without a caller there is nothing to return to: step out would just run
+  // on to the end (classroom 2026-11-03).
+  const outside = !state?.calls?.length,
+    noStops = !activeBreakpoints().some((b) => !b.log);
+  if (outside) $("out").disabled = true;
+  if (noStops) $("next-bp").disabled = true;
+  $("prev-bp").disabled = $("back").disabled || noStops;
+  const back = started(),
+    pausing = running && !stopRequested,
+    resume = !running && !!state?.step && !!runMode && ["paused", "waiting"].includes(state?.status);
+  if (back) $("run").disabled = (busy && !running) || !!gate || !target;
+  if (pausing) $("demo").disabled = false;
+  // Icons like the step tools, named on hover (classroom 2026-11-03).
+  face($("run"), back ? "back" : "full", back ? "回到开头" : "完整运行");
+  $("run").setAttribute("aria-label", back ? "回到开头" : "完整运行（F5）");
+  face($("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? "暂停" : resume ? "继续" : "逐步运行");
+  $("demo").setAttribute("aria-label", pausing ? "暂停（F6）" : resume ? "继续" : "逐步运行");
+  // The speed only matters while stepping through, or paused in it.
+  $("demo-speed-control").hidden = !(
+    (running && demoing) ||
+    (!running && runMode === "demo" && !!state?.step && ["paused", "waiting"].includes(state?.status))
+  );
+  for (const name of ["back", "step", "source", "over", "out", "run", "demo", "prev-bp", "next-bp"]) {
     const b = $(name);
     b.dataset.tipBase ??= b.dataset.tip || "";
     b.dataset.tip =
-      (name === "run" || name === "demo") && running && !b.disabled
+      name === "demo" && pausing
         ? "暂停 · F6"
-        : name === "demo" && demoPaused && !b.disabled
-          ? "继续演示：从当前位置接着逐条执行"
-          : name === "run" && restart
-            ? "从头运行：重新汇编当前程序并运行 · F5"
-            : b.disabled && why
+        : name === "demo" && resume && !b.disabled
+          ? runMode === "demo" ? "继续逐步运行：从当前位置接着一步一步执行" : "继续完整运行：全速运行到断点、等待输入或结束 · F5"
+          : name === "run" && back && !b.disabled
+            ? "回到开头：重新汇编当前程序，停在第一条指令前"
+            : b.disabled && !why && name === "out" && outside
+              ? `${b.dataset.tipBase}（现在不在函数里，没有可以返回的调用）`
+              : b.disabled && !why && (name === "prev-bp" || name === "next-bp") && noStops
+                ? `${b.dataset.tipBase}（还没有设置断点）`
+                : b.disabled && why
               ? `${b.dataset.tipBase}（${why}）`
               : b.dataset.tipBase;
   }
@@ -1954,7 +2074,7 @@ function updateControls() {
   $("status").onclick = info.at
     ? () => gotoSource(info.at.file, info.at.line)
     : null;
-  $("status").title = info.at ? "点击跳到这一行" : "";
+  $("status").title = info.text + (info.at ? "\n点击跳到这一行" : "");
 }
 function nextScope() {
   return assemblyScope(
@@ -2098,9 +2218,14 @@ function setupMenu(buttonId, menuId) {
     e.stopPropagation();
     const open = menu.hidden;
     document.querySelectorAll(".menu").forEach((m) => (m.hidden = true));
+    document.querySelectorAll(".menu-button").forEach((b) => b.setAttribute("aria-expanded", "false"));
     menu.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     if (open) menu.querySelector("button:not(:disabled)")?.focus();
+  });
+  // Like a desktop menubar: with one menu open, pointing at another opens it.
+  button.addEventListener("mouseenter", () => {
+    if (menu.hidden && document.querySelector(".menubar .menu:not([hidden])")) button.click();
   });
   menu.addEventListener("click", (e) => {
     if (e.target.closest('[role="menuitem"]')) close();
@@ -2111,6 +2236,11 @@ function setupMenu(buttonId, menuId) {
     if (e.key === "Escape") {
       close();
       button.focus();
+    } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && MENUS.some(([b]) => b === buttonId)) {
+      const at = MENUS.findIndex(([b]) => b === buttonId),
+        [next] = MENUS[(at + (e.key === "ArrowRight" ? 1 : MENUS.length - 1)) % MENUS.length];
+      close();
+      $(next).click();
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp")
       items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
     else return;
@@ -2121,8 +2251,16 @@ function setupMenu(buttonId, menuId) {
     if (!e.target.closest(".menu-wrap")) close();
   });
 }
-setupMenu("project-menu-button", "project-menu");
-setupMenu("view-menu-button", "view-menu");
+setupMenu("engine", "engine-menu");
+$("engine").addEventListener("click", () => {
+  $("engine-delay").textContent = `延迟分支：${$("delay").checked ? "开启" : "关闭"} · 程序：${target ? describeScope(target) : "未汇编"}`;
+});
+const MENUS = [
+  ["project-menu-button", "project-menu"],
+  ["learn-menu-button", "learn-menu"],
+  ["view-menu-button", "view-menu"],
+];
+for (const [button, menu] of MENUS) setupMenu(button, menu);
 // Left side: files, symbols, and breakpoints with watchpoints, one at a time.
 // A breakpoint or watchpoint hit while that group is hidden marks its tab.
 const SIDE_TABS = ["files", "symbols", "stops"];
@@ -2301,6 +2439,30 @@ function renderSymbols() {
 function accesses() {
   return state?.last?.accesses || state?.preview?.accesses || [];
 }
+// Whether a 32-bit binary value fits on one line in the register column,
+// measured with the current code font and remembered for that width.
+function binDigitsFit() {
+  const box = $("registers"),
+    key = box.clientWidth + codeFont;
+  if (binDigitsFit.key === key) return binDigitsFit.fits;
+  const probe = document.createElement("div");
+  probe.className = "reg";
+  probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+  probe.innerHTML = `<span class="name">$zero</span><span class="value">${esc(fmt(-1, 4, "value").full)}</span>`;
+  box.appendChild(probe);
+  const need = probe.getBoundingClientRect().width,
+    room = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) - parseFloat(getComputedStyle(box).paddingRight);
+  probe.remove();
+  binDigitsFit.key = key;
+  return (binDigitsFit.fits = need <= room);
+}
+// Dragging the column wider or narrower switches between digits and dots.
+new ResizeObserver(() => {
+  if (radix !== "bin" || !state) return;
+  const before = binDigitsFit.fits;
+  binDigitsFit.key = null;
+  if (binDigitsFit() !== before) renderRegisters();
+}).observe($("registers"));
 function renderRegisters() {
   if (!state) return;
   let all = accesses(),
@@ -2312,13 +2474,31 @@ function renderRegisters() {
   // were cut off); registers then take a full row each and wrap only at byte
   // boundaries, so the bit order is never broken up or reflowed.
   const bin = radix === "bin";
-  const shown = (r) =>
-    bin
-      ? esc(fmt(r.value, 4, regKind(r.name)).full).replace(/_/g, (m, i, all) =>
-          (all.slice(2, i).match(/_/g) || []).length % 2 ? "_<wbr>" : "_",
-        )
-      : esc(fmt(r.value, 4, regKind(r.name)).text);
   $("registers").classList.toggle("bin", bin);
+  // A narrow column cannot hold 32 digits on a line: bits become dots,
+  // filled for 1 and hollow for 0, a byte at a time, wrapping onto a second
+  // line (classroom 2026-11-03).
+  const dots = bin && !binDigitsFit();
+  $("registers").classList.toggle("dots", dots);
+  const text = (value, name) =>
+    dots
+      ? bitDots(value, 4, fmt(value, 4, regKind(name)).full)
+      : bin
+        ? esc(fmt(value, 4, regKind(name)).full)
+        : esc(fmt(value, 4, regKind(name)).text);
+  // A register the step just wrote shows what it replaced: the old value
+  // struck through above the new one (classroom 2026-11-03). Only for a
+  // completed step; a preview has not written anything yet. Binary values
+  // are too long to show twice.
+  const replaced = new Map(
+    (bin ? [] : state.last?.accesses || [])
+      .filter((a) => a.kind === "register" && a.write && a.before != null)
+      .map((a) => [a.name, a.before]),
+  );
+  const shown = (r) =>
+    replaced.has(r.name)
+      ? `<s class="old" aria-label="原值">${text(replaced.get(r.name), r.name)}</s><span class="new">${text(r.value, r.name)}</span>`
+      : text(r.value, r.name);
   // What the prefixes mean, right where the values are (round-4 trial: the
   // footer legend went unnoticed).
   $("reg-legend").textContent = {
@@ -2341,7 +2521,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""}${esc(signNote(r))}\n前缀：${esc($("reg-legend").textContent)} · 点击查看"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""}${esc(signNote(r))}\n前缀：${esc($("reg-legend").textContent)} · 点击查看"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -2412,31 +2592,6 @@ function inspectByte(address) {
 async function memoryAt(address) {
   await command("memory", { address: address | 0 });
   overlay.schedule();
-}
-function renderCards() {
-  let last = state?.last,
-    next = state?.preview;
-  $("last-card").innerHTML =
-    `<small>刚完成 ${last ? "#" + last.step : ""} · 实线</small><b>${esc(last?.instruction ? sourceOf(last.instruction) : "尚无执行记录")}</b>`;
-  $("next-card").innerHTML =
-    state?.status === "ended"
-      ? `<small>即将执行</small><b>程序已结束 · 退出码 ${state.exitCode}</b>`
-      : `<small>即将执行 ${next?.instruction ? "#" + next.step : ""} · 虚线 ${next?.status === "waiting-input" ? "· 等待输入" : ""}</small><b>${esc(next?.instruction ? sourceOf(next.instruction) : "—")}</b>`;
-  for (let [id, e] of [
-    ["last-card", last],
-    ["next-card", next],
-  ]) {
-    // The machine instruction actually executed is one hover away.
-    $(id).title = e?.instruction
-      ? `${e.instruction.file}:${e.instruction.line} · ${hex(e.pc)}\n实际执行：${e.instruction.basic}`
-      : "";
-    $(id).onclick = () => {
-      if (e?.instruction) {
-        gotoSource(e.instruction.file, e.instruction.line);
-        inspectToken(e.instruction.op, e.instruction);
-      }
-    };
-  }
 }
 function renderMachine() {
   $("machine").innerHTML = program.instructions
@@ -2550,16 +2705,12 @@ function render() {
   renderSymbols();
   renderRegisters();
   renderMemory();
-  renderCards();
   renderTrace();
   renderStops();
   renderLogs();
   renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
-  // "第 N 步" in explanations is the Nth execution, so the state reads as how
-  // many steps have run (round-2 trial: S13 vs 第 14 步 looked inconsistent).
-  $("location").textContent =
-    `已执行 ${state.step} 步 · 下一条 ${hex(state.pc)}`;
+  requestAnimationFrame(updateReturn);
   $("history-info").textContent = `${state.step} / ${state.historyLength} 步`;
   $("calls").innerHTML =
     state.calls
@@ -2631,6 +2782,7 @@ function activeBreakpoints() {
 }
 function breakpointChanged() {
   renderStops();
+  updateControls();
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
 }
@@ -2833,7 +2985,8 @@ function renderStops() {
 // late follow switched files when this flag was cleared early).
 let stopRequested = false,
   demoing = false,
-  demoPaused = false,
+  // How the program was last started ("run" or "demo"); Continue resumes it.
+  runMode = "",
   runDone = Promise.resolve();
 function requestStop() {
   if (running) {
@@ -2850,7 +3003,7 @@ async function run(mode = "run", extra = {}) {
   }
   running = true;
   demoing = mode === "demo";
-  demoPaused = false;
+  if ((mode === "run" || mode === "demo") && !extra.keepMode) runMode = mode;
   stopRequested = false;
   let finish;
   runDone = new Promise((resolve) => (finish = resolve));
@@ -2859,8 +3012,8 @@ async function run(mode = "run", extra = {}) {
   } finally {
     running = false;
     stopRequested = false;
-    demoPaused = demoing && ["paused", "waiting"].includes(state?.status);
     demoing = false;
+    followHold = 0;
     updateControls();
     finish();
   }
@@ -2868,13 +3021,14 @@ async function run(mode = "run", extra = {}) {
   followInspector();
   lens.settle();
 }
-const DEMO_SPEEDS = [1500, 900, 450, 150, 75];
-const DEMO_SPEED_NAMES = ["很慢", "慢速", "中速", "快速", "很快"];
+// Step-by-step speed in steps (machine instructions) per second.
+const DEMO_RATES = [0.5, 1, 2, 4, 8, 16];
+const demoRate = () => DEMO_RATES[Number($("demo-speed").value) - 1];
 function updateDemoSpeed() {
-  const level = Number($("demo-speed").value), name = DEMO_SPEED_NAMES[level - 1];
-  $("demo-speed-label").textContent = `${level}/5`;
-  $("demo-speed").setAttribute("aria-valuetext", `${name}，第 ${level} 档，共 5 档`);
-  $("demo-speed").title = `演示速度：${name}（${level}/5）`;
+  const text = `${demoRate()} 步/秒`;
+  $("demo-speed-label").textContent = text;
+  $("demo-speed").setAttribute("aria-valuetext", `每秒 ${demoRate()} 步`);
+  $("demo-speed").title = `逐步运行速度：${text}`;
 }
 $("demo-speed").addEventListener("input", updateDemoSpeed);
 updateDemoSpeed();
@@ -2888,6 +3042,7 @@ async function runLoop(mode, extra) {
   if (demonstrate) mode = "run";
   pendingResume = null;
   while (!stopRequested) {
+    const began = performance.now();
     let s = await command(mode, {
       limit:
         mode === "run"
@@ -2903,13 +3058,13 @@ async function runLoop(mode, extra) {
       ...extra,
     });
     first = false;
-    // Demonstration pace: one instruction at a time so the PC can be followed.
-    // Step-by-step narration lives in focus mode (DESIGN §3.8).
+    // Step-by-step pace: one instruction at a time so the PC can be followed;
+    // the request's own time counts towards the interval. Step-by-step
+    // narration lives in focus mode (DESIGN §3.8).
     if (demonstrate && s?.last) {
       followPC();
-      await new Promise((resolve) =>
-        setTimeout(resolve, DEMO_SPEEDS[Number($("demo-speed").value) - 1]),
-      );
+      const wait = 1000 / demoRate() - (performance.now() - began);
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, wait)));
     }
     if (
       !s ||
@@ -2968,8 +3123,11 @@ function commandList() {
     ["跨过调用", () => run("over"), "over"],
     ["跳出函数", () => run("out"), "out"],
     ["回退一步", () => command("back").then(followPC), "back"],
-    ["运行／继续", () => run(), "run"],
-    ["演示播放（逐条执行并跟随）", () => run("demo")],
+    ["跳到下一个断点", () => $("next-bp").click()],
+    ["跳回上一个断点", () => $("prev-bp").click()],
+    ["完整运行／全速继续", () => actions.run(), "run"],
+    ["逐步运行（一步一步执行并跟随）", () => run("demo")],
+    ["回到开头（重新汇编当前程序）", () => backToStart()],
     ["重新汇编并重启", () => assemble(), "restart"],
     ["暂停", () => requestStop(), "pause"],
     ["停止并回到起点", () => actions.stop(), "stop"],
@@ -3302,16 +3460,27 @@ $("step").onclick = () =>
     followPC();
     arrive();
   });
-$("demo").onclick = () => (running ? requestStop() : run("demo"));
+$("demo").onclick = () =>
+  running ? requestStop() : run(state?.step && runMode ? runMode : "demo");
 $("back").onclick = () =>
   command("back").then(() => {
     followPC();
     arrive();
   });
-for (let mode of ["source", "over", "out", "run"])
-  $(mode).onclick = () =>
-    mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run(mode);
+$("run").onclick = () => (started() ? backToStart() : run("run"));
+// Breakpoint to breakpoint: forward runs at full speed and leaves how the
+// program was started alone; back looks through the recorded history.
+$("next-bp").onclick = () => run("run", { keepMode: true });
+$("prev-bp").onclick = async () => {
+  await command("previousBreakpoint", { breakpoints: activeBreakpoints() });
+  if (state?.stopReason === "No earlier breakpoint")
+    notify("前面的执行里没有停在断点前的位置", { transient: true });
+  followPC();
+  arrive(true);
+};
+for (let mode of ["source", "over", "out"]) $(mode).onclick = () => run(mode);
 $("commands").onclick = openCommands;
+$("commands-key").textContent = IS_MAC ? "⇧⌘P" : "Ctrl+Shift+P";
 $("radix").innerHTML = RADIXES.map(
   ([value, label]) =>
     `<option value="${value}" title="${esc(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label}</option>`,
@@ -3373,6 +3542,55 @@ function setFontSize(size) {
   overlay.schedule();
 }
 $("zoom").onclick = () => setFontSize(fontSize + 1);
+// Code font (classroom 2026-11-03): five bundled fonts, or the operating
+// system's own, which differs between macOS, Windows and Linux.
+const OS_NAME = /Mac|iPhone|iPad/.test(navigator.platform)
+  ? "macOS：SF Mono"
+  : /Win/.test(navigator.platform)
+    ? "Windows：Consolas"
+    : "Linux：DejaVu 等";
+const CODE_FONTS = [
+  ["jetbrains", "JetBrains Mono", '"JetBrains Mono Web"'],
+  ["fira", "Fira Code", '"Fira Code Web"'],
+  ["cascadia", "Cascadia Code", '"Cascadia Code Web"'],
+  ["source", "Source Code Pro", '"Source Code Pro Web"'],
+  ["plex", "IBM Plex Mono", '"IBM Plex Mono Web"'],
+  ["system", "系统默认", ""],
+];
+let codeFont = "jetbrains";
+function setCodeFont(id) {
+  const font = CODE_FONTS.find(([key]) => key === id) || CODE_FONTS[0];
+  codeFont = font[0];
+  document.documentElement.style.setProperty(
+    "--mono",
+    font[2] ? `${font[2]}, var(--mono-system)` : "var(--mono-system)",
+  );
+  $("font-list").querySelectorAll("[data-font]").forEach((b) =>
+    b.setAttribute("aria-checked", String(b.dataset.font === codeFont)),
+  );
+  try {
+    localStorage.setItem("code-font", codeFont);
+  } catch {}
+  // Glyph widths change: the editor and the connecting lines re-measure
+  // once the font has loaded.
+  document.fonts?.ready.then(() => {
+    editor.requestMeasure();
+    overlay.schedule();
+  });
+}
+$("font-list").innerHTML = CODE_FONTS.map(
+  ([key, name, family]) =>
+    `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${esc(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${esc(name)}</span><span class="sample">${key === "system" ? esc(OS_NAME) : "0O 1lI $t0"}</span></button>`,
+).join("");
+$("font-list").onclick = (e) => {
+  const b = e.target.closest("[data-font]");
+  if (b) setCodeFont(b.dataset.font);
+};
+try {
+  setCodeFont(localStorage.getItem("code-font") || "jetbrains");
+} catch {
+  setCodeFont("jetbrains");
+}
 // Panels resize by dragging the lines between them, or with the arrow keys
 // on a focused line (2026-10-23 feedback). Sizes are remembered per viewer;
 // a double-click restores the default.
@@ -3560,9 +3778,9 @@ $("add-watch").onclick = () => {
     renderStops();
   };
 };
-$("example").onchange = () => {
-  if ($("example").value !== "") loadExample(Number($("example").value));
-  $("example").value = "";
+$("example-list").onclick = (e) => {
+  const b = e.target.closest("[data-example]");
+  if (b) loadExample(Number(b.dataset.example));
 };
 // Global shortcuts (DESIGN §3.9). Focus mode handles its own arrow keys first.
 const mac = /Mac|iPhone|iPad/.test(navigator.platform);
@@ -3575,7 +3793,7 @@ function hintOnce(key, text) {
   notify(text);
 }
 const actions = {
-  run: () => !running && $("run").click(),
+  run: () => !running && (canRestart() ? restartRun() : run("run")),
   pause: () => requestStop(),
   stop: async () => {
     await requestStop();
@@ -3672,15 +3890,12 @@ workspace = projectManager({
     target = null; lastInTarget = ""; inspectingPlace = null; following = true;
     showContext(CONTEXT_HINT);
     inspecting = null; focus = null; inlineCache.key = null;
-    dirty = true; pendingResume = null;
+    dirty = true; pendingResume = null; runMode = "";
     $("delay").checked = p.delay;
     setView("source"); setBottom("console");
     for (const id of ["output","trace","calls","problems","logs","symbols","registers","memory","machine","cfg"]) {
       if ($(id)) $(id).replaceChildren();
     }
-    $("last-card").innerHTML='<small>刚完成 · 实线</small><b>尚无执行记录</b>';
-    $("next-card").innerHTML='<small>下一条 · 虚线</small><b>汇编后开始</b>';
-    $("location").textContent="尚未汇编";
     $("history-info").textContent="0 / 0 步";
     $("pc").textContent="PC —";
     selectActiveFile(p.activeFile);
@@ -3718,10 +3933,10 @@ try {
   const response = await fetch("/examples");
   if (!response.ok) throw Error("示例服务暂时不可用");
   exampleList = await response.json();
-  $("example").innerHTML = '<option value="">教学示例…</option>' + exampleList.map((e,i) =>
-    `<option value="${i}">${esc(e.name === "hexout" ? "Hexadecimal · 位与字符" : e.name === "task1" ? "Task 1 · 文件与调用" : e.name)}</option>`
-  ).join('');
+  $("example-list").innerHTML = exampleList.map((e,i) =>
+    `<button role="menuitem" data-example="${i}">${esc(e.name === "hexout" ? "Hexadecimal · 位与字符" : e.name === "task1" ? "Task 1 · 文件与调用" : e.name)}</button>`
+  ).join('') || '<button role="menuitem" disabled>没有示例</button>';
 } catch (e) {
-  $("example").innerHTML='<option value="">示例暂不可用</option>';
+  $("example-list").innerHTML='<button role="menuitem" disabled>示例暂不可用</button>';
 }
 })();

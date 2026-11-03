@@ -1,3 +1,24 @@
+/* Code fonts (classroom 2026-11-03): five bundled OFL fonts, Latin subset;
+   Chinese text in comments falls back to the system font. A font file is
+   only fetched once text uses it. */
+@font-face { font-family: "JetBrains Mono Web"; src: url("fonts/jetbrains-mono/400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono Web"; src: url("fonts/jetbrains-mono/400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "JetBrains Mono Web"; src: url("fonts/jetbrains-mono/600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono Web"; src: url("fonts/jetbrains-mono/600-italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: "Fira Code Web"; src: url("fonts/fira-code/400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fira Code Web"; src: url("fonts/fira-code/600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cascadia Code Web"; src: url("fonts/cascadia-code/400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cascadia Code Web"; src: url("fonts/cascadia-code/400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Cascadia Code Web"; src: url("fonts/cascadia-code/600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cascadia Code Web"; src: url("fonts/cascadia-code/600-italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: "Source Code Pro Web"; src: url("fonts/source-code-pro/400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Source Code Pro Web"; src: url("fonts/source-code-pro/400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Source Code Pro Web"; src: url("fonts/source-code-pro/600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Source Code Pro Web"; src: url("fonts/source-code-pro/600-italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono Web"; src: url("fonts/ibm-plex-mono/400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono Web"; src: url("fonts/ibm-plex-mono/400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono Web"; src: url("fonts/ibm-plex-mono/600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono Web"; src: url("fonts/ibm-plex-mono/600-italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
 :root {
   --bg: #f3f5f8;
   --panel: #fff;
@@ -13,7 +34,7 @@
   --exec-strong: #b58900;
   --done: #8a94a6;
   --read: #0f8c8c;
-  --write: #c2185b;
+  --write: #d35400;
   --flow: #af00db;
   --warn: #b26a00;
   --bp: #e51400;
@@ -25,6 +46,10 @@
   --syn-str: #a31515;
   --syn-comment: #008000;
   --code: 13px;
+  /* The operating system's own code font: SF Mono on macOS, Consolas or
+     Cascadia Mono on Windows, DejaVu / Liberation / Ubuntu Mono on Linux. */
+  --mono-system: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", "Ubuntu Mono", "Noto Sans Mono", monospace;
+  --mono: "JetBrains Mono Web", var(--mono-system);
   --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color-scheme: light;
 }
@@ -52,7 +77,7 @@ body.dark {
   --exec-strong: #ffcc00;
   --done: #7f8ba0;
   --read: #4ec9b0;
-  --write: #f48fb1;
+  --write: #ff8c3a;
   --flow: #c586c0;
   --warn: #cca700;
   --bp: #f14c4c;
@@ -100,42 +125,30 @@ input[type="checkbox"] {
   vertical-align: middle;
 }
 header {
-  height: 64px;
+  height: 44px;
   background: var(--panel);
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 22px;
+  gap: 6px;
+  padding: 0 14px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 .brand {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  font-size: 19px;
-  letter-spacing: -0.5px;
-  min-width: 215px;
+  font-size: 15px;
+  letter-spacing: -0.3px;
+  margin-right: 10px;
 }
 .brand-icon {
   background: #293e62;
   color: white;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 3px 7px;
+  border-radius: 6px;
   font-weight: 700;
-}
-.brand small {
-  display: block;
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-.project {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
+  font-size: 13px;
 }
 .toolbar {
   display: flex;
@@ -168,6 +181,11 @@ header {
   padding: 5px 10px;
   border-radius: 10px;
   margin-left: 10px;
+  /* One line: a long stop reason must not make the toolbar taller. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 /* Lives at the foot of the left column: a notice must not push the layout
    around (classroom 2026-10-31: "执行进入" moved the whole window in a demo). */
@@ -248,7 +266,7 @@ header {
 }
 .symbol {
   padding: 5px 13px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--mono);
 }
 .bp {
   font-size: 11px;
@@ -299,8 +317,16 @@ header {
   margin-left: auto;
   color: var(--muted);
   font:
-    10px ui-monospace,
-    monospace;
+    10px var(--mono);
+}
+/* Editor, machine view and control flow share one slot; the return-to-PC
+   button floats over its bottom-right corner. */
+.editor-stack {
+  flex: 1;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 #editor {
   flex: 1;
@@ -315,8 +341,9 @@ header {
   height: 100%;
   font-size: var(--code);
 }
-.cm-scroller {
-  font-family: "SFMono-Regular", Consolas, monospace;
+/* #editor outranks CodeMirror's own .cm-scroller { font-family: monospace }. */
+#editor .cm-scroller {
+  font-family: var(--mono);
   overflow: auto;
 }
 .cm-focused {
@@ -395,42 +422,6 @@ header {
   cursor: pointer;
   font-size: 14px;
 }
-.execution-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  border-top: 1px solid var(--line);
-  padding: 10px 12px;
-  flex-shrink: 0;
-}
-.execution-strip > div {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 8px 10px;
-  min-width: 0;
-}
-.execution-strip small {
-  display: block;
-  font-size: 10px;
-  color: var(--muted);
-  margin-bottom: 5px;
-}
-.execution-strip b {
-  font:
-    11px ui-monospace,
-    monospace;
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.execution-strip #last-card {
-  border-left: 3px solid var(--done);
-}
-.execution-strip #next-card {
-  border-left: 3px dashed var(--exec-strong);
-}
 .bottom {
   height: var(--bottom-h, 210px);
   display: flex;
@@ -456,8 +447,7 @@ header {
   flex: 1;
   margin: 0 0 10px;
   font:
-    12px/1.6 ui-monospace,
-    monospace;
+    12px/1.6 var(--mono);
 }
 #input-form {
   display: flex;
@@ -465,7 +455,7 @@ header {
 }
 #stdin {
   flex: 1;
-  font-family: ui-monospace, monospace;
+  font-family: var(--mono);
 }
 #input-form button {
   background: var(--bg);
@@ -487,7 +477,7 @@ p {
 }
 code,
 .mono {
-  font-family: ui-monospace, monospace;
+  font-family: var(--mono);
 }
 #context code {
   color: var(--accent);
@@ -501,8 +491,7 @@ code,
   grid-template-columns: 60px 1fr;
   gap: 3px;
   font:
-    11px/1.6 ui-monospace,
-    monospace;
+    11px/1.6 var(--mono);
   margin: 10px 0;
 }
 .values span:nth-child(odd) {
@@ -538,8 +527,7 @@ code,
   border: 1px solid var(--line);
   border-radius: 5px;
   font:
-    11px ui-monospace,
-    monospace;
+    11px var(--mono);
   cursor: pointer;
 }
 .reg .name {
@@ -565,14 +553,12 @@ code,
 #address {
   flex: 1;
   font:
-    11px ui-monospace,
-    monospace;
+    11px var(--mono);
 }
 #memory {
   padding: 0 10px 20px;
   font:
-    10px ui-monospace,
-    monospace;
+    10px var(--mono);
 }
 .mem-row {
   display: flex;
@@ -670,8 +656,7 @@ footer {
   gap: 8px;
   padding: 7px;
   font:
-    11px ui-monospace,
-    monospace;
+    11px var(--mono);
   border-bottom: 1px solid var(--line);
   cursor: pointer;
 }
@@ -699,8 +684,7 @@ footer {
   display: flex;
   justify-content: space-between;
   font:
-    11px ui-monospace,
-    monospace;
+    11px var(--mono);
   margin-bottom: 8px;
 }
 .block code {
@@ -725,8 +709,7 @@ footer {
   width: 100%;
   text-align: left;
   font:
-    11px ui-monospace,
-    monospace;
+    11px var(--mono);
   padding: 5px;
 }
 .trace-row.selected {
@@ -779,8 +762,7 @@ dialog textarea {
   color: var(--text);
   border: 1px solid var(--line);
   font:
-    12px/1.6 ui-monospace,
-    monospace;
+    12px/1.6 var(--mono);
   padding: 10px;
 }
 button:focus-visible,
@@ -796,9 +778,6 @@ input:focus-visible {
   }
   header {
     padding: 0 10px;
-  }
-  .brand {
-    min-width: 170px;
   }
   .toolbar {
     gap: 0;
@@ -917,7 +896,7 @@ body.focusing #tooltip {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
   align-items: start;
-  gap: 14px 72px;
+  gap: 22px 72px;
 }
 #focus-objects {
   overflow: auto;
@@ -959,7 +938,7 @@ body.focusing #tooltip {
   align-items: center;
   gap: 4px;
   padding: 3px 8px 3px 4px;
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--mono);
   font-size: var(--code);
   cursor: pointer;
   border-left: 3px solid transparent;
@@ -1019,7 +998,7 @@ body.focusing #tooltip {
 }
 .fmachine {
   padding: 1px 8px 1px 58px;
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: var(--muted);
   white-space: pre;
@@ -1052,7 +1031,7 @@ body.focusing #tooltip {
   padding: 4px 8px;
   border: 1px solid var(--line);
   border-radius: 5px;
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--mono);
   font-size: 12px;
 }
 .fobj span:first-child {
@@ -1124,7 +1103,7 @@ body.focusing #tooltip {
   border-color: var(--accent);
 }
 #focus-eq {
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--mono);
   font-size: 22px;
   min-height: 1.4em;
   white-space: nowrap;
@@ -1169,9 +1148,7 @@ body.focusing #tooltip {
   border-radius: 9px;
   color: var(--panel);
   font:
-    600 11px ui-monospace,
-    Menlo,
-    monospace;
+    600 11px var(--mono);
   white-space: nowrap;
 }
 #focus-input {
@@ -1201,9 +1178,7 @@ body.focusing #tooltip {
   float: right;
   color: var(--muted);
   font:
-    11px ui-monospace,
-    Menlo,
-    monospace;
+    11px var(--mono);
 }
 #picker-list {
   max-height: 55vh;
@@ -1318,9 +1293,7 @@ body.focusing #tooltip {
 #context-menu kbd {
   color: var(--muted);
   font:
-    11px ui-monospace,
-    Menlo,
-    monospace;
+    11px var(--mono);
 }
 /* Status chip: what the machine is doing, by colour and words (trial 2026-10-22). */
 .status[data-state] {
@@ -1475,9 +1448,15 @@ abbr.term {
   margin-left: 6px;
 }
 #radix-help {
-  padding: 0 6px;
-  font-size: 11px;
-  color: var(--muted);
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
 }
 .radix-help p {
   margin: 4px 0;
@@ -1569,9 +1548,6 @@ body.resizing-y * {
 }
 
 /* Project/file operations share the existing compact IDE visual language. */
-header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
-.project { flex-wrap:wrap; gap:4px; }
-.project select { max-width:190px; }
 .project-heading { padding:12px 12px 2px; }
 #project-title { font-weight:700; padding:2px 0; max-width:100%; overflow:hidden; text-overflow:ellipsis; display:block; }
 #workspace-status { display:block; font-size:10px; color:var(--muted); margin-top:5px; line-height:1.5; }
@@ -1580,8 +1556,8 @@ header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
 .file-tree, .file-tree ul { list-style:none; padding:0; margin:0; }
 .file-tree ul { margin-left:13px; border-left:1px solid var(--line); }
 .file-tree summary { cursor:pointer; display:flex; align-items:center; gap:5px; padding:4px 5px 4px 10px; font-size:12px; min-height:31px; }
-.file-tree summary::before { content:'▸'; color:var(--muted); }
-.file-tree details[open] > summary::before { content:'▾'; }
+.file-tree summary::before { content:''; width:5px; height:5px; margin:0 3px 0 1px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted); transform:rotate(-45deg); flex-shrink:0; transition:transform .12s; }
+.file-tree details[open] > summary::before { transform:rotate(45deg); }
 .folder-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tree-row { display:flex; align-items:center; padding-right:5px; min-width:0; border-left:2px solid transparent; }
 .tree-row.has-error .tree-open { color:var(--bp); }
@@ -1620,7 +1596,6 @@ header { min-height:64px; height:auto; padding-top:8px; padding-bottom:8px; }
 .import-target { display:flex; flex-direction:column; gap:6px; margin:10px 0; padding:0; border:0; }
 .danger { color:#bf4040; }
 button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
-@media(max-width:1050px) { .brand { min-width:125px; } header { gap:6px; padding-left:10px; padding-right:10px; } .brand small { letter-spacing:0; } .project button { padding:5px; font-size:11px; } }
 /* Assembly scope (P0): auto by default; single file or a manual scope. */
 .assembly-choice { padding:10px 10px 4px; font-size:10px; color:var(--muted); }
 .assembly-mode { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
@@ -1629,9 +1604,9 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .assembly-choice p { margin:6px 0 0; line-height:1.5; }
 .sidebar .joint-pick { width:auto; flex:0 0 auto; margin:0 0 0 8px; padding:0; }
 .tree-row.joined .tree-open { font-weight:600; }
-.viewbar .target-chip { margin-left:auto; padding:2px 7px; border:1px solid var(--line); border-radius:9px; color:var(--text); max-width:46%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.viewbar .pc-chip { margin-left:auto; font:11px var(--mono); color:var(--muted); white-space:nowrap; }
+.viewbar .target-chip { margin-left:8px; padding:2px 7px; border:1px solid var(--line); border-radius:9px; color:var(--text); max-width:46%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .viewbar .target-chip.stale { border-color:var(--warn); color:var(--warn); }
-.viewbar .target-chip + #location { margin-left:10px; }
 .scope-banner { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:7px 12px; font-size:12px; line-height:1.5; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--warn) 12%, var(--panel)); color:var(--text); flex-shrink:0; }
 .scope-banner[hidden] { display:none; }
 .scope-banner span { flex:1 1 260px; }
@@ -1679,7 +1654,6 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 /* Workspace layout (classroom 2026-10-24) ------------------------------- */
 /* Top: a project menu, the project with its save state, learning, settings. */
 .menu-wrap { position: relative; }
-.menu-button { border: 1px solid var(--line); }
 .menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 45; min-width: 250px; display: flex; flex-direction: column; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / .18); }
 .menu.menu-right { left: auto; right: 0; }
 .menu > button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; white-space: normal; padding: 7px 10px; }
@@ -1690,15 +1664,11 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .project-state { display: flex; flex-direction: column; min-width: 0; max-width: 260px; }
 .project-state #project-title { padding: 0; text-align: left; }
 .project-state #workspace-status { margin-top: 1px; }
-.learn { display: flex; align-items: center; gap: 6px; }
-#start-tutorial { border: 1px solid var(--accent); color: var(--accent); }
-#commands { color: var(--muted); }
 /* Toolbar: main actions keep words; stepping is one group of icons whose
    names show on hover and keyboard focus, and as text on touch screens. */
 .tool-group { display: inline-flex; align-items: center; gap: 1px; padding: 1px; border: 1px solid var(--line); border-radius: 7px; margin: 0 3px; }
 .tool { display: inline-flex; align-items: center; gap: 4px; padding: 5px 7px; }
 .tool svg, .side-tabs svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-.tool svg circle { fill: currentColor; stroke: none; }
 .tool-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (hover: none) { .tool-label { position: static; width: auto; height: auto; clip: auto; font-size: 11px; } }
 [data-tip] { position: relative; }
@@ -1733,7 +1703,9 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 #focus-head .overlay-settings { position: relative; }
 #focus-head .overlay-settings .overlay-controls { top: calc(100% + 6px); bottom: auto; left: 0; flex-wrap: wrap; width: max-content; max-width: 420px; box-shadow: 0 8px 24px rgb(0 0 0 / .18); border-radius: 8px; }
 /* Focus mode: the untaken side of a branch, folded by default. */
-.funtaken { margin: 0 6px 4px 34px; border-left: 2px dashed var(--line); padding-left: 6px; font-size: 11px; color: var(--muted); }
+.funtaken { margin: 0; padding: 4px 8px; font-size: 11px; color: var(--muted); }
+/* The untaken side sits in a box of its own, dashed and dimmed. */
+.fseg.fghost { border-style: dashed; background: transparent; }
 .funtaken summary { cursor: pointer; padding: 2px 0; }
 .funtaken-tag { border: 1px dashed var(--muted); border-radius: 4px; padding: 0 4px; margin-right: 2px; }
 .funtaken-now { color: var(--text); opacity: .8; }
@@ -1744,7 +1716,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .bits-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 4px; }
 .bits-head span { color: var(--muted); font-size: 11px; }
 .bits-step p { margin: 4px 0; }
-.brow { display: flex; align-items: center; gap: 8px; font-family: ui-monospace, Menlo, monospace; }
+.brow { display: flex; align-items: center; gap: 8px; font-family: var(--mono); }
 .blabel { width: 92px; flex-shrink: 0; color: var(--muted); font-size: 11px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bbits { display: inline-flex; flex-wrap: wrap; }
 .bbits i { font-style: normal; width: 1.15em; text-align: center; line-height: 1.5; border-radius: 3px; }
@@ -1770,7 +1742,7 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 .tutorial-checks li.ok { color: var(--accent); }
 .tutorial-hint { margin: 4px 0; padding: 4px 8px; background: var(--bg); border-radius: 6px; }
 .tutorial-fail { color: var(--warn); margin: 4px 0; }
-.tutorial-answer { font: 11px/1.5 ui-monospace, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; overflow: auto; max-height: 220px; user-select: text; }
+.tutorial-answer { font: 11px/1.5 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; overflow: auto; max-height: 220px; user-select: text; }
 .tutorial-go { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 .tutorial-go button { border: 1px dashed var(--accent); color: var(--accent); padding: 3px 8px; }
 .tutorial-actions { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
@@ -1797,5 +1769,97 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 @media (prefers-reduced-motion: reduce) {
   #panel-context.attention { animation: none; box-shadow: inset 0 0 0 2px var(--flow); }
 }
-/* These two change their words while running; keep the toolbar from shifting. */
-#run, #demo { min-width: 76px; }
+
+
+/* Top bar is a menubar (classroom 2026-11-03): Project, Learn and Interface
+   menus, then the project name with its save state, then the command palette. */
+.menubar { display: flex; align-items: center; gap: 2px; }
+.menu-button { padding: 5px 10px; font-weight: 500; }
+.menu-button[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); border-color: var(--line); }
+.menu-label { padding: 6px 10px 2px; font-size: 11px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 1px; }
+.menu-group { display: flex; flex-direction: column; }
+.menu-group > button { text-align: left; padding: 6px 10px 6px 18px; white-space: normal; }
+header .project-state { margin-left: 12px; padding-left: 14px; border-left: 1px solid var(--line); flex: 1; }
+header #workspace-status { margin-top: 0; }
+#commands { display: inline-flex; align-items: center; gap: 6px; min-width: 190px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); background: var(--bg); }
+#commands span { flex: 1; text-align: left; }
+#commands svg, #follow-return svg, .footer-key svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+#commands kbd { font: 10px var(--font); color: var(--muted); }
+@media (max-width: 900px) { #commands { min-width: 0; } #commands span, #commands kbd { display: none; } header .project-state { margin-left: 4px; padding-left: 8px; } }
+/* Run controls: the first button starts a full run and then goes back to the
+   start; the second runs step by step, then pauses, then continues. */
+.run-group .tool { padding: 5px 9px; }
+.run-group .tool svg { width: 17px; height: 17px; }
+.toolbar .demo-speed-control { margin: 0 6px 0 4px; }
+.demo-speed-control .demo-speed-end { font-size: 11px; color: var(--muted); }
+#demo-speed-label { min-width: 52px; font-size: 11px; color: var(--text); font-variant-numeric: tabular-nums; }
+/* Back to the executing line when the student has moved away from it. */
+#follow-return { position: absolute; right: 18px; bottom: 14px; z-index: 6; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 16px; border: 1px solid var(--exec-strong); background: var(--panel); color: var(--exec-strong); box-shadow: 0 2px 8px rgb(0 0 0 / .18); }
+#follow-return svg { width: 18px; height: 18px; }
+#follow-return:hover { background: color-mix(in srgb, var(--exec) 40%, var(--panel)); }
+/* Focus mode and value display are modes, not footnotes. */
+.footer-key { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text); }
+button.footer-key { padding: 4px 9px; border: 1px solid var(--line); }
+label.footer-key select { font-size: 12px; font-weight: 600; padding: 2px 4px; }
+/* A write replaces a value: the old one struck through above the new. */
+/* Every cell has the height of two short lines, so a write never moves the
+   panel; the new value keeps its size and the struck-out one is smaller. */
+#registers:not(.bin) .reg { height: 29px; padding-top: 0; padding-bottom: 0; }
+#registers.bin .reg { min-height: 29px; padding-top: 3px; padding-bottom: 3px; }
+#registers.bin .value { white-space: nowrap; }
+/* Bits as dots: filled 1, hollow 0; bytes wrap, so at most two lines. */
+.bit-dots { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px 4px; min-width: 0; }
+.bit-byte { display: inline-flex; gap: 1px; }
+.bit-byte i { width: 4px; height: 4px; border-radius: 50%; border: 1px solid currentColor; box-sizing: border-box; }
+.bit-byte i:nth-child(4) { margin-right: 2px; }
+.bit-byte i.one { background: currentColor; }
+.bit-byte i.zero { opacity: .55; }
+.reg .value.replaced { display: flex; flex-direction: column; align-items: flex-end; }
+.reg .value.replaced .old { color: var(--muted); text-decoration-color: var(--write); text-decoration-thickness: 1.5px; font-size: 9.5px; line-height: 11px; }
+.reg .value.replaced .new { color: var(--write); font-weight: 600; line-height: 13px; }
+/* Ligatures merge characters (-> or <=) and would hide what was typed. */
+body { font-feature-settings: "liga" 0, "calt" 0; }
+.menu-group .font-choice { position: relative; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.font-choice .sample { font-size: 11px; color: var(--muted); }
+.font-choice[aria-checked="true"] { color: var(--accent); font-weight: 600; }
+.font-choice[aria-checked="true"]::before { content: "✓"; position: absolute; left: 6px; }
+/* The core, like VS Code's interpreter picker: shows what runs the code. */
+.engine-wrap { margin-left: auto; }
+.engine-button { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); padding: 3px 8px; }
+.engine-button svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+.menu.menu-up { top: auto; bottom: calc(100% + 6px); }
+.engine-info { display: flex; flex-direction: column; gap: 3px; padding: 4px 10px 6px; font-size: 12px; max-width: 280px; }
+.engine-info small, #engine-delay { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.panel-head .context-tools { display: inline-flex; gap: 1px; margin-left: auto; }
+.panel-head .context-tools .tool { padding: 3px 5px; }
+.panel-head .context-tools .tool svg { width: 15px; height: 15px; }
+/* The tip opens to the left: the panel sits at the window's right edge. */
+.panel-head .context-tools [data-tip]:hover::after, .panel-head .context-tools [data-tip]:focus-visible::after { left: auto; right: 0; transform: none; }
+.fobj .fval { min-width: 0; display: flex; justify-content: flex-end; }
+/* Footer labels stay on one line; the prefix legend gives way first. */
+footer { min-width: 0; }
+.footer-key, .radix-switch, #pc, .engine-button { white-space: nowrap; flex-shrink: 0; }
+footer .radix-legend { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; }
+.panel-head #clear-focus { padding: 3px 5px; }
+.panel-head #clear-focus svg { width: 15px; height: 15px; }
+.panel-head #clear-focus[data-tip]:hover::after, .panel-head #clear-focus[data-tip]:focus-visible::after { left: auto; right: 0; transform: none; }
+.radix-group { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* Breakpoint buttons carry the breakpoint's filled dot; line steps use a bar. */
+.tool svg .dot { fill: var(--bp); stroke: none; }
+.tool-divider { width: 1px; height: 18px; background: var(--line); margin: 0 2px; }
+/* File tree icons: outline pages, a letter for the kind of code. */
+:root { --icon-folder: #c08a1e; --icon-asm: var(--accent); --icon-c: #7a5cc2; }
+body.dark { --icon-folder: #dcb67a; --icon-c: #b39ddb; }
+.file-icon { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-linejoin: round; }
+.file-icon text { font: 700 7px var(--font); stroke: none; fill: currentColor; }
+.file-icon.asm { color: var(--icon-asm); }
+.file-icon.c, .file-icon.h { color: var(--icon-c); }
+.file-icon.text .line { stroke: var(--muted); }
+.file-icon.folder .shape, .file-icon.open .shape { stroke: var(--icon-folder); fill: color-mix(in srgb, var(--icon-folder) 22%, transparent); }
+.file-tree details > summary .file-icon.open, .file-tree details[open] > summary .file-icon.folder { display: none; }
+.file-tree details[open] > summary .file-icon.open { display: block; }
+.file-tree summary { display: flex; align-items: center; gap: 5px; }
+/* Focus mode is a mode to enter, not a footnote: accent text on a tint. */
+button#focus-open { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+button#focus-open:hover { background: color-mix(in srgb, var(--accent) 22%, var(--panel)); }
+.file-icon.asm .page, .file-icon.c .page, .file-icon.h .page { stroke: color-mix(in srgb, currentColor 70%, var(--muted)); }

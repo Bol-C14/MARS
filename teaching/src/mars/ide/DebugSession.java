@@ -557,6 +557,30 @@ public final class DebugSession {
   }
 
   /**
+   * Back in history to the latest earlier moment execution stood before a
+   * breakpoint (classroom 2026-11-03). Logpoints never stop; a condition or
+   * hit count is not re-evaluated in the past, only the address counts.
+   */
+  @SuppressWarnings("unchecked")
+  private void previousBreakpoint(Map<String, Object> req) throws Exception {
+    var stops = new HashSet<Integer>();
+    for (Object item : (List<Object>) req.getOrDefault("breakpoints", List.of())) {
+      var bp = (Map<String, Object>) item;
+      if (bp.getOrDefault("log", "").toString().isBlank()) stops.add(
+        ((Number) bp.get("address")).intValue()
+      );
+    }
+    for (int j = history.position - 1; j >= 0; j--) {
+      int pc = ((Number) history.get(j).event.get("pc")).intValue();
+      if (!stops.contains(pc)) continue;
+      seek(j);
+      stopReason = "Breakpoint before " + Integer.toUnsignedString(pc, 16);
+      return;
+    }
+    stopReason = "No earlier breakpoint";
+  }
+
+  /**
    * History position one source line back or forward, grouping steps the way
    * lookahead does: consecutive events on the same line that run sequentially
    * (a pseudo-instruction's expansion) form one line.
@@ -621,6 +645,7 @@ public final class DebugSession {
         stateVersion++;
       }
       case "source", "over", "out", "run" -> run(command, request);
+      case "previousBreakpoint" -> previousBreakpoint(request);
       case "memory" -> memoryBase = (
         (Number) request.get("address")
       ).intValue();
@@ -668,10 +693,17 @@ public final class DebugSession {
       }
       var ins = instructions.get(pc);
       if (ins == null) return;
+      boolean newLine = !source.equals(ins.get("file") + ":" + ins.get("line"));
+      if (stepped && mode.equals("source") && newLine) return;
+      // Step over: one source line like source stepping, but a call on it
+      // runs to its return first (classroom 2026-11-03: it used to stop
+      // after one machine instruction on ordinary lines).
       if (
         stepped &&
-        mode.equals("source") &&
-        !source.equals(ins.get("file") + ":" + ins.get("line"))
+        mode.equals("over") &&
+        newLine &&
+        depth <= 0 &&
+        DelayedBranch.checkpoint()[0] == 0
       ) return;
       if (!step()) return;
       stepped = true;
@@ -713,9 +745,6 @@ public final class DebugSession {
         ins.get("basic").toString().matches(".*(\\$31|\\$ra).*")
       ) depth--;
       if (!status.equals("paused")) return;
-      if (
-        mode.equals("over") && depth <= 0 && DelayedBranch.checkpoint()[0] == 0
-      ) return;
       if (
         mode.equals("out") && depth < 0 && DelayedBranch.checkpoint()[0] == 0
       ) return;

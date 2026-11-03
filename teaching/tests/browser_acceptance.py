@@ -61,7 +61,7 @@ def scenario(r, page, mod):
     r.check("command palette filters", page.locator("#picker-list .command-item").count() == 1)
     page.keyboard.press("Escape")
 
-    page.select_option("#example", label="Hexadecimal · 位与字符")
+    open_example(page, "Hexadecimal · 位与字符")
     page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.files['main.s']?.includes('Hex') && window.marsIDE.state?.step === 0")
     page.locator("#run").click()
@@ -84,7 +84,7 @@ def scenario(r, page, mod):
     page.locator("#modal .close").click()
     page.locator("#clear-focus").click()
 
-    page.select_option("#example", label="Task 1 · 文件与调用")
+    open_example(page, "Task 1 · 文件与调用")
     page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.program.instructions.some(i => i.file === 'task1.s') && window.marsIDE.state?.step === 0")
     address = r.js("() => window.marsIDE.program.instructions.find(i => i.file === 'task1.s' && i.line === 21).address")
@@ -142,7 +142,7 @@ def scenario(r, page, mod):
     page.locator("#watch-target").fill("$t0")
     page.select_option("#watch-access", "read")
     page.locator("#watch-form button").click()
-    page.locator("#run").click()
+    page.locator("#demo").click()
     r.until("() => window.marsIDE.state?.stopReason.includes('Watchpoint')")
     r.check("read watchpoint", True)
     r.js("() => document.querySelector('[data-watch]')?.click()")
@@ -188,7 +188,7 @@ def scenario(r, page, mod):
     r.check("radix never rewrites code", r.js("() => window.marsIDE.editor.state.doc.toString()") == code_before)
     page.select_option("#radix", "auto")
     # C3: register names, not numbers, wherever machine statements appear.
-    shown = page.locator("#last-card").inner_text() + page.locator("#next-card").inner_text() + page.locator("#trace").inner_text()
+    shown = page.locator("#trace").inner_text()
     r.check("machine statements use register names", not re.search(r"\$\d", shown), shown[:200])
     # C5: delay-slot nops are dimmed and say why.
     slot = page.locator(".cm-line.delay-nop").first
@@ -202,14 +202,7 @@ def scenario(r, page, mod):
     r.until("() => !document.querySelector('.cm-editor').classList.contains('arrival-spotlight')", timeout=3000)
     r.check("spotlight fades by itself", True)
     speed = page.locator("#demo-speed")
-    r.check("demo speed is a five-position slider with middle default", speed.get_attribute("type") == "range" and speed.get_attribute("min") == "1" and speed.get_attribute("max") == "5" and speed.get_attribute("step") == "1" and speed.input_value() == "3")
-    speed.focus(); speed.press("Home")
-    levels = []
-    for n in range(1, 6):
-        levels.append(speed.input_value())
-        r.check("demo speed announces level " + str(n), page.locator("#demo-speed-label").inner_text() == str(n) + "/5" and "第 " + str(n) + " 档" in speed.get_attribute("aria-valuetext"))
-        if n < 5: speed.press("ArrowRight")
-    r.check("keyboard reaches all five demo speeds", levels == ["1", "2", "3", "4", "5"])
+    r.check("before anything runs: full run, step-by-step run, no speed", page.locator("#run").get_attribute("aria-label").startswith("完整运行") and page.locator("#demo").get_attribute("aria-label") == "逐步运行" and page.locator("#demo-speed-control").is_hidden())
     r.js("""() => { window.assembleBlinks = 0; window.editorTop = document.getElementById('editor').getBoundingClientRect().top;
         new MutationObserver(() => window.assembleBlinks++).observe(document.getElementById('assemble'), { attributes: true, attributeFilter: ['disabled'] }); }""")
     page.locator("#demo").click()
@@ -222,14 +215,30 @@ def scenario(r, page, mod):
     r.check("a notice does not move the layout", r.js("() => document.getElementById('editor').getBoundingClientRect().top === window.editorTop"))
     r.check("notices sit at the foot of the left column", r.js("""() => { const b = document.getElementById('banner').getBoundingClientRect(), s = document.querySelector('.sidebar').getBoundingClientRect(); return b.height > 0 && b.left >= s.left && b.right <= s.right && Math.abs(b.bottom - s.bottom) < 2 }"""))
     r.check("the assemble button holds still through a demonstration", r.js("() => window.assembleBlinks") == 0 and page.locator("#assemble").is_enabled(), r.js("() => window.assembleBlinks"))
+    r.check("a step-by-step run offers back to start, pause and its speed", page.locator("#run").get_attribute("aria-label") == "回到开头" and page.locator("#demo").get_attribute("aria-label").startswith("暂停") and page.locator("#demo-speed-control").is_visible())
     page.keyboard.press("F6")
     r.until("() => document.getElementById('status').dataset.state !== 'running'")
     r.check("pause ends the running state", "运行中" not in page.locator("#status").inner_text())
     r.until("() => document.getElementById('demo').textContent.includes('继续')")
-    r.check("a paused demonstration offers to continue", True)
+    r.check("a paused step-by-step run offers to continue and keeps its speed", page.locator("#demo-speed-control").is_visible() and "逐步" in page.locator("#demo").get_attribute("data-tip"))
+    r.check("the speed slider has six positions, 2 steps/s by default", speed.get_attribute("min") == "1" and speed.get_attribute("max") == "6" and speed.input_value() == "3" and page.locator("#demo-speed-label").inner_text() == "2 步/秒")
+    speed.focus(); speed.press("Home")
+    rates = []
+    for n in range(6):
+        rates.append(page.locator("#demo-speed-label").inner_text())
+        if n < 5: speed.press("ArrowRight")
+    r.check("the speed reads in steps per second", rates == ["0.5 步/秒", "1 步/秒", "2 步/秒", "4 步/秒", "8 步/秒", "16 步/秒"], str(rates))
+    # Leaving the executing line shows a button that brings it back.
+    here = r.js("() => document.querySelector('.file-tab.active [data-tab]').dataset.tab")
+    other = r.js("(f) => [...document.querySelectorAll('[data-tab]')].map(b => b.dataset.tab).find(t => t !== f)", here)
+    page.locator(f'[data-tab="{other}"]').click()
+    r.until("() => !document.getElementById('follow-return').hidden")
+    page.locator("#follow-return").click()
+    r.until("() => document.getElementById('follow-return').hidden")
+    r.check("the return button goes back to the executing file", r.js("() => document.querySelector('.file-tab.active [data-tab]').dataset.tab") == here)
     page.locator("#demo").click()
     r.until("() => document.getElementById('demo').textContent.includes('暂停')")
-    r.check("the running demonstration's button pauses it", page.locator("#status").get_attribute("data-state") == "running" and page.locator("#run").is_disabled())
+    r.check("the running step-by-step run's button pauses it", page.locator("#status").get_attribute("data-state") == "running" and page.locator("#run").is_enabled())
     page.locator("#demo").click()
     r.until("() => document.getElementById('demo').textContent.includes('继续')")
     r.check("the same button pauses a continued demonstration", page.locator("#status").get_attribute("data-state") != "running")
@@ -252,7 +261,7 @@ def scenario(r, page, mod):
     r.js("(n) => { const e = window.marsIDE.editor; e.dispatch({ selection: { anchor: e.state.doc.line(n + 1).from } }); e.focus() }", label_line)
     page.keyboard.press("F9")
     r.check("the same breakpoint toggles off from its instruction line", page.locator(".bp-row").count() == bp_before)
-    r.check("state reads as steps executed", page.locator("#location").inner_text().startswith("已执行"))
+    r.check("the editor carries no step counter or last/next cards", page.locator("#location").count() == 0 and page.locator("#last-card, #next-card").count() == 0)
     page.locator("#radix-help").click()
     help_text = page.locator("#modal").inner_text()
     r.check("radix help opens with one number in every notation",
@@ -431,7 +440,7 @@ def classroom_p1(r, page, mod):
     page.locator("#over").hover()
     r.check("the add-watch button says what it does", "添加" in page.locator("#add-watch").inner_text())
     r.check("hovering an icon shows its name", "跨过调用" in r.js("() => getComputedStyle(document.getElementById('over'), '::after').content"))
-    r.check("there is no separate pause button", page.locator("#pause").count() == 0 and "▶ 运行" in page.locator("#run").inner_text())
+    r.check("there is no separate pause button", page.locator("#pause").count() == 0 and page.locator("#run").get_attribute("aria-label").startswith("完整运行"))
     # Header: project actions in one menu, with replace vs add and browser vs computer spelled out.
     page.locator("#project-menu-button").click()
     menu = page.locator("#project-menu").inner_text()
@@ -456,21 +465,25 @@ def classroom_p1(r, page, mod):
     page.mouse.move(line["x"] + 40, line["y"] + 0.5); page.mouse.down(); page.mouse.move(line["x"] + 40, line["y"] + 50, steps=4); page.mouse.up()
     r.check("the inspector and registers split their height by dragging", page.locator("#panel-context").bounding_box()["height"] > before + 40)
     page.locator("#split-context").dblclick()
-    # A full-speed run is paused from its own button, and F6 still works.
+    # Any run turns the two buttons into back-to-start and pause; a paused
+    # full run continues at full speed, and F6 still pauses.
     page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: '.text\\nmain:\\n j main\\n nop\\n' } }) }")
     page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
     page.locator("#run").click()
-    r.until("() => document.getElementById('run').textContent.includes('暂停')")
-    r.check("the run button pauses a running program, and demo waits", page.locator("#run").is_enabled() and page.locator("#demo").is_disabled())
-    page.locator("#run").click()
-    r.until("() => document.getElementById('run').textContent.includes('运行') && document.getElementById('status').dataset.state !== 'running'")
-    r.check("a paused run keeps the run button, not a demo continue", "演示" in page.locator("#demo").inner_text())
-    page.locator("#run").click()
-    r.until("() => document.getElementById('run').textContent.includes('暂停')")
+    r.until("() => document.getElementById('demo').textContent.includes('暂停')")
+    r.check("a full run offers back to start and pause, without a speed", page.locator("#run").get_attribute("aria-label") == "回到开头" and page.locator("#demo").is_enabled() and page.locator("#demo-speed-control").is_hidden())
+    page.locator("#demo").click()
+    r.until("() => document.getElementById('demo').textContent.includes('继续') && document.getElementById('status').dataset.state !== 'running'")
+    r.check("a paused full run continues at full speed", "完整运行" in page.locator("#demo").get_attribute("data-tip") and page.locator("#demo-speed-control").is_hidden())
+    page.locator("#demo").click()
+    r.until("() => document.getElementById('demo').textContent.includes('暂停')")
     page.keyboard.press("F6")
     r.until("() => document.getElementById('status').dataset.state !== 'running'")
     r.check("F6 pauses a run too", True)
+    page.locator("#run").click()
+    r.until("() => window.marsIDE.state?.step === 0 && document.getElementById('run').textContent.includes('完整运行')")
+    r.check("back to start returns to the first instruction and the starting buttons", page.locator("#demo").get_attribute("aria-label") == "逐步运行")
     # Assembly errors are drawn on the code, not only listed.
     page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
     source = ".text\nmain:\n li $t0, 1\n addd $t0, $t0, $t0   # typo\n add $t1, $t0\n"
@@ -576,7 +589,7 @@ def classroom_p1(r, page, mod):
     r.check("BIN values do not overflow their register cell", r.js("() => [...document.querySelectorAll('#registers .reg')].every(e => e.scrollWidth <= e.clientWidth + 1)"))
     page.select_option("#radix", "auto")
     # Syscalls: per-service explanation from the number before the call.
-    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    open_example(page, "Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
     page.locator('[data-bottom="trace"]').click()
     for _ in range(3):
@@ -658,7 +671,7 @@ def classroom_p2(r, page, mod):
         page.locator("#run").click()
         pending = list(inputs)
         for _ in range(20):
-            r.until("() => !document.getElementById('run').disabled || ['ended', 'error'].includes(window.marsIDE.state?.status)")
+            r.until("() => (document.getElementById('status').dataset.state !== 'running' && !document.getElementById('demo').textContent.includes('暂停')) || ['ended', 'error'].includes(window.marsIDE.state?.status)")
             page.wait_for_timeout(150)
             status = r.js("() => window.marsIDE.state.status")
             if status == "waiting" and pending:
@@ -666,11 +679,11 @@ def classroom_p2(r, page, mod):
             elif status == "paused" and through_breakpoints and (r.js("() => window.marsIDE.state.stopReason") or "").startswith(("Breakpoint", "Watchpoint")) is False:
                 break
             elif status == "paused" and through_breakpoints and r.js("() => window.marsIDE.state.stopReason.startsWith('Breakpoint')"):
-                page.locator("#run").click()
+                page.locator("#demo").click()
             else:
                 break
     # Focus mode: the untaken side of a branch, and bits of a shift.
-    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    open_example(page, "Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
     page.locator("#run").click()
     r.until("() => window.marsIDE.state.status === 'waiting'")
@@ -697,7 +710,7 @@ def classroom_p2(r, page, mod):
     r.check("the untaken side shows code only, marked as not executed", "没有执行" in untaken.inner_text() and untaken.locator(".frow.untaken").count() > 0)
     page.locator("#focus-close").click()
     # Search: from what one wants to do to the instruction or service.
-    page.locator("#find-instruction").click()
+    page.locator("#learn-menu-button").click(); page.locator("#find-instruction").click()
     page.locator("#find-input").fill("打印字符")
     r.check("search finds a service from what one wants to do", "syscall 11 · 打印字符" in page.locator("#find-list .selected").inner_text() and "li $v0, 11" in page.locator("#find-detail").inner_text())
     page.locator("#find-input").fill("比较大小")
@@ -708,7 +721,7 @@ def classroom_p2(r, page, mod):
     r.check("search says when nothing matches", "没有找到匹配" in page.locator("#find-detail").inner_text())
     page.keyboard.press("Escape")
     # The tutorial, walked through as a student would.
-    page.locator("#start-tutorial").click(); page.locator("#tutorial-begin").click()
+    page.locator("#learn-menu-button").click(); page.locator("#start-tutorial").click(); page.locator("#tutorial-begin").click()
     r.until("() => !document.getElementById('tutorial').hidden")
     r.check("the tutorial opens its own project and keeps the old one aside", r.js("() => Object.keys(window.marsIDE.files).length") == 0 and r.js("() => !!localStorage.getItem('tutorial-backup')"))
     r.check("an empty project shows no line numbers", r.js("() => getComputedStyle(document.querySelector('.cm-gutters')).visibility") == "hidden")
@@ -772,6 +785,87 @@ def classroom_p2(r, page, mod):
     r.check("going back restores the project from before the tutorial", r.js("() => Object.keys(window.marsIDE.files)") != ["hello.s"])
 
 
+def classroom_1103(r, page, mod):
+    """Classroom 2026-11-03: code fonts, binary dots, focus layout, footer, inspector icons."""
+    page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
+    code = ".text\nmain:\n li $a1, 1\n beqz $a1, done\n nop\n addi $a1, $a1, -1\n beqz $a1, done\n nop\n li $t0, 9\ndone:\n li $v0, 10\n syscall\n"
+    r.js("(t) => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: t } }) }", code)
+    page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+    # Fonts: bundled files are served as fonts and the choice reaches the editor.
+    r.check("bundled fonts are served as woff2", r.js("async () => (await fetch('fonts/jetbrains-mono/400-normal.woff2')).headers.get('content-type')") == "font/woff2")
+    page.locator("#view-menu-button").click()
+    r.check("six code font choices including the system one", page.locator("#font-list [data-font]").count() == 6 and "系统默认" in page.locator("#font-list").inner_text())
+    page.locator('[data-font="plex"]').click()
+    r.check("the chosen font reaches the editor", "IBM Plex Mono" in r.js("() => getComputedStyle(document.querySelector('.cm-content')).fontFamily"))
+    page.locator('[data-font="system"]').click()
+    r.check("the system font drops the bundled ones", "Web" not in r.js("() => getComputedStyle(document.querySelector('.cm-content')).fontFamily").split(",")[0])
+    page.locator('[data-font="jetbrains"]').click(); page.keyboard.press("Escape")
+    # Footer: help beside the value mode, PC in the editor bar, the core as a picker.
+    r.check("the radix help sits right after the value mode", r.js("() => document.getElementById('radix-help').previousElementSibling.classList.contains('radix-switch')"))
+    r.check("the PC is shown in the editor bar", r.js("() => !!document.querySelector('.viewbar #pc')"))
+    page.locator("#engine").click()
+    r.check("the core opens a menu that names it and cannot switch yet", "MARS 4.5" in page.locator("#engine-menu").inner_text() and page.locator("#engine-menu button[disabled]").count() == 1)
+    page.keyboard.press("Escape")
+    # Binary: digits when they fit, dots when the column is narrow; no old value.
+    page.locator("#step").click(); r.until("() => window.marsIDE.state.step === 1")
+    page.select_option("#radix", "bin")
+    r.check("binary values never repeat the old value", page.locator("#registers .value.replaced").count() == 0)
+    r.js("() => document.documentElement.style.setProperty('--right-w', '230px')")
+    r.until("() => document.getElementById('registers').classList.contains('dots')")
+    a1 = page.locator('[data-register="$a1"] .bit-dots')
+    r.check("narrow binary shows one dot per bit, filled for 1", a1.locator("i").count() == 32 and a1.locator("i.one").count() == 1)
+    r.js("() => document.documentElement.style.removeProperty('--right-w')")
+    page.select_option("#radix", "auto")
+    # Focus mode: a branch that falls through continues in the same column.
+    page.locator("#step").click(); r.until("() => window.marsIDE.state.last?.instruction.op === 'beq'")
+    page.locator("#focus-open").click(); r.until("() => !document.getElementById('focus-lens').hidden && document.querySelectorAll('.fseg').length > 1")
+    page.wait_for_timeout(300)
+    cols = r.js("() => [...document.querySelectorAll('#focus-path .fseg:not(.fghost)')].map(e => e.style.gridColumn)")
+    ghost = r.js("() => document.querySelector('#focus-path .fghost')?.style.gridColumn")
+    r.check("an untaken branch keeps the code below in the same column, the target on the other side", len(cols) >= 2 and cols[0] == cols[1] and ghost and ghost != cols[0], f"{cols} ghost {ghost}")
+    r.check("the untaken side is crossed out", r.js("() => document.getElementById('focus-svg').innerHTML.includes('stroke-dasharray=\"4 4\"')"))
+    page.keyboard.press("Escape")
+    # Stepping: over takes a whole line, out needs a caller, breakpoints jump both ways.
+    page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
+    loop = ".data\nx: .word 7\n.text\nmain:\n la $a0, x\n li $t0, 0\nagain:\n addi $t0, $t0, 1\n blt $t0, 3, again\n li $v0, 10\n syscall\n"
+    r.js("(t) => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: t } }) }", loop)
+    page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
+    r.check("step out is off outside a function and says why", page.locator("#out").is_disabled() and "不在函数里" in page.locator("#out").get_attribute("data-tip"))
+    r.check("breakpoint jumps wait for a breakpoint", page.locator("#next-bp").is_disabled() and page.locator("#prev-bp").is_disabled())
+    page.locator("#over").click(); r.until("() => window.marsIDE.state.step === 2")
+    r.check("step over runs a whole pseudo-instruction line", r.js("() => window.marsIDE.program.instructions.find(i => i.address === window.marsIDE.state.pc).line") == 6)
+    r.js("() => window.marsIDE.gotoAddress(window.marsIDE.program.instructions.find(i => i.op === 'addi').address)")
+    page.keyboard.press("F9")
+    t0 = lambda: r.js("() => window.marsIDE.state.registers[8].value")
+    page.locator("#next-bp").click(); r.until("() => (window.marsIDE.state.stopReason || '').startsWith('Breakpoint') && window.marsIDE.state.registers[8].value === 0")
+    page.locator("#next-bp").click(); r.until("() => window.marsIDE.state.registers[8].value === 1 && window.marsIDE.state.status === 'paused'")
+    page.locator("#next-bp").click(); r.until("() => window.marsIDE.state.registers[8].value === 2 && window.marsIDE.state.status === 'paused'")
+    page.locator("#prev-bp").click(); r.until("() => window.marsIDE.state.registers[8].value === 1")
+    r.check("previous breakpoint goes back to the earlier stop", "停在断点前" in page.locator("#status").inner_text() and t0() == 1)
+    r.check("breakpoint jumps sit together at the right of the step tools", r.js("() => { const b = [...document.querySelectorAll('.tool-group[aria-label=\"单步调试\"] button')].map(x => x.id); return b.slice(-2).join() }") == "prev-bp,next-bp")
+    # File tree: drawn icons per kind; C files open as text and stay out of assembly.
+    page.locator("#project-menu-button").click(); page.locator("#import").click()
+    with page.expect_file_chooser() as chooser:
+        page.locator("#choose-files").click()
+    chooser.value.set_files([{"name": n, "mimeType": "text/plain", "buffer": t.encode()} for n, t in [("helper.c", "int add(int a, int b) { return a + b; }\n"), ("helper.h", "int add(int, int);\n"), ("input.txt", "hi"), ("notes.md", "# notes")]])
+    r.until("() => document.querySelector('[data-data=\"helper.c\"]')")
+    kinds = r.js("() => Object.fromEntries([...document.querySelectorAll('#files .tree-open')].map(b => [b.title, b.querySelector('.file-icon').classList[1]]))")
+    r.check("each kind of file has its own drawn icon", kinds.get("main.s") == "asm" and kinds.get("helper.c") == "c" and kinds.get("helper.h") == "h" and kinds.get("input.txt") == "text" and kinds.get("notes.md") == "other" and r.js("() => !/[◇▤▦]/.test(document.getElementById('files').textContent)"), str(kinds))
+    page.locator('[data-data="helper.c"]').click()
+    r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, insert: '// edited\\n' } }) }")
+    r.check("a C file opens as editable text and is not assembled", r.js("() => window.marsIDE.editor.state.doc.toString().startsWith('// edited')") and "helper.c" not in (r.js("() => window.marsIDE.state?.files ? Object.keys(window.marsIDE.state.files).join() : ''") or ""))
+    page.locator('[data-file="main.s"]').click()
+    # Inspector: actions are icons in the title row.
+    r.js("() => window.marsIDE.inspectToken('addi', {file: 'main.s', line: 8})")
+    r.check("detail actions sit as named icons beside 取消固定", page.locator("#context-tools #detail-source").count() == 1 and page.locator("#context-tools #refs").get_attribute("data-tip") == "查找引用")
+
+
+def open_example(page, label):
+    """Examples live in the Learn menu (classroom 2026-11-03)."""
+    page.locator("#learn-menu-button").click()
+    page.locator("#example-list button", has_text=label).click()
+
+
 def trial4_a(r, page, mod):
     """Round-4 trial, group A: the end of a run, restarting, status wording."""
     page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
@@ -788,15 +882,17 @@ def trial4_a(r, page, mod):
     page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused'")
     page.locator("#run").click(); r.until("() => window.marsIDE.state?.status === 'ended'")
     page.wait_for_timeout(300)
-    r.check("after the end no line is marked as next and the card says it ended", page.locator(".cm-line.next-line").count() == 0 and "程序已结束" in page.locator("#next-card").inner_text())
+    r.check("after the end no line is marked as next", page.locator(".cm-line.next-line").count() == 0)
     r.check("after the end the editor stays where execution finished", page.locator(".file-tab.active").inner_text().startswith("main.s"))
-    r.check("after the end run offers to start again", page.locator("#run").inner_text().strip() == "↻ 从头运行" and page.locator("#run").is_enabled())
+    r.check("after the end the first button goes back to the start", page.locator("#run").get_attribute("aria-label") == "回到开头" and page.locator("#run").is_enabled())
     r.check("disabled step buttons say why", "程序已结束" in page.locator("#source").get_attribute("data-tip"))
     r.js("() => window.marsIDE.gotoAddress(window.marsIDE.program.instructions.find(i => i.op === 'mul').address)")
     page.keyboard.press("F9")
     page.locator("#run").click()
+    r.until("() => window.marsIDE.state?.step === 0 && document.getElementById('run').textContent.includes('完整运行')")
+    page.locator("#run").click()
     r.until("() => (window.marsIDE.state?.stopReason || '').startsWith('Breakpoint')")
-    r.check("starting again keeps breakpoints and stops at them", page.locator("#run").inner_text().strip() == "▶ 运行")
+    r.check("starting again keeps breakpoints and stops at them", page.locator("#demo").get_attribute("aria-label") == "继续")
     page.locator('[data-file="main.s"]').click()
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, insert: 'oops\\n' } }) }")
     page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'error'")
@@ -804,11 +900,13 @@ def trial4_a(r, page, mod):
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: 5, insert: '' } }) }")
     page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused'")
     r.check("a clean assembly puts the console back", page.locator("#console").is_visible())
-    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    open_example(page, "Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
     page.locator("#run").click(); r.until("() => window.marsIDE.state.status === 'waiting'")
     page.locator("#stdin").fill("898"); page.locator("#input-form button").click()
     r.until("() => window.marsIDE.state.status === 'ended'")
+    page.locator("#run").click()
+    r.until("() => window.marsIDE.state?.step === 0 && document.getElementById('run').textContent.includes('完整运行')")
     page.locator("#run").click()
     r.until("() => window.marsIDE.state.status === 'waiting'")
     r.check("starting again asks for input again instead of replaying it", page.locator("#output").inner_text().strip() == "Enter an integer:")
@@ -823,12 +921,14 @@ def trial4_b(r, page, mod):
     r.check("before anything ran the inspector previews the next line", "跟随执行 · 即将执行的第 3 行" in mode(), mode())
     page.locator("#source").click(); page.locator("#source").click(); r.until("() => window.marsIDE.state.step === 2")
     r.check("the inspector follows the line that just ran", "跟随执行 · 刚执行的第 4 行" in mode() and page.locator("#clear-focus").is_hidden(), mode())
+    t0 = page.locator('[data-register="$t0"] .value.replaced')
+    r.check("a written register shows the old value struck through above the new", t0.locator("s.old").inner_text() == "0d0" and t0.locator(".new").inner_text() == "0d3" and page.locator("#registers .value.replaced").count() == 1)
     page.locator(".cm-line").nth(4).locator("text=add").hover(); page.locator("#tooltip .tip-detail").click()
     detail = page.locator("#context").inner_text()
     r.check("opening an object pins it", "已固定 · add · 第 5 行" in mode() and "当前执行前数值" in detail and "完成执行后数值" in detail, detail)
     r.check("a register on both sides is explained", "右边的 $s0 用的是执行前的 0d7，结果 0d10 写回后 $s0 才变" in detail, detail)
     page.locator("#source").click(); r.until("() => window.marsIDE.state.step === 3")
-    page.locator("#context #detail-bits").click()
+    page.locator("#detail-bits").click()
     r.until("() => !document.getElementById('focus-lens').hidden && !document.getElementById('focus-bits').hidden && document.getElementById('focus-bits').innerText.includes('add：')")
     r.check("the inspector opens the bit view of this step in focus mode", "add：逐位相加" in page.locator("#focus-bits").inner_text())
     page.locator("#focus-close").click()
@@ -861,12 +961,12 @@ def trial4_c(r, page, mod):
     page.locator(".cm-line").nth(4).locator("text=sub").hover(); page.locator("#tooltip .tip-detail").click()
     titles = page.locator("#context .reg-term").evaluate_all("els => els.map(e => e.title)")
     r.check("register names in the inspector can be hovered for their use", any(t.startswith("$t2：") and len(t) > 6 for t in titles), str(titles))
-    page.locator("#context #detail-bits").click()
+    page.locator("#detail-bits").click()
     r.until("() => !document.getElementById('focus-bits').hidden && document.getElementById('focus-bits').innerText.includes('sub：')")
     term = page.locator("#focus-bits abbr.term", has_text="补码")
     r.check("two's complement is defined where it first appears", term.count() >= 1 and "取反，再加 1" in term.first.get_attribute("title"), page.locator("#focus-bits").inner_html()[:600])
     page.locator("#focus-close").click()
-    page.select_option("#example", label="Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
+    open_example(page, "Hexadecimal · 位与字符"); page.locator("#project-confirm").click()
     r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
     page.locator("#run").click(); r.until("() => window.marsIDE.state.status === 'waiting'")
     page.locator("#stdin").fill("898"); page.locator("#input-form button").click()
@@ -924,7 +1024,7 @@ def main():
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto(f"http://127.0.0.1:{port}")
-            page.select_option("#example", label="Hexadecimal · 位与字符")
+            open_example(page, "Hexadecimal · 位与字符")
             page.locator("#project-confirm").click()
             mod = "Meta" if "Mac" in page.evaluate("navigator.platform") else "Control"
             r = Run(page)
@@ -933,7 +1033,7 @@ def main():
                 calm = browser.new_page(viewport={"width": 1280, "height": 850}, reduced_motion="reduce")
                 calm.on("pageerror", lambda e: errors.append(str(e)))
                 calm.goto(f"http://127.0.0.1:{port}")
-                calm.select_option("#example", label="Hexadecimal · 位与字符")
+                open_example(calm, "Hexadecimal · 位与字符")
                 calm.locator("#project-confirm").click()
                 calm.wait_for_function("() => window.marsIDE?.state?.status === 'paused'")
                 reduced_motion(Run(calm), calm, mod)
@@ -941,7 +1041,7 @@ def main():
                 wide = browser.new_page(viewport={"width": 1440, "height": 1000})
                 wide.on("pageerror", lambda e: errors.append(str(e)))
                 wide.goto(f"http://127.0.0.1:{port}")
-                wide.select_option("#example", label="Hexadecimal · 位与字符")
+                open_example(wide, "Hexadecimal · 位与字符")
                 wide.locator("#project-confirm").click()
                 p1 = Run(wide)
                 try:
@@ -950,6 +1050,7 @@ def main():
                     trial4_a(p1, wide, mod)
                     trial4_b(p1, wide, mod)
                     trial4_c(p1, wide, mod)
+                    classroom_1103(p1, wide, mod)
                 except Exception:
                     wide.screenshot(path=str(ROOT / "teaching/test-results/browser-failure-wide.png"))
                     raise

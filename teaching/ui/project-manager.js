@@ -5,6 +5,28 @@ import {put, get} from './store.js';
 export const DRAFT_KEY = 'mars-trace:project:v2';
 const BACKUP_KEY = 'mars-trace:previous-project:v2';
 const $ = id => document.getElementById(id);
+// File tree icons (classroom 2026-11-03): a folder, MIPS source, C source and
+// headers, plain text, and a blank page for any other kind of file. C files
+// open as ordinary text; only .s / .asm are assembled.
+const PAGE = '<path class="page" d="M3.5 1.5h6l3 3v10h-9z"/><path class="page" d="M9.5 1.5v3h3"/>';
+const badge = (letter) => `<text x="8" y="12.3" text-anchor="middle">${letter}</text>`;
+export function fileKind(path) {
+  if (isSource(path)) return 'asm';
+  if (/\.c$/i.test(path)) return 'c';
+  if (/\.h$/i.test(path)) return 'h';
+  if (/\.txt$/i.test(path)) return 'text';
+  return 'other';
+}
+const ICONS = {
+  asm: PAGE + badge('S'),
+  c: PAGE + badge('C'),
+  h: PAGE + badge('H'),
+  text: PAGE + '<path class="line" d="M5.5 8h5M5.5 10.5h5M5.5 13h3"/>',
+  other: PAGE,
+  folder: '<path class="shape" d="M1.5 4a1 1 0 0 1 1-1h3.5l1.5 1.5h6a1 1 0 0 1 1 1V12.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z"/>',
+  open: '<path class="shape" d="M1.5 4a1 1 0 0 1 1-1h3.5l1.5 1.5h5.5a1 1 0 0 1 1 1V7"/><path class="shape" d="M1.5 12.5 3.3 7.6a1 1 0 0 1 .9-.6h10.3l-2 6.5H2.5a1 1 0 0 1-1-1z"/>',
+};
+const icon = (kind) => `<svg class="file-icon ${kind}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[kind]}</svg>`;
 export function projectManager(hooks) {
   let meta = blankProject(), timer, failed = false, replacing = false, draftLocked = false, previous = null, hasBackup = false, saving = Promise.resolve();
   const snapshot = () => normalizeProject({...meta, ...hooks.snapshot()});
@@ -85,7 +107,7 @@ export function projectManager(hooks) {
       else { p.data[name] = ''; p.activeFile = name; p.openTabs.push(name); }
       await apply(p);
       if (!directory && !isSource(name)) setTimeout(() => hooks.editData(name));
-    }, directory ? '文件夹可以嵌套；展开文件夹右侧的 ⋯ 可在其中新建。' : '小写 .s / .asm 是源码；.txt 等文件用作程序的虚拟输入。');
+    }, directory ? '文件夹可以嵌套；展开文件夹右侧的 ⋯ 可在其中新建。' : '小写 .s / .asm 是 MIPS 源码，会参与汇编；.c / .h 和 .txt 等是普通文本，可以阅读和编辑，也能作为程序的虚拟输入。');
   }
   function download(bytes, name, type) {
     const url = URL.createObjectURL(new Blob([bytes], {type}));
@@ -124,7 +146,7 @@ export function projectManager(hooks) {
       const immediate = name => name.startsWith(base) && !name.slice(base.length).includes('/');
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files),...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary><span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => `<li class="tree-row ${path===p.activeFile ? 'active' : ''} ${hooks.hasError(path) ? 'has-error' : ''} ${joint && chosen.includes(path) ? 'joined' : ''}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${esc(path)}" ${chosen.includes(path) ? 'checked' : ''} aria-label="${esc(path)} 参与汇编" title="参与汇编">` : ''}<button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}"><span aria-hidden="true">${isSource(path) ? '◇' : '▤'}</span><span class="tree-name">${esc(path.slice(base.length))}</span>${joint && path===scopeEntry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
+      return directories.map(path => `<li><details data-folder="${esc(path)}" ${collapsed.has(path) ? '' : 'open'}><summary>${icon('folder')}${icon('open')}<span class="folder-name">${esc(path.slice(base.length))}</span><button class="tree-menu" data-node="${esc(path)}" data-directory="true" title="管理文件夹" aria-label="管理文件夹 ${esc(path)}">⋯</button></summary><ul>${rows(path) || '<li class="tree-empty">空文件夹</li>'}</ul></details></li>`).join('') + paths.map(path => `<li class="tree-row ${path===p.activeFile ? 'active' : ''} ${hooks.hasError(path) ? 'has-error' : ''} ${joint && chosen.includes(path) ? 'joined' : ''}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${esc(path)}" ${chosen.includes(path) ? 'checked' : ''} aria-label="${esc(path)} 参与汇编" title="参与汇编">` : ''}<button class="tree-open" ${isSource(path) ? 'data-file' : 'data-data'}="${esc(path)}" title="${esc(path)}">${icon(fileKind(path))}<span class="tree-name">${esc(path.slice(base.length))}</span>${joint && path===scopeEntry ? '<small class="entry-badge">入口</small>' : ''}</button><button class="tree-menu" data-node="${esc(path)}" title="管理文件" aria-label="管理文件 ${esc(path)}">⋯</button></li>`).join('');
     };
     $('files').innerHTML = `<ul class="file-tree" aria-label="工程文件树">${rows('') || '<li class="tree-empty">工程为空，点击 ＋ 新建文件，或从“工程”菜单导入。</li>'}</ul>`;
     $('files').querySelectorAll('[data-file]').forEach(b => b.onclick = () => hooks.openFile(b.dataset.file));

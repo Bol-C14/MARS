@@ -105,7 +105,7 @@ def scope_checks(page, temp):
     check('auto assembly links the helper that main uses, and nothing else',page.locator('#target').inner_text()=='程序：lab/main.s ＋1 个文件' and page.evaluate("window.marsIDE.state.files && Object.keys(window.marsIDE.state.files).sort().join()")=='lab/helper.s,lab/main.s')
     page.locator('#source').click();page.wait_for_function("() => document.querySelector('.file-tab.active')?.textContent.startsWith('lab/helper.s')")
     check('following execution into a linked file is not treated as switching away',not banner.is_visible())
-    page.locator('#run').click();page.wait_for_function("() => window.marsIDE.state?.status === 'ended'")
+    page.keyboard.press('F5');page.wait_for_function("() => window.marsIDE.state?.status === 'ended'")
     check('main plus helper run together while other exercises stay out',page.locator('#output').inner_text()=='7')
     choose_mode(page,'single')
     check('changing the way of assembling marks the loaded program out of date','汇编方式改成了单文件汇编，但现在能运行的还是之前装入的程序（lab/main.s 和另外 1 个文件）' in banner.inner_text() and page.locator('#back').is_disabled() and page.locator('#assembly-mode-name').inner_text()=='单文件汇编')

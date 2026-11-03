@@ -106,11 +106,8 @@ export class OverlayRenderer {
       [s.preview, true, "dashed"],
     ]) {
       if (!event || !document.querySelector("#" + key).checked) continue;
-      let origin =
-          this.codePoint(event.instruction) ||
-          this.center(
-            document.querySelector(dashed ? "#next-card" : "#last-card"),
-          ),
+      // Lines start at the code; with the line out of sight there is none.
+      let origin = this.codePoint(event.instruction),
         seen = new Set();
       for (let a of event.accesses || []) {
         let type = a.write ? "write" : "read";
@@ -165,7 +162,6 @@ export class OverlayRenderer {
       ) {
         let targetIns = s.instructions?.find((i) => i.address === event.nextPC),
           target = this.codePoint(targetIns);
-        if (!target) target = this.center(document.querySelector("#location"));
         draw(
           origin,
           target,

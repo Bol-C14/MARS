@@ -55,6 +55,19 @@ class CoreTests(unittest.TestCase):
    self.call('seek',step=0);self.call('run',breakpoints=[{'address':jal['address'],'condition':''}]);s=self.call('step')
    if delay:s=self.call('step')
    s=self.call('out',limit=100000);self.assertEqual(s['pc'],jal['address']+(8 if delay else 4));self.assertEqual(s['output'],'Hi')
+ def test_step_over_moves_a_source_line(self):
+  # Classroom 2026-11-03: step over on an ordinary line runs the whole line (la is two instructions).
+  s=self.asm('.data\nx: .word 7\n.text\nmain:\nla $a0,x\nli $t0,1\nli $v0,10\nsyscall\n')
+  li=next(i for i in s['instructions'] if i['line']==6)['address']
+  s=self.call('over',limit=100000);self.assertEqual(s['step'],2);self.assertEqual(s['pc'],li)
+ def test_previous_breakpoint(self):
+  s=self.asm('.text\nmain:\nli $t0,0\nloop:\naddi $t0,$t0,1\nblt $t0,3,loop\nli $v0,10\nsyscall\n')
+  addi=next(i for i in s['instructions'] if i['op']=='addi')['address'];bp=[{'address':addi,'condition':''},{'address':addi,'condition':'','log':'t0={$t0}'}][:1]
+  s=self.call('run',breakpoints=bp);s=self.call('run',breakpoints=bp,skipBreakpoint=True);s=self.call('run',breakpoints=bp,skipBreakpoint=True);self.assertEqual(s['registers'][8]['value'],2);third=s['step']
+  s=self.call('previousBreakpoint',breakpoints=bp);self.assertEqual(s['pc'],addi);self.assertLess(s['step'],third);self.assertEqual(s['registers'][8]['value'],1);self.assertIn('Breakpoint',s['stopReason'])
+  s=self.call('previousBreakpoint',breakpoints=bp);self.assertEqual(s['registers'][8]['value'],0)
+  s=self.call('previousBreakpoint',breakpoints=bp);self.assertEqual(s['stopReason'],'No earlier breakpoint');self.assertEqual(s['registers'][8]['value'],0)
+  s=self.call('previousBreakpoint',breakpoints=[{'address':addi,'condition':'','log':'x'}]);self.assertEqual(s['stopReason'],'No earlier breakpoint')
  def test_read_watch_and_same_value_memory_write(self):
   self.asm('.data\nx: .word 7\n.text\nmain:\nla $t0,x\nli $t1,7\nsw $t1,0($t0)\nlw $t2,0($t0)\nli $v0,10\nsyscall\n')
   s=self.call('run',watches=[{'address':0x10010002,'access':'write'}]);self.assertIn('Watchpoint',s['stopReason']);a=next(a for a in s['last']['accesses'] if a['kind']=='memory' and a['write']);self.assertEqual(a['before'],a['value']);self.assertEqual(s['lastWriters']['mem:268500994'],s['step']);s=self.call('run',watches=[{'address':0x10010000,'access':'read'}]);self.assertEqual(s['last']['instruction']['op'],'lw')

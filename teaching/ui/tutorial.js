@@ -69,7 +69,7 @@ export const STEPS = [
   {
     stage: "1 · 编写、汇编、运行",
     title: "让程序打印 Hello!",
-    goal: "怎样让终端显示 Hello!？在 hello.s 里写程序，然后点“汇编”，再点“运行”。",
+    goal: "怎样让终端显示 Hello!？在 hello.s 里写程序，然后点“汇编”，再点“完整运行”（工具栏里两个三角的图标，F5 也可以）。",
     checks: [
       ["hello.s 已汇编并装入", (c) => ranFrom(c, "hello.s")],
       ["运行结束", (c) => ranFrom(c, "hello.s") && c.state?.status === "ended"],

@@ -20816,12 +20816,12 @@ function optionContent(config2) {
   if (config2.icons)
     content2.push({
       render(completion2) {
-        let icon = document.createElement("div");
-        icon.classList.add("cm-completionIcon");
+        let icon2 = document.createElement("div");
+        icon2.classList.add("cm-completionIcon");
         if (completion2.type)
-          icon.classList.add(...completion2.type.split(/\s+/g).map((cls) => "cm-completionIcon-" + cls));
-        icon.setAttribute("aria-hidden", "true");
-        return icon;
+          icon2.classList.add(...completion2.type.split(/\s+/g).map((cls) => "cm-completionIcon-" + cls));
+        icon2.setAttribute("aria-hidden", "true");
+        return icon2;
       },
       position: 20
     });
@@ -22998,9 +22998,7 @@ var OverlayRenderer = class {
       [s.preview, true, "dashed"]
     ]) {
       if (!event || !document.querySelector("#" + key).checked) continue;
-      let origin = this.codePoint(event.instruction) || this.center(
-        document.querySelector(dashed ? "#next-card" : "#last-card")
-      ), seen = /* @__PURE__ */ new Set();
+      let origin = this.codePoint(event.instruction), seen = /* @__PURE__ */ new Set();
       for (let a of event.accesses || []) {
         let type = a.write ? "write" : "read";
         if (!document.querySelector(type === "write" ? "#writes" : "#reads").checked)
@@ -23036,7 +23034,6 @@ var OverlayRenderer = class {
       }
       if (document.querySelector("#flows").checked && event.nextPC != null && scope === "all") {
         let targetIns = s.instructions?.find((i) => i.address === event.nextPC), target2 = this.codePoint(targetIns);
-        if (!target2) target2 = this.center(document.querySelector("#location"));
         draw(
           origin,
           target2,
@@ -23430,6 +23427,16 @@ function looksLikeAddress(u) {
   return u >= 4194304 && u < 2147483648;
 }
 var addressRegisters = /* @__PURE__ */ new Set(["$sp", "$fp", "$gp", "$ra", "pc"]);
+function bitDots(value, bytes = 4, label2 = "") {
+  const groups = [];
+  for (let b = bytes - 1; b >= 0; b--) {
+    let dots = "";
+    for (let i = 7; i >= 0; i--)
+      dots += `<i class="${value >>> b * 8 + i & 1 ? "one" : "zero"}"></i>`;
+    groups.push(`<span class="bit-byte">${dots}</span>`);
+  }
+  return `<span class="bit-dots" role="img" aria-label="${label2.replace(/[&"<>]/g, (c) => `&#${c.charCodeAt(0)};`)}" title="${label2.replace(/[&"<>]/g, (c) => `&#${c.charCodeAt(0)};`)}">${groups.join("")}</span>`;
+}
 
 // ui/syscalls.js
 var serviceGuide = {
@@ -24717,6 +24724,7 @@ var stopText = {
   "instruction-limit": "\u8D85\u8FC7 64 \u6761\u6307\u4EE4\uFF0C\u672A\u7EE7\u7EED\u9884\u8BA1"
 };
 var BEAT_MS = 900;
+var SEQUENTIAL = /* @__PURE__ */ new Set(["next", "fallthrough"]);
 var FocusLens = class {
   constructor(host) {
     this.host = host;
@@ -25073,11 +25081,29 @@ var FocusLens = class {
       $3("focus-input").hidden = !waiting;
       if (waiting) $3("focus-input-value").focus();
     }
-    const badge = (s) => `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "\u9884\u8BA1\u7B2C " + (s.index + 1) + " \u6B65" : s.index < -1 ? "\u4E4B\u524D\u6267\u884C\u7684\u7B2C " + -s.index + " \u884C" : "\u521A\u5B8C\u6210"}">${s.predicted ? "+" + (s.index + 1) : "\u2713"}</button>`;
+    const badge2 = (s) => `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "\u9884\u8BA1\u7B2C " + (s.index + 1) + " \u6B65" : s.index < -1 ? "\u4E4B\u524D\u6267\u884C\u7684\u7B2C " + -s.index + " \u884C" : "\u521A\u5B8C\u6210"}">${s.predicted ? "+" + (s.index + 1) : "\u2713"}</button>`;
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
     const selectedStep = byIndex.get(this.selected);
     const instructions = this.host.getProgram().instructions;
-    $3("focus-path").innerHTML = L.segments.map((seg, n) => {
+    const cells = /* @__PURE__ */ new Set(), take = (row2, col) => {
+      while (cells.has(row2 + ":" + col)) row2++;
+      cells.add(row2 + ":" + col);
+      return row2;
+    }, placed = /* @__PURE__ */ new Map(), ghosts = [];
+    let lastRow = 0, lastCol = 1;
+    for (const seg of L.segments) {
+      const e = L.edges.find((x) => x.to === seg.id && placed.has(x.from)), from = e && placed.get(e.from), col = from ? SEQUENTIAL.has(e.kind) ? from.col : 1 - from.col : 1 - lastCol, row2 = take(lastRow + 1, col);
+      placed.set(seg.id, { col, row: row2 });
+      lastRow = row2;
+      lastCol = col;
+      for (const hint of L.hints.filter((h) => h.segment === seg.id)) {
+        const gcol = hint.kind === "fallthrough" ? col : 1 - col;
+        ghosts.push({ hint, col: gcol, row: take(row2 + 1, gcol) });
+      }
+    }
+    this.placed = placed;
+    this.ghosts = ghosts;
+    $3("focus-path").innerHTML = L.segments.map((seg) => {
       const iteration = selectedStep?.segment === seg.id ? selectedStep.iteration : null;
       const head = `${escapeHTML(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${iteration ? `\u7B2C ${iteration} \u6B21 / ` : ""}\u5171 ${seg.iterations} \u6B21</span>` : ""}`;
       const rows = seg.lines.map((line) => {
@@ -25086,20 +25112,20 @@ var FocusLens = class {
           (i) => i.file === line.file && i.line === line.line
         );
         const open = this.expanded.has(line.address);
-        const hint = L.hints.find(
-          (h) => h.segment === seg.id && h.line === line.line
-        );
         const bp = this.host.hasBreakpoint(line.address);
-        return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}">
+        return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}" data-line="${line.line}">
                 <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "\u5220\u9664\u65AD\u70B9" : "\u8BBE\u7F6E\u65AD\u70B9"}">${bp ? "\u25CF" : "\u25CB"}</button>
                 <span class="fln">${line.line}</span>
                 <code>${escapeHTML(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
                 ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "\u25BE" : "\u25B8"} ${machine.length} \u6761</button>` : ""}
-                <span class="fbadges">${steps.map(badge).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}${hint ? this.untaken(hint, byIndex.get(hint.step), instructions) : ""}`;
+                <span class="fbadges">${steps.map(badge2).join("")}</span>
+              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}`;
       }).join("");
-      return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${n % 2 + 1};grid-row:${n + 1}"><div class="fseg-head">${head}</div>${rows}</div>`;
-    }).join("") + this.stopNote();
+      const at = placed.get(seg.id);
+      return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${at.col + 1};grid-row:${at.row}"><div class="fseg-head">${head}</div>${rows}</div>`;
+    }).join("") + ghosts.map(
+      (g, k) => `<div class="fseg fghost" data-ghost="${k}" style="grid-column:${g.col + 1};grid-row:${g.row}">${this.untaken(g.hint, byIndex.get(g.hint.step), instructions)}</div>`
+    ).join("") + this.stopNote();
     $3("focus-path").querySelectorAll("[data-step]").forEach((b) => b.onclick = () => this.select(Number(b.dataset.step)));
     $3("focus-path").querySelectorAll("[data-untaken]").forEach(
       (d) => d.ontoggle = () => {
@@ -25218,10 +25244,11 @@ var FocusLens = class {
     $3("focus-objects").innerHTML = `<div class="fobj-title">\u6D89\u53CA\u5BF9\u8C61</div>` + shown.map((o) => {
       const grouped = o.kind === "memory" && o.bytes.length > 1;
       const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}${grouped ? "\u2026" : ""}]\xB7${o.width}B`;
-      const v = grouped ? o.text ?? `${o.bytes.length} \u5B57\u8282` : o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value);
+      const dots = this.host.getRadix() === "bin" && !grouped && (o.kind === "register" || o.width > 1), now = o.touched && o.write ? o.after : o.value;
+      const v = grouped ? escapeHTML(o.text ?? `${o.bytes.length} \u5B57\u8282`) : dots ? bitDots(now, o.kind === "memory" ? Math.min(4, o.width) : 4, value(o, now)) : escapeHTML(o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value));
       const raw = grouped ? `<small class="fraw">${o.bytes.slice(0, 16).map((x) => x.toString(16).padStart(2, "0")).join(" ")}${o.bytes.length > 16 ? " \u2026" : ""}</small>` : "";
       const mode = litMode(o);
-      return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${escapeHTML(label2)}</span><span>${escapeHTML(v)}</span>${raw}</div>`;
+      return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${escapeHTML(label2)}</span><span class="fval">${v}</span>${raw}</div>`;
     }).join("") + (objects.length > 12 ? `<div class="fmore">\u53E6\u6709 ${objects.length - 12} \u4E2A\u5BF9\u8C61</div>` : "");
     this.draw(animate ? b : null);
   }
@@ -25373,12 +25400,22 @@ var FocusLens = class {
     const path = (p) => `M ${p[0].x} ${p[0].y} C ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}, ${p[3].x} ${p[3].y}`;
     const out = [];
     const order = this.layout.steps;
+    const body = document.getElementById("focus-body").getBoundingClientRect();
     for (const e of this.layout.edges) {
       const i = order.findIndex((s) => s.index === e.step);
       if (i < 0 || !order[i + 1]) continue;
       const from = this.rowOf(e.step), to = this.rowOf(order[i + 1].index);
       if (!from || !to) continue;
-      const body = document.getElementById("focus-body").getBoundingClientRect();
+      const label2 = e.label + (e.count > 1 ? ` \xD7${e.count}` : "");
+      const a = this.placed?.get(e.from), z = this.placed?.get(e.to);
+      if (SEQUENTIAL.has(e.kind) && a && z && a.col === z.col && z.row > a.row) {
+        const top2 = from.closest(".fseg").getBoundingClientRect(), bottom2 = to.closest(".fseg").getBoundingClientRect(), x = top2.left - body.left + 26, y1 = top2.bottom - body.top, y2 = bottom2.top - body.top - 2;
+        out.push(
+          `<path d="M ${x} ${y1} L ${x} ${y2}" fill="none" stroke="${color.edge}" stroke-width="1.4" marker-end="url(#farrow-edge)" opacity=".8"/>`,
+          `<text x="${x + 8}" y="${(y1 + y2) / 2 + 4}" font-size="11" fill="${color.edge}">${escapeHTML(label2)}</text>`
+        );
+        continue;
+      }
       const p = this.route(
         from.getBoundingClientRect(),
         to.getBoundingClientRect(),
@@ -25388,9 +25425,27 @@ var FocusLens = class {
         `<path d="${path(p)}" fill="none" stroke="${color.edge}" stroke-width="1.4" marker-end="url(#farrow-edge)" opacity=".8"/>`
       );
       const mid = bezier(p, 0.5);
-      const label2 = e.label + (e.count > 1 ? ` \xD7${e.count}` : "");
       out.push(
         `<g><rect x="${mid.x - label2.length * 6 - 4}" y="${mid.y - 9}" width="${label2.length * 12 + 8}" height="16" rx="4" fill="var(--panel)" opacity=".95"/><text x="${mid.x}" y="${mid.y + 3}" text-anchor="middle" font-size="11" fill="${color.edge}">${escapeHTML(label2)}</text></g>`
+      );
+    }
+    for (const [k, g] of (this.ghosts || []).entries()) {
+      const box = document.querySelector(`#focus-path [data-ghost="${k}"]`), seg = document.querySelector(`#focus-path [data-seg="${g.hint.segment}"]`), row2 = seg?.querySelector(`.frow[data-line="${g.hint.line}"]`);
+      if (!box || !row2) continue;
+      const at = this.placed.get(g.hint.segment), r = box.getBoundingClientRect();
+      let d, mid;
+      if (at && at.col === g.col) {
+        const top2 = seg.getBoundingClientRect(), x = top2.left - body.left + 26, y1 = top2.bottom - body.top, y2 = r.top - body.top;
+        d = `M ${x} ${y1} L ${x} ${y2}`;
+        mid = { x, y: (y1 + y2) / 2 };
+      } else {
+        const p = this.route(row2.getBoundingClientRect(), r, body);
+        d = path(p);
+        mid = bezier(p, 0.5);
+      }
+      out.push(
+        `<path d="${d}" fill="none" stroke="${color.edge}" stroke-width="1.4" stroke-dasharray="4 4" opacity=".8"/>`,
+        `<path d="M ${mid.x - 5} ${mid.y - 5} L ${mid.x + 5} ${mid.y + 5} M ${mid.x + 5} ${mid.y - 5} L ${mid.x - 5} ${mid.y + 5}" stroke="${color.edge}" stroke-width="1.8"/>`
       );
     }
     const step = order.find((s) => s.index === this.selected), b = this.beat > 0 ? this.current()?.beats[this.beat - 1] : null, routes = [];
@@ -25970,7 +26025,7 @@ var STEPS = [
   {
     stage: "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
     title: "\u8BA9\u7A0B\u5E8F\u6253\u5370 Hello!",
-    goal: "\u600E\u6837\u8BA9\u7EC8\u7AEF\u663E\u793A Hello!\uFF1F\u5728 hello.s \u91CC\u5199\u7A0B\u5E8F\uFF0C\u7136\u540E\u70B9\u201C\u6C47\u7F16\u201D\uFF0C\u518D\u70B9\u201C\u8FD0\u884C\u201D\u3002",
+    goal: "\u600E\u6837\u8BA9\u7EC8\u7AEF\u663E\u793A Hello!\uFF1F\u5728 hello.s \u91CC\u5199\u7A0B\u5E8F\uFF0C\u7136\u540E\u70B9\u201C\u6C47\u7F16\u201D\uFF0C\u518D\u70B9\u201C\u5B8C\u6574\u8FD0\u884C\u201D\uFF08\u5DE5\u5177\u680F\u91CC\u4E24\u4E2A\u4E09\u89D2\u7684\u56FE\u6807\uFF0CF5 \u4E5F\u53EF\u4EE5\uFF09\u3002",
     checks: [
       ["hello.s \u5DF2\u6C47\u7F16\u5E76\u88C5\u5165", (c) => ranFrom(c, "hello.s")],
       ["\u8FD0\u884C\u7ED3\u675F", (c) => ranFrom(c, "hello.s") && c.state?.status === "ended"],
@@ -27484,6 +27539,25 @@ function drop(key) {
 var DRAFT_KEY = "mars-trace:project:v2";
 var BACKUP_KEY = "mars-trace:previous-project:v2";
 var $ = (id2) => document.getElementById(id2);
+var PAGE = '<path class="page" d="M3.5 1.5h6l3 3v10h-9z"/><path class="page" d="M9.5 1.5v3h3"/>';
+var badge = (letter) => `<text x="8" y="12.3" text-anchor="middle">${letter}</text>`;
+function fileKind(path) {
+  if (isSource(path)) return "asm";
+  if (/\.c$/i.test(path)) return "c";
+  if (/\.h$/i.test(path)) return "h";
+  if (/\.txt$/i.test(path)) return "text";
+  return "other";
+}
+var ICONS = {
+  asm: PAGE + badge("S"),
+  c: PAGE + badge("C"),
+  h: PAGE + badge("H"),
+  text: PAGE + '<path class="line" d="M5.5 8h5M5.5 10.5h5M5.5 13h3"/>',
+  other: PAGE,
+  folder: '<path class="shape" d="M1.5 4a1 1 0 0 1 1-1h3.5l1.5 1.5h6a1 1 0 0 1 1 1V12.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z"/>',
+  open: '<path class="shape" d="M1.5 4a1 1 0 0 1 1-1h3.5l1.5 1.5h5.5a1 1 0 0 1 1 1V7"/><path class="shape" d="M1.5 12.5 3.3 7.6a1 1 0 0 1 .9-.6h10.3l-2 6.5H2.5a1 1 0 0 1-1-1z"/>'
+};
+var icon = (kind) => `<svg class="file-icon ${kind}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[kind]}</svg>`;
 function projectManager(hooks) {
   let meta2 = blankProject(), timer, failed = false, replacing = false, draftLocked = false, previous = null, hasBackup = false, saving = Promise.resolve();
   const snapshot = () => normalizeProject({ ...meta2, ...hooks.snapshot() });
@@ -27607,7 +27681,7 @@ function projectManager(hooks) {
       }
       await apply(p);
       if (!directory && !isSource(name2)) setTimeout(() => hooks.editData(name2));
-    }, directory ? "\u6587\u4EF6\u5939\u53EF\u4EE5\u5D4C\u5957\uFF1B\u5C55\u5F00\u6587\u4EF6\u5939\u53F3\u4FA7\u7684 \u22EF \u53EF\u5728\u5176\u4E2D\u65B0\u5EFA\u3002" : "\u5C0F\u5199 .s / .asm \u662F\u6E90\u7801\uFF1B.txt \u7B49\u6587\u4EF6\u7528\u4F5C\u7A0B\u5E8F\u7684\u865A\u62DF\u8F93\u5165\u3002");
+    }, directory ? "\u6587\u4EF6\u5939\u53EF\u4EE5\u5D4C\u5957\uFF1B\u5C55\u5F00\u6587\u4EF6\u5939\u53F3\u4FA7\u7684 \u22EF \u53EF\u5728\u5176\u4E2D\u65B0\u5EFA\u3002" : "\u5C0F\u5199 .s / .asm \u662F MIPS \u6E90\u7801\uFF0C\u4F1A\u53C2\u4E0E\u6C47\u7F16\uFF1B.c / .h \u548C .txt \u7B49\u662F\u666E\u901A\u6587\u672C\uFF0C\u53EF\u4EE5\u9605\u8BFB\u548C\u7F16\u8F91\uFF0C\u4E5F\u80FD\u4F5C\u4E3A\u7A0B\u5E8F\u7684\u865A\u62DF\u8F93\u5165\u3002");
   }
   function download(bytes, name2, type) {
     const url = URL.createObjectURL(new Blob([bytes], { type }));
@@ -27650,7 +27724,7 @@ function projectManager(hooks) {
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary><span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}"><span aria-hidden="true">${isSource(path) ? "\u25C7" : "\u25A4"}</span><span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary>${icon("folder")}${icon("open")}<span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}">${icon(fileKind(path))}<span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
     };
     $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
@@ -28733,7 +28807,26 @@ function hideTooltip2(delay = 100) {
 }
 for (const event of ["keydown", "beforeinput", "compositionstart"])
   editor.dom.addEventListener(event, () => hideTooltip2(0), true);
-editor.scrollDOM.addEventListener("scroll", () => hideTooltip2(0));
+editor.scrollDOM.addEventListener("scroll", () => {
+  hideTooltip2(0);
+  requestAnimationFrame(updateReturn);
+});
+for (const event of ["wheel", "touchmove", "pointerdown"])
+  editor.scrollDOM.addEventListener(event, leftExecution, { passive: true });
+editor.dom.addEventListener("keydown", leftExecution, true);
+$2("follow-return").onclick = () => {
+  followHold = 0;
+  const ins = executionInstruction();
+  if (!ins) return;
+  autoMoving = true;
+  try {
+    gotoSource(ins.file, ins.line, false);
+  } finally {
+    autoMoving = false;
+  }
+  arrive(true);
+  requestAnimationFrame(updateReturn);
+};
 function pointedPos(e) {
   const pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
   if (pos == null) return null;
@@ -28817,8 +28910,27 @@ function modeBar() {
   const away = pinned2 && here2 && ![at(state.last), at(state.preview)].includes(pinned2);
   return `<div class="inspect-mode pinned">\u5DF2\u56FA\u5B9A \xB7 ${escapeHTML(inspecting)}${inspectingPlace ? ` \xB7 \u7B2C ${inspectingPlace.line} \u884C` : ""}${away ? ` \xB7 \u6267\u884C\u5DF2\u5230\u7B2C ${here2.line} \u884C` : ""}<button id="follow-again">\u56DE\u5230\u8DDF\u968F\u6267\u884C</button></div>`;
 }
+var CONTEXT_ICONS = {
+  // The same mark as the return-to-execution button: go to a line.
+  "detail-source": '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/><circle cx="8" cy="8" r="5"/>',
+  refs: '<circle cx="4" cy="11" r="2.5"/><circle cx="12" cy="11" r="2.5"/><path d="M6.5 11h3M2.5 9 4.5 3.5h2L7 9M13.5 9 11.5 3.5h-2L9 9"/>',
+  "detail-bits": '<path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><circle cx="8" cy="8" r="2.5"/>'
+};
 function showContext(html) {
   $2("context").innerHTML = modeBar() + html;
+  const tools = $2("context-tools");
+  tools.replaceChildren();
+  for (const [id2, icon2] of Object.entries(CONTEXT_ICONS)) {
+    const b = $2("context").querySelector("#" + id2);
+    if (!b) continue;
+    const name2 = b.textContent.trim();
+    b.classList.add("tool");
+    b.dataset.tip = name2;
+    b.setAttribute("aria-label", name2);
+    b.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${icon2}</svg><span class="tool-label">${escapeHTML(name2)}</span>`;
+    tools.append(b);
+  }
+  $2("context").querySelectorAll(".context-actions:empty").forEach((e) => e.remove());
   $2("clear-focus").hidden = following || !inspecting;
   if ($2("follow-again"))
     $2("follow-again").onclick = () => $2("clear-focus").click();
@@ -29078,13 +29190,6 @@ function named(s) {
     fix(e?.instruction);
   return s;
 }
-function sourceOf(ins) {
-  if (!ins) return "";
-  const line = program.instructions.find(
-    (i) => i.file === ins.file && i.line === ins.line && i.source
-  )?.source || ins.source || "";
-  return splitComment(line).code || ins.basic;
-}
 async function api(body) {
   let r = await fetch("/api", {
     method: "POST",
@@ -29172,6 +29277,7 @@ async function assemble() {
       instructionDocs: state.instructionDocs || {}
     };
     dirty = false;
+    runMode = "";
     if (!state.error && problemsShownForError && bottom === "problems") setBottom("console");
     problemsShownForError = false;
     breakpoints = breakpoints.map((b) => ({
@@ -29200,6 +29306,7 @@ function savedEditor() {
 }
 function switchFile(file) {
   if (!Object.hasOwn(files, file) && !Object.hasOwn(data, file)) return;
+  if (!autoMoving) leftExecution();
   savedEditor();
   live.reset();
   hideTooltip2(0);
@@ -29312,7 +29419,38 @@ function arrive(jumped = false) {
 }
 var keepNotice = false;
 var executionPC = () => state?.status === "ended" ? state.last?.pc : state?.pc;
+var FOLLOW_IDLE = 4e3;
+var followHold = 0;
+var autoMoving = false;
+function leftExecution() {
+  if (running && demoing) followHold = Date.now() + FOLLOW_IDLE;
+  requestAnimationFrame(updateReturn);
+}
+function executionInstruction() {
+  const ins = program.instructions.find((i) => i.address === executionPC());
+  return ins && (!target || target.files.includes(ins.file)) ? ins : null;
+}
+function updateReturn() {
+  const ins = state && !dirty && view === "source" ? executionInstruction() : null;
+  let away = false;
+  if (ins && ins.file !== activeFile) away = true;
+  else if (ins) {
+    const l = editor.state.doc.line(Math.min(ins.line, editor.state.doc.lines)), c = editor.coordsAtPos(l.from), r = editor.scrollDOM.getBoundingClientRect();
+    away = !c || c.bottom < r.top || c.top > r.bottom;
+  }
+  $2("follow-return").hidden = !away;
+}
 function followPC() {
+  if (running && demoing && Date.now() < followHold) return updateReturn();
+  autoMoving = true;
+  try {
+    movePC();
+  } finally {
+    autoMoving = false;
+  }
+  requestAnimationFrame(updateReturn);
+}
+function movePC() {
   let ins = program.instructions.find((i) => i.address === executionPC());
   if (ins && target && !target.files.includes(ins.file)) return;
   if (ins && view === "source" && ins.file !== activeFile && activeFile) {
@@ -29339,6 +29477,7 @@ function followPC() {
 }
 function setView(v) {
   view = v;
+  requestAnimationFrame(updateReturn);
   $2("editor").hidden = v !== "source";
   $2("editor").style.display = v === "source" ? "" : "none";
   $2("machine").hidden = v !== "machine";
@@ -29455,25 +29594,46 @@ async function restartRun() {
   await assemble();
   if (state?.status === "paused" && !state.error) await run2("run");
 }
+var started = () => running || !!state?.step || ["ended", "error"].includes(state?.status);
+async function backToStart() {
+  await requestStop();
+  await assemble();
+  followPC();
+  arrive(true);
+}
+var RUN_ICONS = {
+  full: '<path d="M1.5 3.5 7.5 8l-6 4.5zM8 3.5 14 8l-6 4.5z"/>',
+  steps: '<path d="M1.5 2 7 6 1.5 10z"/><circle cx="10.5" cy="10.5" r="4.5"/><path d="M10.5 8v2.5l1.8 1.2"/>',
+  back: '<path d="M3.5 3v10"/><path d="M12.5 3.5 6 8l6.5 4.5z"/>',
+  pause: '<path d="M5.5 3.5v9M10.5 3.5v9"/>',
+  resume: '<path d="M5 3.5 12 8l-7 4.5z"/>'
+};
+function face(button, icon2, name2) {
+  if (button.dataset.face === icon2) return;
+  button.dataset.face = icon2;
+  button.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${RUN_ICONS[icon2]}</svg><span class="tool-label">${name2}</span>`;
+}
 function updateControls() {
   const gate = blocked(), why = executionBlock();
-  for (let name2 of ["step", "source", "over", "out", "run", "demo"])
+  for (let name2 of ["step", "source", "over", "out", "run", "demo", "next-bp"])
     $2(name2).disabled = busy || dirty || !!gate || running || !state || !["paused", "waiting"].includes(state.status);
   $2("back").disabled = busy || dirty || !!gate || running || !state?.step;
-  const restart = canRestart();
-  if (restart) $2("run").disabled = false;
-  if (!state?.step || state.status === "ended" || dirty) demoPaused = false;
-  const pausable = (demo) => running && !stopRequested && demo === demoing;
-  if (pausable(false)) $2("run").disabled = false;
-  if (pausable(true)) $2("demo").disabled = false;
-  $2("run").textContent = pausable(false) ? "\u2161 \u6682\u505C" : restart ? "\u21BB \u4ECE\u5934\u8FD0\u884C" : "\u25B6 \u8FD0\u884C";
-  $2("run").setAttribute("aria-label", pausable(false) ? "\u6682\u505C\uFF08F6\uFF09" : restart ? "\u4ECE\u5934\u8FD0\u884C\uFF08F5\uFF09" : "\u8FD0\u884C\uFF08F5\uFF09");
-  $2("demo").textContent = pausable(true) ? "\u2161 \u6682\u505C" : demoPaused ? "\u25B6 \u7EE7\u7EED" : "\u25B7 \u6F14\u793A";
-  $2("demo").setAttribute("aria-label", pausable(true) ? "\u6682\u505C\u6F14\u793A\uFF08F6\uFF09" : demoPaused ? "\u7EE7\u7EED\u6F14\u793A" : "\u6F14\u793A");
-  for (const name2 of ["back", "step", "source", "over", "out", "run", "demo"]) {
+  const outside = !state?.calls?.length, noStops = !activeBreakpoints().some((b) => !b.log);
+  if (outside) $2("out").disabled = true;
+  if (noStops) $2("next-bp").disabled = true;
+  $2("prev-bp").disabled = $2("back").disabled || noStops;
+  const back = started(), pausing = running && !stopRequested, resume = !running && !!state?.step && !!runMode && ["paused", "waiting"].includes(state?.status);
+  if (back) $2("run").disabled = busy && !running || !!gate || !target;
+  if (pausing) $2("demo").disabled = false;
+  face($2("run"), back ? "back" : "full", back ? "\u56DE\u5230\u5F00\u5934" : "\u5B8C\u6574\u8FD0\u884C");
+  $2("run").setAttribute("aria-label", back ? "\u56DE\u5230\u5F00\u5934" : "\u5B8C\u6574\u8FD0\u884C\uFF08F5\uFF09");
+  face($2("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? "\u6682\u505C" : resume ? "\u7EE7\u7EED" : "\u9010\u6B65\u8FD0\u884C");
+  $2("demo").setAttribute("aria-label", pausing ? "\u6682\u505C\uFF08F6\uFF09" : resume ? "\u7EE7\u7EED" : "\u9010\u6B65\u8FD0\u884C");
+  $2("demo-speed-control").hidden = !(running && demoing || !running && runMode === "demo" && !!state?.step && ["paused", "waiting"].includes(state?.status));
+  for (const name2 of ["back", "step", "source", "over", "out", "run", "demo", "prev-bp", "next-bp"]) {
     const b = $2(name2);
     b.dataset.tipBase ??= b.dataset.tip || "";
-    b.dataset.tip = (name2 === "run" || name2 === "demo") && running && !b.disabled ? "\u6682\u505C \xB7 F6" : name2 === "demo" && demoPaused && !b.disabled ? "\u7EE7\u7EED\u6F14\u793A\uFF1A\u4ECE\u5F53\u524D\u4F4D\u7F6E\u63A5\u7740\u9010\u6761\u6267\u884C" : name2 === "run" && restart ? "\u4ECE\u5934\u8FD0\u884C\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\u5E76\u8FD0\u884C \xB7 F5" : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
+    b.dataset.tip = name2 === "demo" && pausing ? "\u6682\u505C \xB7 F6" : name2 === "demo" && resume && !b.disabled ? runMode === "demo" ? "\u7EE7\u7EED\u9010\u6B65\u8FD0\u884C\uFF1A\u4ECE\u5F53\u524D\u4F4D\u7F6E\u63A5\u7740\u4E00\u6B65\u4E00\u6B65\u6267\u884C" : "\u7EE7\u7EED\u5B8C\u6574\u8FD0\u884C\uFF1A\u5168\u901F\u8FD0\u884C\u5230\u65AD\u70B9\u3001\u7B49\u5F85\u8F93\u5165\u6216\u7ED3\u675F \xB7 F5" : name2 === "run" && back && !b.disabled ? "\u56DE\u5230\u5F00\u5934\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF0C\u505C\u5728\u7B2C\u4E00\u6761\u6307\u4EE4\u524D" : b.disabled && !why && name2 === "out" && outside ? `${b.dataset.tipBase}\uFF08\u73B0\u5728\u4E0D\u5728\u51FD\u6570\u91CC\uFF0C\u6CA1\u6709\u53EF\u4EE5\u8FD4\u56DE\u7684\u8C03\u7528\uFF09` : b.disabled && !why && (name2 === "prev-bp" || name2 === "next-bp") && noStops ? `${b.dataset.tipBase}\uFF08\u8FD8\u6CA1\u6709\u8BBE\u7F6E\u65AD\u70B9\uFF09` : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
   }
   $2("assemble").disabled = busy && !running;
   renderScope();
@@ -29482,7 +29642,7 @@ function updateControls() {
   $2("status").textContent = info.text;
   $2("status").dataset.state = info.kind;
   $2("status").onclick = info.at ? () => gotoSource(info.at.file, info.at.line) : null;
-  $2("status").title = info.at ? "\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C" : "";
+  $2("status").title = info.text + (info.at ? "\n\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C" : "");
 }
 function nextScope() {
   return assemblyScope(
@@ -29574,9 +29734,13 @@ function setupMenu(buttonId, menuId) {
     e.stopPropagation();
     const open = menu.hidden;
     document.querySelectorAll(".menu").forEach((m) => m.hidden = true);
+    document.querySelectorAll(".menu-button").forEach((b) => b.setAttribute("aria-expanded", "false"));
     menu.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     if (open) menu.querySelector("button:not(:disabled)")?.focus();
+  });
+  button.addEventListener("mouseenter", () => {
+    if (menu.hidden && document.querySelector(".menubar .menu:not([hidden])")) button.click();
   });
   menu.addEventListener("click", (e) => {
     if (e.target.closest('[role="menuitem"]')) close();
@@ -29586,6 +29750,10 @@ function setupMenu(buttonId, menuId) {
     if (e.key === "Escape") {
       close();
       button.focus();
+    } else if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && MENUS.some(([b]) => b === buttonId)) {
+      const at2 = MENUS.findIndex(([b]) => b === buttonId), [next] = MENUS[(at2 + (e.key === "ArrowRight" ? 1 : MENUS.length - 1)) % MENUS.length];
+      close();
+      $2(next).click();
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp")
       items[(at + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
     else return;
@@ -29596,8 +29764,16 @@ function setupMenu(buttonId, menuId) {
     if (!e.target.closest(".menu-wrap")) close();
   });
 }
-setupMenu("project-menu-button", "project-menu");
-setupMenu("view-menu-button", "view-menu");
+setupMenu("engine", "engine-menu");
+$2("engine").addEventListener("click", () => {
+  $2("engine-delay").textContent = `\u5EF6\u8FDF\u5206\u652F\uFF1A${$2("delay").checked ? "\u5F00\u542F" : "\u5173\u95ED"} \xB7 \u7A0B\u5E8F\uFF1A${target ? describeScope(target) : "\u672A\u6C47\u7F16"}`;
+});
+var MENUS = [
+  ["project-menu-button", "project-menu"],
+  ["learn-menu-button", "learn-menu"],
+  ["view-menu-button", "view-menu"]
+];
+for (const [button, menu] of MENUS) setupMenu(button, menu);
 var SIDE_TABS = ["files", "symbols", "stops"];
 var sideTab = "files";
 var lastStopKey = "";
@@ -29756,6 +29932,25 @@ function renderSymbols() {
 function accesses() {
   return state?.last?.accesses || state?.preview?.accesses || [];
 }
+function binDigitsFit() {
+  const box = $2("registers"), key = box.clientWidth + codeFont;
+  if (binDigitsFit.key === key) return binDigitsFit.fits;
+  const probe = document.createElement("div");
+  probe.className = "reg";
+  probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+  probe.innerHTML = `<span class="name">$zero</span><span class="value">${escapeHTML(fmt(-1, 4, "value").full)}</span>`;
+  box.appendChild(probe);
+  const need = probe.getBoundingClientRect().width, room = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) - parseFloat(getComputedStyle(box).paddingRight);
+  probe.remove();
+  binDigitsFit.key = key;
+  return binDigitsFit.fits = need <= room;
+}
+new ResizeObserver(() => {
+  if (radix !== "bin" || !state) return;
+  const before = binDigitsFit.fits;
+  binDigitsFit.key = null;
+  if (binDigitsFit() !== before) renderRegisters();
+}).observe($2("registers"));
 function renderRegisters() {
   if (!state) return;
   let all = accesses(), related = new Set(
@@ -29763,11 +29958,14 @@ function renderRegisters() {
   );
   let filter = $2("reg-filter").value;
   const bin = radix === "bin";
-  const shown = (r) => bin ? escapeHTML(fmt(r.value, 4, regKind(r.name)).full).replace(
-    /_/g,
-    (m, i, all2) => (all2.slice(2, i).match(/_/g) || []).length % 2 ? "_<wbr>" : "_"
-  ) : escapeHTML(fmt(r.value, 4, regKind(r.name)).text);
   $2("registers").classList.toggle("bin", bin);
+  const dots = bin && !binDigitsFit();
+  $2("registers").classList.toggle("dots", dots);
+  const text2 = (value, name2) => dots ? bitDots(value, 4, fmt(value, 4, regKind(name2)).full) : bin ? escapeHTML(fmt(value, 4, regKind(name2)).full) : escapeHTML(fmt(value, 4, regKind(name2)).text);
+  const replaced = new Map(
+    (bin ? [] : state.last?.accesses || []).filter((a) => a.kind === "register" && a.write && a.before != null).map((a) => [a.name, a.before])
+  );
+  const shown = (r) => replaced.has(r.name) ? `<s class="old" aria-label="\u539F\u503C">${text2(replaced.get(r.name), r.name)}</s><span class="new">${text2(r.value, r.name)}</span>` : text2(r.value, r.name);
   $2("reg-legend").textContent = {
     auto: "0d \u5341\u8FDB\u5236 \xB7 0x \u5341\u516D\u8FDB\u5236",
     hex: "0x \u5341\u516D\u8FDB\u5236",
@@ -29782,7 +29980,7 @@ function renderRegisters() {
   ).map(
     (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
 ${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""}${escapeHTML(signNote(r))}
-\u524D\u7F00\uFF1A${escapeHTML($2("reg-legend").textContent)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value">${shown(r)}</span></div>`
+\u524D\u7F00\uFF1A${escapeHTML($2("reg-legend").textContent)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`
   ).join("");
   $2("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -29844,24 +30042,6 @@ function inspectByte(address) {
 async function memoryAt(address) {
   await command2("memory", { address: address | 0 });
   overlay.schedule();
-}
-function renderCards() {
-  let last2 = state?.last, next = state?.preview;
-  $2("last-card").innerHTML = `<small>\u521A\u5B8C\u6210 ${last2 ? "#" + last2.step : ""} \xB7 \u5B9E\u7EBF</small><b>${escapeHTML(last2?.instruction ? sourceOf(last2.instruction) : "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55")}</b>`;
-  $2("next-card").innerHTML = state?.status === "ended" ? `<small>\u5373\u5C06\u6267\u884C</small><b>\u7A0B\u5E8F\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}</b>` : `<small>\u5373\u5C06\u6267\u884C ${next?.instruction ? "#" + next.step : ""} \xB7 \u865A\u7EBF ${next?.status === "waiting-input" ? "\xB7 \u7B49\u5F85\u8F93\u5165" : ""}</small><b>${escapeHTML(next?.instruction ? sourceOf(next.instruction) : "\u2014")}</b>`;
-  for (let [id2, e] of [
-    ["last-card", last2],
-    ["next-card", next]
-  ]) {
-    $2(id2).title = e?.instruction ? `${e.instruction.file}:${e.instruction.line} \xB7 ${hex(e.pc)}
-\u5B9E\u9645\u6267\u884C\uFF1A${e.instruction.basic}` : "";
-    $2(id2).onclick = () => {
-      if (e?.instruction) {
-        gotoSource(e.instruction.file, e.instruction.line);
-        inspectToken(e.instruction.op, e.instruction);
-      }
-    };
-  }
 }
 function renderMachine() {
   $2("machine").innerHTML = program.instructions.map(
@@ -29928,13 +30108,12 @@ function render() {
   renderSymbols();
   renderRegisters();
   renderMemory();
-  renderCards();
   renderTrace();
   renderStops();
   renderLogs();
   renderOutput();
   $2("pc").textContent = "PC " + hex(state.pc);
-  $2("location").textContent = `\u5DF2\u6267\u884C ${state.step} \u6B65 \xB7 \u4E0B\u4E00\u6761 ${hex(state.pc)}`;
+  requestAnimationFrame(updateReturn);
   $2("history-info").textContent = `${state.step} / ${state.historyLength} \u6B65`;
   $2("calls").innerHTML = state.calls.map(
     (c) => `<button class="trace-row" data-call="${c.step}">#${c.step} ${escapeHTML(c.instruction.basic)} \u2192 \u8FD4\u56DE ${hex(c.return)}</button>`
@@ -29976,6 +30155,7 @@ function activeBreakpoints() {
 }
 function breakpointChanged() {
   renderStops();
+  updateControls();
   editor.dispatch({ effects: refresh.of(null) });
   if (view === "machine") renderMachine();
 }
@@ -30139,7 +30319,7 @@ function renderStops() {
 }
 var stopRequested = false;
 var demoing = false;
-var demoPaused = false;
+var runMode = "";
 var runDone = Promise.resolve();
 function requestStop() {
   if (running) {
@@ -30156,7 +30336,7 @@ async function run2(mode = "run", extra = {}) {
   }
   running = true;
   demoing = mode === "demo";
-  demoPaused = false;
+  if ((mode === "run" || mode === "demo") && !extra.keepMode) runMode = mode;
   stopRequested = false;
   let finish;
   runDone = new Promise((resolve) => finish = resolve);
@@ -30165,8 +30345,8 @@ async function run2(mode = "run", extra = {}) {
   } finally {
     running = false;
     stopRequested = false;
-    demoPaused = demoing && ["paused", "waiting"].includes(state?.status);
     demoing = false;
+    followHold = 0;
     updateControls();
     finish();
   }
@@ -30174,13 +30354,13 @@ async function run2(mode = "run", extra = {}) {
   followInspector();
   lens.settle();
 }
-var DEMO_SPEEDS = [1500, 900, 450, 150, 75];
-var DEMO_SPEED_NAMES = ["\u5F88\u6162", "\u6162\u901F", "\u4E2D\u901F", "\u5FEB\u901F", "\u5F88\u5FEB"];
+var DEMO_RATES = [0.5, 1, 2, 4, 8, 16];
+var demoRate = () => DEMO_RATES[Number($2("demo-speed").value) - 1];
 function updateDemoSpeed() {
-  const level = Number($2("demo-speed").value), name2 = DEMO_SPEED_NAMES[level - 1];
-  $2("demo-speed-label").textContent = `${level}/5`;
-  $2("demo-speed").setAttribute("aria-valuetext", `${name2}\uFF0C\u7B2C ${level} \u6863\uFF0C\u5171 5 \u6863`);
-  $2("demo-speed").title = `\u6F14\u793A\u901F\u5EA6\uFF1A${name2}\uFF08${level}/5\uFF09`;
+  const text2 = `${demoRate()} \u6B65/\u79D2`;
+  $2("demo-speed-label").textContent = text2;
+  $2("demo-speed").setAttribute("aria-valuetext", `\u6BCF\u79D2 ${demoRate()} \u6B65`);
+  $2("demo-speed").title = `\u9010\u6B65\u8FD0\u884C\u901F\u5EA6\uFF1A${text2}`;
 }
 $2("demo-speed").addEventListener("input", updateDemoSpeed);
 updateDemoSpeed();
@@ -30191,6 +30371,7 @@ async function runLoop(mode, extra) {
   if (demonstrate) mode = "run";
   pendingResume = null;
   while (!stopRequested) {
+    const began = performance.now();
     let s = await command2(mode, {
       limit: mode === "run" ? demonstrate ? 1 : 150 : mode === "over" || mode === "out" ? 1e5 : 1e3,
       breakpoints: activeBreakpoints(),
@@ -30201,9 +30382,8 @@ async function runLoop(mode, extra) {
     first = false;
     if (demonstrate && s?.last) {
       followPC();
-      await new Promise(
-        (resolve) => setTimeout(resolve, DEMO_SPEEDS[Number($2("demo-speed").value) - 1])
-      );
+      const wait = 1e3 / demoRate() - (performance.now() - began);
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, wait)));
     }
     if (!s || s.status !== "paused" || s.stopReason !== "Batch complete" || mode !== "run")
       break;
@@ -30245,8 +30425,11 @@ function commandList() {
     ["\u8DE8\u8FC7\u8C03\u7528", () => run2("over"), "over"],
     ["\u8DF3\u51FA\u51FD\u6570", () => run2("out"), "out"],
     ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC), "back"],
-    ["\u8FD0\u884C\uFF0F\u7EE7\u7EED", () => run2(), "run"],
-    ["\u6F14\u793A\u64AD\u653E\uFF08\u9010\u6761\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run2("demo")],
+    ["\u8DF3\u5230\u4E0B\u4E00\u4E2A\u65AD\u70B9", () => $2("next-bp").click()],
+    ["\u8DF3\u56DE\u4E0A\u4E00\u4E2A\u65AD\u70B9", () => $2("prev-bp").click()],
+    ["\u5B8C\u6574\u8FD0\u884C\uFF0F\u5168\u901F\u7EE7\u7EED", () => actions.run(), "run"],
+    ["\u9010\u6B65\u8FD0\u884C\uFF08\u4E00\u6B65\u4E00\u6B65\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run2("demo")],
+    ["\u56DE\u5230\u5F00\u5934\uFF08\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF09", () => backToStart()],
     ["\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F", () => assemble(), "restart"],
     ["\u6682\u505C", () => requestStop(), "pause"],
     ["\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9", () => actions.stop(), "stop"],
@@ -30539,14 +30722,23 @@ $2("step").onclick = () => command2("step").then((s) => {
   followPC();
   arrive();
 });
-$2("demo").onclick = () => running ? requestStop() : run2("demo");
+$2("demo").onclick = () => running ? requestStop() : run2(state?.step && runMode ? runMode : "demo");
 $2("back").onclick = () => command2("back").then(() => {
   followPC();
   arrive();
 });
-for (let mode of ["source", "over", "out", "run"])
-  $2(mode).onclick = () => mode === "run" && running ? requestStop() : mode === "run" && canRestart() ? restartRun() : run2(mode);
+$2("run").onclick = () => started() ? backToStart() : run2("run");
+$2("next-bp").onclick = () => run2("run", { keepMode: true });
+$2("prev-bp").onclick = async () => {
+  await command2("previousBreakpoint", { breakpoints: activeBreakpoints() });
+  if (state?.stopReason === "No earlier breakpoint")
+    notify("\u524D\u9762\u7684\u6267\u884C\u91CC\u6CA1\u6709\u505C\u5728\u65AD\u70B9\u524D\u7684\u4F4D\u7F6E", { transient: true });
+  followPC();
+  arrive(true);
+};
+for (let mode of ["source", "over", "out"]) $2(mode).onclick = () => run2(mode);
 $2("commands").onclick = openCommands;
+$2("commands-key").textContent = IS_MAC ? "\u21E7\u2318P" : "Ctrl+Shift+P";
 $2("radix").innerHTML = RADIXES.map(
   ([value, label2]) => `<option value="${value}" title="${escapeHTML(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label2}</option>`
 ).join("");
@@ -30602,6 +30794,47 @@ function setFontSize(size) {
   overlay.schedule();
 }
 $2("zoom").onclick = () => setFontSize(fontSize + 1);
+var OS_NAME = /Mac|iPhone|iPad/.test(navigator.platform) ? "macOS\uFF1ASF Mono" : /Win/.test(navigator.platform) ? "Windows\uFF1AConsolas" : "Linux\uFF1ADejaVu \u7B49";
+var CODE_FONTS = [
+  ["jetbrains", "JetBrains Mono", '"JetBrains Mono Web"'],
+  ["fira", "Fira Code", '"Fira Code Web"'],
+  ["cascadia", "Cascadia Code", '"Cascadia Code Web"'],
+  ["source", "Source Code Pro", '"Source Code Pro Web"'],
+  ["plex", "IBM Plex Mono", '"IBM Plex Mono Web"'],
+  ["system", "\u7CFB\u7EDF\u9ED8\u8BA4", ""]
+];
+var codeFont = "jetbrains";
+function setCodeFont(id2) {
+  const font = CODE_FONTS.find(([key]) => key === id2) || CODE_FONTS[0];
+  codeFont = font[0];
+  document.documentElement.style.setProperty(
+    "--mono",
+    font[2] ? `${font[2]}, var(--mono-system)` : "var(--mono-system)"
+  );
+  $2("font-list").querySelectorAll("[data-font]").forEach(
+    (b) => b.setAttribute("aria-checked", String(b.dataset.font === codeFont))
+  );
+  try {
+    localStorage.setItem("code-font", codeFont);
+  } catch {
+  }
+  document.fonts?.ready.then(() => {
+    editor.requestMeasure();
+    overlay.schedule();
+  });
+}
+$2("font-list").innerHTML = CODE_FONTS.map(
+  ([key, name2, family]) => `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${escapeHTML(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${escapeHTML(name2)}</span><span class="sample">${key === "system" ? escapeHTML(OS_NAME) : "0O 1lI $t0"}</span></button>`
+).join("");
+$2("font-list").onclick = (e) => {
+  const b = e.target.closest("[data-font]");
+  if (b) setCodeFont(b.dataset.font);
+};
+try {
+  setCodeFont(localStorage.getItem("code-font") || "jetbrains");
+} catch {
+  setCodeFont("jetbrains");
+}
 var panelSplits = {
   "split-left": {
     prop: "--left-w",
@@ -30761,9 +30994,9 @@ $2("add-watch").onclick = () => {
     renderStops();
   };
 };
-$2("example").onchange = () => {
-  if ($2("example").value !== "") loadExample(Number($2("example").value));
-  $2("example").value = "";
+$2("example-list").onclick = (e) => {
+  const b = e.target.closest("[data-example]");
+  if (b) loadExample(Number(b.dataset.example));
 };
 var mac2 = /Mac|iPhone|iPad/.test(navigator.platform);
 var keys2 = new Keymap(mac2);
@@ -30776,7 +31009,7 @@ function hintOnce(key, text2) {
   notify(text2);
 }
 var actions = {
-  run: () => !running && $2("run").click(),
+  run: () => !running && (canRestart() ? restartRun() : run2("run")),
   pause: () => requestStop(),
   stop: async () => {
     await requestStop();
@@ -30895,15 +31128,13 @@ workspace = projectManager({
     inlineCache.key = null;
     dirty = true;
     pendingResume = null;
+    runMode = "";
     $2("delay").checked = p.delay;
     setView("source");
     setBottom("console");
     for (const id2 of ["output", "trace", "calls", "problems", "logs", "symbols", "registers", "memory", "machine", "cfg"]) {
       if ($2(id2)) $2(id2).replaceChildren();
     }
-    $2("last-card").innerHTML = "<small>\u521A\u5B8C\u6210 \xB7 \u5B9E\u7EBF</small><b>\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55</b>";
-    $2("next-card").innerHTML = "<small>\u4E0B\u4E00\u6761 \xB7 \u865A\u7EBF</small><b>\u6C47\u7F16\u540E\u5F00\u59CB</b>";
-    $2("location").textContent = "\u5C1A\u672A\u6C47\u7F16";
     $2("history-info").textContent = "0 / 0 \u6B65";
     $2("pc").textContent = "PC \u2014";
     selectActiveFile(p.activeFile);
@@ -30942,10 +31173,10 @@ window.marsIDE = {
     const response = await fetch("/examples");
     if (!response.ok) throw Error("\u793A\u4F8B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528");
     exampleList = await response.json();
-    $2("example").innerHTML = '<option value="">\u6559\u5B66\u793A\u4F8B\u2026</option>' + exampleList.map(
-      (e, i) => `<option value="${i}">${escapeHTML(e.name === "hexout" ? "Hexadecimal \xB7 \u4F4D\u4E0E\u5B57\u7B26" : e.name === "task1" ? "Task 1 \xB7 \u6587\u4EF6\u4E0E\u8C03\u7528" : e.name)}</option>`
-    ).join("");
+    $2("example-list").innerHTML = exampleList.map(
+      (e, i) => `<button role="menuitem" data-example="${i}">${escapeHTML(e.name === "hexout" ? "Hexadecimal \xB7 \u4F4D\u4E0E\u5B57\u7B26" : e.name === "task1" ? "Task 1 \xB7 \u6587\u4EF6\u4E0E\u8C03\u7528" : e.name)}</button>`
+    ).join("") || '<button role="menuitem" disabled>\u6CA1\u6709\u793A\u4F8B</button>';
   } catch (e) {
-    $2("example").innerHTML = '<option value="">\u793A\u4F8B\u6682\u4E0D\u53EF\u7528</option>';
+    $2("example-list").innerHTML = '<button role="menuitem" disabled>\u793A\u4F8B\u6682\u4E0D\u53EF\u7528</button>';
   }
 })();

@@ -123,11 +123,15 @@ public final class Server {
           return;
         }
         String type = path.endsWith(".js")
-          ? "text/javascript"
+          ? "text/javascript; charset=utf-8"
           : path.endsWith(".css")
-            ? "text/css"
-            : "text/html";
-        send(ex, 200, Files.readString(p), type);
+            ? "text/css; charset=utf-8"
+            : path.endsWith(".woff2")
+              ? "font/woff2"
+              : path.endsWith("LICENSE")
+                ? "text/plain; charset=utf-8"
+                : "text/html; charset=utf-8";
+        send(ex, 200, Files.readAllBytes(p), type);
       } catch (Exception e) {
         send(
           ex,
@@ -152,8 +156,13 @@ public final class Server {
 
   private static void send(HttpExchange ex, int code, String body, String type)
     throws java.io.IOException {
-    byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-    ex.getResponseHeaders().set("Content-Type", type + "; charset=utf-8");
+    send(ex, code, body.getBytes(StandardCharsets.UTF_8), type + "; charset=utf-8");
+  }
+
+  /** Static files go out as stored: fonts are binary. */
+  private static void send(HttpExchange ex, int code, byte[] bytes, String type)
+    throws java.io.IOException {
+    ex.getResponseHeaders().set("Content-Type", type);
     ex.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
     ex.getResponseHeaders().set("Cache-Control", "no-store");
     ex.sendResponseHeaders(code, bytes.length);
