@@ -142,7 +142,7 @@ def scope_checks(page, temp):
 def main():
     with tempfile.TemporaryDirectory() as temp, sync_playwright() as p:
         browser = launch(p)
-        page = browser.new_page(viewport={'width':1440,'height':1000}, accept_downloads=True)
+        page = browser.new_page(locale="zh-CN", viewport={'width':1440,'height':1000}, accept_downloads=True)
         errors=[]
         page.on('pageerror',lambda e: errors.append(str(e)))
         try:
@@ -257,7 +257,7 @@ def main():
             page.locator('#project-menu-button').click()
             check('project actions remain reachable at a smaller desktop width',page.locator('#import').is_visible() and page.locator('#new-project').is_visible())
             page.keyboard.press('Escape')
-            offline_context=browser.new_context(viewport={'width':1280,'height':900})
+            offline_context=browser.new_context(locale="zh-CN", viewport={'width':1280,'height':900})
             offline_context.route('**/examples',lambda route:route.abort())
             offline=offline_context.new_page();offline.goto(URL)
             offline.wait_for_function('() => Boolean(window.marsIDE)')
@@ -265,13 +265,13 @@ def main():
             offline.wait_for_function("() => document.getElementById('workspace-status').textContent.includes('已保存')")
             check('editing and saving work while the example service is unavailable',offline.evaluate("window.marsIDE.files['main.s']")==SOURCE)
             offline_context.close()
-            phone_context=browser.new_context(viewport={'width':1280,'height':900},user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148')
+            phone_context=browser.new_context(locale="zh-CN", viewport={'width':1280,'height':900},user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148')
             phone=phone_context.new_page();phone.goto(URL)
             phone.wait_for_function('() => Boolean(window.marsIDE)')
             project_action(phone,'import')
             check('where folders cannot be chosen the dialog says to use a ZIP',phone.locator('#choose-folder').count()==0 and '压缩成 ZIP' in phone.locator('#modal').inner_text())
             phone_context.close()
-            quota_context=browser.new_context(viewport={'width':1280,'height':900})
+            quota_context=browser.new_context(locale="zh-CN", viewport={'width':1280,'height':900})
             quota_context.add_init_script("Storage.prototype.setItem=function(){throw new DOMException('storage unavailable','QuotaExceededError')};Object.defineProperty(window,'indexedDB',{value:undefined})")
             quota=quota_context.new_page();quota.goto(URL)
             quota.wait_for_function('() => Boolean(window.marsIDE)')

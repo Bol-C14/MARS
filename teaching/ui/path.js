@@ -1,16 +1,17 @@
+import { t, localized } from "./i18n/index.js";
 import { buildCFG } from "./model.js";
 // Lays out the focus-mode window (DESIGN §3.7): the step just completed plus
 // the backend lookahead, as visited CFG blocks ("segments") joined by edges.
 // Pure: derives everything from recorded events and the static program.
 
-const edgeLabels = {
-  next: "顺序",
-  fallthrough: "条件不成立",
-  taken: "条件成立",
-  jump: "跳转",
-  call: "调用",
-  return: "返回",
-};
+const edgeLabels = localized(() => ({
+  next: t("path.edge.next"),
+  fallthrough: t("path.edge.fallthrough"),
+  taken: t("path.edge.taken"),
+  jump: t("path.edge.jump"),
+  call: t("path.edge.call"),
+  return: t("path.edge.return"),
+}));
 
 // Branches whose condition cannot fail (e.g. `b label` assembles to bgez $zero).
 function unconditional(ins) {
@@ -78,7 +79,7 @@ export function layoutPath({
   const labelOf = (address) => {
     if (names.has(address)) return names.get(address);
     const w = where(address);
-    return w.line ? `第 ${w.line} 行` : "";
+    return w.line ? t("common.lineN", { line: w.line }) : "";
   };
 
   const steps = [];

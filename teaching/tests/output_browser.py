@@ -9,7 +9,7 @@ project={'name':'Output check','files':{'main.s':src},'data':{'MIPS/output.txt':
 with sync_playwright() as p:
  b=launch(p)
  try:
-  page=b.new_page();page.add_init_script('localStorage.setItem("mars-trace:project:v2",'+json.dumps(json.dumps(project))+')')
+  page=b.new_page(locale="zh-CN");page.add_init_script('localStorage.setItem("mars-trace:project:v2",'+json.dumps(json.dumps(project))+')')
   page.goto(sys.argv[1] if len(sys.argv)>1 else 'http://127.0.0.1:8765/');page.wait_for_function('()=>Boolean(window.marsIDE)')
   page.locator('#assemble').click();page.wait_for_function('()=>window.marsIDE.state?.status==="paused"')
   page.locator('#run').click();page.wait_for_function('()=>window.marsIDE.state?.status==="ended"')

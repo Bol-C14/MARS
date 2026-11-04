@@ -1,31 +1,32 @@
+import { t, localized } from "./i18n/index.js";
 // Per-service syscall teaching (classroom 2026-10-24): what a service does,
 // which registers it reads and what they mean, what happens, and which
 // registers or terminal change. Mechanism only; values come from the caller.
 import { escapeByte } from "./radix.js";
 
 // [name, what it does, [[register, meaning]], what happens, what changes]
-export const serviceGuide = {
-  1: ["打印整数", "把 $a0 的值按有符号十进制打印到终端。", [["$a0", "要打印的整数"]], "终端多出这个数的十进制写法，例如 45 打印成 45。", "终端；寄存器不变"],
-  2: ["打印单精度数", "把 $f12 的单精度浮点数打印到终端。", [["$f12", "要打印的数"]], "终端多出这个数。", "终端；寄存器不变"],
-  3: ["打印双精度数", "把 $f12/$f13 组成的双精度浮点数打印到终端。", [["$f12", "要打印的数（低位一半）"]], "终端多出这个数。", "终端；寄存器不变"],
-  4: ["打印字符串", "从 $a0 给出的地址开始逐个字节打印，遇到值为 0 的字节（\\0）停下。", [["$a0", "字符串第一个字节的地址（不是字符串本身）"]], "终端多出这段文字；\\0 本身不打印。", "终端；寄存器不变"],
-  5: ["读取整数", "等待在终端输入一个整数并按 Enter。", [], "执行后 $v0 变成读到的整数，原来的 5 被覆盖。", "$v0（返回值）"],
-  6: ["读取单精度数", "等待在终端输入一个浮点数。", [], "读到的数写入 $f0。", "$f0（返回值）"],
-  7: ["读取双精度数", "等待在终端输入一个浮点数。", [], "读到的数写入 $f0/$f1。", "$f0、$f1（返回值）"],
-  8: ["读取字符串", "等待在终端输入一行文字，把字符存进内存。", [["$a0", "缓冲区（存放输入的内存）第一个字节的地址"], ["$a1", "最多占用的字节数，含末尾的 \\0"]], "从 $a0 开始最多写入 $a1−1 个字符（含换行），末尾补 \\0。", "内存；寄存器不变"],
-  9: ["分配堆内存", "在堆上留出 $a0 个字节。", [["$a0", "需要的字节数"]], "这块内存的起始地址写入 $v0。", "$v0（返回值）"],
-  10: ["退出程序", "结束程序。", [], "程序停止，不再执行后面的指令。", "执行结束"],
-  11: ["打印字符", "把 $a0 低 8 位按字符编码表当作一个字符打印。", [["$a0", "要打印字符的编码"]], "终端多出一个字符，例如 45 打印成 -（同样的 45，$v0 = 1 时会打印成 45）。", "终端；寄存器不变"],
-  12: ["读取字符", "等待在终端输入一个字符。", [], "执行后 $v0 变成这个字符的编码，原来的 12 被覆盖。", "$v0（返回值）"],
-  13: ["打开虚拟文件", "按 $a0 的文件名打开工程里的输入文件（不会访问电脑上的文件）。", [["$a0", "文件名字符串的地址"], ["$a1", "打开方式：0 读、1 写、9 追加"], ["$a2", "模式（忽略）"]], "文件描述符写入 $v0；打不开时为负数。", "$v0（返回值）"],
-  14: ["读取文件", "从已打开的虚拟文件读取字节到内存。", [["$a0", "文件描述符"], ["$a1", "缓冲区地址"], ["$a2", "最多读取的字节数"]], "读到的字节数写入 $v0（0 表示读完，负数表示出错）。", "内存、$v0"],
-  15: ["写入文件", "把内存中的字节写入已打开的虚拟文件。", [["$a0", "文件描述符"], ["$a1", "要写的数据地址"], ["$a2", "字节数"]], "写入的字节数写入 $v0。", "虚拟文件、$v0"],
-  16: ["关闭文件", "关闭 $a0 指定的虚拟文件。", [["$a0", "文件描述符"]], "文件关闭。", "无"],
-  17: ["退出并返回状态码", "结束程序，并把 $a0 作为退出码。", [["$a0", "退出码"]], "程序停止。", "执行结束"],
-  34: ["打印十六进制整数", "把 $a0 按 8 位十六进制打印。", [["$a0", "要打印的整数"]], "终端多出 0x 开头的写法。", "终端；寄存器不变"],
-  35: ["打印二进制整数", "把 $a0 按 32 位二进制打印。", [["$a0", "要打印的整数"]], "终端多出 32 个 0/1。", "终端；寄存器不变"],
-  36: ["打印无符号整数", "把 $a0 按无符号十进制打印。", [["$a0", "要打印的整数"]], "终端多出这个数（不会是负数）。", "终端；寄存器不变"],
-};
+export const serviceGuide = localized(() => ({
+  1: [t("service.1"), t("guide.1.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.1.effect"), t("guide.changes.terminal")],
+  2: [t("service.2"), t("guide.2.does"), [["$f12", t("guide.arg.numberToPrint")]], t("guide.2.effect"), t("guide.changes.terminal")],
+  3: [t("service.3"), t("guide.3.does"), [["$f12", t("guide.arg.doubleLow")]], t("guide.2.effect"), t("guide.changes.terminal")],
+  4: [t("guide.4.name"), t("guide.4.does"), [["$a0", t("guide.arg.stringAddress")]], t("guide.4.effect"), t("guide.changes.terminal")],
+  5: [t("service.5"), t("guide.5.does"), [], t("guide.5.effect"), t("guide.changes.v0")],
+  6: [t("service.6"), t("guide.readFloat.does"), [], t("guide.6.effect"), t("guide.changes.f0")],
+  7: [t("service.7"), t("guide.readFloat.does"), [], t("guide.7.effect"), t("guide.changes.f0f1")],
+  8: [t("service.8"), t("guide.8.does"), [["$a0", t("guide.arg.bufferAddress")], ["$a1", t("guide.arg.bufferSize")]], t("guide.8.effect"), t("guide.changes.memory")],
+  9: [t("service.9"), t("guide.9.does"), [["$a0", t("guide.arg.bytesNeeded")]], t("guide.9.effect"), t("guide.changes.v0")],
+  10: [t("service.10"), t("guide.10.does"), [], t("guide.10.effect"), t("guide.changes.ended")],
+  11: [t("service.11"), t("guide.11.does"), [["$a0", t("guide.arg.charCode")]], t("guide.11.effect"), t("guide.changes.terminal")],
+  12: [t("service.12"), t("guide.12.does"), [], t("guide.12.effect"), t("guide.changes.v0")],
+  13: [t("service.13"), t("guide.13.does"), [["$a0", t("guide.arg.fileName")], ["$a1", t("guide.arg.openFlags")], ["$a2", t("guide.arg.mode")]], t("guide.13.effect"), t("guide.changes.v0")],
+  14: [t("service.14"), t("guide.14.does"), [["$a0", t("guide.arg.fd")], ["$a1", t("guide.arg.buffer")], ["$a2", t("guide.arg.maxRead")]], t("guide.14.effect"), t("guide.changes.memoryV0")],
+  15: [t("service.15"), t("guide.15.does"), [["$a0", t("guide.arg.fd")], ["$a1", t("guide.arg.dataAddress")], ["$a2", t("guide.arg.byteCount")]], t("guide.15.effect"), t("guide.changes.fileV0")],
+  16: [t("service.16"), t("guide.16.does"), [["$a0", t("guide.arg.fd")]], t("guide.16.effect"), t("common.none")],
+  17: [t("service.17"), t("guide.17.does"), [["$a0", t("guide.arg.exitCode")]], t("guide.17.effect"), t("guide.changes.ended")],
+  34: [t("service.34"), t("guide.34.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.34.effect"), t("guide.changes.terminal")],
+  35: [t("service.35"), t("guide.35.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.35.effect"), t("guide.changes.terminal")],
+  36: [t("service.36"), t("guide.36.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.36.effect"), t("guide.changes.terminal")],
+}));
 const printable = (b) => b >= 32 && b < 127;
 
 // What a parameter value means for this service, e.g. 45 → '-' for service 11.
@@ -33,12 +34,12 @@ export function argumentMeaning(n, register, value) {
   if (value == null) return "";
   if (n === 11 && register === "$a0") {
     const b = value & 255;
-    return printable(b) ? `编码 ${b} 是字符 '${escapeByte(b)}'` : `编码 ${b}（${escapeByte(b)}，不是可显示字符）`;
+    return printable(b) ? t("guide.meaning.char", { code: b, char: escapeByte(b) }) : t("guide.meaning.notPrintable", { code: b, char: escapeByte(b) });
   }
-  if (n === 1 && register === "$a0") return `打印出来是 ${value | 0}`;
-  if (n === 36 && register === "$a0") return `打印出来是 ${value >>> 0}`;
-  if ((n === 4 || n === 8 || n === 13) && register === "$a0") return "这是地址，内容在内存里";
-  if ((n === 14 || n === 15) && register === "$a1") return "这是地址，内容在内存里";
+  if (n === 1 && register === "$a0") return t("guide.meaning.prints", { value: value | 0 });
+  if (n === 36 && register === "$a0") return t("guide.meaning.prints", { value: value >>> 0 });
+  if ((n === 4 || n === 8 || n === 13) && register === "$a0") return t("guide.meaning.address");
+  if ((n === 14 || n === 15) && register === "$a1") return t("guide.meaning.address");
   return "";
 }
 
@@ -66,9 +67,9 @@ export function serviceAt({ next, event, v0, lines = [], line = 0 }) {
 // One sentence for where the value came from; the same for a line about to
 // run, one that ran, or one not reached yet.
 function chosenBy(n, name, setter, step) {
-  if (n == null) return "syscall 做什么由 $v0 里的数决定。这一行上方没有直接设置 $v0 的指令，$v0 的值要执行到这一行才知道。";
-  const where = setter ? `（第 ${setter.line} 行 ${setter.text} 放入${step ? `，第 ${step} 步` : ""}）` : "";
-  return `$v0 = ${n} 选定了“${name}”${where}。`;
+  if (n == null) return t("guide.chosen.unknown");
+  const where = setter ? t("guide.chosen.setter", { line: setter.line, code: setter.text, when: step ? t("guide.chosen.step", { step }) : "" }) : "";
+  return t("guide.chosen", { n, name, where });
 }
 
 // The detailed explanation of one syscall: what it does → its parameters with
@@ -79,9 +80,9 @@ export function syscallDetail({ n, values = {}, event, waiting, esc, show = Stri
   // A register name, hoverable for its conventional use when the caller can say it.
   const reg = (r) => (regTitle ? `<abbr class="reg-term" title="${esc(regTitle(r))}">${r}</abbr>` : r);
   const g = serviceGuide[n];
-  const head = n == null ? "syscall：$v0 未知" : `syscall：${g ? g[0] : "不支持"}`;
+  const head = n == null ? t("guide.title.unknown") : `syscall${t("common.colon")}${g ? g[0] : t("guide.title.unsupported")}`;
   if (n != null && !g)
-    return { title: head, html: `<p>$v0 = ${esc(String(n))}：MARS Trace 不支持这个数（支持 ${Object.keys(serviceGuide).join("、")}），执行时会报错停下。</p>` };
+    return { title: head, html: `<p>${t("guide.unsupported", { n: esc(String(n)), supported: Object.keys(serviceGuide).join(t("common.listSep")) })}</p>` };
   if (!g) return { title: head, html: `<p>${esc(chosenBy(null))}</p>` };
   const [, does, args, effect, changes] = g;
   const arg = ([r, meaning]) => {
@@ -89,17 +90,17 @@ export function syscallDetail({ n, values = {}, event, waiting, esc, show = Stri
     return `<li><code>${reg(r)}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show(v, r))}</b>`}${m ? `<small> · ${esc(m)}</small>` : ""}</li>`;
   };
   const happened = [];
-  if (waiting) happened.push(`正在等待输入：请在底部终端输入后按 Enter。输入完成前 $v0 仍是 ${n}，不会显示虚构的结果。`);
+  if (waiting) happened.push(t("guide.waiting", { n }));
   if (event) {
-    if (event.output) happened.push(`实际输出 "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
+    if (event.output) happened.push(`${t("guide.output")} "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
     for (const a of event.accesses || [])
-      if (a.write && a.kind === "register") happened.push(`${a.name} 变为 ${esc(show(a.value, a.name))}`);
+      if (a.write && a.kind === "register") happened.push(t("guide.registerChanged", { name: a.name, value: esc(show(a.value, a.name)) }));
     const bytes = (event.accesses || []).filter((a) => a.kind === "memory" && a.write).reduce((s, a) => s + a.width, 0);
-    if (bytes) happened.push(`写入内存 ${bytes} 字节`);
-    if (event.status === "waiting-input") happened.push("当时在等待输入");
+    if (bytes) happened.push(t("guide.memoryWritten", { bytes }));
+    if (event.status === "waiting-input") happened.push(t("guide.wasWaiting"));
   }
   return {
     title: head,
-    html: `<p class="syscall-chosen">${esc(chosenBy(n, g[0], setter, step))}</p><dl class="syscall-steps"><dt>做什么</dt><dd>${esc(does)}</dd><dt>需要的参数</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : "无"}</dd><dt>发生什么</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>变化</dt><dd>${esc(changes)}</dd></dl>`,
+    html: `<p class="syscall-chosen">${esc(chosenBy(n, g[0], setter, step))}</p><dl class="syscall-steps"><dt>${t("guide.heading.does")}</dt><dd>${esc(does)}</dd><dt>${t("guide.heading.args")}</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : t("common.none")}</dd><dt>${t("guide.heading.effect")}</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>${t("guide.heading.changes")}</dt><dd>${esc(changes)}</dd></dl>`,
   };
 }

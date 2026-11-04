@@ -1020,7 +1020,7 @@ def main():
         with sync_playwright() as p:
             browser = launch(p)
             version = browser.version
-            page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            page = browser.new_page(locale="zh-CN", viewport={"width": 1440, "height": 1000})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto(f"http://127.0.0.1:{port}")
@@ -1030,7 +1030,7 @@ def main():
             r = Run(page)
             try:
                 scenario(r, page, mod)
-                calm = browser.new_page(viewport={"width": 1280, "height": 850}, reduced_motion="reduce")
+                calm = browser.new_page(locale="zh-CN", viewport={"width": 1280, "height": 850}, reduced_motion="reduce")
                 calm.on("pageerror", lambda e: errors.append(str(e)))
                 calm.goto(f"http://127.0.0.1:{port}")
                 open_example(calm, "Hexadecimal · 位与字符")
@@ -1038,7 +1038,7 @@ def main():
                 calm.wait_for_function("() => window.marsIDE?.state?.status === 'paused'")
                 reduced_motion(Run(calm), calm, mod)
                 calm.close()
-                wide = browser.new_page(viewport={"width": 1440, "height": 1000})
+                wide = browser.new_page(locale="zh-CN", viewport={"width": 1440, "height": 1000})
                 wide.on("pageerror", lambda e: errors.append(str(e)))
                 wide.goto(f"http://127.0.0.1:{port}")
                 open_example(wide, "Hexadecimal · 位与字符")

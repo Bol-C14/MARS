@@ -1,50 +1,51 @@
+import { t } from "./i18n/index.js";
 import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
 
 export const MAX_BYTES = 4_000_000, MAX_FILES = 500;
-const LIMIT = `${MAX_FILES} 个文件、${MAX_BYTES / 1_000_000} MB`;
+const LIMIT = () => t("workspace.limit", { files: MAX_FILES, mb: MAX_BYTES / 1_000_000 });
 export const isSource = (name) => /\.(s|asm)$/.test(name);
 export function pathName(value) {
-  if (typeof value !== 'string') throw Error('文件路径必须是文字。');
+  if (typeof value !== 'string') throw Error(t("workspace.path.notText"));
   const name = value.trim().replaceAll('\\', '/');
   const parts = name.split('/');
   if (!name || name.startsWith('/') || /^[a-z]:/i.test(name) || /[\x00-\x1f\x7f]/.test(name) || parts.some(p => !p || p === '.' || p === '..' || ['__proto__', 'constructor', 'prototype'].includes(p)))
-    throw Error('请使用工程内的相对路径，例如 src/main.s；路径不能含空层级、.. 或保留名称。');
-  if (name.length > 240) throw Error('文件路径不能超过 240 个字符。');
-  if (/(?:^|\/)\.mars-project\.json$/.test(name)) throw Error('.mars-project.json 是工程元数据保留名称。');
+    throw Error(t("workspace.path.invalid"));
+  if (name.length > 240) throw Error(t("workspace.path.tooLong"));
+  if (/(?:^|\/)\.mars-project\.json$/.test(name)) throw Error(t("workspace.path.reserved"));
   return name;
 }
 export function normalizeProject(input) {
-  if (!input || typeof input !== 'object' || !input.files || Array.isArray(input.files)) throw Error('不是有效的 MARS 工程文件。');
+  if (!input || typeof input !== 'object' || !input.files || Array.isArray(input.files)) throw Error(t("workspace.notProject"));
   const files = {}, data = {}, folders = new Set();
   let size = 0, count = 0;
   for (const [kind, target] of [['files', files], ['data', data]]) {
     const values = input[kind] || {};
-    if (typeof values !== 'object' || Array.isArray(values)) throw Error('工程文件列表无效。');
+    if (typeof values !== 'object' || Array.isArray(values)) throw Error(t("workspace.badFiles"));
     for (const [key, text] of Object.entries(values)) {
       const name = pathName(key);
-      if (typeof text !== 'string') throw Error('目前只支持 UTF-8 文本文件。');
-      if (kind === 'files' && !isSource(name)) throw Error(`源码文件 ${name} 需要使用小写 .s 或 .asm 扩展名。`);
-      if (kind === 'data' && isSource(name)) throw Error(`${name} 应放在源码文件中。`);
-      if (Object.hasOwn(files, name) || Object.hasOwn(data, name)) throw Error(`文件重复：${name}`);
+      if (typeof text !== 'string') throw Error(t("workspace.textOnly"));
+      if (kind === 'files' && !isSource(name)) throw Error(t("workspace.sourceExtension", { name }));
+      if (kind === 'data' && isSource(name)) throw Error(t("workspace.belongsInSource", { name }));
+      if (Object.hasOwn(files, name) || Object.hasOwn(data, name)) throw Error(t("workspace.duplicate", { name }));
       size += strToU8(text).length;
-      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(`工程最多 ${LIMIT} 文本内容。`);
+      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(t("workspace.tooLarge", { limit: LIMIT() }));
       target[name] = text;
     }
   }
-  if (input.folders != null && !Array.isArray(input.folders)) throw Error('文件夹列表无效。');
+  if (input.folders != null && !Array.isArray(input.folders)) throw Error(t("workspace.badFolders"));
   for (const f of input.folders || []) folders.add(pathName(f));
   const names = [...Object.keys(files), ...Object.keys(data)];
   for (const name of [...names, ...folders]) {
     const parts = name.split('/');
     for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join('/'));
   }
-  if (folders.size > MAX_FILES) throw Error(`工程最多 ${MAX_FILES} 个文件夹。`);
-  for (const name of names) if (folders.has(name)) throw Error(`${name} 不能同时作为文件和文件夹。`);
+  if (folders.size > MAX_FILES) throw Error(t("workspace.tooManyFolders", { max: MAX_FILES }));
+  for (const name of names) if (folders.has(name)) throw Error(t("workspace.fileAndFolder", { name }));
   const entry = Object.hasOwn(files, input.entry) ? input.entry : Object.hasOwn(files, 'main.s') ? 'main.s' : Object.keys(files)[0] || '';
   const activeFile = input.activeFile === '' ? '' : (Object.hasOwn(files, input.activeFile) || Object.hasOwn(data, input.activeFile)) ? input.activeFile : entry;
   const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => (Object.hasOwn(files, n) || Object.hasOwn(data, n)) && a.indexOf(n) === i) : [];
   if (activeFile && !openTabs.includes(activeFile)) openTabs.push(activeFile);
-  return {version: 3, name: String(input.name || '我的工程').slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files)};
+  return {version: 3, name: String(input.name || t("project.defaultName")).slice(0, 80), files, data, folders: [...folders].sort(), entry, activeFile, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files)};
 }
 // Assembly scope (P0, 2026-10-24 classroom). Three ways, chosen beside the
 // assemble button and saved with the project:
@@ -66,10 +67,10 @@ export function assemblyScope(p, activeFile) {
   const mode = p.assembly?.mode || 'auto';
   if (mode === 'manual') {
     const files = p.assembly.files.filter(n => Object.hasOwn(p.files, n));
-    if (!files.length) return {mode, files, entry: '', error: '手动选择的汇编范围还没有勾选源码文件。'};
+    if (!files.length) return {mode, files, entry: '', error: t("scope.manualEmpty")};
     return {mode, files, entry: files.includes(p.entry) ? p.entry : files.includes('main.s') ? 'main.s' : files[0]};
   }
-  if (!activeFile || !Object.hasOwn(p.files, activeFile)) return {mode, files: [], entry: '', error: '请先打开要汇编的 .s / .asm 源码文件。'};
+  if (!activeFile || !Object.hasOwn(p.files, activeFile)) return {mode, files: [], entry: '', error: t("scope.openSource")};
   if (mode === 'single') return {mode, files: [activeFile], entry: activeFile};
   return autoScope(p.files, activeFile);
 }
@@ -93,7 +94,7 @@ function autoScope(sources, activeFile) {
   let entry = activeFile;
   if (!hasMain(activeFile)) {
     const mains = Object.keys(sources).filter(n => n !== activeFile && dirOf(n) === dirOf(activeFile) && hasMain(n));
-    if (mains.length > 1) return fail(`${activeFile} 没有 main，所在目录里有多个文件定义了 main（${mains.join('、')}），无法自动决定运行哪一个。请打开要运行的那个文件再汇编，或在汇编按钮右侧改用“单文件汇编”或“手动选择范围”。`);
+    if (mains.length > 1) return fail(t("scope.manyMains", { file: activeFile, mains: mains.join(t("common.listSep")) }));
     if (mains.length) entry = mains[0];
   }
   const files = entry === activeFile ? [entry] : [entry, activeFile];
@@ -104,26 +105,27 @@ function autoScope(sources, activeFile) {
       if (own.defined.has(sym) || files.some(n => provides(n, sym))) continue;
       const providers = Object.keys(sources).filter(n => !files.includes(n) && !hasMain(n) && provides(n, sym));
       const near = providers.filter(n => dirOf(n) === dirOf(entry)), pick = near.length ? near : providers;
-      if (pick.length > 1) return fail(`${files[i]} 用到的 ${sym} 同时定义在 ${pick.join('、')}，无法自动决定链接哪一个。请在汇编按钮右侧改用“手动选择范围”。`);
+      if (pick.length > 1) return fail(t("scope.ambiguousSymbol", { file: files[i], sym, files: pick.join(t("common.listSep")) }));
       if (pick.length) files.push(pick[0]);
     }
   }
   return {mode: 'auto', files, entry};
 }
-export const blankProject = (name = '我的工程') => normalizeProject({name, files: {'main.s': '# 在这里编写 MIPS 汇编程序\n.text\n'}, data: {}, entry: 'main.s'});
+export const blankProject = (name = t("project.defaultName")) => normalizeProject({name, files: {'main.s': `${t("workspace.newSource")}
+`}, data: {}, entry: 'main.s'});
 
 export function renamePath(input, from, to) {
   const p = normalizeProject(input);
   from = pathName(from); to = pathName(to);
   if (from === to) return p;
   const folder = p.folders.includes(from);
-  if (folder && to.startsWith(from + '/')) throw Error('不能把文件夹移动到它自己里面。');
-  if (!folder && !Object.hasOwn(p.files, from) && !Object.hasOwn(p.data, from)) throw Error('文件不存在。');
+  if (folder && to.startsWith(from + '/')) throw Error(t("workspace.moveIntoItself"));
+  if (!folder && !Object.hasOwn(p.files, from) && !Object.hasOwn(p.data, from)) throw Error(t("workspace.missing"));
   const match = n => n === from || (folder && n.startsWith(from + '/'));
   const move = n => match(n) ? to + n.slice(from.length) : n;
   const all = [...Object.keys(p.files), ...Object.keys(p.data), ...p.folders];
-  for (const n of all.filter(match)) if (all.some(other => !match(other) && other === move(n))) throw Error(`目标已存在：${move(n)}`);
-  if (!folder && isSource(from) !== isSource(to)) throw Error('重命名时请保持源码或输入文件的类型。');
+  for (const n of all.filter(match)) if (all.some(other => !match(other) && other === move(n))) throw Error(t("workspace.targetExists", { path: move(n) }));
+  if (!folder && isSource(from) !== isSource(to)) throw Error(t("workspace.keepKind"));
   const remap = obj => Object.fromEntries(Object.entries(obj).map(([n, text]) => [move(n), text]));
   return normalizeProject({...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move), assembly: {...p.assembly, files: p.assembly.files.map(move)}});
 }
@@ -137,7 +139,7 @@ export function mergeProject(current, incoming, overwrite = false) {
   const a = normalizeProject(current), b = normalizeProject(incoming);
   const names = new Set([...Object.keys(a.files), ...Object.keys(a.data)]);
   const conflicts = [...Object.keys(b.files), ...Object.keys(b.data)].filter(n => names.has(n));
-  if (conflicts.length && !overwrite) throw Error('同名文件：' + conflicts.join('、'));
+  if (conflicts.length && !overwrite) throw Error(t("workspace.sameName", { files: conflicts.join(t("common.listSep")) }));
   // Added files never join the current joint-assembly selection by themselves.
   return normalizeProject({...a, files: {...a.files, ...b.files}, data: {...a.data, ...b.data}, folders: [...a.folders, ...b.folders]});
 }
@@ -157,7 +159,7 @@ export function projectZip(project) {
 }
 function textFile(bytes, name) {
   try { return new TextDecoder('utf-8', {fatal: true}).decode(bytes); }
-  catch { throw Error(`${name} 不是 UTF-8 文本，请先转换编码。`); }
+  catch { throw Error(t("workspace.notUtf8", { name })); }
 }
 const ignoredName = name => name.split('/').some(n => ['__MACOSX','.DS_Store','.git'].includes(n) || n.startsWith('._'));
 // `info` reports what was read: kind (zip, json or folder, unset for loose
@@ -171,13 +173,13 @@ export async function readImports(selected, info = {}) {
     const directory = raw.endsWith('/');
     const name = pathName(directory ? raw.slice(0, -1) : raw);
     if (directory) { folders.push(name); return; }
-    if (seen.has(name)) throw Error(`导入中存在同名文件：${name}`);
+    if (seen.has(name)) throw Error(t("workspace.import.duplicate", { name }));
     let text;
     try { text = textFile(bytes, name); }
-    catch (error) { if (!lenient) throw error; info.skipped.push(`${name}（不是 UTF-8 文本）`); return; }
+    catch (error) { if (!lenient) throw error; info.skipped.push(t("workspace.import.skipNotText", { name })); return; }
     seen.add(name);
     total += bytes.length;
-    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(`导入最多 ${LIMIT} 解压后文本内容。`);
+    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(t("workspace.import.tooLarge", { limit: LIMIT() }));
     (isSource(name) ? files : data)[name] = text;
   };
   for (const f of selected) {
@@ -185,14 +187,14 @@ export async function readImports(selected, info = {}) {
     if (ignoredName(name)) continue;
     if (inFolder) info.kind = 'folder';
     if (f.size > 2 * MAX_BYTES) {
-      if (!inFolder) throw Error(`单个导入文件不能超过 ${2 * MAX_BYTES / 1_000_000} MB。`);
-      info.skipped.push(`${name}（文件太大）`);
+      if (!inFolder) throw Error(t("workspace.import.fileTooLarge", { mb: 2 * MAX_BYTES / 1_000_000 }));
+      info.skipped.push(t("workspace.import.skipTooLarge", { name }));
       continue;
     }
     const bytes = new Uint8Array(await f.arrayBuffer());
     if (name.endsWith('/.mars-project.json')) {
       const m = JSON.parse(textFile(bytes,name)), prefix=name.slice(0,-'.mars-project.json'.length);
-      if (m.folders != null && !Array.isArray(m.folders)) throw Error('文件夹工程信息无效。');
+      if (m.folders != null && !Array.isArray(m.folders)) throw Error(t("workspace.import.badFolderMeta"));
       metadata={...m,entry:m.entry ? prefix+m.entry : '',folders:(m.folders||[]).map(n=>prefix+n),assembly:m.assembly && {...m.assembly,files:Array.isArray(m.assembly.files) ? m.assembly.files.map(n=>prefix+n) : []}};
       continue;
     }
@@ -202,15 +204,15 @@ export async function readImports(selected, info = {}) {
       const zipNames = new Set();
       const archive = unzipSync(bytes, {filter: e => {
         if (ignoredName(e.name)) return false;
-        if (!e.name.endsWith('/') && zipNames.has(e.name)) throw Error('ZIP 内存在重复文件：' + e.name);
+        if (!e.name.endsWith('/') && zipNames.has(e.name)) throw Error(t("workspace.import.zipDuplicate", { name: e.name }));
         zipNames.add(e.name);
         expanded += e.originalSize;
-        if (expanded > MAX_BYTES + 16000 || ++entries > 2 * MAX_FILES + 10) throw Error('ZIP 超过解压大小或文件数量限制。');
+        if (expanded > MAX_BYTES + 16000 || ++entries > 2 * MAX_FILES + 10) throw Error(t("workspace.import.zipTooLarge"));
         return true;
       }});
       if (archive['.mars-project.json']) {
         metadata = JSON.parse(textFile(archive['.mars-project.json'], '.mars-project.json'));
-        if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error('ZIP 文件夹信息无效。');
+        if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error(t("workspace.import.zipBadFolders"));
         delete archive['.mars-project.json'];
       }
       for (const [n, value] of Object.entries(archive)) add(n, value, true);
@@ -221,7 +223,7 @@ export async function readImports(selected, info = {}) {
       add(name, bytes);
     } else add(name, bytes, inFolder);
   }
-  if (!seen.size && !folders.length) throw Error('没有可导入的文件。');
+  if (!seen.size && !folders.length) throw Error(t("workspace.import.nothing"));
   return normalizeProject({...metadata, files, data, folders: [...folders, ...(metadata.folders || [])]});
 }
 
@@ -258,24 +260,24 @@ export function referencesIn(text) {
 // project file outside this assembly. Other diagnostics get ''.
 export function scopeHints(diagnostics, project, scope) {
   const labels = new Map(Object.entries(project.files).map(([n, t]) => [n, labelsIn(t)]));
-  const list = names => names.join('、');
+  const list = names => names.join(t("common.listSep"));
   return (diagnostics || []).map(d => {
     let m = /^"(.+)" already defined as global in a different file/.exec(d.message || '');
     if (m) {
       const owners = scope.files.filter(n => labels.get(n)?.globals.has(m[1]) && labels.get(n).defined.has(m[1]));
-      return `参与这次汇编的 ${list(owners.length > 1 ? owners : scope.files)} 都定义了全局标签 ${m[1]}。` + (scope.mode === 'manual'
-        ? '如果它们是各自独立的练习，请取消勾选其中一个，或改用“自动汇编”。'
-        : '同一个全局标签只能定义一次，请改名或删去其中一个。');
+      return t("diag.duplicateGlobal", { files: list(owners.length > 1 ? owners : scope.files), label: m[1] }) + (scope.mode === 'manual'
+        ? t("diag.duplicateGlobal.manual")
+        : t("diag.duplicateGlobal.other"));
     }
     m = /^Symbol "(.+)" not found in symbol table/.exec(d.message || '');
     if (m) {
       const sym = m[1], owners = [...labels].filter(([n, l]) => !scope.files.includes(n) && l.defined.has(sym)).map(([n]) => n);
       if (!owners.length) return '';
       const local = owners.filter(n => !labels.get(n).globals.has(sym));
-      if (local.length === owners.length) return `${sym} 定义在 ${list(owners)}，但没有用 .globl ${sym} 声明为全局标签，其他文件看不到它。`;
-      if (scope.mode === 'manual') return `${sym} 定义在 ${list(owners)}，它没有勾选进手动选择的汇编范围。需要时请勾选它。`;
-      if (scope.mode === 'single') return `${sym} 定义在 ${list(owners)}，单文件汇编不会加入它。请改用“自动汇编”或“手动选择范围”。`;
-      return `${sym} 定义在 ${list(owners)}，但那里也定义了 main（是另一个程序），自动汇编不会把它链接进来。需要一起汇编时请改用“手动选择范围”。`;
+      if (local.length === owners.length) return t("diag.notGlobal", { sym, files: list(owners), sym });
+      if (scope.mode === 'manual') return t("diag.notTicked", { sym, files: list(owners) });
+      if (scope.mode === 'single') return t("diag.singleFile", { sym, files: list(owners) });
+      return t("diag.otherProgram", { sym, files: list(owners) });
     }
     return '';
   });

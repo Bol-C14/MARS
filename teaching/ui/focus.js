@@ -1,3 +1,4 @@
+import { t, localized } from "./i18n/index.js";
 import {
   hex,
   escapeHTML as esc,
@@ -20,12 +21,12 @@ import { glossify } from "./glossary.js";
 // the completed step and the predicted path. It owns its own state panel and
 // draws every arrow inside itself; machine state only moves through `host`.
 
-const stopText = {
-  "waiting-input": "等待输入",
-  ended: "程序结束",
-  error: "执行异常",
-  "instruction-limit": "超过 64 条指令，未继续预计",
-};
+const stopText = localized(() => ({
+  "waiting-input": t("focus.stop.waiting"),
+  ended: t("focus.stop.ended"),
+  error: t("focus.stop.error"),
+  "instruction-limit": t("focus.stop.limit"),
+}));
 const BEAT_MS = 900;
 // Transfers that continue with the next address: drawn in the same column.
 const SEQUENTIAL = new Set(["next", "fallthrough"]);
@@ -44,29 +45,29 @@ export class FocusLens {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<div id="focus-backdrop" hidden></div>
-      <section id="focus-lens" role="dialog" aria-modal="true" aria-label="专注调试" tabindex="-1" hidden>
+      <section id="focus-lens" role="dialog" aria-modal="true" aria-label="${t("focus.dialog")}" data-i18n-aria-label="focus.dialog" tabindex="-1" hidden>
         <header id="focus-head">
-          <strong>专注</strong><span id="focus-where"></span>
-          <label>范围 <select id="focus-range" aria-label="预计范围"><option value="auto">自动</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} 行</option>`).join("")}</select></label>
-          <span id="focus-keys">↑↓ 查看 · ⇧↑ 后退一行 · ⇧↓ 执行一行 · ←→ 逐条解释 · Enter 执行到选中的这一步 · ? 为什么 · Esc 退出</span>
-          <button id="focus-close" aria-label="退出专注模式">×</button>
+          <strong data-i18n="focus.heading">${t("focus.heading")}</strong><span id="focus-where"></span>
+          <label><span data-i18n="focus.range">${t("focus.range")}</span> <select id="focus-range" aria-label="${t("focus.range.label")}" data-i18n-aria-label="focus.range.label"><option value="auto" data-i18n="radix.auto">${t("radix.auto")}</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}" data-i18n="focus.range.lines" data-i18n-params='{"n":${n}}'>${t("focus.range.lines", { n })}</option>`).join("")}</select></label>
+          <span id="focus-keys" data-i18n="focus.keys">${t("focus.keys")}</span>
+          <button id="focus-close" aria-label="${t("focus.close")}" data-i18n-aria-label="focus.close">×</button>
         </header>
         <div id="focus-body">
-          <div id="focus-path" aria-label="代码路径"></div>
-          <div id="focus-objects" aria-label="涉及对象"></div>
+          <div id="focus-path" aria-label="${t("focus.path")}" data-i18n-aria-label="focus.path"></div>
+          <div id="focus-objects" aria-label="${t("focus.objects")}" data-i18n-aria-label="focus.objects"></div>
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="解释进度"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="${t("focus.progress")}" data-i18n-aria-label="focus.progress"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
           <div class="focus-controls">
-            <button id="focus-prev">◀ 上一条解释</button><button id="focus-next">下一条解释 ▶</button><button id="focus-play">播放</button><button id="focus-why" aria-expanded="false">为什么？</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>逐位查看</button>
+            <button id="focus-prev" data-i18n="focus.prev">${t("focus.prev")}</button><button id="focus-next" data-i18n="focus.next">${t("focus.next")}</button><button id="focus-play">${t("focus.play")}</button><button id="focus-why" aria-expanded="false" data-i18n="focus.why">${t("focus.why")}</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>${t("focus.bits")}</button>
           </div>
           <div id="focus-why-text" hidden></div>
-          <div id="focus-bits" aria-label="逐位查看" hidden></div>
-          <form id="focus-input" hidden><label for="focus-input-value">程序在等待输入 · 在这里输入后按 Enter</label><input id="focus-input-value" autocomplete="off" /><button>提交</button><span>提交后继续被中断的操作</span></form>
+          <div id="focus-bits" aria-label="${t("focus.bits")}" data-i18n-aria-label="focus.bits" hidden></div>
+          <form id="focus-input" hidden><label for="focus-input-value" data-i18n="focus.input">${t("focus.input")}</label><input id="focus-input-value" autocomplete="off" /><button data-i18n="focus.input.submit">${t("focus.input.submit")}</button><span data-i18n="focus.input.submit.tip">${t("focus.input.submit.tip")}</span></form>
         </div>
       </section>`,
     );
@@ -254,7 +255,7 @@ export class FocusLens {
     const beats = parts.flatMap((p, i) =>
       p.beats.map((b) => ({
         ...b,
-        caption: `展开 ${i + 1}/${parts.length} · ${step.events[i].instruction.basic} — ${b.caption}`,
+        caption: t("focus.expanded", { k: i + 1, total: parts.length, basic: step.events[i].instruction.basic, caption: b.caption }),
       })),
     );
     const objects = new Map();
@@ -300,7 +301,7 @@ export class FocusLens {
     if (!m?.beats.length) return;
     this.stop();
     if (this.beat >= m.beats.length) this.beat = 0;
-    document.getElementById("focus-play").textContent = "暂停";
+    document.getElementById("focus-play").textContent = t("toolbar.pause");
     const tick = () => {
       if (this.beat >= m.beats.length) return this.stop();
       this.beat++;
@@ -314,7 +315,7 @@ export class FocusLens {
     clearTimeout(this.timer);
     this.timer = null;
     const b = document.getElementById("focus-play");
-    if (b) b.textContent = "播放";
+    if (b) b.textContent = t("focus.play");
   }
   seekBeat(n) {
     this.stop();
@@ -418,7 +419,7 @@ export class FocusLens {
       state = this.host.getState(),
       L = this.layout;
     $("focus-where").textContent = state
-      ? `已执行 ${state.step} 步 · 下一条 ${hex(state.pc)}`
+      ? t("focus.where", { step: state.step, pc: hex(state.pc) })
       : "";
     const waiting = state?.status === "waiting";
     if ($("focus-input").hidden === waiting) {
@@ -426,7 +427,7 @@ export class FocusLens {
       if (waiting) $("focus-input-value").focus();
     }
     const badge = (s) =>
-      `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "预计第 " + (s.index + 1) + " 步" : s.index < -1 ? "之前执行的第 " + -s.index + " 行" : "刚完成"}">${s.predicted ? "+" + (s.index + 1) : "✓"}</button>`;
+      `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? t("focus.badge.predicted", { n: s.index + 1 }) : s.index < -1 ? t("focus.badge.earlier", { n: -s.index }) : t("focus.badge.done")}">${s.predicted ? "+" + (s.index + 1) : "✓"}</button>`;
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
     const selectedStep = byIndex.get(this.selected);
     const instructions = this.host.getProgram().instructions;
@@ -464,7 +465,7 @@ export class FocusLens {
         .map((seg) => {
           const iteration =
             selectedStep?.segment === seg.id ? selectedStep.iteration : null;
-          const head = `${esc(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${iteration ? `第 ${iteration} 次 / ` : ""}共 ${seg.iterations} 次</span>` : ""}`;
+          const head = `${esc(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${t("focus.iterations", { current: iteration ? `${t("focus.iteration", { iteration })} ` : "", iterations: seg.iterations })}</span>` : ""}`;
           const rows = seg.lines
             .map((line) => {
               const steps = line.steps.map((k) => byIndex.get(k));
@@ -474,10 +475,10 @@ export class FocusLens {
               const open = this.expanded.has(line.address);
               const bp = this.host.hasBreakpoint(line.address);
               return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}" data-line="${line.line}">
-                <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "删除断点" : "设置断点"}">${bp ? "●" : "○"}</button>
+                <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? t("breakpoint.delete") : t("focus.setBreakpoint")}">${bp ? "●" : "○"}</button>
                 <span class="fln">${line.line}</span>
                 <code>${esc(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
-                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "▾" : "▸"} ${machine.length} 条</button>` : ""}
+                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${t("focus.expand", { arrow: open ? "▾" : "▸", count: machine.length })}</button>` : ""}
                 <span class="fbadges">${steps.map(badge).join("")}</span>
               </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${esc(i.basic)}</div>`).join("") : ""}`;
             })
@@ -547,12 +548,12 @@ export class FocusLens {
   stopNote() {
     const s = this.layout.stop;
     if (!s.reason) return "";
-    const at = s.at?.line ? `（第 ${s.at.line} 行）` : "";
+    const at = s.at?.line ? t("inspector.lineRef", { line: s.at.line }) : "";
     const text =
       s.reason === "window"
-        ? `下面还有：${s.at?.line ? `第 ${s.at.line} 行起` : "更多"}（不在窗口内）`
-        : `之后：${stopText[s.reason] || "无法预计 · " + s.reason}${at}`;
-    return `<div class="fstop" data-anchor="stop">${esc(text)}${s.complete ? "" : " · 该行只预计了一部分"}</div>`;
+        ? t("focus.more", { where: s.at?.line ? t("focus.more.from", { line: s.at.line }) : t("focus.more.unknown") })
+        : t("focus.after", { reason: stopText[s.reason] || t("focus.unpredictable", { reason: s.reason }), at });
+    return `<div class="fstop" data-anchor="stop">${esc(text)}${s.complete ? "" : ` ${t("focus.partial")}`}</div>`;
   }
 
   // Values of every object the window touches, as of the selected step:
@@ -587,7 +588,7 @@ export class FocusLens {
       m = this.current(),
       step = this.layout?.steps.find((s) => s.index === this.selected);
     if (!m || !step) {
-      $("focus-eq").textContent = "尚无可解释的步骤";
+      $("focus-eq").textContent = t("focus.nothing");
       $("focus-caption").textContent = "";
       $("focus-dots").innerHTML = "";
       $("focus-objects").innerHTML = "";
@@ -597,10 +598,10 @@ export class FocusLens {
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
     this.renderBits(step);
     $("focus-tag").textContent = step.predicted
-      ? `预计 +${step.index + 1}`
+      ? t("focus.tag.predicted", { index: step.index + 1 })
       : step.index < -1
-        ? "之前执行"
-        : "刚完成";
+        ? t("focus.tag.earlier")
+        : t("focus.badge.done");
     $("focus-tag").className = step.predicted ? "pred" : "done";
     const source = splitComment(
       this.host.getSource(step.file, step.line) || "",
@@ -609,7 +610,7 @@ export class FocusLens {
     // Intent comes from the program's author, never from the IDE (C1).
     $("focus-note").hidden = !source.comment;
     $("focus-note").textContent = source.comment
-      ? "作者注释：" + source.comment
+      ? t("focus.comment", { comment: source.comment })
       : "";
     const parts = b ? b.eq : m.template;
     $("focus-eq").innerHTML = parts
@@ -620,15 +621,15 @@ export class FocusLens {
       )
       .join("");
     $("focus-caption").innerHTML = glossify(
-      b ? b.caption : m.beats.length ? "→ 下一条解释逐个代入真实值" : "",
+      b ? b.caption : m.beats.length ? t("focus.substitute") : "",
     );
     $("focus-progress").textContent = m.beats.length
-      ? `第 ${this.beat}/${m.beats.length} 条`
+      ? t("focus.beatOf", { beat: this.beat, total: m.beats.length })
       : "";
     $("focus-dots").innerHTML = m.beats
       .map(
         (_, i) =>
-          `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="第 ${i + 1} 条解释"></button>`,
+          `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="${t("focus.beatN", { n: i + 1 })}"></button>`,
       )
       .join("");
     $("focus-dots")
@@ -660,7 +661,7 @@ export class FocusLens {
       return f.text + (f.note ? " " + f.note : "");
     };
     $("focus-objects").innerHTML =
-      `<div class="fobj-title">涉及对象</div>` +
+      `<div class="fobj-title">${t("focus.objects")}</div>` +
       shown
         .map((o) => {
           const grouped = o.kind === "memory" && o.bytes.length > 1;
@@ -673,7 +674,7 @@ export class FocusLens {
           const dots = this.host.getRadix() === "bin" && !grouped && (o.kind === "register" || o.width > 1),
             now = o.touched && o.write ? o.after : o.value;
           const v = grouped
-            ? esc(o.text ?? `${o.bytes.length} 字节`)
+            ? esc(o.text ?? t("focus.bytes", { n: o.bytes.length }))
             : dots
               ? bitDots(now, o.kind === "memory" ? Math.min(4, o.width) : 4, value(o, now))
               : esc(o.touched && o.write && o.before !== o.after
@@ -691,7 +692,7 @@ export class FocusLens {
         })
         .join("") +
       (objects.length > 12
-        ? `<div class="fmore">另有 ${objects.length - 12} 个对象</div>`
+        ? `<div class="fmore">${t("focus.moreObjects", { n: objects.length - 12 })}</div>`
         : "");
     this.draw(animate ? b : null);
   }
@@ -728,16 +729,16 @@ export class FocusLens {
       : null;
     const where =
       hint.kind === "taken"
-        ? `条件成立时会跳到 ${hint.label}`
-        : `条件不成立时会顺序执行到 ${hint.label}`;
+        ? t("focus.untaken.taken", { label: hint.label })
+        : t("focus.untaken.fallthrough", { label: hint.label });
     const key = hint.branch * 2 + (hint.kind === "taken" ? 1 : 0);
     const lines = hint.target.address != null ? untakenLines(instructions, hint.target.address) : [];
-    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">未走的路径</span> ${esc(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? "预计" : "本次"}：${esc(decision)}</span>` : ""}</summary>${lines
+    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">${t("focus.untaken")}</span> ${esc(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? t("focus.predicted") : t("focus.thisRun")}${t("common.colon")}${esc(decision)}</span>` : ""}</summary>${lines
       .map(
         (l) =>
           `<div class="frow untaken"><span class="fbp"></span><span class="fln">${l.line}</span><code>${esc(splitComment(this.host.getSource(l.file, l.line) || "").code)}</code></div>`,
       )
-      .join("")}<p class="funtaken-note">没有执行：只显示代码，寄存器、内存和输入输出都不会因此改变。</p></details>`;
+      .join("")}<p class="funtaken-note">${t("focus.untaken.note")}</p></details>`;
   }
 
   // Bit by bit (classroom 2026-10-24): the selected step's machine instruction
@@ -755,7 +756,7 @@ export class FocusLens {
       event = events[k];
     $("focus-bits-toggle").hidden = !event;
     $("focus-bits-toggle").setAttribute("aria-expanded", String(this.bitsOpen && !!event));
-    $("focus-bits-toggle").textContent = this.bitsOpen && event ? "收起逐位" : "逐位查看";
+    $("focus-bits-toggle").textContent = this.bitsOpen && event ? t("focus.bits.hide") : t("focus.bits");
     const panel = $("focus-bits");
     if (!event || !this.bitsOpen) {
       panel.hidden = true;
@@ -763,7 +764,7 @@ export class FocusLens {
     }
     const story = bitStory(event, (n) => "$" + registerNames[n]);
     this.bitsStep = Math.min(this.bitsStep, story.steps.length - 1);
-    const where = `机器指令 ${event.instruction.basic || event.instruction.op}${events.length > 1 ? `（这一行伪指令展开后的第 ${k + 1} 条，共 ${events.length} 条）` : ""}${step.predicted ? " · 预计" : ""}`;
+    const where = t("focus.bits.instruction", { op: event.instruction.basic || event.instruction.op, part: events.length > 1 ? t("focus.bits.part", { k: k + 1, total: events.length }) : "", predicted: step.predicted ? ` ${t("focus.bits.predicted")}` : "" });
     const reduced = this.motion.matches,
       shown = reduced ? story.steps : [story.steps[this.bitsStep]];
     const rowHTML = (r) =>
@@ -772,16 +773,16 @@ export class FocusLens {
           (bit, j) =>
             `<i class="${r.marks[j] || ""}${bit == null ? " pending" : ""}">${bit == null ? "·" : bit}</i>${(j + 1) % 4 === 0 && j < r.bits.length - 1 ? '<span class="bgap"></span>' : ""}`,
         )
-        .join("")}</span>${r.out ? `<span class="bout">移出 ${r.out.bit}</span>` : ""}</div>`;
+        .join("")}</span>${r.out ? `<span class="bout">${t("focus.bits.out", { bit: r.out.bit })}</span>` : ""}</div>`;
     panel.hidden = false;
     panel.innerHTML =
-      `<div class="bits-head"><b>${esc(story.title)}</b><span>${esc(where)}</span>${reduced ? "" : `<span class="bits-progress">第 ${this.bitsStep + 1}/${story.steps.length} 步</span>`}</div>` +
+      `<div class="bits-head"><b>${esc(story.title)}</b><span>${esc(where)}</span>${reduced ? "" : `<span class="bits-progress">${t("focus.bits.step", { bitsStep: this.bitsStep + 1, total: story.steps.length })}</span>`}</div>` +
       shown
         .map((st) => `<div class="bits-step"><p>${glossify(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`)
         .join("") +
       (reduced
         ? ""
-        : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>◀ 上一步</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>下一步 ▶</button><button id="bits-play">${this.bitsTimer ? "暂停" : "播放"}</button><button id="bits-replay">重放</button></div>`);
+        : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>${t("focus.bits.prev")}</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>${t("focus.bits.next")}</button><button id="bits-play">${this.bitsTimer ? t("toolbar.pause") : t("focus.play")}</button><button id="bits-replay">${t("focus.bits.replay")}</button></div>`);
     if (reduced) return;
     const go = (to) => {
       this.bitsStep = Math.max(0, Math.min(story.steps.length - 1, to));

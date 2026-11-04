@@ -1,3 +1,4 @@
+import { t, localized } from "./i18n/index.js";
 // Keyboard bindings aligned with VS Code (DESIGN §3.9, P21). Pure: turns key
 // events into action names; the IDE decides what each action does.
 
@@ -35,14 +36,14 @@ export function bindings(mac) {
 }
 
 // Keys whose meaning changed in the VS Code migration. Each hint is shown once.
-export const retired = {
-  F7: "机器单步已改为 Alt+F11（F11 为源码单步）",
-  F8: "跨过调用已改为 F10",
-  F9: "F9 现在切换断点；运行／继续改为 F5，暂停为 F6",
-  "Alt+ArrowLeft": "回退一步已改为 Shift+F9",
+export const retired = localized(() => ({
+  F7: t("keys.retired.F7"),
+  F8: t("keys.retired.F8"),
+  F9: t("keys.retired.F9"),
+  "Alt+ArrowLeft": t("keys.retired.back"),
   "Mod+K":
-    "命令面板已改为 Cmd/Ctrl+Shift+P 或 F1；Cmd/Ctrl+K 现在是组合键前缀（如 Cmd/Ctrl+K F 进入专注模式）",
-};
+    t("keys.retired.palette"),
+}));
 
 export function keyName(e, mac) {
   if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return null;

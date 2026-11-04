@@ -13,50 +13,53 @@
         <span class="brand-icon">M</span>
         <div>MARS <b>Trace</b></div>
       </div>
-      <div class="menubar" role="menubar" aria-label="菜单">
+      <div class="menubar" role="menubar" aria-label="菜单" data-i18n-aria-label="page.menubar">
         <div class="menu-wrap">
-          <button id="project-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu">工程</button>
+          <button id="project-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" data-i18n="menu.project">工程</button>
           <div id="project-menu" class="menu" role="menu" hidden>
-            <button role="menuitem" id="new-project">新建工程<small>清空工作区，替换当前工程</small></button>
-            <button role="menuitem" id="import">导入…<small>文件、文件夹、ZIP 或 JSON 工程</small></button>
+            <button role="menuitem" id="new-project"><span data-i18n="menu.project.new">新建工程</span><small data-i18n="menu.project.new.hint">清空工作区，替换当前工程</small></button>
+            <button role="menuitem" id="import"><span data-i18n="menu.project.import">导入…</span><small data-i18n="menu.project.import.hint">文件、文件夹、ZIP 或 JSON 工程</small></button>
             <hr />
-            <button role="menuitem" id="save-local">保存到此浏览器<small>Cmd/Ctrl+S · 不会写回电脑上的原文件</small></button>
-            <button role="menuitem" id="save">导出到电脑…<small>ZIP 或 JSON，可重新打开或发给老师</small></button>
-            <button role="menuitem" id="export-file">下载当前文件</button>
+            <button role="menuitem" id="save-local"><span data-i18n="menu.project.saveLocal">保存到此浏览器</span><small data-i18n="menu.project.saveLocal.hint">Cmd/Ctrl+S · 不会写回电脑上的原文件</small></button>
+            <button role="menuitem" id="save"><span data-i18n="menu.project.export">导出到电脑…</span><small data-i18n="menu.project.export.hint">ZIP 或 JSON，可重新打开或发给老师</small></button>
+            <button role="menuitem" id="export-file" data-i18n="menu.project.downloadFile">下载当前文件</button>
             <hr />
-            <button role="menuitem" id="restore-project">恢复上次管理操作<small>找回替换、重命名或删除之前的工程</small></button>
+            <button role="menuitem" id="restore-project"><span data-i18n="menu.project.restore">恢复上次管理操作</span><small data-i18n="menu.project.restore.hint">找回替换、重命名或删除之前的工程</small></button>
           </div>
         </div>
         <div class="menu-wrap">
-          <button id="learn-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="learn-menu">学习</button>
+          <button id="learn-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="learn-menu" data-i18n="menu.learn">学习</button>
           <div id="learn-menu" class="menu" role="menu" hidden>
-            <button role="menuitem" id="start-tutorial">入门练习<small>边写边学：Hello World 与输入名字</small></button>
-            <button role="menuitem" id="find-instruction">查指令…<small>按名称或想做的事查指令和 syscall</small></button>
+            <button role="menuitem" id="start-tutorial"><span data-i18n="menu.learn.tutorial">入门练习</span><small data-i18n="menu.learn.tutorial.hint">边写边学：Hello World 与输入名字</small></button>
+            <button role="menuitem" id="find-instruction"><span data-i18n="menu.learn.find">查指令…</span><small data-i18n="menu.learn.find.hint">按名称或想做的事查指令和 syscall</small></button>
             <hr />
-            <div class="menu-label">示例程序<small>打开前会确认，替换当前工程</small></div>
-            <div id="example-list" class="menu-group"><button role="menuitem" disabled>正在载入示例…</button></div>
+            <div class="menu-label"><span data-i18n="menu.learn.examples">示例程序</span><small data-i18n="menu.learn.examples.hint">打开前会确认，替换当前工程</small></div>
+            <div id="example-list" class="menu-group"><button role="menuitem" disabled data-i18n="menu.learn.examples.loading">正在载入示例…</button></div>
           </div>
         </div>
         <div class="menu-wrap">
-          <button id="view-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="view-menu">界面</button>
+          <button id="view-menu-button" class="menu-button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="view-menu" data-i18n="menu.view">界面</button>
           <div id="view-menu" class="menu" role="menu" hidden>
-            <button role="menuitem" id="theme">切换深色／浅色</button>
-            <div class="menu-row" role="group" aria-label="代码字号">代码字号<button id="zoom-out" title="缩小代码字号" aria-label="缩小代码字号">A−</button><button id="zoom" title="放大代码字号" aria-label="放大代码字号">A＋</button></div>
+            <button role="menuitem" id="theme" data-i18n="menu.view.theme">切换深色／浅色</button>
+            <div class="menu-row" role="group" aria-label="代码字号" data-i18n-aria-label="menu.view.codeSize"><span data-i18n="menu.view.codeSize">代码字号</span><button id="zoom-out" title="缩小代码字号" aria-label="缩小代码字号" data-i18n-title="menu.view.codeSize.smaller" data-i18n-aria-label="menu.view.codeSize.smaller">A−</button><button id="zoom" title="放大代码字号" aria-label="放大代码字号" data-i18n-title="menu.view.codeSize.larger" data-i18n-aria-label="menu.view.codeSize.larger">A＋</button></div>
             <hr />
-            <div class="menu-label">代码字体<small>编辑器、寄存器、内存等代码文字</small></div>
-            <div id="font-list" class="menu-group" role="group" aria-label="代码字体"></div>
+            <div class="menu-label"><span data-i18n="menu.view.codeFont">代码字体</span><small data-i18n="menu.view.codeFont.hint">编辑器、寄存器、内存等代码文字</small></div>
+            <div id="font-list" class="menu-group" role="group" aria-label="代码字体" data-i18n-aria-label="menu.view.codeFont"></div>
             <hr />
-            <button role="menuitem" id="reset-layout">恢复默认布局<small>栏宽、面板高度、折叠与侧栏标签</small></button>
+            <div class="menu-label" data-i18n="menu.view.language">语言 Language</div>
+            <div id="language-list" class="menu-group" role="group" aria-label="语言 Language" data-i18n-aria-label="menu.view.language"></div>
+            <hr />
+            <button role="menuitem" id="reset-layout"><span data-i18n="menu.view.resetLayout">恢复默认布局</span><small data-i18n="menu.view.resetLayout.hint">栏宽、面板高度、折叠与侧栏标签</small></button>
           </div>
         </div>
       </div>
       <div class="project-state">
-        <button id="project-title" title="修改工程名称">我的工程</button>
-        <small id="workspace-status" role="status">自动保存到此浏览器</small>
+        <button id="project-title" title="修改工程名称" data-i18n-title="project.rename.title"></button>
+        <small id="workspace-status" role="status"></small>
       </div>
       <input id="upload" type="file" multiple hidden />
       <input id="folder-upload" type="file" webkitdirectory multiple hidden />
-      <button id="commands" data-tip="命令面板 · Cmd/Ctrl+Shift+P 或 F1" aria-label="命令面板"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span>命令…</span><kbd id="commands-key">Ctrl+Shift+P</kbd></button>
+      <button id="commands" data-tip="命令面板 · Cmd/Ctrl+Shift+P 或 F1" aria-label="命令面板" data-i18n-aria-label="commands.palette" data-i18n-tip="commands.palette.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span data-i18n="commands.button">命令…</span><kbd id="commands-key">Ctrl+Shift+P</kbd></button>
     </header>
     <nav class="toolbar">
       <span class="split-button"
@@ -64,7 +67,7 @@
           id="assemble"
           class="primary"
           title="汇编 · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5"
-        >
+data-i18n-title="toolbar.assemble.tip" data-i18n="toolbar.assemble">
           汇编 ⌘↵</button
         ><button
           id="assemble-mode"
@@ -74,68 +77,69 @@
           aria-controls="assemble-menu"
           title="选择汇编方式"
           aria-label="选择汇编方式"
-        >
+data-i18n-title="toolbar.assembleMode" data-i18n-aria-label="toolbar.assembleMode">
           ▾</button
         ><div id="assemble-menu" class="assemble-menu" role="menu" hidden>
-          <button role="menuitemradio" data-assembly-mode="auto">自动汇编<small>从当前文件或同目录的 main 开始，自动链接用到的文件</small></button>
-          <button role="menuitemradio" data-assembly-mode="single">单文件汇编<small>只汇编正在编辑的文件</small></button>
-          <button role="menuitemradio" data-assembly-mode="manual">手动选择范围…<small>在文件树中勾选参与的源码并选择入口</small></button>
+          <button role="menuitemradio" data-assembly-mode="auto"><span data-i18n="assembly.mode.auto">自动汇编</span><small data-i18n="assembly.mode.auto.hint">从当前文件或同目录的 main 开始，自动链接用到的文件</small></button>
+          <button role="menuitemradio" data-assembly-mode="single"><span data-i18n="assembly.mode.single">单文件汇编</span><small data-i18n="assembly.mode.single.hint">只汇编正在编辑的文件</small></button>
+          <button role="menuitemradio" data-assembly-mode="manual"><span data-i18n="assembly.mode.manual">手动选择范围…</span><small data-i18n="assembly.mode.manual.hint">在文件树中勾选参与的源码并选择入口</small></button>
         </div></span
       ><span class="separator"></span
       ><span class="tool-group run-group" role="group" aria-label="运行"
-        ><button id="run" class="run tool" data-tip="完整运行：全速运行到断点、等待输入或结束 · F5" aria-label="完整运行（F5）"><span class="tool-label">完整运行</span></button
-        ><button id="demo" class="run tool" data-tip="逐步运行：一步一步执行，编辑器跟随执行位置" aria-label="逐步运行"><span class="tool-label">逐步运行</span></button
+data-i18n-aria-label="toolbar.runGroup"><button id="run" class="run tool" data-tip="完整运行：全速运行到断点、等待输入或结束 · F5" aria-label="完整运行（F5）" data-i18n-aria-label="toolbar.run.label" data-i18n-tip="toolbar.run.tip"><span class="tool-label" data-i18n="toolbar.run">完整运行</span></button
+        ><button id="demo" class="run tool" data-tip="逐步运行：一步一步执行，编辑器跟随执行位置" aria-label="逐步运行" data-i18n-aria-label="toolbar.steps" data-i18n-tip="toolbar.steps.tip"><span class="tool-label" data-i18n="toolbar.steps">逐步运行</span></button
       ></span
-      ><label id="demo-speed-control" class="demo-speed-control" hidden><span class="demo-speed-end" aria-hidden="true">速度</span><input type="range" id="demo-speed" min="1" max="6" step="1" value="3" aria-label="逐步运行速度" /><output id="demo-speed-label" for="demo-speed">2 步/秒</output></label
+      ><label id="demo-speed-control" class="demo-speed-control" hidden><span class="demo-speed-end" aria-hidden="true" data-i18n="toolbar.speed">速度</span><input type="range" id="demo-speed" min="1" max="6" step="1" value="3" aria-label="逐步运行速度"
+data-i18n-aria-label="toolbar.speed.label"/><output id="demo-speed-label" for="demo-speed"></output></label
       ><span class="tool-group" role="group" aria-label="单步调试"
-        ><button id="back" class="tool" data-tip="回退一步 · Shift+F9" aria-label="回退一步（Shift+F9）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 2.5 6.5 6 10M3 6.5h6.5a3.5 3.5 0 0 1 0 7H7"/></svg><span class="tool-label">回退一步</span></button
+data-i18n-aria-label="toolbar.stepGroup"><button id="back" class="tool" data-tip="回退一步 · Shift+F9" aria-label="回退一步（Shift+F9）" data-i18n-aria-label="toolbar.back.label" data-i18n-tip="toolbar.back.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 2.5 6.5 6 10M3 6.5h6.5a3.5 3.5 0 0 1 0 7H7"/></svg><span class="tool-label" data-i18n="toolbar.back">回退一步</span></button
         ><span class="tool-divider" aria-hidden="true"></span
-        ><button id="step" class="tool" data-tip="机器单步：执行一条机器指令 · Alt+F11" aria-label="机器单步（Alt+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8.5M7.5 4.5 11 8l-3.5 3.5M13.5 3v10"/></svg><span class="tool-label">机器单步</span></button
-        ><button id="source" class="tool" data-tip="源码单步：执行一行源码，遇到调用就进入函数 · F11" aria-label="源码单步（F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v8M4.5 6.5 8 10l3.5-3.5M4 13.5h8"/></svg><span class="tool-label">源码单步</span></button
-        ><button id="over" class="tool" data-tip="跨过调用：执行一行源码，调用的函数整个跑完 · F10" aria-label="跨过调用（F10）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 9a5.5 5.5 0 0 1 11 0M13.5 5v4h-4M5 13.5h6"/></svg><span class="tool-label">跨过调用</span></button
-        ><button id="out" class="tool" data-tip="跳出函数：跑完当前函数，回到调用它的地方 · Shift+F11" aria-label="跳出函数（Shift+F11）"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2M4.5 5.5 8 2l3.5 3.5M4 13.5h8"/></svg><span class="tool-label">跳出函数</span></button
+        ><button id="step" class="tool" data-tip="机器单步：执行一条机器指令 · Alt+F11" aria-label="机器单步（Alt+F11）" data-i18n-aria-label="toolbar.step.label" data-i18n-tip="toolbar.step.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8.5M7.5 4.5 11 8l-3.5 3.5M13.5 3v10"/></svg><span class="tool-label" data-i18n="toolbar.step">机器单步</span></button
+        ><button id="source" class="tool" data-tip="源码单步：执行一行源码，遇到调用就进入函数 · F11" aria-label="源码单步（F11）" data-i18n-aria-label="toolbar.source.label" data-i18n-tip="toolbar.source.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v8M4.5 6.5 8 10l3.5-3.5M4 13.5h8"/></svg><span class="tool-label" data-i18n="toolbar.source">源码单步</span></button
+        ><button id="over" class="tool" data-tip="跨过调用：执行一行源码，调用的函数整个跑完 · F10" aria-label="跨过调用（F10）" data-i18n-aria-label="toolbar.over.label" data-i18n-tip="toolbar.over.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 9a5.5 5.5 0 0 1 11 0M13.5 5v4h-4M5 13.5h6"/></svg><span class="tool-label" data-i18n="toolbar.over">跨过调用</span></button
+        ><button id="out" class="tool" data-tip="跳出函数：跑完当前函数，回到调用它的地方 · Shift+F11" aria-label="跳出函数（Shift+F11）" data-i18n-aria-label="toolbar.out.label" data-i18n-tip="toolbar.out.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2M4.5 5.5 8 2l3.5 3.5M4 13.5h8"/></svg><span class="tool-label" data-i18n="toolbar.out">跳出函数</span></button
         ><span class="tool-divider" aria-hidden="true"></span
-        ><button id="prev-bp" class="tool" data-tip="跳回上一个断点：回到历史里上一次停在断点前的位置" aria-label="跳回上一个断点"><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="dot" cx="3.5" cy="8" r="2.2"/><path d="M14.5 8H8M10.5 5 7.5 8l3 3"/></svg><span class="tool-label">跳回上一个断点</span></button
-        ><button id="next-bp" class="tool" data-tip="跳到下一个断点：全速运行到下一个断点（没有遇到就运行到结束）" aria-label="跳到下一个断点"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8H8M5.5 5l3 3-3 3"/><circle class="dot" cx="12.5" cy="8" r="2.2"/></svg><span class="tool-label">跳到下一个断点</span></button
+        ><button id="prev-bp" class="tool" data-tip="跳回上一个断点：回到历史里上一次停在断点前的位置" aria-label="跳回上一个断点" data-i18n-aria-label="toolbar.prevBp" data-i18n-tip="toolbar.prevBp.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="dot" cx="3.5" cy="8" r="2.2"/><path d="M14.5 8H8M10.5 5 7.5 8l3 3"/></svg><span class="tool-label" data-i18n="toolbar.prevBp">跳回上一个断点</span></button
+        ><button id="next-bp" class="tool" data-tip="跳到下一个断点：全速运行到下一个断点（没有遇到就运行到结束）" aria-label="跳到下一个断点" data-i18n-aria-label="toolbar.nextBp" data-i18n-tip="toolbar.nextBp.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8H8M5.5 5l3 3-3 3"/><circle class="dot" cx="12.5" cy="8" r="2.2"/></svg><span class="tool-label" data-i18n="toolbar.nextBp">跳到下一个断点</span></button
       ></span
       ><label
         title="延迟分支：开启后，跳转或分支指令后面紧跟的那一条无论是否跳转都会先执行（MIPS 硬件的真实行为）。修改后需要重新汇编。"
-        ><input type="checkbox" id="delay" />延迟分支</label
-      ><span id="status" class="status" role="status" aria-live="polite"
-        >未汇编</span
+data-i18n-title="toolbar.delay.tip"><input type="checkbox" id="delay" /><span data-i18n="toolbar.delay">延迟分支</span></label
+      ><span id="status" class="status" role="status" aria-live="polite"></span
       >
     </nav>
     <div class="workspace">
       <aside class="sidebar">
-        <div class="side-tabs" role="tablist" aria-label="侧栏" aria-orientation="vertical">
-          <button role="tab" id="side-tab-files" data-side="files" aria-controls="side-files" aria-selected="true" title="文件">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3"/></svg><span>文件</span></button>
-          <button role="tab" id="side-tab-symbols" data-side="symbols" aria-controls="side-symbols" aria-selected="false" tabindex="-1" title="符号定位">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span>符号</span></button>
-          <button role="tab" id="side-tab-stops" data-side="stops" aria-controls="side-stops" aria-selected="false" tabindex="-1" title="断点与观察">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5"/></svg><span>断点</span><i id="stops-badge" class="side-badge" hidden></i></button>
+        <div class="side-tabs" role="tablist" aria-label="侧栏" aria-orientation="vertical" data-i18n-aria-label="side.tabs">
+          <button role="tab" id="side-tab-files" data-side="files" aria-controls="side-files" aria-selected="true" title="文件" data-i18n-title="side.files">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3"/></svg><span data-i18n="side.files">文件</span></button>
+          <button role="tab" id="side-tab-symbols" data-side="symbols" aria-controls="side-symbols" aria-selected="false" tabindex="-1" title="符号定位" data-i18n-title="side.symbols.title">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span data-i18n="side.symbols">符号</span></button>
+          <button role="tab" id="side-tab-stops" data-side="stops" aria-controls="side-stops" aria-selected="false" tabindex="-1" title="断点与观察" data-i18n-title="side.stops.title">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5"/></svg><span data-i18n="side.stops">断点</span><i id="stops-badge" class="side-badge" hidden></i></button>
         </div>
         <div class="side-panels">
           <section id="side-files" role="tabpanel" aria-labelledby="side-tab-files">
             <div class="section-title explorer-heading">
-              工程文件 <span><button id="new-file" title="新建文件" aria-label="新建文件">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹">＋ 目录</button></span>
+              <span data-i18n="files.heading">工程文件</span> <span><button id="new-file" title="新建文件" aria-label="新建文件" data-i18n-title="files.newFile" data-i18n-aria-label="files.newFile" data-i18n="files.newFile.button">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹" data-i18n-title="files.newFolder" data-i18n-aria-label="files.newFolder" data-i18n="files.newFolder.button">＋ 目录</button></span>
             </div>
             <div id="files"></div>
             <div class="assembly-choice">
-              <div class="assembly-mode"><span>汇编方式</span><b id="assembly-mode-name">自动汇编</b><small>在汇编按钮右侧 ▾ 切换</small></div>
-              <div id="joint-settings" class="entry-choice" hidden><label for="entry-file">入口</label><select id="entry-file" aria-label="汇编入口"></select></div>
+              <div class="assembly-mode"><span data-i18n="assembly.mode">汇编方式</span><b id="assembly-mode-name"></b><small data-i18n="assembly.mode.where">在汇编按钮右侧 ▾ 切换</small></div>
+              <div id="joint-settings" class="entry-choice" hidden><label for="entry-file" data-i18n="assembly.entry">入口</label><select id="entry-file" aria-label="汇编入口" data-i18n-aria-label="assembly.entry.label"></select></div>
               <p id="assembly-hint" class="muted"></p>
             </div>
           </section>
           <section id="side-symbols" role="tabpanel" aria-labelledby="side-tab-symbols" hidden>
-            <div class="section-title">符号与定位</div>
-            <input id="symbol-search" placeholder="搜索标签 / 地址" aria-label="搜索符号" />
+            <div class="section-title" data-i18n="side.symbols.heading">符号与定位</div>
+            <input id="symbol-search" placeholder="搜索标签 / 地址" aria-label="搜索符号"
+data-i18n-aria-label="side.symbols.search" data-i18n-placeholder="side.symbols.placeholder"/>
             <div id="symbols"></div>
           </section>
           <section id="side-stops" role="tabpanel" aria-labelledby="side-tab-stops" hidden>
-            <div class="section-title">断点</div>
+            <div class="section-title" data-i18n="side.stops">断点</div>
             <div id="breakpoints"></div>
-            <div class="section-title">观察点 <button id="add-watch" aria-label="添加观察点">＋ 添加</button></div>
+            <div class="section-title"><span data-i18n="side.watches">观察点</span> <button id="add-watch" aria-label="添加观察点" data-i18n-aria-label="side.watches.add" data-i18n="side.watches.add.button">＋ 添加</button></div>
             <div id="watches"></div>
           </section>
         </div>
@@ -149,22 +153,22 @@
         aria-label="调整文件栏宽度"
         tabindex="0"
         title="拖动调整大小，双击恢复默认"
-      ></div>
+data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.left"></div>
       <main class="code-pane">
         <div id="tabs" class="tabs"></div>
         <div class="viewbar">
-          <button data-view="source" class="selected">源码</button
-          ><button data-view="machine">实际指令</button
-          ><button data-view="cfg">控制流</button
-          ><span id="pc" class="pc-chip" title="下一条要执行的指令地址">PC —</span
-          ><span id="target" class="target-chip">程序：未汇编</span>
+          <button data-view="source" class="selected" data-i18n="view.source">源码</button
+          ><button data-view="machine" data-i18n="view.machine">实际指令</button
+          ><button data-view="cfg" data-i18n="view.cfg">控制流</button
+          ><span id="pc" class="pc-chip" title="下一条要执行的指令地址" data-i18n-title="editor.pc.tip">PC —</span
+          ><span id="target" class="target-chip"></span>
         </div>
         <div id="scope-banner" class="scope-banner" role="status" hidden></div>
         <div class="editor-stack">
           <div id="editor"></div>
           <div id="machine" class="alternate" hidden></div>
           <div id="cfg" class="alternate" hidden></div>
-          <button id="follow-return" hidden title="回到正在执行的行，并继续跟随" aria-label="回到正在执行的行，并继续跟随"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/><circle cx="8" cy="8" r="5"/></svg></button>
+          <button id="follow-return" hidden title="回到正在执行的行，并继续跟随" aria-label="回到正在执行的行，并继续跟随" data-i18n-title="editor.followReturn" data-i18n-aria-label="editor.followReturn"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/><circle cx="8" cy="8" r="5"/></svg></button>
         </div>
         <div
           class="splitter row"
@@ -174,14 +178,14 @@
           aria-label="调整底部面板高度"
           tabindex="0"
           title="拖动调整大小，双击恢复默认"
-        ></div>
+data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.bottom"></div>
         <section class="bottom">
           <div class="viewbar">
-            <button data-bottom="console" class="selected">控制台</button
-            ><button data-bottom="trace">执行轨迹</button
-            ><button data-bottom="calls">调用</button
-            ><button data-bottom="problems">问题</button
-            ><button data-bottom="logs" id="logs-tab">日志</button
+            <button data-bottom="console" class="selected" data-i18n="bottom.console">控制台</button
+            ><button data-bottom="trace" data-i18n="bottom.trace">执行轨迹</button
+            ><button data-bottom="calls" data-i18n="bottom.calls">调用</button
+            ><button data-bottom="problems" data-i18n="bottom.problems">问题</button
+            ><button data-bottom="logs" id="logs-tab" data-i18n="bottom.logs">日志</button
             ><span id="history-info"></span>
           </div>
           <div id="console" class="bottom-panel">
@@ -191,7 +195,7 @@
                 id="stdin"
                 placeholder="输入值，按 Enter 提交"
                 aria-label="程序输入"
-              /><button>发送</button>
+data-i18n-aria-label="console.input.label" data-i18n-placeholder="console.input.placeholder"/><button data-i18n="console.input.send">发送</button>
             </form>
           </div>
           <div id="trace" class="bottom-panel" hidden></div>
@@ -208,40 +212,41 @@
         aria-label="调整右侧面板宽度"
         tabindex="0"
         title="拖动调整大小，双击恢复默认"
-      ></div>
+data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.right"></div>
       <aside class="inspector">
         <section class="panel" id="panel-context">
           <div class="section-title panel-head">
-            <button class="panel-toggle" aria-expanded="true" aria-controls="context">详细检查</button>
-            <span id="context-tools" class="context-tools" role="group" aria-label="检查对象的操作"></span>
-            <button id="clear-focus" class="tool" data-tip="取消固定，回到跟随执行" aria-label="取消固定"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 1.5 13.5 5.5 11 6.5 8.5 9 9 11.5 8 12.5 2.5 7 3.5 6 6 6.5 8.5 4z"/><path d="M5 10 1.5 13.5"/><path d="M11 11l3.5 3.5M14.5 11 11 14.5" stroke-width="1.8"/></svg><span class="tool-label">取消固定</span></button>
+            <button class="panel-toggle" aria-expanded="true" aria-controls="context" data-i18n="inspector.title">详细检查</button>
+            <span id="context-tools" class="context-tools" role="group" aria-label="检查对象的操作" data-i18n-aria-label="inspector.tools"></span>
+            <button id="clear-focus" class="tool" data-tip="取消固定，回到跟随执行" aria-label="取消固定" data-i18n-aria-label="inspector.unpin" data-i18n-tip="inspector.unpin.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 1.5 13.5 5.5 11 6.5 8.5 9 9 11.5 8 12.5 2.5 7 3.5 6 6 6.5 8.5 4z"/><path d="M5 10 1.5 13.5"/><path d="M11 11l3.5 3.5M14.5 11 11 14.5" stroke-width="1.8"/></svg><span class="tool-label" data-i18n="inspector.unpin">取消固定</span></button>
           </div>
           <div id="context" class="panel-body" tabindex="0">
-            <p class="muted">还没有固定检查对象。悬停代码看简短说明；点浮窗里的“查看详细”、Cmd/Ctrl＋点击或按 F12，在这里查看完整说明。</p>
+            <p class="muted" data-i18n="inspector.empty.page">还没有固定检查对象。悬停代码看简短说明；点浮窗里的“查看详细”、Cmd/Ctrl＋点击或按 F12，在这里查看完整说明。</p>
           </div>
         </section>
-        <div class="splitter row" id="split-context" role="separator" aria-orientation="horizontal" aria-label="调整详细检查高度" tabindex="0" title="拖动调整大小，双击恢复默认"></div>
+        <div class="splitter row" id="split-context" role="separator" aria-orientation="horizontal" aria-label="调整详细检查高度" tabindex="0" title="拖动调整大小，双击恢复默认" data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.context"></div>
         <section class="panel" id="panel-registers">
           <div class="section-title panel-head">
-            <button class="panel-toggle" aria-expanded="true" aria-controls="registers-body">寄存器</button>
+            <button class="panel-toggle" aria-expanded="true" aria-controls="registers-body" data-i18n="registers.title">寄存器</button>
             <small id="reg-legend" class="reg-legend"></small>
-            <select id="reg-filter" aria-label="寄存器过滤">
-              <option value="related">本步相关</option>
-              <option value="all" selected>全部</option>
-              <option value="pinned">已固定</option>
+            <select id="reg-filter" aria-label="寄存器过滤" data-i18n-aria-label="registers.filter">
+              <option value="related" data-i18n="registers.filter.related">本步相关</option>
+              <option value="all" selected data-i18n="registers.filter.all">全部</option>
+              <option value="pinned" data-i18n="registers.filter.pinned">已固定</option>
             </select>
           </div>
           <div id="registers-body" class="panel-body"><div id="registers"></div></div>
         </section>
-        <div class="splitter row" id="split-registers" role="separator" aria-orientation="horizontal" aria-label="调整寄存器高度" tabindex="0" title="拖动调整大小，双击恢复默认"></div>
+        <div class="splitter row" id="split-registers" role="separator" aria-orientation="horizontal" aria-label="调整寄存器高度" tabindex="0" title="拖动调整大小，双击恢复默认" data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.registers"></div>
         <section class="panel" id="panel-memory">
           <div class="section-title panel-head">
-            <button class="panel-toggle" aria-expanded="true" aria-controls="memory-body">内存</button>
-            <span><button id="stack">栈</button><button id="data">数据</button><small id="mem-radix" class="mem-radix"></small></span>
+            <button class="panel-toggle" aria-expanded="true" aria-controls="memory-body" data-i18n="memory.title">内存</button>
+            <span><button id="stack" data-i18n="memory.stack">栈</button><button id="data" data-i18n="memory.data">数据</button><small id="mem-radix" class="mem-radix"></small></span>
           </div>
           <div id="memory-body" class="panel-body">
             <form id="memory-form">
-              <input id="address" value="0x10010000" aria-label="内存地址或符号" /><button>定位</button>
+              <input id="address" value="0x10010000" aria-label="内存地址或符号"
+data-i18n-aria-label="memory.address"/><button data-i18n="memory.go">定位</button>
             </form>
             <div id="memory"></div>
           </div>
@@ -250,22 +255,22 @@
     </div>
     <footer>
       <details class="overlay-settings">
-        <summary>连线设置</summary>
+        <summary></summary>
         <div class="overlay-controls">
-          <select id="relation-scope" aria-label="连线范围">
-            <option value="focus">关注对象</option>
-            <option value="all">全部关系</option>
+          <select id="relation-scope" aria-label="连线范围" data-i18n-aria-label="overlay.scope">
+            <option value="focus" data-i18n="overlay.scope.focus">关注对象</option>
+            <option value="all" data-i18n="overlay.scope.all">全部关系</option>
           </select>
           <label
-            ><input type="checkbox" id="solid" checked />实线 · 刚完成</label
+            ><input type="checkbox" id="solid" checked /><span data-i18n="overlay.solid">实线 · 刚完成</span></label
           ><label
-            ><input type="checkbox" id="dashed" checked />虚线 · 下一步</label
+            ><input type="checkbox" id="dashed" checked /><span data-i18n="overlay.dashed">虚线 · 下一步</span></label
           ><label class="read"
-            ><input type="checkbox" id="reads" checked />读取</label
+            ><input type="checkbox" id="reads" checked /><span data-i18n="overlay.reads">读取</span></label
           ><label class="write"
-            ><input type="checkbox" id="writes" checked />写入</label
+            ><input type="checkbox" id="writes" checked /><span data-i18n="overlay.writes">写入</span></label
           ><label class="flow"
-            ><input type="checkbox" id="flows" checked />控制流</label
+            ><input type="checkbox" id="flows" checked /><span data-i18n="view.cfg">控制流</span></label
           >
         </div>
       </details>
@@ -273,30 +278,30 @@
         id="focus-open"
         class="footer-key"
         title="专注调试：前 1 步与之后的预计路径 · Cmd/Ctrl+K F"
-      ><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><circle cx="8" cy="8" r="2.5"/></svg>专注模式</button
+data-i18n-title="focus.open.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><circle cx="8" cy="8" r="2.5"/></svg><span data-i18n="focus.open">专注模式</span></button
       ><span class="radix-group"><label
         class="radix-switch footer-key"
         title="寄存器、内存、地址和专注模式里的数值显示方式（不改动代码）"
-        ><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2 4.5 14M11.5 2 10 14M2.5 5.5h11.5M2 10.5h11.5"/></svg>数值显示
-        <select id="radix" aria-label="数值显示方式"></select></label
+data-i18n-title="radix.switch.tip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2 4.5 14M11.5 2 10 14M2.5 5.5h11.5M2 10.5h11.5"/></svg><span data-i18n="radix.switch">数值显示</span>
+        <select id="radix" aria-label="数值显示方式" data-i18n-aria-label="radix.switch.label"></select></label
       ><button
         id="radix-help"
         class="footer-help"
         title="数值显示说明与字符编码表"
         aria-label="数值显示说明与字符编码表"
-      >?</button></span
+data-i18n-title="radix.help.title" data-i18n-aria-label="radix.help.title">?</button></span
       ><small class="radix-legend"
-        >0d 十进制 · 0x 十六进制 · 0b 二进制 · '…' 字符</small
+data-i18n="radix.legend">0d 十进制 · 0x 十六进制 · 0b 二进制 · '…' 字符</small
       ><div class="menu-wrap engine-wrap">
-        <button id="engine" class="engine-button" aria-haspopup="menu" aria-expanded="false" aria-controls="engine-menu" title="汇编与执行内核"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M6 1.5V4M10 1.5V4M6 12v2.5M10 12v2.5M1.5 6H4M1.5 10H4M12 6h2.5M12 10h2.5"/></svg>MARS 4.5</button>
+        <button id="engine" class="engine-button" aria-haspopup="menu" aria-expanded="false" aria-controls="engine-menu" title="汇编与执行内核" data-i18n-title="engine.title"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M6 1.5V4M10 1.5V4M6 12v2.5M10 12v2.5M1.5 6H4M1.5 10H4M12 6h2.5M12 10h2.5"/></svg>MARS 4.5</button>
         <div id="engine-menu" class="menu menu-up menu-right" role="menu" hidden>
-          <div class="menu-label">汇编与执行内核</div>
+          <div class="menu-label" data-i18n="engine.title">汇编与执行内核</div>
           <div class="engine-info">
-            <b>MARS 4.5</b><small>MIPS 汇编器与模拟器（Missouri State University），本 IDE 在其上加了执行历史、回退和解释。</small>
+            <b>MARS 4.5</b><small data-i18n="engine.about">MIPS 汇编器与模拟器（Missouri State University），本 IDE 在其上加了执行历史、回退和解释。</small>
             <span id="engine-delay"></span>
           </div>
           <hr />
-          <button role="menuitem" disabled>切换内核…<small>暂不提供；之后的本地版再支持其他内核</small></button>
+          <button role="menuitem" disabled><span data-i18n="engine.switch">切换内核…</span><small data-i18n="engine.switch.hint">暂不提供；之后的本地版再支持其他内核</small></button>
         </div>
       </div>
     </footer>

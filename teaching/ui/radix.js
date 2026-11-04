@@ -1,3 +1,4 @@
+import { t, localized } from "./i18n/index.js";
 // Read-only number display (2026-10-22 trial, C2). One global choice of
 // radix for registers, memory, addresses, inline values and the focus lens;
 // source code is never rewritten. Every form carries its prefix so a value is
@@ -5,22 +6,22 @@
 // note: another way to read the same bits, not a claim about their meaning.
 
 // What each choice shows; mechanism only, as in the glossary.
-export const RADIX_HELP = {
-  auto: "自动：看起来像地址的值（落在代码、数据或栈的范围内）用十六进制，其余用十进制。同一个值不会因为变大而换写法。",
-  hex: "HEX：十六进制，前缀 0x。每一位表示 0–15（a–f 表示 10–15），两位正好是一个字节。",
-  dec: "DEC：十进制，前缀 0d。普通数值按有符号数读（可以是负数）；原始字节和地址按无符号数读。",
-  bin: "BIN：二进制，前缀 0b，每 4 位用 _ 分开；就是这些位本身。负数用补码：−1 是 32 个 1，−7 是 1…1111_1001；最高位是 1 就表示负数。",
+export const RADIX_HELP = localized(() => ({
+  auto: t("radix.help.auto"),
+  hex: t("radix.help.hex"),
+  dec: t("radix.help.dec"),
+  bin: t("radix.help.bin"),
   ascii:
-    "ASCII：把每个字节按字符编码表读成一个字符，例如 104 读作 h、48 读作 0；\\0、\\n、\\t 表示空字符、换行、制表。不像字符的值（例如 11）仍用十进制显示，并注明“不是可显示字符”。",
-};
+    t("radix.help.ascii"),
+}));
 
-export const RADIXES = [
-  ["auto", "自动"],
+export const RADIXES = localized(() => ([
+  ["auto", t("radix.auto")],
   ["hex", "HEX"],
   ["dec", "DEC"],
   ["bin", "BIN"],
   ["ascii", "ASCII"],
-];
+]));
 
 const printable = (b) => b >= 32 && b < 127;
 // One escape vocabulary for bytes everywhere (\0 \n \t \xNN), as in ASCII mode.
@@ -81,7 +82,7 @@ export function formatValue(
         : radix;
   const text = { hex, dec, bin: bin(false), ascii }[mode] ?? hex;
   const note = fallback
-    ? "不是可显示字符"
+    ? t("radix.notPrintable")
     : mode !== "ascii" && width === 1 && printable(unsigned)
       ? `'${String.fromCharCode(unsigned)}'`
       : "";

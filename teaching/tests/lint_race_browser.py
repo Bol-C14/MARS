@@ -8,7 +8,7 @@ project={'name':'Fast typing','files':{'main.s':src},'data':{},'entry':'main.s',
 with sync_playwright() as p:
  b=launch(p)
  try:
-  page=b.new_page();page.add_init_script('localStorage.setItem("mars-trace:project:v2",'+json.dumps(json.dumps(project))+')')
+  page=b.new_page(locale="zh-CN");page.add_init_script('localStorage.setItem("mars-trace:project:v2",'+json.dumps(json.dumps(project))+')')
   page.goto(URL);page.wait_for_function('()=>Boolean(window.marsIDE)')
   page.locator('#assemble').click();page.wait_for_function('()=>window.marsIDE.state?.status==="paused"')
   assert page.locator('.cm-line.delay-nop').count()==1

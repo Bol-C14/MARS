@@ -16,3 +16,6 @@ python3 teaching/tests/browser_acceptance.py || browser=$?
 browser=0
 python3 teaching/tests/workspace_browser.py || browser=$?
 [ "$browser" -eq 0 ] || [ "$browser" -eq 2 ]
+browser=0
+python3 teaching/tests/i18n_browser.py || browser=$?
+[ "$browser" -eq 0 ] || [ "$browser" -eq 2 ]

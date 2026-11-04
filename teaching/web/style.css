@@ -773,7 +773,7 @@ input:focus-visible {
 @media (max-width: 1150px) {
   .workspace {
     grid-template-columns:
-      var(--left-w, 196px) 1px minmax(300px, 1fr) 1px
+      var(--left-w, 216px) 1px minmax(300px, 1fr) 1px
       var(--right-w, 300px);
   }
   header {
@@ -1567,7 +1567,9 @@ body.resizing-y * {
 .tree-menu { flex-shrink:0; font-size:16px; padding:0 5px; color:var(--muted); }
 .tree-menu:hover,.tree-menu:focus-visible { color:var(--text); }
 .tree-empty { padding:9px 12px; color:var(--muted); font-size:11px; line-height:1.6; }
-.entry-badge { flex-shrink:0; color:var(--accent); font-size:9px; margin-left:auto; border:1px solid var(--line); border-radius:3px; padding:1px 3px; }
+.entry-badge { flex-shrink:0; color:var(--accent); margin-left:auto; display:inline-flex; }
+/* The entry is marked with an arrow into a bar (where execution starts); its name is on hover. */
+.entry-badge svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 .entry-choice { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:7px; padding:12px 10px 5px; font-size:10px; color:var(--muted); }
 .entry-choice select { width:100%; font-size:11px; padding:4px; }
 .workspace-tools { display:flex; flex-wrap:wrap; gap:2px; padding:2px 6px 8px; border-bottom:1px solid var(--line); }
@@ -1674,9 +1676,9 @@ button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); ou
 [data-tip] { position: relative; }
 [data-tip]:hover::after, [data-tip]:focus-visible::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 46; white-space: nowrap; background: var(--text); color: var(--panel); font-size: 11px; font-weight: 400; letter-spacing: 0; padding: 3px 7px; border-radius: 4px; pointer-events: none; }
 /* Left: one group at a time, chosen from a vertical tab strip. */
-.sidebar { display: grid; grid-template-columns: 46px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; padding: 0; overflow: hidden; }
+.sidebar { display: grid; grid-template-columns: 54px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; padding: 0; overflow: hidden; }
 .side-tabs { grid-row: 1 / -1; display: flex; flex-direction: column; gap: 3px; padding: 6px 3px; border-right: 1px solid var(--line); background: var(--bg); }
-.side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 1px; font-size: 10px; border-radius: 6px; color: var(--muted); position: relative; white-space: nowrap; }
+.side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 1px; font-size: 10px; border-radius: 6px; color: var(--muted); position: relative; white-space: normal; text-align: center; hyphens: manual; line-height: 1.15; }
 .side-tabs button[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--panel)); }
 .side-badge { position: absolute; top: 4px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
 .side-panels { grid-column: 2; grid-row: 1; overflow: auto; min-height: 0; }
@@ -1863,3 +1865,12 @@ body.dark { --icon-folder: #dcb67a; --icon-c: #b39ddb; }
 button#focus-open { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 button#focus-open:hover { background: color-mix(in srgb, var(--accent) 22%, var(--panel)); }
 .file-icon.asm .page, .file-icon.c .page, .file-icon.h .page { stroke: color-mix(in srgb, currentColor 70%, var(--muted)); }
+/* Longer languages (classroom 2026-11-04): register cells go to one column
+   when the panel cannot hold a name and a full value twice side by side. */
+#registers-body { container-type: inline-size; }
+@container (max-width: 300px) { #registers:not(.bin) { grid-template-columns: 1fr; } }
+.reg { gap: 6px; }
+/* A crowded tab bar (narrow window, longer language) wraps instead of
+   pushing the PC or the step count out of sight. */
+.viewbar { flex-wrap: wrap; row-gap: 2px; }
+.viewbar .pc-chip, #history-info { flex-shrink: 0; }

@@ -1,3 +1,4 @@
+import { t } from "./i18n/index.js";
 // Quick open (DESIGN §3.8): one picker for files, labels, lines, addresses
 // and commands, using VS Code's prefixes. Pure: returns ranked items.
 
@@ -36,7 +37,7 @@ export function outline(files, file, symbols = []) {
     out.push({
       kind: "symbol",
       label: m[1],
-      detail: `${s?.data ? "数据" : "代码"} · 第 ${i + 1} 行${s ? " · 0x" + (s.address >>> 0).toString(16).padStart(8, "0") : ""}`,
+      detail: t("search.symbolDetail", { kind: s?.data ? t("common.data") : t("common.code"), line: i + 1, address: s ? " · 0x" + (s.address >>> 0).toString(16).padStart(8, "0") : "" }),
       file,
       line: i + 1,
       symbol: s,
@@ -101,7 +102,7 @@ export function quickOpenItems(
       {
         kind: "address",
         label: "0x" + (address >>> 0).toString(16).padStart(8, "0"),
-        detail: named ? named.name : "地址",
+        detail: named ? named.name : t("common.address"),
         address,
       },
     ];
@@ -109,7 +110,7 @@ export function quickOpenItems(
   const fileItems = Object.keys(texts).map((f) => ({
     kind: "file",
     label: f,
-    detail: "文件",
+    detail: t("common.file"),
     file: f,
   }));
   const seen = new Set();

@@ -1,3 +1,3331 @@
+// ui/i18n/zh-CN.json
+var zh_CN_default = {
+  "api.noState": "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001",
+  "api.tooLarge": "\u5DE5\u7A0B\u7684\u8F93\u5165\u6587\u4EF6\u592A\u5927\uFF0C\u6267\u884C\u670D\u52A1\u65E0\u6CD5\u63A5\u6536\u3002\u8BF7\u79FB\u8D70\u4E0D\u9700\u8981\u7684\u8F93\u5165\u6587\u4EF6\u518D\u6C47\u7F16\u3002",
+  "assemble.noSource": "\u8BF7\u5148\u65B0\u5EFA\u6216\u5BFC\u5165\u4E00\u4E2A .s / .asm \u6E90\u7801\u6587\u4EF6\u3002",
+  "assembly.entry": "\u5165\u53E3",
+  "assembly.entry.label": "\u6C47\u7F16\u5165\u53E3",
+  "assembly.hint.auto": "\u4ECE {entry} \u7684 main \u5F00\u59CB{linked}\uFF1B\u5176\u4ED6\u6587\u4EF6\u4E0D\u53C2\u4E0E\u3002",
+  "assembly.hint.linked": "\uFF0C\u94FE\u63A5 {files}",
+  "assembly.hint.manual": "\u52FE\u9009\u7684 {count} \u4E2A\u6E90\u7801\u4E00\u8D77\u6C47\u7F16\uFF0C\u4ECE\u5165\u53E3\u5F00\u59CB\u6267\u884C\uFF1B\u672A\u52FE\u9009\u7684\u4E0D\u53C2\u4E0E\u3002",
+  "assembly.hint.single": "\u53EA\u6C47\u7F16 {entry}\u3002",
+  "assembly.hint.tick": "\u5148\u52FE\u9009\u6E90\u7801",
+  "assembly.mode": "\u6C47\u7F16\u65B9\u5F0F",
+  "assembly.mode.auto": "\u81EA\u52A8\u6C47\u7F16",
+  "assembly.mode.auto.hint": "\u4ECE\u5F53\u524D\u6587\u4EF6\u6216\u540C\u76EE\u5F55\u7684 main \u5F00\u59CB\uFF0C\u81EA\u52A8\u94FE\u63A5\u7528\u5230\u7684\u6587\u4EF6",
+  "assembly.mode.manual": "\u624B\u52A8\u9009\u62E9\u8303\u56F4\u2026",
+  "assembly.mode.manual.hint": "\u5728\u6587\u4EF6\u6811\u4E2D\u52FE\u9009\u53C2\u4E0E\u7684\u6E90\u7801\u5E76\u9009\u62E9\u5165\u53E3",
+  "assembly.mode.manualLong": "\u624B\u52A8\u9009\u62E9\u8303\u56F4",
+  "assembly.mode.manualName": "\u624B\u52A8\u9009\u62E9\u8303\u56F4",
+  "assembly.mode.manualShort": "\u624B\u52A8\u8303\u56F4",
+  "assembly.mode.single": "\u5355\u6587\u4EF6\u6C47\u7F16",
+  "assembly.mode.single.hint": "\u53EA\u6C47\u7F16\u6B63\u5728\u7F16\u8F91\u7684\u6587\u4EF6",
+  "assembly.mode.where": "\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7 \u25BE \u5207\u6362",
+  "banner.configChanged": "\u8FD0\u884C\u914D\u7F6E\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u6C47\u7F16",
+  "banner.inputChanged": "\u8F93\u5165\u6587\u4EF6\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u4F7F\u7528\u65B0\u5185\u5BB9",
+  "banner.sourceChanged": "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C",
+  "beat.address": "\u5730\u5740 = \u57FA\u5740\u5BC4\u5B58\u5668 + 16 \u4F4D\u6709\u7B26\u53F7\u504F\u79FB\uFF08{imm}\uFF09\u3002",
+  "beat.address.done": "\u5F97\u5230\u5730\u5740\u3002",
+  "beat.align": "{op} \u8981\u6C42\u5730\u5740\u662F {width} \u7684\u500D\u6570\uFF0C\u5426\u5219\u89E6\u53D1\u5730\u5740\u5F02\u5E38\u3002",
+  "beat.align.byte": "\u6309\u5B57\u8282\u8BBF\u95EE\u4E0D\u9700\u8981\u5BF9\u9F50\u3002",
+  "beat.arrowGoTo": "\u2192 \u8DF3\u5230",
+  "beat.base": "\u53D6\u57FA\u5740 {base} \u7684\u503C\u3002",
+  "beat.base.isAddress": "\u53D6\u57FA\u5740 {base} \u7684\u503C\uFF0C\u5B83\u5C31\u662F\u5730\u5740\u3002",
+  "beat.byDefinition": "\u6309\u8FD9\u6761\u6307\u4EE4\u7684\u5B9A\u4E49\u8BA1\u7B97\u3002",
+  "beat.byte": "\u5B57\u8282",
+  "beat.bytes": "{width} \u5B57\u8282",
+  "beat.cannotRun": "\u65E0\u6CD5\u6267\u884C",
+  "beat.compare": "{a} {sym} {b} {verdict}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F {result}\u3002",
+  "beat.compareImmediate": "{a} {sym} {k} {verdict}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F {result}\u3002",
+  "beat.compute": "\u8BA1\u7B97\u3002",
+  "beat.cond": "\u6761\u4EF6 {a} {sym} {b} {verdict}\u3002",
+  "beat.cond.why": "{op} {when}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 {label}\uFF08{target}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB {imm} \u6761\uFF09\u3002",
+  "beat.condGoTo": "{cond} \u2192 \u8DF3\u5230",
+  "beat.condSigned": "\u6761\u4EF6 {value} {cond} {verdict}\u3002",
+  "beat.condSigned.why": "{op} \u628A {name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u8DF3\u8F6C\u76EE\u6807 {label}\uFF08{target}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB {imm} \u6761\uFF09\u3002",
+  "beat.condZero": "\u6761\u4EF6 {value} {sym} 0 {verdict}\u3002",
+  "beat.condZero.why": "\u628A {name} \u548C 0 \u6BD4\u8F83\uFF08\u673A\u5668\u4E0A\u662F\u548C\u6052\u4E3A 0 \u7684 $zero \u6BD4\u8F83\uFF09\uFF0C{test}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 {label}\uFF08{target}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002",
+  "beat.copy": "\u628A {name} \u7684\u503C\u590D\u5236\u5230 {dest}\u3002",
+  "beat.copy.add": "\u52A0\u6CD5",
+  "beat.copy.or": "\u6309\u4F4D\u6216",
+  "beat.copy.sub": "\u51CF\u6CD5",
+  "beat.copy.why": "\u673A\u5668\u4E0A\u8FD9\u662F {name} \u548C\u6052\u4E3A 0 \u7684 $zero \u505A{operation}\uFF0C\u7ED3\u679C\u5C31\u662F {name} \u539F\u6765\u7684\u503C\uFF1B{name} \u81EA\u5DF1\u4E0D\u53D8\u3002",
+  "beat.copy.xor": "\u6309\u4F4D\u5F02\u6216",
+  "beat.delay.branch": "\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u7D27\u8DDF\u5728\u5206\u652F\u540E\u7684\u90A3\u6761\u6307\u4EE4\uFF08\u5EF6\u8FDF\u69FD\uFF09\u603B\u4F1A\u5148\u6267\u884C\u3002",
+  "beat.div": "\u6574\u6570\u9664\u6CD5\u3002",
+  "beat.div.divisor": "\u9664\u6570\u4E3A",
+  "beat.div.quotient": "\u5546",
+  "beat.div.read": "\u7528 mflo \u53D6\u5546\u3001mfhi \u53D6\u4F59\u6570\u3002",
+  "beat.div.remainder": "\uFF0C\u4F59\u6570",
+  "beat.div.signed": "\u5546\u5411 0 \u53D6\u6574\uFF0C\u4F59\u6570\u4E0E\u88AB\u9664\u6570\u540C\u53F7\u3002",
+  "beat.div.unsigned": "\u6309\u65E0\u7B26\u53F7\u6570\u8BA1\u7B97\u3002",
+  "beat.div.why": "\u5546\u653E\u5165 LO\uFF0C\u4F59\u6570\u653E\u5165 HI\u3002{rule}",
+  "beat.div.zero": "MIPS \u4E0D\u5B9A\u4E49\u9664\u4EE5 0 \u7684\u7ED3\u679C\u3002",
+  "beat.div.zero.why": "\u786C\u4EF6\u4E0D\u62A5\u9519\uFF1BHI\u3001LO \u7684\u503C\u4E0D\u53EF\u4F9D\u8D56\uFF0C\u7A0B\u5E8F\u5E94\u5728\u9664\u6CD5\u524D\u81EA\u884C\u68C0\u67E5\u9664\u6570\u3002",
+  "beat.equalZero": "\u7B49\u4E8E 0",
+  "beat.exception": "\u6267\u884C\u5F02\u5E38",
+  "beat.exit": "\u9000\u51FA\u7A0B\u5E8F\u3002",
+  "beat.exitCode": "\u5E26\u8FD4\u56DE\u7801\u9000\u51FA\u3002",
+  "beat.fails": "\u4E0D\u6210\u7ACB",
+  "beat.false": "\u4E3A\u5047",
+  "beat.goTo": "\u8DF3\u5230",
+  "beat.halfword": "\u534A\u5B57",
+  "beat.hilo": "\u5199\u5165 HI \u548C LO\u3002",
+  "beat.holds": "\u6210\u7ACB",
+  "beat.if": "\u82E5",
+  "beat.ifZero": "{sym} 0 \u2192 \u8DF3\u5230",
+  "beat.inOrder": "\u987A\u5E8F\u6267\u884C\u3002",
+  "beat.jal": "\u8FDB\u5165\u51FD\u6570\u3002",
+  "beat.jal.afterSlot": "\u5EF6\u8FDF\u69FD\u4E4B\u540E",
+  "beat.jal.goTo": "\uFF1B\u8DF3\u5230",
+  "beat.jal.next": "\u4E0B\u4E00\u6761",
+  "beat.jal.template": "$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1B\u8DF3\u5230",
+  "beat.jal.why": "\u8FD4\u56DE\u5730\u5740\u662F{which}\u6307\u4EE4 {value}\uFF0C\u51FD\u6570\u7528 jr $ra \u56DE\u5230\u8FD9\u91CC\u3002",
+  "beat.jr.address": "\u4E2D\u7684\u5730\u5740",
+  "beat.jr.ra": "$ra \u4FDD\u5B58\u7740 jal \u7559\u4E0B\u7684\u8FD4\u56DE\u5730\u5740\u3002",
+  "beat.jr.runtime": "\u76EE\u6807\u5728\u8FD0\u884C\u65F6\u7531\u5BC4\u5B58\u5668\u51B3\u5B9A\u3002",
+  "beat.jump": "\u8DF3\u8F6C\u3002",
+  "beat.jump.delay": "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002",
+  "beat.jump.why": "\u8DF3\u8F6C\u76EE\u6807 {label}\uFF08{target}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002{delay}",
+  "beat.line.expansion": "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A{expansion}\u3002\u5728\u4EE3\u7801\u8DEF\u5F84\u91CC\u70B9 \u25B8 \u53EF\u4EE5\u9010\u6761\u67E5\u770B\u6BCF\u4E00\u6B65\u3002",
+  "beat.line.expansionPlain": "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A{expansion}\u3002",
+  "beat.line.goTo": "\u2192 \u8DF3\u5230 {target}",
+  "beat.line.next": "\u2192 \u7EE7\u7EED\u4E0B\u4E00\u884C",
+  "beat.line.result": "\u8FD9\u4E00\u884C\u7684\u7ED3\u679C\uFF08\u4F2A\u6307\u4EE4\uFF0C\u6C47\u7F16\u65F6\u6362\u6210 {count} \u6761\u673A\u5668\u6307\u4EE4\uFF09\u3002",
+  "beat.load": "\u4ECE\u5185\u5B58\u53D6 {width} \u5B57\u8282\u3002",
+  "beat.load.byte": "\u53EA\u53D6\u8FD9\u4E2A\u5730\u5740\u4E0A\u7684 1 \u4E2A\u5B57\u8282 {byte}\u3002",
+  "beat.load.endian": "MARS \u4F7F\u7528\u5C0F\u7AEF\u5E8F\uFF0C\u6700\u4F4E\u5730\u5740\u653E\u6700\u4F4E\u5B57\u8282\uFF1A{memory} \u2192 {value}\u3002",
+  "beat.load.extend": "\u6269\u6210 32 \u4F4D\uFF1A\u6700\u9AD8\u4F4D\u662F {top}\uFF0C{fill}\u3002",
+  "beat.load.fillOne": "\u8865 1",
+  "beat.load.fillZero": "\u8865 0",
+  "beat.load.signExtend.why": "{op} \u505A\u7B26\u53F7\u6269\u5C55\uFF1A{bytes} \u7684\u6700\u9AD8\u4F4D\u4E3A {top}\uFF0C\u9AD8\u4F4D\u5168\u90E8\u8865 {top} \u2192 {hex} = {value}\u3002\u82E5\u7528 {op}u \u5219\u8865 0\uFF0C\u5F97\u5230 {raw}\u3002",
+  "beat.load.zeroExtend": "\u6269\u6210 32 \u4F4D\uFF1A\u9AD8\u4F4D\u8865 0\u3002",
+  "beat.load.zeroExtend.why": "{op} \u505A\u96F6\u6269\u5C55\uFF1A\u9AD8\u4F4D\u8865 0 \u2192 {hex} = {value}\u3002\u82E5\u7528 {signed} \u5219\u6309\u6700\u9AD8\u4F4D\u8865\u9F50\u3002",
+  "beat.lui": "\u7ACB\u5373\u6570\u653E\u5230\u9AD8 16 \u4F4D\u3002",
+  "beat.lui.why": "{uimm} \u5DE6\u79FB 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u8865 0\u3002\u5E38\u4E0E ori \u7EC4\u5408\u88C5\u5165 32 \u4F4D\u5E38\u6570\uFF08la / li \u5C55\u5F00\uFF09\u3002",
+  "beat.memory": "\u5185\u5B58",
+  "beat.memoryFrom": "\u5185\u5B58 {address} \u8D77",
+  "beat.mov.copy": "\u2192 \u590D\u5236\u5230 {dest}",
+  "beat.mov.skip": "\u2192 \u4E0D\u5199\u5165",
+  "beat.mov.take": "\u53D6\u6761\u4EF6\u548C\u6570\u636E\u7684\u503C\u3002",
+  "beat.mov.test": "\u5224\u65AD\u6761\u4EF6\u3002",
+  "beat.mult": "\u5F97\u5230 64 \u4F4D\u4E58\u79EF\u3002",
+  "beat.mult.read": "\u7528 mflo \u53D6\u4F4E 32 \u4F4D\uFF1B\u82E5 HI \u4E0D\u662F LO \u7684\u7B26\u53F7\u6269\u5C55\uFF0C\u8BF4\u660E\u4E58\u79EF\u8D85\u51FA 32 \u4F4D\u3002",
+  "beat.mult.signed": "\u6309\u6709\u7B26\u53F7\u6570",
+  "beat.mult.unsigned": "\u6309\u65E0\u7B26\u53F7\u6570",
+  "beat.mult.why": "{kind}\u76F8\u4E58\uFF0C\u7ED3\u679C\u6709 64 \u4F4D\uFF1A\u9AD8 32 \u4F4D\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u8FDB LO\u3002",
+  "beat.neverAgain": "\u8FD9\u6761\u6307\u4EE4\u4E0D\u4F1A\u518D\u6267\u884C\u3002",
+  "beat.next": "\u4E0B\u4E00\u6761 =",
+  "beat.nop": "\u4E0D\u505A\u4EFB\u4F55\u4E8B",
+  "beat.nop.changes": "\u65E0\u5BC4\u5B58\u5668\u6216\u5185\u5B58\u53D8\u5316",
+  "beat.nop.what": "\u7A7A\u64CD\u4F5C\u3002",
+  "beat.notZero": "\u4E0D\u7B49\u4E8E 0",
+  "beat.offsetZero": "\u504F\u79FB\u4E3A 0\uFF0C\u5730\u5740\u5C31\u662F {base} \u7684\u503C\u3002{align}",
+  "beat.op.add": "\u6709\u7B26\u53F7\u76F8\u52A0\uFF1B\u7ED3\u679C\u8D85\u51FA 32 \u4F4D\u8303\u56F4\u65F6\u89E6\u53D1\u6EA2\u51FA\u5F02\u5E38\uFF08addu \u4E0D\u68C0\u67E5\uFF09\u3002",
+  "beat.op.addi": "\u7ACB\u5373\u6570\u505A\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38\u3002",
+  "beat.op.addiu": "\u7ACB\u5373\u6570\u505A\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\u3002",
+  "beat.op.addu": "\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\uFF1B\u8D85\u51FA 32 \u4F4D\u7684\u90E8\u5206\u88AB\u4E22\u5F03\u3002",
+  "beat.op.and": "\u9010\u4F4D\u4E0E\uFF1A\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1\u3002",
+  "beat.op.andi": "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u4E0E\u3002",
+  "beat.op.mul": "\u76F8\u4E58\uFF0C\u53EA\u4FDD\u7559\u4E58\u79EF\u7684\u4F4E 32 \u4F4D\u3002",
+  "beat.op.nor": "\u9010\u4F4D\u6216\u4E4B\u540E\u53D6\u53CD\uFF1A~(a | b)\u3002",
+  "beat.op.or": "\u9010\u4F4D\u6216\uFF1A\u4EFB\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1\u3002",
+  "beat.op.ori": "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u6216\u3002",
+  "beat.op.sll": "\u5DE6\u79FB\uFF0C\u53F3\u4FA7\u8865 0\u3002",
+  "beat.op.sllv": "\u5DE6\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002",
+  "beat.op.slt": "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\uFF0C\u5426\u5219\u5F97 0\u3002",
+  "beat.op.slti": "\u7ACB\u5373\u6570\u7B26\u53F7\u6269\u5C55\u540E\u6309\u6709\u7B26\u53F7\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\u3002",
+  "beat.op.sltiu": "\u7ACB\u5373\u6570\u5148\u7B26\u53F7\u6269\u5C55\uFF0C\u518D\u6309\u65E0\u7B26\u53F7\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\u3002",
+  "beat.op.sltu": "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\uFF0C\u5426\u5219\u5F97 0\u3002",
+  "beat.op.sra": "\u7B97\u672F\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865\u7B26\u53F7\u4F4D\u3002",
+  "beat.op.srav": "\u7B97\u672F\u53F3\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002",
+  "beat.op.srl": "\u903B\u8F91\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865 0\u3002",
+  "beat.op.srlv": "\u903B\u8F91\u53F3\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002",
+  "beat.op.sub": "\u6709\u7B26\u53F7\u76F8\u51CF\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38\uFF08subu \u4E0D\u68C0\u67E5\uFF09\u3002",
+  "beat.op.subu": "\u76F8\u51CF\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\u3002",
+  "beat.op.xor": "\u9010\u4F4D\u5F02\u6216\uFF1A\u4E24\u4F4D\u4E0D\u540C\u5F97 1\u3002",
+  "beat.op.xori": "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u5F02\u6216\u3002",
+  "beat.output": "\u8F93\u51FA",
+  "beat.place.step": "\u7B2C {step} \u6B65\uFF08{file}:{line} `{code}`\uFF09",
+  "beat.programEnds": "\u7A0B\u5E8F\u7ED3\u675F",
+  "beat.putConstant": "\u628A\u5E38\u6570 {k} \u653E\u8FDB {dest}\u3002",
+  "beat.putConstant.add": "\u52A0\u4E0A",
+  "beat.putConstant.or": "\u6309\u4F4D\u6216\u4E0A",
+  "beat.putConstant.why": "\u673A\u5668\u4E0A\u8FD9\u662F\u6052\u4E3A 0 \u7684 $zero {operation} {k}\uFF0C\u7ED3\u679C\u5C31\u662F\u8FD9\u4E2A\u5E38\u6570\u672C\u8EAB\u3002",
+  "beat.putZero": "\u628A 0 \u653E\u8FDB {dest}\u3002",
+  "beat.putZero.why": "$zero \u6052\u4E3A 0\uFF0C\u6240\u4EE5\u8FD9\u4E00\u884C\u5C31\u662F\u628A 0 \u653E\u8FDB\u53BB\u3002",
+  "beat.read": "\u8BFB\u53D6\u3002",
+  "beat.result": "\u7ED3\u679C\u5199\u5165 {name}\u3002",
+  "beat.return": "\u8FD4\u56DE\u8C03\u7528\u8005\u3002",
+  "beat.role.argument": "\uFF08syscall \u7684\u53C2\u6570\uFF09",
+  "beat.role.base": "\u57FA\u5740\uFF08\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09",
+  "beat.role.bothSources": "\u4E24\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08\u4E24\u4E2A\u4F4D\u7F6E\u90FD\u662F\u5B83\uFF09",
+  "beat.role.callRa": "\u8C03\u7528\u6307\u4EE4\u56FA\u5B9A\u5199 $ra",
+  "beat.role.compareFirst": "\u6BD4\u8F83\u7684\u7B2C\u4E00\u4E2A\u5BF9\u8C61",
+  "beat.role.compareSecond": "\u6BD4\u8F83\u7684\u7B2C\u4E8C\u4E2A\u5BF9\u8C61",
+  "beat.role.firstSource": "\u7B2C\u4E00\u4E2A\u6E90\u64CD\u4F5C\u6570",
+  "beat.role.hilo": "{reg} \u5BC4\u5B58\u5668\uFF08\u4E58\u9664\u6CD5\u7ED3\u679C\u7684\u5B58\u653E\u5904\uFF09",
+  "beat.role.jumpTarget": "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740",
+  "beat.role.namedTarget": "\u8FD9\u6761\u6307\u4EE4\u5199\u660E\u7684\u76EE\u6807\u5BC4\u5B58\u5668",
+  "beat.role.operand": "\u64CD\u4F5C\u6570",
+  "beat.role.secondSource": "\u7B2C\u4E8C\u4E2A\u6E90\u64CD\u4F5C\u6570",
+  "beat.role.source": "\u6E90\u64CD\u4F5C\u6570",
+  "beat.role.stored": "\u8981\u5B58\u8FDB\u5185\u5B58\u7684\u503C",
+  "beat.role.syscallRegister": "\uFF08syscall \u7528\u5230\u7684\u5BC4\u5B58\u5668\uFF09",
+  "beat.role.target": "\u76EE\u6807",
+  "beat.role.used": "\u8FD9\u6761\u6307\u4EE4\u7528\u5230\u7684\u4E00\u4E2A\u5BC4\u5B58\u5668",
+  "beat.role.v0": "\uFF08syscall \u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF09",
+  "beat.saveReturn": "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002",
+  "beat.saveReturn.link": "\u94FE\u63A5\u5206\u652F\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u5199 $ra\u3002",
+  "beat.shift": "\u79FB\u4F4D\u3002",
+  "beat.shift.amount": "{name} = {value}\uFF0C\u4F4E 5 \u4F4D\u4E3A {amount}\u3002",
+  "beat.shift.andAmount": "\u548C\u79FB\u4F4D\u91CF",
+  "beat.shift.take": "\u53D6 {name}{amount} \u7684\u503C\u3002",
+  "beat.store": "\u5199\u5165 {width} \u5B57\u8282\u3002",
+  "beat.store.endian": "\u5C0F\u7AEF\u5E8F\u5B58\u653E\uFF1A{bytes}\u3002",
+  "beat.store.keep": "{name} = {value}\uFF0C\u53EA\u4FDD\u7559\u4F4E {width} \u4F4D {kept}\uFF0C\u5176\u4F59\u4F4D\u4E22\u5F03\u3002",
+  "beat.store.overwritten": "\u539F\u503C {before} \u88AB\u8986\u76D6\u3002",
+  "beat.store.take": "\u53D6 {name} \u7684\u4F4E {width} \u4F4D\u3002",
+  "beat.syscall": "\u7CFB\u7EDF\u8C03\u7528",
+  "beat.syscall.argument": "\u53C2\u6570",
+  "beat.syscall.chooses": "$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\uFF1A{what}",
+  "beat.syscall.choosesPlain": "$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\u3002",
+  "beat.syscall.chosen": "$v0 = {n} \u9009\u5B9A\u4E86\u201C{name}\u201D\u3002{effect}\u53D8\u5316\uFF1A{changes}\u3002",
+  "beat.syscall.printChar": "\u8F93\u51FA '{out}'\uFF08{meaning}\uFF09",
+  "beat.syscall.unsupported": "$v0 = {n} \u4E0D\u5728\u652F\u6301\u8303\u56F4\u5185\u3002",
+  "beat.syscall.unsupportedName": "\u4E0D\u652F\u6301\u7684 $v0 = {n}",
+  "beat.take": "\u53D6 {name} \u7684\u503C\u3002",
+  "beat.takeCompared": "\u53D6\u8981\u6BD4\u8F83\u7684\u4E24\u4E2A\u5BC4\u5B58\u5668\u7684\u503C\u3002",
+  "beat.takeHiLo": "\u53D6 {reg} \u7684\u503C\u3002",
+  "beat.takeTwo": "\u53D6 {a} \u548C {b} \u7684\u503C\u3002",
+  "beat.takeValues": "\u53D6 {items} \u7684\u503C\u3002",
+  "beat.thenGoTo": "\u2192 \u8DF3\u5230 {label}",
+  "beat.thenNext": "\u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761",
+  "beat.toConsole": "\u5199\u5230\u63A7\u5236\u53F0\u3002",
+  "beat.true": "\u4E3A\u771F",
+  "beat.waiting": "\u7B49\u5F85\u8F93\u5165",
+  "beat.waiting.note": "\u7ED3\u679C\u5C1A\u672A\u4EA7\u751F\uFF0C\u8BF7\u5728\u63A7\u5236\u53F0\u63D0\u4EA4\u8F93\u5165\u3002",
+  "beat.whenDifferent": "\u5728\u4E24\u6570\u4E0D\u7B49",
+  "beat.whenEqual": "\u5728\u4E24\u6570\u76F8\u7B49",
+  "beat.why.delay": "\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u8DF3\u8F6C\u524D\u4F1A\u5148\u6267\u884C\u7D27\u8DDF\u5728\u540E\u9762\u7684\u90A3\u4E00\u6761\u3002",
+  "beat.why.from": "{name} \u7684\u503C\u6765\u81EA{place}\u3002",
+  "beat.why.initial": "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u5B83\uFF0C\u8FD9\u662F\u5B83\u7684\u521D\u59CB\u503C\u6216\u66F4\u65E9\u5199\u5165\u7684\u503C\u3002",
+  "beat.why.load": "\u4ECE\u5185\u5B58 {address} \u53D6 {width} \u5B57\u8282\u3002",
+  "beat.why.memoryFrom": "\u8FD9\u91CC\u7684\u5185\u5BB9\u662F{place}\u5199\u8FDB\u53BB\u7684\u3002",
+  "beat.why.memoryInitial": "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u8FD9\u91CC\uFF0C\u5185\u5BB9\u662F\u7A0B\u5E8F\u52A0\u8F7D\u65F6\u5C31\u6709\u7684\u6570\u636E\uFF08\u4F8B\u5982 .data \u91CC\u7684\u521D\u503C\uFF09\u3002",
+  "beat.why.notReadLater": "\u5728\u7A97\u53E3\u91CC\u4E4B\u540E\u7684\u6B65\u9AA4\u4E0D\u4F1A\u518D\u8BFB\u53D6\u5B83\u3002",
+  "beat.why.nowFrom": "\u5B83\u73B0\u5728\u7684\u503C\u6765\u81EA{place}\u3002",
+  "beat.why.output": "\u63A7\u5236\u53F0\u5728\u8FD9\u4E00\u6B65\u591A\u4E86 {output}\u3002",
+  "beat.why.pcPlus4": "\u6CA1\u6709\u53D1\u751F\u8DF3\u8F6C\uFF1APC\uFF08\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF09\u52A0 4\uFF0C\u6267\u884C\u7D27\u6328\u7740\u7684\u4E0B\u4E00\u6761\u6307\u4EE4\u3002",
+  "beat.why.pcTo": "\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF08PC\uFF09\u53D8\u6210 {pc}\uFF0C\u4E5F\u5C31\u662F {where}\u3002",
+  "beat.why.readLater": "\u4E4B\u540E{place}\u4F1A\u8BFB\u53D6\u5B83\u3002",
+  "beat.why.role": "{name} \u5728\u8FD9\u91CC\u662F{role}\u3002",
+  "beat.why.rule": "\u6307\u4EE4 {op} \u7684\u89C4\u5219\uFF1A{rule}",
+  "beat.why.syscallArg": "\u8FD9\u4E2A syscall \u7528\u5230\u7684 {name} \u7B49\u4E8E {value}{from}\u3002",
+  "beat.why.writes": "\u7ED3\u679C\u5199\u8FDB {name}{field}\u3002",
+  "beat.why.writesMemory": "\u7ED3\u679C\u5199\u8FDB\u5185\u5B58 {address} \u8D77\u7684 {width} \u5B57\u8282\u3002",
+  "beat.why.writtenBy": "\uFF0C\u662F{place}\u5199\u5165\u7684",
+  "beat.why.zero": "$zero \u6052\u4E3A 0\uFF0C\u8BFB\u5B83\u603B\u662F\u5F97\u5230 0\u3002",
+  "beat.write": "\u5199\u5165\u3002",
+  "beat.writeBack": "\u5199\u56DE {dest}\u3002",
+  "beat.writeHiLo": "\u5199\u5165 {reg}\u3002",
+  "beat.writeMemory": "\u628A\u6570\u636E\u5199\u5165\u5185\u5B58\u3002",
+  "beat.zero.discard": "$zero \u6052\u4E3A 0\uFF0C\u7ED3\u679C\u88AB\u4E22\u5F03\u3002",
+  "beat.zero.noEffect": "\u5199\u5165 $zero \u4E0D\u4EA7\u751F\u6548\u679C\u3002",
+  "bits.add.group": "\u7B2C {from}\u2013{to} \u4F4D\uFF1A\u6BCF\u4E00\u4F4D = \u4E24\u4E2A\u52A0\u6570\u7684\u4F4D + \u8FDB\u4F4D\uFF0C\u7ED3\u679C\u5199\u4E0B\u4E2A\u4F4D\uFF0C\u8FDB\u4F4D\u5E26\u5230\u66F4\u9AD8\u4E00\u4F4D\u3002",
+  "bits.add.intro": "\u52A0\u6CD5 {a} + {b}{note}\uFF1A\u4ECE\u6700\u4F4E\u4F4D\u5F00\u59CB\u9010\u4F4D\u76F8\u52A0\uFF0C\u6EE1 2 \u5411\u9AD8\u4F4D\u8FDB 1\u3002",
+  "bits.add.result": "\u7ED3\u679C {value} \u5199\u5165 {reg}\u3002",
+  "bits.add.signExtend": "\uFF0816 \u4F4D\u7ACB\u5373\u6570\u5148\u7B26\u53F7\u6269\u5C55\u6210 32 \u4F4D\uFF09",
+  "bits.add.title": "{op}\uFF1A\u9010\u4F4D{operation}",
+  "bits.addition": "\u76F8\u52A0",
+  "bits.carry": "\u8FDB\u4F4D",
+  "bits.div.hi": "HI\uFF08\u4F59\u6570\uFF09",
+  "bits.div.hilo": "\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI\uFF1B\u7528 mflo / mfhi \u53D6\u51FA\u3002",
+  "bits.div.intro": "{kind}\u76F8\u9664\uFF1A{a} \xF7 {b}\u3002",
+  "bits.div.lo": "LO\uFF08\u5546\uFF09",
+  "bits.div.title": "{op}\uFF1A\u5546\u548C\u4F59\u6570",
+  "bits.div.zero": "\u9664\u6570\u4E3A 0\uFF1AMIPS \u4E0D\u4EA7\u751F\u5F02\u5E38\uFF0CHI \u548C LO \u7684\u503C\u6CA1\u6709\u89C4\u5B9A\uFF0C\u4E0D\u80FD\u4F7F\u7528\u3002",
+  "bits.div.zeroTitle": "{op}\uFF1A\u9664\u4EE5 0",
+  "bits.exception": "\u8FD9\u4E00\u6B65\u89E6\u53D1\u4E86\u5F02\u5E38\uFF0C\u76EE\u6807\u5BC4\u5B58\u5668\u6CA1\u6709\u88AB\u5199\u5165\u3002",
+  "bits.immediate": "\u7ACB\u5373\u6570",
+  "bits.immediateZero": "\u7ACB\u5373\u6570\uFF08\u96F6\u6269\u5C55\uFF09",
+  "bits.inverted": "{b} \u53D6\u53CD",
+  "bits.logic.group": "\u7B2C {from}\u2013{to} \u4F4D\u3002",
+  "bits.logic.intro": "{op}\uFF1A\u9010\u4F4D\u6BD4\u8F83\uFF0C{rule}\u3002\u5404\u4F4D\u4E92\u4E0D\u5F71\u54CD\uFF0C\u6CA1\u6709\u8FDB\u4F4D\u3002",
+  "bits.logic.result": "\u7ED3\u679C\u5199\u5165 {reg}\u3002",
+  "bits.logic.title": "{op}\uFF1A\u9010\u4F4D{kind}",
+  "bits.mismatch": "\uFF08\u4E0E\u8BB0\u5F55\u4E0D\u4E00\u81F4\uFF09",
+  "bits.mul.hilo": "\u4E58\u79EF\u7684\u9AD8 32 \u4F4D\u653E\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u653E\u8FDB LO\uFF1B\u7528 mfhi / mflo \u53D6\u51FA\u3002",
+  "bits.mul.intro": "{kind}\u76F8\u4E58\uFF1A\u4E24\u4E2A 32 \u4F4D\u6570\u7684\u4E58\u79EF\u6700\u591A\u8981 64 \u4F4D\u3002",
+  "bits.mul.title": "{op}\uFF1A64 \u4F4D\u4E58\u79EF",
+  "bits.overflow.carryOut": "\u6700\u9AD8\u4F4D\u5411\u5916\u7684\u8FDB\u4F4D\u88AB\u4E22\u5F03\uFF0832 \u4F4D\u653E\u4E0D\u4E0B\uFF09\uFF0C\u6309\u6709\u7B26\u53F7\u6570\u770B\u6CA1\u6709\u6EA2\u51FA\u3002",
+  "bits.overflow.ignored": "\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u770B\u6EA2\u51FA\u4E86\uFF0C\u4F46 {op} \u4E0D\u68C0\u67E5\u6EA2\u51FA\uFF0C\u7167\u5E38\u5199\u5165\u3002",
+  "bits.overflow.none": "\u6CA1\u6709\u6EA2\u51FA\u3002",
+  "bits.overflow.trap": "\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6709\u7B26\u53F7\u6EA2\u51FA\u3002{op} \u68C0\u67E5\u6EA2\u51FA\uFF0C\u4F1A\u89E6\u53D1\u5F02\u5E38\u3002",
+  "bits.product": "\u4E58\u79EF",
+  "bits.result": "\u7ED3\u679C",
+  "bits.rule.and": "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1",
+  "bits.rule.nor": "\u4E24\u4F4D\u90FD\u662F 0 \u624D\u5F97 1\uFF08\u6216\u7684\u7ED3\u679C\u518D\u53D6\u53CD\uFF09",
+  "bits.rule.or": "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1",
+  "bits.rule.xor": "\u4E24\u4F4D\u4E0D\u540C\u5F97 1\uFF0C\u76F8\u540C\u5F97 0",
+  "bits.shift.after": "\u79FB {k} \u4F4D",
+  "bits.shift.fillLeftSign": "\u5DE6\u7AEF\u8865\u7B26\u53F7\u4F4D\uFF08\u7B97\u672F\u53F3\u79FB\uFF0C\u4FDD\u6301\u6B63\u8D1F\uFF09",
+  "bits.shift.fillLeftZero": "\u5DE6\u7AEF\u8865 0\uFF08\u903B\u8F91\u53F3\u79FB\uFF09",
+  "bits.shift.fillRight": "\u53F3\u7AEF\u8865 0",
+  "bits.shift.intro": "{reg} \u7684 32 \u4F4D\uFF0C\u8981{direction}\u79FB {amount} \u4F4D{note}\uFF1B{fill}\u3002",
+  "bits.shift.left": "\u5DE6",
+  "bits.shift.leftEnd": "\u5DE6\u7AEF",
+  "bits.shift.none": "\u79FB\u52A8 0 \u4F4D\uFF1A\u7ED3\u679C\u4E0E\u539F\u503C\u76F8\u540C\u3002",
+  "bits.shift.result": "\u7ED3\u679C {value} \u5199\u5165 {reg}{mismatch}\u3002",
+  "bits.shift.right": "\u53F3",
+  "bits.shift.rightEnd": "\u53F3\u7AEF",
+  "bits.shift.step": "\u7B2C {k} \u6B21\u79FB\u52A8\uFF1A\u79FB\u51FA {out}\uFF0C{side}\u8865\u5165 {bit}\u3002",
+  "bits.shift.title": "{op}\uFF1A\u9010\u4F4D\u79FB\u4F4D",
+  "bits.shift.variable": "\uFF08\u79FB\u4F4D\u6570\u53D6 {reg} \u7684\u4F4E 5 \u4F4D\uFF09",
+  "bits.signed": "\u6709\u7B26\u53F7",
+  "bits.sub.intro": "\u51CF\u6CD5 {a} \u2212 {b}\uFF1A\u673A\u5668\u628A {b} \u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\u518D\u52A0 1\uFF08\u8865\u7801\uFF09\uFF0C\u53D8\u6210\u52A0\u6CD5\u3002",
+  "bits.subtract": "\u76F8\u51CF",
+  "bits.target": "\u76EE\u6807\u5BC4\u5B58\u5668",
+  "bits.unsigned": "\u65E0\u7B26\u53F7",
+  "block.busy": "\u6B63\u5728\u5904\u7406\u4E0A\u4E00\u4E2A\u64CD\u4F5C",
+  "block.dirty": "\u4EE3\u7801\u5DF2\u4FEE\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16",
+  "block.ended": "\u7A0B\u5E8F\u5DF2\u7ED3\u675F",
+  "block.error": "\u7A0B\u5E8F\u51FA\u9519\u505C\u4E0B\u4E86\uFF1A\u4FEE\u6539\u540E\u91CD\u65B0\u6C47\u7F16",
+  "block.notAssembled": "\u8FD8\u6CA1\u6709\u6C47\u7F16\uFF1A\u5148\u70B9\u201C\u6C47\u7F16\u201D",
+  "block.outside": "\u6B63\u5728\u67E5\u770B {file}\uFF0C\u5B83\u4E0D\u5728\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u91CC",
+  "block.running": "\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C",
+  "block.scopeChanged": "\u6C47\u7F16\u65B9\u5F0F\u6216\u8303\u56F4\u5DF2\u66F4\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16",
+  "block.wait": "\u8BF7\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002",
+  "bottom.calls": "\u8C03\u7528",
+  "bottom.console": "\u63A7\u5236\u53F0",
+  "bottom.logs": "\u65E5\u5FD7",
+  "bottom.problems": "\u95EE\u9898",
+  "bottom.trace": "\u6267\u884C\u8F68\u8FF9",
+  "breakpoint.condition": "\u6761\u4EF6",
+  "breakpoint.condition.placeholder": "$t0 == 3\uFF08$\u5BC4\u5B58\u5668 \u4E0E\u6574\u6570\u6BD4\u8F83\uFF09",
+  "breakpoint.delete": "\u5220\u9664\u65AD\u70B9",
+  "breakpoint.dirty": "\u4EE3\u7801\u6539\u8FC7\u4E86\uFF0C\u5148\u6C47\u7F16\u518D\u8BBE\u65AD\u70B9\u3002",
+  "breakpoint.edit.note": "\u547D\u4E2D\u6B21\u6570\u6309\u4ECE S0 \u8D77\u8FD9\u6761\u6307\u4EE4\u7684\u6267\u884C\u6B21\u6570\u8BA1\u7B97\uFF1B\u56DE\u9000\u540E\u968F\u5386\u53F2\u53D8\u5316\u3002\u65E5\u5FD7\u65AD\u70B9\u7684\u8F93\u51FA\u5728\u5E95\u90E8\u201C\u65E5\u5FD7\u201D\u3002",
+  "breakpoint.edit.title": "\u65AD\u70B9 \xB7 {file}:{line}",
+  "breakpoint.enabled": "\u542F\u7528",
+  "breakpoint.hit": "\u547D\u4E2D\u6B21\u6570",
+  "breakpoint.hit.placeholder": "\u7B2C N \u6B21\u6267\u884C\u524D\u6682\u505C\uFF1B\u7559\u7A7A\u8868\u793A\u6BCF\u6B21",
+  "breakpoint.log": "\u65E5\u5FD7\u6D88\u606F",
+  "breakpoint.log.placeholder": "t0 = {$t0}\uFF0C\u5341\u516D\u8FDB\u5236 {$t0:x}\uFF1B\u586B\u5199\u540E\u53EA\u8BB0\u5F55\u4E0D\u6682\u505C",
+  "breakpoint.noInstruction": "\u8FD9\u4E00\u884C\u6CA1\u6709\u53EF\u6267\u884C\u7684\u6307\u4EE4\uFF08\u7A7A\u884C\u3001\u6CE8\u91CA\u6216\u6570\u636E\uFF09\uFF0C\u65AD\u70B9\u8981\u8BBE\u5728\u6709\u6307\u4EE4\u7684\u884C\u3002",
+  "breakpoint.notAssembled": "{file} \u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF1B\u6C47\u7F16\u5B83\u4E4B\u540E\u624D\u80FD\u5728\u8FD9\u91CC\u8BBE\u65AD\u70B9\u3002",
+  "breakpoint.onLabel": "\u65AD\u70B9\u8BBE\u5728\u8FD9\u4E2A\u6807\u7B7E\u4E0B\u9762\u7684\u7B2C\u4E00\u6761\u6307\u4EE4\uFF08\u7B2C {line} \u884C\uFF09\u3002",
+  "breakpoint.outsideScope": "\u8FD9\u4E2A\u6587\u4EF6\u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF0C\u65AD\u70B9\u6682\u4E0D\u751F\u6548",
+  "breakpoint.row.condition": "\u6761\u4EF6 {condition}",
+  "breakpoint.row.edit": "\u7F16\u8F91\u65AD\u70B9",
+  "breakpoint.row.enable": "\u542F\u7528 {file}:{line}",
+  "breakpoint.row.hit": "\u7B2C {hit} \u6B21",
+  "breakpoint.row.inactive": "\u672A\u53C2\u4E0E\u6C47\u7F16 \xB7 \u6682\u4E0D\u751F\u6548",
+  "breakpoint.row.log": "\u65E5\u5FD7 {log}",
+  "calls.legend": "\u6309 jal / jalr / jr $ra \u8DDF\u8E2A\u7684\u8C03\u7528\u7EA6\u5B9A\u89C6\u56FE\u3002",
+  "calls.row": "#{step} {call} \u2192 \u8FD4\u56DE {address}",
+  "cfg.backJumps": "\xB7 \u56DE\u8DF3 {backJumps} \u6B21",
+  "cfg.edge.afterReturn": "\u8FD4\u56DE\u540E",
+  "cfg.edge.runtime": "\u8FD0\u884C\u65F6\u76EE\u6807",
+  "cfg.entered": "\u8FDB\u5165 {count} \u6B21{backJumps}",
+  "cfg.legend": "\u9759\u6001\u57FA\u672C\u5757 \xB7 \u95F4\u63A5\u76EE\u6807\u8FD0\u884C\u65F6\u786E\u5B9A \xB7 \u7D2B\u8272\u8FB9\u663E\u793A\u53BB\u5411\uFF1B\u8BA1\u6570\u6765\u81EA\u672C\u6B21\u8F68\u8FF9",
+  "commands.allRegisters": "\u663E\u793A\u5168\u90E8\u5BC4\u5B58\u5668",
+  "commands.assemble": "\u6C47\u7F16\u5DE5\u7A0B",
+  "commands.backToStart": "\u56DE\u5230\u5F00\u5934\uFF08\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF09",
+  "commands.button": "\u547D\u4EE4\u2026",
+  "commands.cfg": "\u67E5\u770B\u63A7\u5236\u6D41",
+  "commands.export": "\u5BFC\u51FA\u5DE5\u7A0B ZIP\uFF0FJSON",
+  "commands.findInstruction": "\u67E5\u6307\u4EE4\u4E0E\u7528\u9014\uFF08\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u641C\u7D22\uFF09",
+  "commands.import": "\u5BFC\u5165\u6587\u4EF6\u6216\u5DE5\u7A0B",
+  "commands.machine": "\u67E5\u770B\u5B9E\u9645\u6307\u4EE4",
+  "commands.memoryAddress": "\u8F93\u5165\u5730\u5740\uFF0F\u7B26\u53F7",
+  "commands.newProject": "\u65B0\u5EFA\u7A7A\u767D\u5DE5\u7A0B",
+  "commands.outline": "\u8F6C\u5230\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u7B26\u53F7",
+  "commands.palette": "\u547D\u4EE4\u9762\u677F",
+  "commands.palette.tip": "\u547D\u4EE4\u9762\u677F \xB7 Cmd/Ctrl+Shift+P \u6216 F1",
+  "commands.quickOpen": "\u5FEB\u901F\u6253\u5F00\u6587\u4EF6\uFF0F\u6807\u7B7E\uFF0F\u5730\u5740",
+  "commands.restart": "\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F",
+  "commands.run": "\u5B8C\u6574\u8FD0\u884C\uFF0F\u5168\u901F\u7EE7\u7EED",
+  "commands.runToCursor": "\u8FD0\u884C\u5230\u5149\u6807",
+  "commands.saveLocal": "\u4FDD\u5B58\u5DE5\u7A0B\u5230\u6D4F\u89C8\u5668",
+  "commands.steps": "\u9010\u6B65\u8FD0\u884C\uFF08\u4E00\u6B65\u4E00\u6B65\u6267\u884C\u5E76\u8DDF\u968F\uFF09",
+  "commands.stop": "\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9",
+  "commands.syscalls": "syscall \u4E00\u89C8\uFF08$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48\uFF09",
+  "commands.toggleBreakpoint": "\u5207\u6362\u65AD\u70B9\uFF08\u5149\u6807\u884C\uFF09",
+  "commands.toggleDashed": "\u5207\u6362\u865A\u7EBF\u53E0\u52A0",
+  "commands.toggleSolid": "\u5207\u6362\u5B9E\u7EBF\u53E0\u52A0",
+  "common.address": "\u5730\u5740",
+  "common.cancel": "\u53D6\u6D88",
+  "common.close": "\u5173\u95ED",
+  "common.closeParen": "\uFF09",
+  "common.code": "\u4EE3\u7801",
+  "common.colon": "\uFF1A",
+  "common.comma": "\uFF0C",
+  "common.data": "\u6570\u636E",
+  "common.delete": "\u5220\u9664",
+  "common.example": "\u4F8B\u5B50",
+  "common.file": "\u6587\u4EF6",
+  "common.fileLine": "{file} \u7B2C {line} \u884C",
+  "common.inParens": "\uFF08{text}\uFF09",
+  "common.lineN": "\u7B2C {line} \u884C",
+  "common.listSep": "\u3001",
+  "common.none": "\u65E0",
+  "common.off": "\u5173\u95ED",
+  "common.ok": "\u786E\u5B9A",
+  "common.on": "\u5F00\u542F",
+  "common.openParen": "\uFF08",
+  "common.period": "\u3002",
+  "common.save": "\u4FDD\u5B58",
+  "common.semicolon": "\uFF1B",
+  "common.syntax": "\u5199\u6CD5",
+  "common.terms": "\u672F\u8BED",
+  "common.unknown": "\u672A\u77E5",
+  "console.echo": "\u4F60\u8F93\u5165\u7684\u5185\u5BB9",
+  "console.input.label": "\u7A0B\u5E8F\u8F93\u5165",
+  "console.input.placeholder": "\u8F93\u5165\u503C\uFF0C\u6309 Enter \u63D0\u4EA4",
+  "console.input.send": "\u53D1\u9001",
+  "console.input.waiting": "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter",
+  "diag.duplicateGlobal": "\u53C2\u4E0E\u8FD9\u6B21\u6C47\u7F16\u7684 {files} \u90FD\u5B9A\u4E49\u4E86\u5168\u5C40\u6807\u7B7E {label}\u3002",
+  "diag.duplicateGlobal.manual": "\u5982\u679C\u5B83\u4EEC\u662F\u5404\u81EA\u72EC\u7ACB\u7684\u7EC3\u4E60\uFF0C\u8BF7\u53D6\u6D88\u52FE\u9009\u5176\u4E2D\u4E00\u4E2A\uFF0C\u6216\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u3002",
+  "diag.duplicateGlobal.other": "\u540C\u4E00\u4E2A\u5168\u5C40\u6807\u7B7E\u53EA\u80FD\u5B9A\u4E49\u4E00\u6B21\uFF0C\u8BF7\u6539\u540D\u6216\u5220\u53BB\u5176\u4E2D\u4E00\u4E2A\u3002",
+  "diag.notGlobal": "{sym} \u5B9A\u4E49\u5728 {files}\uFF0C\u4F46\u6CA1\u6709\u7528 .globl {sym} \u58F0\u660E\u4E3A\u5168\u5C40\u6807\u7B7E\uFF0C\u5176\u4ED6\u6587\u4EF6\u770B\u4E0D\u5230\u5B83\u3002",
+  "diag.notTicked": "{sym} \u5B9A\u4E49\u5728 {files}\uFF0C\u5B83\u6CA1\u6709\u52FE\u9009\u8FDB\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u3002\u9700\u8981\u65F6\u8BF7\u52FE\u9009\u5B83\u3002",
+  "diag.otherProgram": "{sym} \u5B9A\u4E49\u5728 {files}\uFF0C\u4F46\u90A3\u91CC\u4E5F\u5B9A\u4E49\u4E86 main\uFF08\u662F\u53E6\u4E00\u4E2A\u7A0B\u5E8F\uFF09\uFF0C\u81EA\u52A8\u6C47\u7F16\u4E0D\u4F1A\u628A\u5B83\u94FE\u63A5\u8FDB\u6765\u3002\u9700\u8981\u4E00\u8D77\u6C47\u7F16\u65F6\u8BF7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002",
+  "diag.singleFile": "{sym} \u5B9A\u4E49\u5728 {files}\uFF0C\u5355\u6587\u4EF6\u6C47\u7F16\u4E0D\u4F1A\u52A0\u5165\u5B83\u3002\u8BF7\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002",
+  "directive.align": "\u8BA9\u4E0B\u4E00\u9879\u4ECE 2\u207F \u7684\u500D\u6570\u5730\u5740\u5F00\u59CB\u3002",
+  "directive.ascii": "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u4E0D\u52A0 \\0\u3002",
+  "directive.ascii.syntax": "\u6807\u7B7E: .ascii",
+  "directive.asciiz": "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u81EA\u52A8\u52A0\u4E00\u4E2A \\0\uFF0C\u6253\u5370\u5B57\u7B26\u4E32\u65F6\u9760\u5B83\u505C\u4E0B\u3002",
+  "directive.asciiz.syntax": "\u6807\u7B7E: .asciiz",
+  "directive.byte": "\u5728\u5185\u5B58\u4E2D\u653E 1 \u5B57\u8282\u7684\u503C\u3002",
+  "directive.byte.syntax": "\u6807\u7B7E: .byte \u503C, \u503C, \u2026",
+  "directive.data": "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u6570\u636E\u6BB5\uFF1A\u53D8\u91CF\u3001\u6570\u7EC4\u548C\u5B57\u7B26\u4E32\u5199\u5728\u8FD9\u91CC\u3002",
+  "directive.double": "\u5728\u5185\u5B58\u4E2D\u653E\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002",
+  "directive.double.syntax": "\u6807\u7B7E: .double \u503C, \u2026",
+  "directive.endMacro": "\u7ED3\u675F\u5B8F\u5B9A\u4E49\u3002",
+  "directive.eqv": "\u7ED9\u4E00\u4E2A\u503C\u8D77\u540D\u5B57\uFF0C\u6C47\u7F16\u65F6\u76F4\u63A5\u66FF\u6362\u3002",
+  "directive.eqv.syntax": ".eqv \u540D\u5B57 \u503C",
+  "directive.extern": "\u58F0\u660E\u4E00\u4E2A\u5168\u5C40\u53D8\u91CF\u3002",
+  "directive.extern.syntax": ".extern \u6807\u7B7E \u5B57\u8282\u6570",
+  "directive.float": "\u5728\u5185\u5B58\u4E2D\u653E\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002",
+  "directive.float.syntax": "\u6807\u7B7E: .float \u503C, \u2026",
+  "directive.globl": "\u8BA9\u5176\u4ED6\u6587\u4EF6\u4E5F\u80FD\u4F7F\u7528\u8FD9\u4E2A\u6807\u7B7E\uFF0C\u5E38\u7528\u4E8E main \u548C\u88AB\u5176\u4ED6\u6587\u4EF6\u8C03\u7528\u7684\u51FD\u6570\u3002",
+  "directive.globl.syntax": ".globl \u6807\u7B7E",
+  "directive.half": "\u5728\u5185\u5B58\u4E2D\u653E 2 \u5B57\u8282\u7684\u6574\u6570\u3002",
+  "directive.half.syntax": "\u6807\u7B7E: .half \u503C, \u503C, \u2026",
+  "directive.include": "\u628A\u53E6\u4E00\u4E2A\u6587\u4EF6\u7684\u5185\u5BB9\u63D2\u5230\u8FD9\u91CC\u3002",
+  "directive.include.file": "\u6587\u4EF6\u540D",
+  "directive.kdata": "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u6570\u636E\u6BB5\u3002",
+  "directive.ktext": "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u4EE3\u7801\u6BB5\u3002",
+  "directive.macro": "\u5F00\u59CB\u5B9A\u4E49\u5B8F\uFF0C\u5230 .end_macro \u7ED3\u675F\u3002",
+  "directive.macro.syntax": ".macro \u540D\u5B57",
+  "directive.space": "\u5728\u5185\u5B58\u4E2D\u7559\u51FA\u8FD9\u4E48\u591A\u5B57\u8282\uFF0C\u5E38\u7528\u4F5C\u8F93\u5165\u7F13\u51B2\u533A\u3002",
+  "directive.space.syntax": "\u6807\u7B7E: .space \u5B57\u8282\u6570",
+  "directive.text": "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u4EE3\u7801\u6BB5\uFF1A\u6307\u4EE4\u5199\u5728\u8FD9\u91CC\u3002",
+  "directive.text.word": "\u6587\u5B57",
+  "directive.word": "\u5728\u5185\u5B58\u4E2D\u653E 4 \u5B57\u8282\u7684\u6574\u6570\uFF0C\u5199\u591A\u4E2A\u503C\u5C31\u662F\u6570\u7EC4\u3002",
+  "directive.word.syntax": "\u6807\u7B7E: .word \u503C, \u503C, \u2026",
+  "editor.delaySlot": "\u5EF6\u8FDF\u69FD\u5360\u4F4D\uFF1A\u5F00\u542F\u201C\u5EF6\u8FDF\u5206\u652F\u201D\u65F6\uFF0C\u8DF3\u8F6C\u6216\u5206\u652F\u540E\u9762\u7D27\u8DDF\u7684\u8FD9\u4E00\u6761\u603B\u4F1A\u5148\u6267\u884C\uFF0C\u653E nop \u53EF\u4EE5\u4FDD\u8BC1\u7A0B\u5E8F\u5728\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u90FD\u6B63\u786E\u3002\u5173\u95ED\u65F6\u5B83\u4EC0\u4E48\u4E5F\u4E0D\u505A\u3002",
+  "editor.followReturn": "\u56DE\u5230\u6B63\u5728\u6267\u884C\u7684\u884C\uFF0C\u5E76\u7EE7\u7EED\u8DDF\u968F",
+  "editor.menu.definition": "\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E",
+  "editor.menu.editBreakpoint": "\u7F16\u8F91\u65AD\u70B9\u2026",
+  "editor.menu.references": "\u67E5\u770B\u5F15\u7528",
+  "editor.menu.runToLine": "\u8FD0\u884C\u5230\u6B64\u884C",
+  "editor.menu.toggleBreakpoint": "\u5207\u6362\u65AD\u70B9",
+  "editor.pc.tip": "\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740",
+  "editor.target.files": "{mode}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u7531\u8FD9\u4E9B\u6E90\u7801\u6C47\u7F16\uFF1A",
+  "editor.target.many": "\u7A0B\u5E8F\uFF1A{entry} \uFF0B{count} \u4E2A\u6587\u4EF6",
+  "editor.target.none": "\u7A0B\u5E8F\uFF1A\u672A\u6C47\u7F16",
+  "editor.target.notYet": "\u8FD8\u6CA1\u6709\u6C47\u7F16",
+  "editor.target.one": "\u7A0B\u5E8F\uFF1A{entry}",
+  "editor.target.willChange": "\u70B9\u201C\u6C47\u7F16\u201D\u540E\u4F1A\u6362\u6210\u65B0\u7684\u7A0B\u5E8F",
+  "engine.about": "MIPS \u6C47\u7F16\u5668\u4E0E\u6A21\u62DF\u5668\uFF08Missouri State University\uFF09\uFF0C\u672C IDE \u5728\u5176\u4E0A\u52A0\u4E86\u6267\u884C\u5386\u53F2\u3001\u56DE\u9000\u548C\u89E3\u91CA\u3002",
+  "engine.state": "\u5EF6\u8FDF\u5206\u652F\uFF1A{delay} \xB7 \u7A0B\u5E8F\uFF1A{program}",
+  "engine.switch": "\u5207\u6362\u5185\u6838\u2026",
+  "engine.switch.hint": "\u6682\u4E0D\u63D0\u4F9B\uFF1B\u4E4B\u540E\u7684\u672C\u5730\u7248\u518D\u652F\u6301\u5176\u4ED6\u5185\u6838",
+  "engine.title": "\u6C47\u7F16\u4E0E\u6267\u884C\u5185\u6838",
+  "examples.hexout": "Hexadecimal \xB7 \u4F4D\u4E0E\u5B57\u7B26",
+  "examples.none": "\u6CA1\u6709\u793A\u4F8B",
+  "examples.open": "\u6253\u5F00\u793A\u4F8B",
+  "examples.open.note": "\u793A\u4F8B\u4F1A\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B\u3002\u53EF\u4EE5\u901A\u8FC7\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u5F53\u524D\u5185\u5BB9\u3002",
+  "examples.task1": "Task 1 \xB7 \u6587\u4EF6\u4E0E\u8C03\u7528",
+  "examples.unavailable": "\u793A\u4F8B\u6682\u4E0D\u53EF\u7528",
+  "examples.unavailableNow": "\u793A\u4F8B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528",
+  "explain.add": "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
+  "explain.addi": "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06\u7B26\u53F7\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
+  "explain.addiu": "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06 16 \u4F4D\u7ACB\u5373\u6570\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF0C\u5199\u5165\u76EE\u6807\u3002\u4E0D\u4F1A\u56E0\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
+  "explain.addu": "\u8BFB\u53D6\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\uFF0C\u76F8\u52A0\u540E\u5199\u5165\u76EE\u6807\uFF0C\u4E0D\u4EA7\u751F\u6709\u7B26\u53F7\u6EA2\u51FA\u5F02\u5E38\u3002",
+  "explain.beq": "\u6BD4\u8F83\u4E24\u4E2A\u5BC4\u5B58\u5668\uFF1B\u76F8\u7B49\u65F6\u8DF3\u8F6C\u3002\u5EF6\u8FDF\u5206\u652F\u5F00\u542F\u65F6\u5148\u6267\u884C delay slot\u3002",
+  "explain.bne": "\u6BD4\u8F83\u4E24\u4E2A\u5BC4\u5B58\u5668\uFF1B\u4E0D\u76F8\u7B49\u65F6\u8DF3\u8F6C\u3002",
+  "explain.jal": "\u5C06\u8FD4\u56DE\u5730\u5740\u5199\u5165 $ra\uFF0C\u5E76\u8C03\u7528\u76EE\u6807\uFF1B\u8FD4\u56DE\u5730\u5740\u53D7\u5EF6\u8FDF\u5206\u652F\u914D\u7F6E\u5F71\u54CD\u3002",
+  "explain.jr": "\u8DF3\u8F6C\u5230\u5BC4\u5B58\u5668\u4E2D\u5B58\u50A8\u7684\u5730\u5740\uFF1Bjr $ra \u5E38\u7528\u4E8E\u8FD4\u56DE\u3002",
+  "explain.la": "\u4F2A\u6307\u4EE4\uFF1A\u52A0\u8F7D\u5730\u5740\uFF1B\u5C55\u5F00\u53EF\u80FD\u4F7F\u7528 $at\u3002",
+  "explain.lb": "\u8BFB\u53D6 1 \u5B57\u8282\u5E76\u7B26\u53F7\u6269\u5C55\u4E3A 32 \u4F4D\u3002",
+  "explain.lbu": "\u8BA1\u7B97\u57FA\u5740\uFF0B\u504F\u79FB\uFF0C\u8BFB\u53D6 1 \u5B57\u8282\u5E76\u96F6\u6269\u5C55\u4E3A 32 \u4F4D\u3002",
+  "explain.li": "\u4F2A\u6307\u4EE4\uFF1A\u5C06\u7ACB\u5373\u6570\u88C5\u5165\u5BC4\u5B58\u5668\uFF0C\u53EF\u80FD\u5C55\u5F00\u4E3A\u591A\u6761\u5B9E\u9645\u6307\u4EE4\u3002",
+  "explain.lui": "\u5C06 16 \u4F4D\u7ACB\u5373\u6570\u653E\u5165\u76EE\u6807\u5BC4\u5B58\u5668\u9AD8 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u6E05\u96F6\u3002",
+  "explain.lw": "\u4ECE\u6709\u6548\u5730\u5740\u8BFB\u53D6 4 \u5B57\u8282\uFF1B\u5730\u5740\u5FC5\u987B\u6309 4 \u5B57\u8282\u5BF9\u9F50\u3002",
+  "explain.move": "\u4F2A\u6307\u4EE4\uFF1A\u590D\u5236\u5BC4\u5B58\u5668\u5185\u5BB9\uFF0C\u4E0D\u6E05\u9664\u6E90\u5BC4\u5B58\u5668\u3002",
+  "explain.nop": "\u4E0D\u4FEE\u6539\u901A\u7528\u5BC4\u5B58\u5668\u6216\u5185\u5B58\uFF1B\u7A0B\u5E8F\u7EE7\u7EED\u6267\u884C\u3002",
+  "explain.ori": "\u6E90\u5BC4\u5B58\u5668\u4E0E\u96F6\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u6309\u4F4D\u6216\u3002",
+  "explain.sb": "\u5C06\u6E90\u5BC4\u5B58\u5668\u4F4E 8 \u4F4D\u5199\u5165 1 \u5B57\u8282\u5185\u5B58\u3002",
+  "explain.sll": "\u903B\u8F91\u5DE6\u79FB\uFF0C\u53F3\u4FA7\u8865 0\uFF1B\u79FB\u51FA\u7684\u9AD8\u4F4D\u4E22\u5F03\u3002",
+  "explain.slti": "\u6709\u7B26\u53F7\u6BD4\u8F83\uFF1A\u6E90\u5BC4\u5B58\u5668\u5C0F\u4E8E\u7B26\u53F7\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u5219\u5199\u5165 1\uFF0C\u5426\u5219\u5199\u5165 0\u3002",
+  "explain.srl": "\u903B\u8F91\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865 0\uFF1B\u79FB\u51FA\u7684\u4F4E\u4F4D\u4E22\u5F03\u3002",
+  "explain.subu": "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u51CF\uFF0C\u5199\u5165\u76EE\u6807\uFF0C\u4E0D\u4EA7\u751F\u6709\u7B26\u53F7\u6EA2\u51FA\u5F02\u5E38\u3002",
+  "explain.sw": "\u5C06\u6E90\u5BC4\u5B58\u5668\u7684 4 \u5B57\u8282\u5185\u5BB9\u5199\u5165\u57FA\u5740\uFF0B\u504F\u79FB\u5730\u5740\u3002",
+  "explain.syscall": "\u8BF7 MARS \u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF08\u4F8B\u5982 4 \u6253\u5370\u5B57\u7B26\u4E32\u30015 \u8BFB\u53D6\u6574\u6570\uFF09\uFF1B\u53C2\u6570\u548C\u7ED3\u679C\u4F9D\u6240\u505A\u7684\u4E8B\u800C\u5B9A\u3002",
+  "export.json": "\u4E0B\u8F7D MARS \u5DE5\u7A0B JSON",
+  "export.note": "\u4FDD\u5B58\u5230\u7535\u8111\u540E\u53EF\u91CD\u65B0\u5BFC\u5165\uFF0C\u6216\u53D1\u7ED9\u8001\u5E08\u3002\u6E90\u7801\u3001\u8F93\u5165\u6587\u4EF6\u3001\u76EE\u5F55\u3001\u6C47\u7F16\u65B9\u5F0F\u548C\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u90FD\u4F1A\u4FDD\u7559\u3002",
+  "export.title": "\u5BFC\u51FA\u5DE5\u7A0B",
+  "export.zip": "\u4E0B\u8F7D ZIP\uFF08\u5305\u542B\u539F\u59CB\u6587\u4EF6\uFF09",
+  "files.confirmDelete": "\u786E\u8BA4\u5220\u9664",
+  "files.confirmDelete.contents": "\u53CA\u5176\u4E2D {count} \u4E2A\u6587\u4EF6",
+  "files.confirmDelete.text": "\u5220\u9664 {path}{contents}\uFF1F",
+  "files.delete": "\u5220\u9664\u6587\u4EF6",
+  "files.deleteFolder": "\u5220\u9664\u6587\u4EF6\u5939\u53CA\u5176\u5185\u5BB9",
+  "files.download": "\u4E0B\u8F7D\u6B64\u6587\u4EF6",
+  "files.empty": "\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002",
+  "files.emptyFolder": "\u7A7A\u6587\u4EF6\u5939",
+  "files.exists": "\u8FD9\u4E2A\u540D\u79F0\u5DF2\u7ECF\u5B58\u5728\u3002",
+  "files.heading": "\u5DE5\u7A0B\u6587\u4EF6",
+  "files.isEntry": "\u5F53\u524D\u6C47\u7F16\u5165\u53E3",
+  "files.joint": "\u53C2\u4E0E\u6C47\u7F16",
+  "files.joint.label": "{path} \u53C2\u4E0E\u6C47\u7F16",
+  "files.manageFile": "\u7BA1\u7406\u6587\u4EF6",
+  "files.manageFile.label": "\u7BA1\u7406\u6587\u4EF6 {path}",
+  "files.manageFolder": "\u7BA1\u7406\u6587\u4EF6\u5939",
+  "files.manageFolder.label": "\u7BA1\u7406\u6587\u4EF6\u5939 {path}",
+  "files.newFile": "\u65B0\u5EFA\u6587\u4EF6",
+  "files.newFile.button": "\uFF0B \u6587\u4EF6",
+  "files.newFile.hint": "\u5C0F\u5199 .s / .asm \u662F MIPS \u6E90\u7801\uFF0C\u4F1A\u53C2\u4E0E\u6C47\u7F16\uFF1B.c / .h \u548C .txt \u7B49\u662F\u666E\u901A\u6587\u672C\uFF0C\u53EF\u4EE5\u9605\u8BFB\u548C\u7F16\u8F91\uFF0C\u4E5F\u80FD\u4F5C\u4E3A\u7A0B\u5E8F\u7684\u865A\u62DF\u8F93\u5165\u3002",
+  "files.newFolder": "\u65B0\u5EFA\u6587\u4EF6\u5939",
+  "files.newFolder.button": "\uFF0B \u76EE\u5F55",
+  "files.newFolder.default": "\u65B0\u6587\u4EF6\u5939",
+  "files.newFolder.hint": "\u6587\u4EF6\u5939\u53EF\u4EE5\u5D4C\u5957\uFF1B\u5C55\u5F00\u6587\u4EF6\u5939\u53F3\u4FA7\u7684 \u22EF \u53EF\u5728\u5176\u4E2D\u65B0\u5EFA\u3002",
+  "files.newPath": "\u65B0\u8DEF\u5F84",
+  "files.newSubfolder": "\u65B0\u5EFA\u5B50\u6587\u4EF6\u5939",
+  "files.node.file": "\u6587\u4EF6 \xB7 {path}",
+  "files.node.folder": "\u6587\u4EF6\u5939 \xB7 {path}",
+  "files.path": "\u5DE5\u7A0B\u5185\u8DEF\u5F84",
+  "files.rename": "\u91CD\u547D\u540D\uFF0F\u79FB\u52A8",
+  "files.rename.hint": "\u91CD\u547D\u540D\uFF0F\u79FB\u52A8\u65F6\u586B\u5199\u5B8C\u6574\u5DE5\u7A0B\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\u3002",
+  "files.setEntry": "\u8BBE\u4E3A\u6C47\u7F16\u5165\u53E3",
+  "files.tree": "\u5DE5\u7A0B\u6587\u4EF6\u6811",
+  "find.empty": "\u8F93\u5165\u6307\u4EE4\u540D\uFF0C\u6216\u7528\u4E2D\u6587\u5199\u60F3\u505A\u7684\u4E8B\u3002",
+  "find.format": "\u683C\u5F0F",
+  "find.formula": "\u901A\u7528\u516C\u5F0F",
+  "find.kind.instruction": "\u6307\u4EE4",
+  "find.kind.pseudo": "\u4F2A\u6307\u4EE4",
+  "find.label": "\u641C\u7D22\u6307\u4EE4\u6216\u7528\u9014",
+  "find.none": "\u6CA1\u6709\u627E\u5230\u5339\u914D\u7684\u6307\u4EE4\u6216 syscall\u3002\u8BD5\u8BD5\u201C\u52A0\u6CD5\u201D\u201C\u6BD4\u8F83\u5927\u5C0F\u201D\u201C\u6253\u5370\u5B57\u7B26\u201D\u201C\u8BFB\u53D6\u6574\u6570\u201D\u201C\u53F3\u79FB\u201D\uFF0C\u6216\u8F93\u5165\u6307\u4EE4\u540D\u3002",
+  "find.note": "\u8BF4\u660E",
+  "find.placeholder": "\u4F8B\u5982\uFF1Aadd\u3001\u52A0\u6CD5\u3001\u6BD4\u8F83\u5927\u5C0F\u3001\u6253\u5370\u5B57\u7B26\u3001\u8BFB\u53D6\u6574\u6570\u3001\u53F3\u79FB",
+  "find.related": "\u5176\u4ED6\u53EF\u80FD\u76F8\u5173\uFF08{count} \u4E2A\uFF09",
+  "find.results": "\u641C\u7D22\u7ED3\u679C",
+  "find.title": "\u67E5\u6307\u4EE4\u4E0E\u7528\u9014",
+  "find.unused": "\u672C\u5DE5\u7A0B\u91CC\u8FD8\u6CA1\u6709\u7528\u5230\u5B83\u3002",
+  "find.use": "\u7528\u9014",
+  "find.used": "\u672C\u5DE5\u7A0B\u4E2D\u7528\u5230\u7684\u5730\u65B9\uFF08\u70B9\u51FB\u67E5\u770B\u8FD9\u4E00\u884C\u7684\u8BE6\u7EC6\u68C0\u67E5\uFF09\uFF1A",
+  "focus.after": "\u4E4B\u540E\uFF1A{reason}{at}",
+  "focus.badge.done": "\u521A\u5B8C\u6210",
+  "focus.badge.earlier": "\u4E4B\u524D\u6267\u884C\u7684\u7B2C {n} \u884C",
+  "focus.badge.predicted": "\u9884\u8BA1\u7B2C {n} \u6B65",
+  "focus.beatN": "\u7B2C {n} \u6761\u89E3\u91CA",
+  "focus.beatOf": "\u7B2C {beat}/{total} \u6761",
+  "focus.bits": "\u9010\u4F4D\u67E5\u770B",
+  "focus.bits.hide": "\u6536\u8D77\u9010\u4F4D",
+  "focus.bits.instruction": "\u673A\u5668\u6307\u4EE4 {op}{part}{predicted}",
+  "focus.bits.next": "\u4E0B\u4E00\u6B65 \u25B6",
+  "focus.bits.out": "\u79FB\u51FA {bit}",
+  "focus.bits.part": "\uFF08\u8FD9\u4E00\u884C\u4F2A\u6307\u4EE4\u5C55\u5F00\u540E\u7684\u7B2C {k} \u6761\uFF0C\u5171 {total} \u6761\uFF09",
+  "focus.bits.predicted": "\xB7 \u9884\u8BA1",
+  "focus.bits.prev": "\u25C0 \u4E0A\u4E00\u6B65",
+  "focus.bits.replay": "\u91CD\u653E",
+  "focus.bits.step": "\u7B2C {bitsStep}/{total} \u6B65",
+  "focus.bytes": "{n} \u5B57\u8282",
+  "focus.close": "\u9000\u51FA\u4E13\u6CE8\u6A21\u5F0F",
+  "focus.comment": "\u4F5C\u8005\u6CE8\u91CA\uFF1A{comment}",
+  "focus.dialog": "\u4E13\u6CE8\u8C03\u8BD5",
+  "focus.expand": "{arrow} {count} \u6761",
+  "focus.expanded": "\u5C55\u5F00 {k}/{total} \xB7 {basic} \u2014 {caption}",
+  "focus.heading": "\u4E13\u6CE8",
+  "focus.input": "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter",
+  "focus.input.submit": "\u63D0\u4EA4",
+  "focus.input.submit.tip": "\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C",
+  "focus.iteration": "\u7B2C {iteration} \u6B21 /",
+  "focus.iterations": "{current}\u5171 {iterations} \u6B21",
+  "focus.keys": "\u2191\u2193 \u67E5\u770B \xB7 \u21E7\u2191 \u540E\u9000\u4E00\u884C \xB7 \u21E7\u2193 \u6267\u884C\u4E00\u884C \xB7 \u2190\u2192 \u9010\u6761\u89E3\u91CA \xB7 Enter \u6267\u884C\u5230\u9009\u4E2D\u7684\u8FD9\u4E00\u6B65 \xB7 ? \u4E3A\u4EC0\u4E48 \xB7 Esc \u9000\u51FA",
+  "focus.mainLines": "\u4E3B\u754C\u9762\u8FDE\u7EBF",
+  "focus.more": "\u4E0B\u9762\u8FD8\u6709\uFF1A{where}\uFF08\u4E0D\u5728\u7A97\u53E3\u5185\uFF09",
+  "focus.more.from": "\u7B2C {line} \u884C\u8D77",
+  "focus.more.unknown": "\u66F4\u591A",
+  "focus.moreObjects": "\u53E6\u6709 {n} \u4E2A\u5BF9\u8C61",
+  "focus.needsAssembly": "\u8BF7\u5148\u6C47\u7F16\uFF0C\u518D\u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F",
+  "focus.next": "\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6",
+  "focus.nothing": "\u5C1A\u65E0\u53EF\u89E3\u91CA\u7684\u6B65\u9AA4",
+  "focus.objects": "\u6D89\u53CA\u5BF9\u8C61",
+  "focus.open": "\u4E13\u6CE8\u6A21\u5F0F",
+  "focus.open.tip": "\u4E13\u6CE8\u8C03\u8BD5\uFF1A\u524D 1 \u6B65\u4E0E\u4E4B\u540E\u7684\u9884\u8BA1\u8DEF\u5F84 \xB7 Cmd/Ctrl+K F",
+  "focus.partial": "\xB7 \u8BE5\u884C\u53EA\u9884\u8BA1\u4E86\u4E00\u90E8\u5206",
+  "focus.path": "\u4EE3\u7801\u8DEF\u5F84",
+  "focus.play": "\u64AD\u653E",
+  "focus.predicted": "\u9884\u8BA1",
+  "focus.prev": "\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA",
+  "focus.progress": "\u89E3\u91CA\u8FDB\u5EA6",
+  "focus.range": "\u8303\u56F4",
+  "focus.range.label": "\u9884\u8BA1\u8303\u56F4",
+  "focus.range.lines": "{n} \u884C",
+  "focus.setBreakpoint": "\u8BBE\u7F6E\u65AD\u70B9",
+  "focus.stop.ended": "\u7A0B\u5E8F\u7ED3\u675F",
+  "focus.stop.error": "\u6267\u884C\u5F02\u5E38",
+  "focus.stop.limit": "\u8D85\u8FC7 64 \u6761\u6307\u4EE4\uFF0C\u672A\u7EE7\u7EED\u9884\u8BA1",
+  "focus.stop.waiting": "\u7B49\u5F85\u8F93\u5165",
+  "focus.substitute": "\u2192 \u4E0B\u4E00\u6761\u89E3\u91CA\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C",
+  "focus.tag.earlier": "\u4E4B\u524D\u6267\u884C",
+  "focus.tag.predicted": "\u9884\u8BA1 +{index}",
+  "focus.thisRun": "\u672C\u6B21",
+  "focus.unpredictable": "\u65E0\u6CD5\u9884\u8BA1 \xB7 {reason}",
+  "focus.untaken": "\u672A\u8D70\u7684\u8DEF\u5F84",
+  "focus.untaken.fallthrough": "\u6761\u4EF6\u4E0D\u6210\u7ACB\u65F6\u4F1A\u987A\u5E8F\u6267\u884C\u5230 {label}",
+  "focus.untaken.note": "\u6CA1\u6709\u6267\u884C\uFF1A\u53EA\u663E\u793A\u4EE3\u7801\uFF0C\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u548C\u8F93\u5165\u8F93\u51FA\u90FD\u4E0D\u4F1A\u56E0\u6B64\u6539\u53D8\u3002",
+  "focus.untaken.taken": "\u6761\u4EF6\u6210\u7ACB\u65F6\u4F1A\u8DF3\u5230 {label}",
+  "focus.where": "\u5DF2\u6267\u884C {step} \u6B65 \xB7 \u4E0B\u4E00\u6761 {pc}",
+  "focus.why": "\u4E3A\u4EC0\u4E48\uFF1F",
+  "follow.entered": "\u6267\u884C\u8FDB\u5165 {file}{label}",
+  "fonts.system": "\u7CFB\u7EDF\u9ED8\u8BA4",
+  "fonts.system.linux": "Linux\uFF1ADejaVu \u7B49",
+  "fonts.system.mac": "macOS\uFF1ASF Mono",
+  "fonts.system.windows": "Windows\uFF1AConsolas",
+  "gloss.address.def": "\u5185\u5B58\u4E2D\u6BCF\u4E2A\u5B57\u8282\u7684\u7F16\u53F7\uFF0C\u50CF\u95E8\u724C\u53F7\u3002\u4F8B\u5982 0x10010000 \u662F\u6570\u636E\u533A\u7684\u7B2C\u4E00\u4E2A\u5B57\u8282\u3002",
+  "gloss.address.term": "\u5730\u5740",
+  "gloss.alignment.def": "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\u3002\u4F8B\u5982\u8BFB 4 \u5B57\u8282\uFF08lw\uFF09\u65F6\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570\uFF0C\u6240\u4EE5\u76F8\u90BB\u7684\u5B57\u4E4B\u95F4\u5730\u5740\u5DEE 4\u3002",
+  "gloss.alignment.term": "\u5BF9\u9F50",
+  "gloss.ascii.def": "\u6700\u5E38\u7528\u7684\u5B57\u7B26\u7F16\u7801\u8868\uFF1A0\u2013127 \u5404\u5BF9\u5E94\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 48 \u662F 0\u300165 \u662F A\u3001104 \u662F h\u300110 \u662F\u6362\u884C\u3002\u9875\u811A\u201C\u6570\u503C\u201D\u65C1\u7684\u201C?\u201D\u91CC\u6709\u5B8C\u6574\u7684\u8868\u3002",
+  "gloss.ascii.term": "ASCII",
+  "gloss.base.def": "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D $s0 \u662F\u57FA\u5740\u3002",
+  "gloss.base.term": "\u57FA\u5740",
+  "gloss.byte.def": "\u5185\u5B58\u7684\u57FA\u672C\u5355\u4F4D\uFF0C8 \u4F4D\uFF0C\u80FD\u8868\u793A 0\u2013255 \u7684\u4E00\u4E2A\u6570\u3002\u4F8B\u5982\u5B57\u7B26 h \u5360 1 \u4E2A\u5B57\u8282\uFF0C\u5B58\u7684\u662F 104\u3002",
+  "gloss.byte.term": "\u5B57\u8282",
+  "gloss.carry.def": "\u4E24\u4F4D\u76F8\u52A0\u6EE1 2 \u65F6\uFF0C\u5411\u66F4\u9AD8\u4E00\u4F4D\u9001\u51FA\u7684 1\uFF0C\u5C31\u50CF\u5341\u8FDB\u5236\u6EE1 10 \u8FDB 1\u3002\u6700\u9AD8\u4F4D\u518D\u5411\u5916\u7684\u8FDB\u4F4D\u653E\u4E0D\u4E0B\uFF0C\u4F1A\u88AB\u4E22\u5F03\u3002",
+  "gloss.carry.term": "\u8FDB\u4F4D",
+  "gloss.charEncoding.def": "\u7528\u6570\u5B57\u8868\u793A\u5B57\u7B26\u7684\u7EA6\u5B9A\uFF1A\u6BCF\u4E2A\u5B57\u7B26\u5BF9\u5E94\u4E00\u4E2A\u7F16\u53F7\uFF0C\u5185\u5B58\u91CC\u5B58\u7684\u662F\u7F16\u53F7\u3002\u4F8B\u5982\u6309 ASCII\uFF0Ch \u7684\u7F16\u53F7\u662F 104\u3002",
+  "gloss.charEncoding.term": "\u5B57\u7B26\u7F16\u7801",
+  "gloss.delaySlot.def": "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\uFF0C\u7D27\u8DDF\u5728\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u3001\u603B\u4F1A\u88AB\u6267\u884C\u7684\u90A3\u4E2A\u4F4D\u7F6E\u3002\u7A0B\u5E8F\u5E38\u5728\u8FD9\u91CC\u653E nop\uFF0C\u8FD9\u6837\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u7ED3\u679C\u76F8\u540C\u3002",
+  "gloss.delaySlot.term": "\u5EF6\u8FDF\u69FD",
+  "gloss.delayedBranch.def": "MIPS \u7684\u4E00\u79CD\u6267\u884C\u65B9\u5F0F\uFF1A\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\uFF0C\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\u3002\u4F8B\u5982 jal f \u540E\u9762\u90A3\u4E00\u884C\u4F1A\u5728\u8FDB\u5165 f \u4E4B\u524D\u6267\u884C\u3002",
+  "gloss.delayedBranch.term": "\u5EF6\u8FDF\u5206\u652F",
+  "gloss.effectiveAddress.def": "\u4E00\u6761\u6307\u4EE4\u771F\u6B63\u8981\u8BBF\u95EE\u7684\u5185\u5B58\u5730\u5740\uFF0C\u7B49\u4E8E\u57FA\u5740\u52A0\u504F\u79FB\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D\uFF0C\u82E5 $s0 = 0x10010000\uFF0C\u6709\u6548\u5730\u5740\u5C31\u662F 0x10010004\u3002",
+  "gloss.effectiveAddress.term": "\u6709\u6548\u5730\u5740",
+  "gloss.hex.def": "\u4EE5 16 \u4E3A\u57FA\u6570\u7684\u5199\u6CD5\uFF0C\u524D\u7F00 0x\uFF1B\u6BCF\u4F4D\u662F 0\u20139 \u6216 a\u2013f\uFF0810\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u8868\u793A\u4E00\u4E2A\u5B57\u8282\u3002\u4F8B\u5982 0x68 = 6\xD716 + 8 = 104\u3002",
+  "gloss.hex.term": "\u5341\u516D\u8FDB\u5236",
+  "gloss.immediate.def": "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002\u4F8B\u5982 addiu $t0, $t0, 4 \u91CC\u7684 4\u3002",
+  "gloss.immediate.term": "\u7ACB\u5373\u6570",
+  "gloss.littleEndian.def": "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002\u4F8B\u5982 7 \u5B58\u6210 07 00 00 00\uFF0C\u22122 \u5B58\u6210 fe ff ff ff\u3002",
+  "gloss.littleEndian.term": "\u5C0F\u7AEF\u5E8F",
+  "gloss.machineInstruction.def": "CPU \u771F\u6B63\u6267\u884C\u7684\u6307\u4EE4\uFF0C\u6BCF\u6761 32 \u4F4D\uFF084 \u5B57\u8282\uFF09\u3002\u201C\u5B9E\u9645\u6307\u4EE4\u201D\u89C6\u56FE\u91CC\u5217\u51FA\u7684\u5C31\u662F\u5B83\u4EEC\u3002",
+  "gloss.machineInstruction.term": "\u673A\u5668\u6307\u4EE4",
+  "gloss.nul.def": "\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF0C\u5199\u4F5C \\0\u3002\u5B57\u7B26\u4E32\u5E38\u7528\u5B83\u6807\u8BB0\u7ED3\u5C3E\uFF1A\u8BFB\u5230\u5B83\u5C31\u8868\u793A\u5B57\u7B26\u4E32\u7ED3\u675F\u4E86\u3002",
+  "gloss.nul.term": "NUL",
+  "gloss.offset.def": "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D 4 \u662F\u504F\u79FB\uFF0C0($s0) \u8868\u793A\u504F\u79FB\u4E3A 0\uFF0C\u4E5F\u5C31\u662F\u6B63\u597D\u5728\u57FA\u5740\u90A3\u91CC\u3002",
+  "gloss.offset.term": "\u504F\u79FB",
+  "gloss.overflow.def": "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002\u4F8B\u5982 0x7fffffff + 1 \u7528\u6709\u7B26\u53F7\u6570\u8868\u793A\u4E0D\u4E0B\u3002",
+  "gloss.overflow.term": "\u6EA2\u51FA",
+  "gloss.pc.def": "\u7A0B\u5E8F\u8BA1\u6570\u5668\uFF1A\u4FDD\u5B58\u201C\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u7684\u5730\u5740\u201D\u3002\u6BCF\u6267\u884C\u4E00\u6761\u6307\u4EE4\u901A\u5E38\u52A0 4\uFF1B\u8DF3\u8F6C\u5C31\u662F\u628A\u5B83\u6539\u6210\u522B\u7684\u5730\u5740\u3002",
+  "gloss.pc.term": "PC",
+  "gloss.pseudo.def": "\u6C47\u7F16\u5668\u63D0\u4F9B\u7684\u4FBF\u6377\u5199\u6CD5\uFF0C\u6C47\u7F16\u65F6\u4F1A\u6362\u6210\u4E00\u6761\u6216\u591A\u6761\u771F\u6B63\u7684\u673A\u5668\u6307\u4EE4\u3002\u4F8B\u5982 move $t0, $a1 \u5B9E\u9645\u6267\u884C\u7684\u662F addu $t0, $a1, $zero\u3002",
+  "gloss.pseudo.term": "\u4F2A\u6307\u4EE4",
+  "gloss.rd.def": "R \u578B\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u76EE\u6807\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 15\u201311 \u4F4D\uFF09\u3002",
+  "gloss.rd.term": "rd \u5B57\u6BB5",
+  "gloss.register.def": "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\uFF0C\u50CF 32 \u4E2A\u6709\u540D\u5B57\u7684\u53D8\u91CF\u3002\u4F8B\u5982 $t0\u3001$a0\u3001$sp\u3002",
+  "gloss.register.term": "\u5BC4\u5B58\u5668",
+  "gloss.returnAddress.def": "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002jal \u5728\u8DF3\u8FDB\u51FD\u6570\u65F6\u628A\u5B83\u5B58\u8FDB $ra\uFF0C\u51FD\u6570\u672B\u5C3E\u7684 jr $ra \u518D\u8DF3\u56DE\u53BB\u3002",
+  "gloss.returnAddress.term": "\u8FD4\u56DE\u5730\u5740",
+  "gloss.rs.def": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E00\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 25\u201321 \u4F4D\uFF09\u3002",
+  "gloss.rs.term": "rs \u5B57\u6BB5",
+  "gloss.rt.def": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E8C\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 20\u201316 \u4F4D\uFF09\u3002",
+  "gloss.rt.term": "rt \u5B57\u6BB5",
+  "gloss.signExtend.def": "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF0C\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002\u4F8B\u5982\u5B57\u8282 0xf0\uFF08\u6700\u9AD8\u4F4D\u662F 1\uFF09\u6269\u6210 0xfffffff0\uFF0C\u4E5F\u5C31\u662F \u221216\u3002",
+  "gloss.signExtend.term": "\u7B26\u53F7\u6269\u5C55",
+  "gloss.syscall.def": "\u8BF7\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u505A\u54EA\u4EF6\u4E8B\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF0C\u53C2\u6570\u653E\u5728 $a0 \u7B49\u5BC4\u5B58\u5668\u91CC\u3002\u4F8B\u5982 $v0 = 11 \u662F\u6253\u5370 $a0 \u91CC\u7684\u5B57\u7B26\u3002",
+  "gloss.syscall.term": "syscall",
+  "gloss.twosComplement.def": "\u8D1F\u6570\u7684\u4E8C\u8FDB\u5236\u5199\u6CD5\uFF1A\u628A\u8FD9\u4E2A\u6570\u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\uFF0C\u518D\u52A0 1\u3002\u4F8B\u5982 1 \u662F 0\u20260001\uFF0C\u53D6\u53CD\u5F97 1\u20261110\uFF0C\u52A0 1 \u5F97 1\u20261111\uFF0C\u6240\u4EE5 \u22121 \u662F 32 \u4E2A 1\u3002\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
+  "gloss.twosComplement.term": "\u8865\u7801",
+  "gloss.zeroExtend.def": "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002\u4F8B\u5982\u5B57\u8282 0xf0 \u6269\u6210 0x000000f0\uFF0C\u4E5F\u5C31\u662F 240\u3002",
+  "gloss.zeroExtend.term": "\u96F6\u6269\u5C55",
+  "guide.1.does": "\u628A $a0 \u7684\u503C\u6309\u6709\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u5230\u7EC8\u7AEF\u3002",
+  "guide.1.effect": "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u7684\u5341\u8FDB\u5236\u5199\u6CD5\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 45\u3002",
+  "guide.10.does": "\u7ED3\u675F\u7A0B\u5E8F\u3002",
+  "guide.10.effect": "\u7A0B\u5E8F\u505C\u6B62\uFF0C\u4E0D\u518D\u6267\u884C\u540E\u9762\u7684\u6307\u4EE4\u3002",
+  "guide.11.does": "\u628A $a0 \u4F4E 8 \u4F4D\u6309\u5B57\u7B26\u7F16\u7801\u8868\u5F53\u4F5C\u4E00\u4E2A\u5B57\u7B26\u6253\u5370\u3002",
+  "guide.11.effect": "\u7EC8\u7AEF\u591A\u51FA\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 -\uFF08\u540C\u6837\u7684 45\uFF0C$v0 = 1 \u65F6\u4F1A\u6253\u5370\u6210 45\uFF09\u3002",
+  "guide.12.does": "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u5B57\u7B26\u3002",
+  "guide.12.effect": "\u6267\u884C\u540E $v0 \u53D8\u6210\u8FD9\u4E2A\u5B57\u7B26\u7684\u7F16\u7801\uFF0C\u539F\u6765\u7684 12 \u88AB\u8986\u76D6\u3002",
+  "guide.13.does": "\u6309 $a0 \u7684\u6587\u4EF6\u540D\u6253\u5F00\u5DE5\u7A0B\u91CC\u7684\u8F93\u5165\u6587\u4EF6\uFF08\u4E0D\u4F1A\u8BBF\u95EE\u7535\u8111\u4E0A\u7684\u6587\u4EF6\uFF09\u3002",
+  "guide.13.effect": "\u6587\u4EF6\u63CF\u8FF0\u7B26\u5199\u5165 $v0\uFF1B\u6253\u4E0D\u5F00\u65F6\u4E3A\u8D1F\u6570\u3002",
+  "guide.14.does": "\u4ECE\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u8BFB\u53D6\u5B57\u8282\u5230\u5185\u5B58\u3002",
+  "guide.14.effect": "\u8BFB\u5230\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\uFF080 \u8868\u793A\u8BFB\u5B8C\uFF0C\u8D1F\u6570\u8868\u793A\u51FA\u9519\uFF09\u3002",
+  "guide.15.does": "\u628A\u5185\u5B58\u4E2D\u7684\u5B57\u8282\u5199\u5165\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u3002",
+  "guide.15.effect": "\u5199\u5165\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\u3002",
+  "guide.16.does": "\u5173\u95ED $a0 \u6307\u5B9A\u7684\u865A\u62DF\u6587\u4EF6\u3002",
+  "guide.16.effect": "\u6587\u4EF6\u5173\u95ED\u3002",
+  "guide.17.does": "\u7ED3\u675F\u7A0B\u5E8F\uFF0C\u5E76\u628A $a0 \u4F5C\u4E3A\u9000\u51FA\u7801\u3002",
+  "guide.17.effect": "\u7A0B\u5E8F\u505C\u6B62\u3002",
+  "guide.2.does": "\u628A $f12 \u7684\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002",
+  "guide.2.effect": "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002",
+  "guide.3.does": "\u628A $f12/$f13 \u7EC4\u6210\u7684\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002",
+  "guide.34.does": "\u628A $a0 \u6309 8 \u4F4D\u5341\u516D\u8FDB\u5236\u6253\u5370\u3002",
+  "guide.34.effect": "\u7EC8\u7AEF\u591A\u51FA 0x \u5F00\u5934\u7684\u5199\u6CD5\u3002",
+  "guide.35.does": "\u628A $a0 \u6309 32 \u4F4D\u4E8C\u8FDB\u5236\u6253\u5370\u3002",
+  "guide.35.effect": "\u7EC8\u7AEF\u591A\u51FA 32 \u4E2A 0/1\u3002",
+  "guide.36.does": "\u628A $a0 \u6309\u65E0\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u3002",
+  "guide.36.effect": "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\uFF08\u4E0D\u4F1A\u662F\u8D1F\u6570\uFF09\u3002",
+  "guide.4.does": "\u4ECE $a0 \u7ED9\u51FA\u7684\u5730\u5740\u5F00\u59CB\u9010\u4E2A\u5B57\u8282\u6253\u5370\uFF0C\u9047\u5230\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF08\\0\uFF09\u505C\u4E0B\u3002",
+  "guide.4.effect": "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u6BB5\u6587\u5B57\uFF1B\\0 \u672C\u8EAB\u4E0D\u6253\u5370\u3002",
+  "guide.4.name": "\u6253\u5370\u5B57\u7B26\u4E32",
+  "guide.5.does": "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6574\u6570\u5E76\u6309 Enter\u3002",
+  "guide.5.effect": "\u6267\u884C\u540E $v0 \u53D8\u6210\u8BFB\u5230\u7684\u6574\u6570\uFF0C\u539F\u6765\u7684 5 \u88AB\u8986\u76D6\u3002",
+  "guide.6.effect": "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0\u3002",
+  "guide.7.effect": "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0/$f1\u3002",
+  "guide.8.does": "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u884C\u6587\u5B57\uFF0C\u628A\u5B57\u7B26\u5B58\u8FDB\u5185\u5B58\u3002",
+  "guide.8.effect": "\u4ECE $a0 \u5F00\u59CB\u6700\u591A\u5199\u5165 $a1\u22121 \u4E2A\u5B57\u7B26\uFF08\u542B\u6362\u884C\uFF09\uFF0C\u672B\u5C3E\u8865 \\0\u3002",
+  "guide.9.does": "\u5728\u5806\u4E0A\u7559\u51FA $a0 \u4E2A\u5B57\u8282\u3002",
+  "guide.9.effect": "\u8FD9\u5757\u5185\u5B58\u7684\u8D77\u59CB\u5730\u5740\u5199\u5165 $v0\u3002",
+  "guide.arg.buffer": "\u7F13\u51B2\u533A\u5730\u5740",
+  "guide.arg.bufferAddress": "\u7F13\u51B2\u533A\uFF08\u5B58\u653E\u8F93\u5165\u7684\u5185\u5B58\uFF09\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740",
+  "guide.arg.bufferSize": "\u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\uFF0C\u542B\u672B\u5C3E\u7684 \\0",
+  "guide.arg.byteCount": "\u5B57\u8282\u6570",
+  "guide.arg.bytesNeeded": "\u9700\u8981\u7684\u5B57\u8282\u6570",
+  "guide.arg.charCode": "\u8981\u6253\u5370\u5B57\u7B26\u7684\u7F16\u7801",
+  "guide.arg.dataAddress": "\u8981\u5199\u7684\u6570\u636E\u5730\u5740",
+  "guide.arg.doubleLow": "\u8981\u6253\u5370\u7684\u6570\uFF08\u4F4E\u4F4D\u4E00\u534A\uFF09",
+  "guide.arg.exitCode": "\u9000\u51FA\u7801",
+  "guide.arg.fd": "\u6587\u4EF6\u63CF\u8FF0\u7B26",
+  "guide.arg.fileName": "\u6587\u4EF6\u540D\u5B57\u7B26\u4E32\u7684\u5730\u5740",
+  "guide.arg.intToPrint": "\u8981\u6253\u5370\u7684\u6574\u6570",
+  "guide.arg.maxRead": "\u6700\u591A\u8BFB\u53D6\u7684\u5B57\u8282\u6570",
+  "guide.arg.mode": "\u6A21\u5F0F\uFF08\u5FFD\u7565\uFF09",
+  "guide.arg.numberToPrint": "\u8981\u6253\u5370\u7684\u6570",
+  "guide.arg.openFlags": "\u6253\u5F00\u65B9\u5F0F\uFF1A0 \u8BFB\u30011 \u5199\u30019 \u8FFD\u52A0",
+  "guide.arg.stringAddress": "\u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740\uFF08\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\uFF09",
+  "guide.changes.ended": "\u6267\u884C\u7ED3\u675F",
+  "guide.changes.f0": "$f0\uFF08\u8FD4\u56DE\u503C\uFF09",
+  "guide.changes.f0f1": "$f0\u3001$f1\uFF08\u8FD4\u56DE\u503C\uFF09",
+  "guide.changes.fileV0": "\u865A\u62DF\u6587\u4EF6\u3001$v0",
+  "guide.changes.memory": "\u5185\u5B58\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8",
+  "guide.changes.memoryV0": "\u5185\u5B58\u3001$v0",
+  "guide.changes.terminal": "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8",
+  "guide.changes.v0": "$v0\uFF08\u8FD4\u56DE\u503C\uFF09",
+  "guide.chosen": "$v0 = {n} \u9009\u5B9A\u4E86\u201C{name}\u201D{where}\u3002",
+  "guide.chosen.setter": "\uFF08\u7B2C {line} \u884C {code} \u653E\u5165{when}\uFF09",
+  "guide.chosen.step": "\uFF0C\u7B2C {step} \u6B65",
+  "guide.chosen.unknown": "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\u3002\u8FD9\u4E00\u884C\u4E0A\u65B9\u6CA1\u6709\u76F4\u63A5\u8BBE\u7F6E $v0 \u7684\u6307\u4EE4\uFF0C$v0 \u7684\u503C\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002",
+  "guide.heading.args": "\u9700\u8981\u7684\u53C2\u6570",
+  "guide.heading.changes": "\u53D8\u5316",
+  "guide.heading.does": "\u505A\u4EC0\u4E48",
+  "guide.heading.effect": "\u53D1\u751F\u4EC0\u4E48",
+  "guide.meaning.address": "\u8FD9\u662F\u5730\u5740\uFF0C\u5185\u5BB9\u5728\u5185\u5B58\u91CC",
+  "guide.meaning.char": "\u7F16\u7801 {code} \u662F\u5B57\u7B26 '{char}'",
+  "guide.meaning.notPrintable": "\u7F16\u7801 {code}\uFF08{char}\uFF0C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\uFF09",
+  "guide.meaning.prints": "\u6253\u5370\u51FA\u6765\u662F {value}",
+  "guide.memoryWritten": "\u5199\u5165\u5185\u5B58 {bytes} \u5B57\u8282",
+  "guide.output": "\u5B9E\u9645\u8F93\u51FA",
+  "guide.readFloat.does": "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002",
+  "guide.registerChanged": "{name} \u53D8\u4E3A {value}",
+  "guide.title.unknown": "syscall\uFF1A$v0 \u672A\u77E5",
+  "guide.title.unsupported": "\u4E0D\u652F\u6301",
+  "guide.unsupported": "$v0 = {n}\uFF1AMARS Trace \u4E0D\u652F\u6301\u8FD9\u4E2A\u6570\uFF08\u652F\u6301 {supported}\uFF09\uFF0C\u6267\u884C\u65F6\u4F1A\u62A5\u9519\u505C\u4E0B\u3002",
+  "guide.waiting": "\u6B63\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u8BF7\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540E\u6309 Enter\u3002\u8F93\u5165\u5B8C\u6210\u524D $v0 \u4ECD\u662F {n}\uFF0C\u4E0D\u4F1A\u663E\u793A\u865A\u6784\u7684\u7ED3\u679C\u3002",
+  "guide.wasWaiting": "\u5F53\u65F6\u5728\u7B49\u5F85\u8F93\u5165",
+  "history.empty": "0 / 0 \u6B65",
+  "history.position": "{step} / {total} \u6B65",
+  "import.add": "\u6DFB\u52A0\u5230\u5DE5\u7A0B",
+  "import.addInto": "\u6DFB\u52A0\u5230",
+  "import.addToCurrent": "\u6DFB\u52A0\u5230\u5F53\u524D\u5DE5\u7A0B",
+  "import.added": "\u5DF2\u6DFB\u52A0 {count} \u4E2A\u6587\u4EF6\u3002",
+  "import.asNew": "\u4F5C\u4E3A\u65B0\u5DE5\u7A0B\u6253\u5F00\uFF08\u66FF\u6362\u5F53\u524D\u5185\u5BB9\uFF09",
+  "import.backupNote": "\u5F53\u524D\u5DE5\u7A0B\u4F1A\u4FDD\u7559\u4E00\u4EFD\u5907\u4EFD\uFF0C\u53EF\u4ECE\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u3002",
+  "import.chooseFolder": "\u9009\u62E9\u6587\u4EF6\u5939\u2026",
+  "import.conflict": "\u5B58\u5728\u540C\u540D\u6587\u4EF6",
+  "import.conflict.note": "\u4EE5\u4E0B\u6587\u4EF6\u4F1A\u88AB\u8986\u76D6\uFF1A{files}",
+  "import.conflict.overwrite": "\u8986\u76D6\u540C\u540D\u5E76\u6DFB\u52A0",
+  "import.drop": "\u628A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u6216 ZIP \u62D6\u5230\u8FD9\u91CC\uFF0C\u6216\u70B9\u51FB\u9009\u62E9",
+  "import.failed": "\u5BFC\u5165\u672A\u5B8C\u6210",
+  "import.failed.note": "\u5F53\u524D\u5DE5\u7A0B\u672A\u6539\u53D8\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u540E\u91CD\u8BD5\u3002",
+  "import.kind.folder": "\u6587\u4EF6\u5939",
+  "import.kind.json": "MARS \u5DE5\u7A0B",
+  "import.kind.zip": "ZIP \u5DE5\u7A0B\u5305",
+  "import.noFolder": "\u8FD9\u4E2A\u6D4F\u89C8\u5668\u4E0D\u80FD\u9009\u62E9\u6587\u4EF6\u5939\u3002\u8BF7\u628A\u6587\u4EF6\u5939\u538B\u7F29\u6210 ZIP \u518D\u5BFC\u5165\u3002",
+  "import.preview.files": "\u5C06\u5BFC\u5165\u7684\u6587\u4EF6",
+  "import.preview.input": "\u8F93\u5165",
+  "import.preview.skip": "\u8DF3\u8FC7",
+  "import.preview.skipped": "\uFF0C\u8DF3\u8FC7 {count} \u4E2A",
+  "import.preview.source": "\u6E90\u7801",
+  "import.preview.summary": "\uFF1A{sources} \u4E2A\u6E90\u7801\u3001{inputs} \u4E2A\u8F93\u5165\u6587\u4EF6{skipped}\u3002",
+  "import.project": "\u5BFC\u5165\u5DE5\u7A0B",
+  "import.replace": "\u66FF\u6362\u5DE5\u7A0B",
+  "import.root": "\u6839\u76EE\u5F55",
+  "import.supported": "\u652F\u6301 .s / .asm\u3001UTF-8 \u6587\u672C\u3001ZIP \u548C MARS \u5DE5\u7A0B JSON\uFF1B\u6700\u591A {files} \u4E2A\u6587\u4EF6\u3001{mb} MB \u6587\u672C\u3002",
+  "import.title": "\u5BFC\u5165",
+  "ins.abs.keywords": "\u7EDD\u5BF9\u503C \u6B63\u6570",
+  "ins.abs.note": "\u4F2A\u6307\u4EE4",
+  "ins.abs.purpose": "\u53D6\u7EDD\u5BF9\u503C",
+  "ins.add.keywords": "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u52A0 plus sum",
+  "ins.add.note": "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38",
+  "ins.add.purpose": "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0",
+  "ins.addi.keywords": "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u52A0\u4E00 \u7ACB\u5373\u6570 \u8BA1\u6570",
+  "ins.addi.note": "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38",
+  "ins.addi.purpose": "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570",
+  "ins.addiu.keywords": "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u6808 \u7ACB\u5373\u6570 \u8BA1\u6570",
+  "ins.addiu.note": "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38",
+  "ins.addiu.purpose": "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA",
+  "ins.addu.keywords": "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u65E0\u7B26\u53F7 \u5730\u5740",
+  "ins.addu.note": "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38\uFF0C\u5E38\u7528\u4E8E\u5730\u5740\u548C\u65E0\u7B26\u53F7\u6570",
+  "ins.addu.purpose": "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA",
+  "ins.and.keywords": "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u6E05\u96F6",
+  "ins.and.note": "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1",
+  "ins.and.purpose": "\u6309\u4F4D\u4E0E",
+  "ins.andi.keywords": "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u53D6\u4F4E\u4F4D \u53D6\u5B57\u8282 \u6E05\u96F6",
+  "ins.andi.note": "\u7ACB\u5373\u6570\u96F6\u6269\u5C55\uFF1B\u5E38\u7528\u6765\u53D6\u51FA\u4F4E\u51E0\u4F4D",
+  "ins.andi.purpose": "\u548C\u5E38\u6570\u6309\u4F4D\u4E0E",
+  "ins.b.formula": "\u8DF3\u5230 label",
+  "ins.b.keywords": "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF",
+  "ins.b.note": "\u4F2A\u6307\u4EE4\uFF1Abgez $zero, label",
+  "ins.b.purpose": "\u65E0\u6761\u4EF6\u8DF3\u8F6C\uFF08\u5206\u652F\u5199\u6CD5\uFF09",
+  "ins.beq.formula": "\u82E5 rs == rt\uFF0C\u8DF3\u5230 label",
+  "ins.beq.keywords": "\u5206\u652F \u76F8\u7B49 \u7B49\u4E8E \u5224\u65AD if \u8DF3\u8F6C \u6761\u4EF6",
+  "ins.beq.purpose": "\u76F8\u7B49\u5C31\u8DF3\u8F6C",
+  "ins.beqz.formula": "\u82E5 rs == 0\uFF0C\u8DF3\u5230 label",
+  "ins.beqz.keywords": "\u5206\u652F \u96F6 \u5224\u65AD \u4E3A\u96F6",
+  "ins.beqz.note": "\u4F2A\u6307\u4EE4\uFF1Abeq rs, $zero, label",
+  "ins.beqz.purpose": "\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.bge.formula": "\u82E5 rs \u2265 rt\uFF0C\u8DF3\u5230 label",
+  "ins.bge.keywords": "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E\u7B49\u4E8E \u5224\u65AD",
+  "ins.bge.note": "\u4F2A\u6307\u4EE4\uFF1Aslt + beq",
+  "ins.bge.purpose": "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C",
+  "ins.bgez.formula": "\u82E5 rs \u2265 0\uFF0C\u8DF3\u5230 label",
+  "ins.bgez.keywords": "\u5206\u652F \u975E\u8D1F \u5224\u65AD \u6B63\u6570",
+  "ins.bgez.purpose": "\u5927\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.bgt.formula": "\u82E5 rs > rt\uFF0C\u8DF3\u5230 label",
+  "ins.bgt.keywords": "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E \u5224\u65AD",
+  "ins.bgt.note": "\u4F2A\u6307\u4EE4\uFF1Aslt + bne",
+  "ins.bgt.purpose": "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u5C31\u8DF3\u8F6C",
+  "ins.bgtz.formula": "\u82E5 rs > 0\uFF0C\u8DF3\u5230 label",
+  "ins.bgtz.keywords": "\u5206\u652F \u6B63\u6570 \u5224\u65AD",
+  "ins.bgtz.purpose": "\u5927\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.ble.formula": "\u82E5 rs \u2264 rt\uFF0C\u8DF3\u5230 label",
+  "ins.ble.keywords": "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E\u7B49\u4E8E \u5224\u65AD",
+  "ins.ble.note": "\u4F2A\u6307\u4EE4\uFF1Aslt + beq",
+  "ins.ble.purpose": "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C",
+  "ins.blez.formula": "\u82E5 rs \u2264 0\uFF0C\u8DF3\u5230 label",
+  "ins.blez.keywords": "\u5206\u652F \u975E\u6B63 \u5224\u65AD",
+  "ins.blez.purpose": "\u5C0F\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.blt.formula": "\u82E5 rs < rt\uFF0C\u8DF3\u5230 label",
+  "ins.blt.keywords": "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5FAA\u73AF \u5224\u65AD",
+  "ins.blt.note": "\u4F2A\u6307\u4EE4\uFF1Aslt + bne",
+  "ins.blt.purpose": "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u5C31\u8DF3\u8F6C",
+  "ins.bltz.formula": "\u82E5 rs < 0\uFF0C\u8DF3\u5230 label",
+  "ins.bltz.keywords": "\u5206\u652F \u8D1F\u6570 \u5224\u65AD",
+  "ins.bltz.purpose": "\u5C0F\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.bne.formula": "\u82E5 rs \u2260 rt\uFF0C\u8DF3\u5230 label",
+  "ins.bne.keywords": "\u5206\u652F \u4E0D\u7B49 \u5224\u65AD if \u5FAA\u73AF \u8DF3\u8F6C \u6761\u4EF6",
+  "ins.bne.purpose": "\u4E0D\u76F8\u7B49\u5C31\u8DF3\u8F6C",
+  "ins.bnez.formula": "\u82E5 rs \u2260 0\uFF0C\u8DF3\u5230 label",
+  "ins.bnez.keywords": "\u5206\u652F \u975E\u96F6 \u5FAA\u73AF \u5224\u65AD",
+  "ins.bnez.note": "\u4F2A\u6307\u4EE4\uFF1Abne rs, $zero, label",
+  "ins.bnez.purpose": "\u4E0D\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C",
+  "ins.div.formula": "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 rs \u9664\u4EE5 rt \u7684\u4F59\u6570",
+  "ins.div.keywords": "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u53D6\u4F59 \u53D6\u6A21 \u6574\u9664",
+  "ins.div.note": "\u9664\u6570\u4E3A 0 \u65F6\u7ED3\u679C\u6CA1\u6709\u89C4\u5B9A",
+  "ins.div.purpose": "\u6709\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI",
+  "ins.divu.formula": "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 \u4F59\u6570",
+  "ins.divu.keywords": "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u65E0\u7B26\u53F7",
+  "ins.divu.note": "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u9664",
+  "ins.divu.purpose": "\u65E0\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI",
+  "ins.j.keywords": "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF",
+  "ins.j.purpose": "\u8DF3\u8F6C\u5230\u6807\u7B7E",
+  "ins.jal.formula": "$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 label",
+  "ins.jal.keywords": "\u8C03\u7528 \u51FD\u6570 \u5B50\u7A0B\u5E8F call \u8FC7\u7A0B",
+  "ins.jal.purpose": "\u8C03\u7528\u51FD\u6570\uFF1A\u628A\u8FD4\u56DE\u5730\u5740\u5B58\u8FDB $ra \u518D\u8DF3\u8F6C",
+  "ins.jalr.formula": "rd \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 rs",
+  "ins.jalr.keywords": "\u8C03\u7528 \u51FD\u6570 \u6307\u9488",
+  "ins.jalr.purpose": "\u8C03\u7528\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740",
+  "ins.jr.keywords": "\u8FD4\u56DE return \u51FD\u6570 \u8DF3\u8F6C",
+  "ins.jr.purpose": "\u8DF3\u5230\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740\uFF1Bjr $ra \u4ECE\u51FD\u6570\u8FD4\u56DE",
+  "ins.la.formula": "rd \u2190 label \u7684\u5730\u5740",
+  "ins.la.keywords": "\u5730\u5740 \u5B57\u7B26\u4E32 \u6570\u7EC4 \u6807\u7B7E \u53D6\u5730\u5740",
+  "ins.la.note": "\u4F2A\u6307\u4EE4\uFF1Alui + ori\uFF1B\u5F97\u5230\u7684\u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5185\u5BB9",
+  "ins.la.purpose": "\u628A\u6807\u7B7E\u7684\u5730\u5740\u653E\u8FDB\u5BC4\u5B58\u5668",
+  "ins.lb.formula": "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u6309\u7B26\u53F7\u6269\u5C55",
+  "ins.lb.keywords": "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u52A0\u8F7D",
+  "ins.lb.note": "\u6700\u9AD8\u4F4D\u662F 1 \u65F6\u8865 1",
+  "ins.lb.purpose": "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09",
+  "ins.lbu.formula": "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0",
+  "ins.lbu.keywords": "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B57\u7B26\u4E32 \u52A0\u8F7D \u65E0\u7B26\u53F7",
+  "ins.lbu.note": "\u8BFB\u5B57\u7B26\u5E38\u7528\u5B83",
+  "ins.lbu.purpose": "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09",
+  "ins.lh.formula": "rt \u2190 \u534A\u5B57[rs + offset]",
+  "ins.lh.keywords": "\u8BFB\u5185\u5B58 \u534A\u5B57 \u52A0\u8F7D",
+  "ins.lh.note": "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570",
+  "ins.lh.purpose": "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09",
+  "ins.lhu.formula": "rt \u2190 \u534A\u5B57[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0",
+  "ins.lhu.keywords": "\u8BFB\u5185\u5B58 \u534A\u5B57 \u65E0\u7B26\u53F7",
+  "ins.lhu.note": "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570",
+  "ins.lhu.purpose": "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09",
+  "ins.li.keywords": "\u5E38\u6570 \u8D4B\u503C \u88C5\u5165 \u8BBE\u7F6E \u7ACB\u5373\u6570 \u521D\u59CB\u5316",
+  "ins.li.note": "\u4F2A\u6307\u4EE4\uFF1A\u6309\u5927\u5C0F\u5C55\u5F00\u4E3A addiu/ori\uFF0C\u6216 lui + ori",
+  "ins.li.purpose": "\u628A\u5E38\u6570\u653E\u8FDB\u5BC4\u5B58\u5668",
+  "ins.lui.keywords": "\u9AD8\u4F4D \u5E38\u6570 \u5730\u5740 \u7ACB\u5373\u6570",
+  "ins.lui.note": "\u4F4E 16 \u4F4D\u6E05\u96F6",
+  "ins.lui.purpose": "\u628A\u5E38\u6570\u653E\u8FDB\u9AD8 16 \u4F4D",
+  "ins.lw.formula": "rt \u2190 \u5185\u5B58[rs + offset]",
+  "ins.lw.keywords": "\u8BFB\u5185\u5B58 \u52A0\u8F7D load \u6570\u7EC4 \u53D6\u503C \u8BFB\u53D6 \u5B57",
+  "ins.lw.note": "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570",
+  "ins.lw.purpose": "\u4ECE\u5185\u5B58\u8BFB 4 \u5B57\u8282",
+  "ins.marsOriginal": "MARS \u539F\u6587\u8BF4\u660E",
+  "ins.mfhi.keywords": "\u4F59\u6570 \u9AD8\u4F4D \u53D6\u6A21 hi",
+  "ins.mfhi.purpose": "\u53D6\u51FA HI\uFF08\u4E58\u79EF\u9AD8\u4F4D\u6216\u9664\u6CD5\u4F59\u6570\uFF09",
+  "ins.mflo.keywords": "\u5546 \u4F4E\u4F4D \u4E58\u79EF lo",
+  "ins.mflo.purpose": "\u53D6\u51FA LO\uFF08\u4E58\u79EF\u4F4E\u4F4D\u6216\u9664\u6CD5\u7684\u5546\uFF09",
+  "ins.move.keywords": "\u590D\u5236 \u8D4B\u503C \u62F7\u8D1D \u4FDD\u5B58",
+  "ins.move.note": "\u4F2A\u6307\u4EE4\uFF1Aaddu rd, rs, $zero",
+  "ins.move.purpose": "\u590D\u5236\u5BC4\u5B58\u5668\u7684\u503C",
+  "ins.mul.formula": "rd \u2190 (rs \xD7 rt) \u7684\u4F4E 32 \u4F4D",
+  "ins.mul.keywords": "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58",
+  "ins.mul.note": "\u9AD8\u4F4D\u88AB\u4E22\u5F03\uFF0C\u7ED3\u679C\u53EF\u80FD\u6EA2\u51FA\u800C\u4E0D\u62A5\u9519",
+  "ins.mul.purpose": "\u4E58\u6CD5\uFF0C\u53EA\u4FDD\u7559\u4F4E 32 \u4F4D",
+  "ins.mult.keywords": "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58",
+  "ins.mult.note": "\u9AD8 32 \u4F4D\u5728 HI\uFF0C\u4F4E 32 \u4F4D\u5728 LO\uFF0C\u7528 mfhi/mflo \u53D6\u51FA",
+  "ins.mult.purpose": "\u6709\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO",
+  "ins.multu.keywords": "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u65E0\u7B26\u53F7",
+  "ins.multu.note": "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u4E58",
+  "ins.multu.purpose": "\u65E0\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO",
+  "ins.neg.keywords": "\u76F8\u53CD\u6570 \u8D1F\u6570 \u53D6\u8D1F",
+  "ins.neg.note": "\u4F2A\u6307\u4EE4\uFF1Asub rd, $zero, rs",
+  "ins.neg.purpose": "\u53D6\u76F8\u53CD\u6570",
+  "ins.nop.formula": "\uFF08\u65E0\u53D8\u5316\uFF09",
+  "ins.nop.keywords": "\u7A7A \u5360\u4F4D \u5EF6\u8FDF\u69FD",
+  "ins.nop.note": "\u5E38\u653E\u5728\u5EF6\u8FDF\u69FD\u91CC",
+  "ins.nop.purpose": "\u4EC0\u4E48\u4E5F\u4E0D\u505A",
+  "ins.nor.keywords": "\u6216\u975E \u53D6\u53CD \u975E",
+  "ins.nor.note": "\u548C $zero \u505A nor \u5C31\u662F\u6309\u4F4D\u53D6\u53CD",
+  "ins.nor.purpose": "\u6309\u4F4D\u6216\u975E",
+  "ins.not.keywords": "\u53D6\u53CD \u975E \u6309\u4F4D\u53D6\u53CD",
+  "ins.not.note": "\u4F2A\u6307\u4EE4\uFF1Anor rd, rs, $zero",
+  "ins.not.purpose": "\u6309\u4F4D\u53D6\u53CD",
+  "ins.or.keywords": "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5408\u5E76",
+  "ins.or.note": "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1",
+  "ins.or.purpose": "\u6309\u4F4D\u6216",
+  "ins.ori.keywords": "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5E38\u6570",
+  "ins.ori.note": "\u7ACB\u5373\u6570\u96F6\u6269\u5C55",
+  "ins.ori.purpose": "\u548C\u5E38\u6570\u6309\u4F4D\u6216",
+  "ins.sb.formula": "\u5B57\u8282[rs + offset] \u2190 rt \u7684\u4F4E 8 \u4F4D",
+  "ins.sb.keywords": "\u5199\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B58\u50A8",
+  "ins.sb.purpose": "\u628A\u6700\u4F4E 1 \u5B57\u8282\u5199\u8FDB\u5185\u5B58",
+  "ins.service.1.keywords": "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u6574\u6570 \u6570\u5B57 print int printf",
+  "ins.service.10.keywords": "\u9000\u51FA \u7ED3\u675F \u505C\u6B62 exit",
+  "ins.service.11.keywords": "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26 \u4E00\u4E2A\u5B57\u7B26 print char putchar",
+  "ins.service.12.keywords": "\u8BFB\u53D6 \u8F93\u5165 \u5B57\u7B26 read char getchar",
+  "ins.service.13.keywords": "\u6253\u5F00 \u6587\u4EF6",
+  "ins.service.14.keywords": "\u8BFB\u53D6 \u6587\u4EF6",
+  "ins.service.15.keywords": "\u5199\u5165 \u6587\u4EF6",
+  "ins.service.16.keywords": "\u5173\u95ED \u6587\u4EF6",
+  "ins.service.17.keywords": "\u9000\u51FA \u7ED3\u675F \u8FD4\u56DE\u7801 exit",
+  "ins.service.2.keywords": "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570",
+  "ins.service.3.keywords": "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
+  "ins.service.34.keywords": "\u6253\u5370 \u8F93\u51FA \u5341\u516D\u8FDB\u5236 hex",
+  "ins.service.35.keywords": "\u6253\u5370 \u8F93\u51FA \u4E8C\u8FDB\u5236 binary",
+  "ins.service.36.keywords": "\u6253\u5370 \u8F93\u51FA \u65E0\u7B26\u53F7",
+  "ins.service.4.keywords": "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26\u4E32 \u6587\u5B57 \u4E00\u53E5\u8BDD print string printf",
+  "ins.service.5.keywords": "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u6574\u6570 \u6570\u5B57 read int scanf",
+  "ins.service.6.keywords": "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570",
+  "ins.service.7.keywords": "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
+  "ins.service.8.keywords": "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u5B57\u7B26\u4E32 \u540D\u5B57 \u4E00\u884C \u6587\u5B57 read string scanf gets",
+  "ins.service.9.keywords": "\u5206\u914D \u5185\u5B58 \u5806 malloc",
+  "ins.service.note": "\u5148\u628A {n} \u653E\u8FDB $v0\uFF0C\u518D\u6267\u884C syscall",
+  "ins.sh.formula": "\u534A\u5B57[rs + offset] \u2190 rt \u7684\u4F4E 16 \u4F4D",
+  "ins.sh.keywords": "\u5199\u5185\u5B58 \u534A\u5B57 \u5B58\u50A8",
+  "ins.sh.note": "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570",
+  "ins.sh.purpose": "\u628A\u6700\u4F4E 2 \u5B57\u8282\u5199\u8FDB\u5185\u5B58",
+  "ins.sll.keywords": "\u5DE6\u79FB \u79FB\u4F4D \u4E582 \u4E58\u4EE52",
+  "ins.sll.note": "\u53F3\u8FB9\u8865 0\uFF1B\u5DE6\u79FB n \u4F4D\u76F8\u5F53\u4E8E\u4E58\u4EE5 2\u207F",
+  "ins.sll.purpose": "\u903B\u8F91\u5DE6\u79FB",
+  "ins.sllv.formula": "rd \u2190 rt << (rs \u7684\u4F4E 5 \u4F4D)",
+  "ins.sllv.keywords": "\u5DE6\u79FB \u79FB\u4F4D \u53EF\u53D8",
+  "ins.sllv.purpose": "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u5DE6\u79FB",
+  "ins.slt.keywords": "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5224\u65AD \u6761\u4EF6",
+  "ins.slt.note": "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83",
+  "ins.slt.purpose": "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u65F6\u5F97 1\uFF0C\u5426\u5219\u5F97 0",
+  "ins.slti.keywords": "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5E38\u6570",
+  "ins.slti.note": "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83",
+  "ins.slti.purpose": "\u548C\u5E38\u6570\u6BD4\u8F83\u5927\u5C0F",
+  "ins.sltiu.keywords": "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7",
+  "ins.sltiu.purpose": "\u548C\u5E38\u6570\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F",
+  "ins.sltu.keywords": "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7",
+  "ins.sltu.note": "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83",
+  "ins.sltu.purpose": "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F",
+  "ins.sra.keywords": "\u53F3\u79FB \u79FB\u4F4D \u96642 \u6709\u7B26\u53F7",
+  "ins.sra.note": "\u5DE6\u8FB9\u8865\u7B26\u53F7\u4F4D\uFF08\u6309\u6709\u7B26\u53F7\u6570\uFF0C\u6B63\u8D1F\u4E0D\u53D8\uFF09",
+  "ins.sra.purpose": "\u7B97\u672F\u53F3\u79FB",
+  "ins.srav.formula": "rd \u2190 rt >> (rs \u7684\u4F4E 5 \u4F4D)",
+  "ins.srav.keywords": "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8 \u6709\u7B26\u53F7",
+  "ins.srav.purpose": "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u7B97\u672F\u53F3\u79FB",
+  "ins.srl.keywords": "\u53F3\u79FB \u79FB\u4F4D \u96642 \u65E0\u7B26\u53F7 \u53D6\u9AD8\u4F4D",
+  "ins.srl.note": "\u5DE6\u8FB9\u8865 0\uFF08\u6309\u65E0\u7B26\u53F7\u6570\uFF09",
+  "ins.srl.purpose": "\u903B\u8F91\u53F3\u79FB",
+  "ins.srlv.formula": "rd \u2190 rt >>> (rs \u7684\u4F4E 5 \u4F4D)",
+  "ins.srlv.keywords": "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8",
+  "ins.srlv.purpose": "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u903B\u8F91\u53F3\u79FB",
+  "ins.sub.keywords": "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u51CF",
+  "ins.sub.note": "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38",
+  "ins.sub.purpose": "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF",
+  "ins.subu.keywords": "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u65E0\u7B26\u53F7 \u53D6\u53CD",
+  "ins.subu.note": "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38",
+  "ins.subu.purpose": "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA",
+  "ins.sw.formula": "\u5185\u5B58[rs + offset] \u2190 rt",
+  "ins.sw.keywords": "\u5199\u5185\u5B58 \u5B58\u50A8 store \u4FDD\u5B58 \u6570\u7EC4 \u5B57",
+  "ins.sw.note": "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570",
+  "ins.sw.purpose": "\u628A 4 \u5B57\u8282\u5199\u8FDB\u5185\u5B58",
+  "ins.syscall.formula": "\u6309 $v0 \u7684\u503C\u505A\u5BF9\u5E94\u7684\u4E8B",
+  "ins.syscall.keywords": "\u7CFB\u7EDF\u8C03\u7528 \u6253\u5370 \u8F93\u5165 \u8F93\u51FA \u8BFB\u53D6 \u9000\u51FA",
+  "ins.syscall.note": "\u5148\u628A\u5BF9\u5E94\u7684\u6570\u653E\u8FDB $v0\uFF0C\u53C2\u6570\u653E\u8FDB $a0 \u7B49",
+  "ins.syscall.purpose": "\u7CFB\u7EDF\u8C03\u7528\uFF1A\u505A\u8F93\u5165\u3001\u8F93\u51FA\u6216\u9000\u51FA\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A",
+  "ins.xor.keywords": "\u5F02\u6216 \u6309\u4F4D\u5F02\u6216 \u7FFB\u8F6C \u6BD4\u8F83\u662F\u5426\u76F8\u540C",
+  "ins.xor.note": "\u4E24\u4F4D\u4E0D\u540C\u5F97 1",
+  "ins.xor.purpose": "\u6309\u4F4D\u5F02\u6216",
+  "ins.xori.keywords": "\u5F02\u6216 \u7FFB\u8F6C",
+  "ins.xori.note": "\u7ACB\u5373\u6570\u96F6\u6269\u5C55",
+  "ins.xori.purpose": "\u548C\u5E38\u6570\u6309\u4F4D\u5F02\u6216",
+  "inspector.accesses": "\u5173\u8054\u8BFB\u5199",
+  "inspector.actualResult": "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C",
+  "inspector.address.base": "\u57FA\u5740",
+  "inspector.address.bytes": "{offset} \u5B57\u8282",
+  "inspector.address.offset": "\u504F\u79FB",
+  "inspector.addressAfter": "\u6309\u6267\u884C {step} \u6B65\u540E\u7684\u5BC4\u5B58\u5668\u503C\u7B97\u51FA\u7684\u5730\u5740",
+  "inspector.asAddress": "\u4F5C\u4E3A\u5730\u5740\u67E5\u770B",
+  "inspector.bits": "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B",
+  "inspector.bitsPast": "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09",
+  "inspector.charTable": "\u67E5\u770B\u5B57\u7B26\u7F16\u7801\u8868",
+  "inspector.computation": "\u8BA1\u7B97\u8FC7\u7A0B",
+  "inspector.constant": "\u5E38\u6570",
+  "inspector.constant.note": "\u5199\u5728\u4EE3\u7801\u91CC\u7684\u6570\uFF0C\u540C\u4E00\u4E2A\u503C\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A",
+  "inspector.directive": "\u6C47\u7F16\u5668\u6307\u793A",
+  "inspector.directive.note": "\u5B83\u544A\u8BC9\u6C47\u7F16\u5668\u600E\u4E48\u5B89\u6392\u5185\u5BB9\uFF0C\u672C\u8EAB\u4E0D\u662F\u4E00\u6761\u673A\u5668\u6307\u4EE4\uFF0C\u4E0D\u4F1A\u5355\u72EC\u6267\u884C\u3002",
+  "inspector.empty": "\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B{keys}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002",
+  "inspector.empty.page": "\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u3001Cmd/Ctrl\uFF0B\u70B9\u51FB\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002",
+  "inspector.followAgain": "\u56DE\u5230\u8DDF\u968F\u6267\u884C",
+  "inspector.following": "\u8DDF\u968F\u6267\u884C \xB7 {when}\u7684\u7B2C {line} \u884C",
+  "inspector.following.done": "\u521A\u6267\u884C",
+  "inspector.following.next": "\u5373\u5C06\u6267\u884C",
+  "inspector.justRun": "\u521A\u6267\u884C\uFF08\u7B2C {step} \u6B65\uFF09",
+  "inspector.label": "\u6807\u7B7E\u6216\u540D\u79F0\u3002\u6C47\u7F16\u540E\u53EF\u4EE5\u67E5\u770B\u5B83\u7684\u5730\u5740\uFF1B\u4E5F\u53EF\u4EE5\u67E5\u627E\u4EE3\u7801\u91CC\u54EA\u4E9B\u5730\u65B9\u7528\u5230\u5B83\u3002",
+  "inspector.lastWrite": "\u6700\u540E\u5199\u5165",
+  "inspector.lastWriteAt": "\u6700\u540E\u4E00\u6B21\u5199\u5165\u5728\u7B2C {last} \u6B65",
+  "inspector.lineRef": "\uFF08\u7B2C {line} \u884C\uFF09",
+  "inspector.locate": "\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C",
+  "inspector.memoryCell": "\u5185\u5B58[{address}]",
+  "inspector.neverWritten": "\u8FD8\u6CA1\u6709\u88AB\u5199\u5165\u8FC7\uFF08\u521D\u59CB\u503C\uFF09",
+  "inspector.noInstruction": "\u8FD9\u4E00\u884C\u6CA1\u6709\u6307\u4EE4\u53EF\u4EE5\u67E5\u770B\u3002",
+  "inspector.noReads": "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58",
+  "inspector.noWrites": "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58",
+  "inspector.notReached": "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C",
+  "inspector.pin": "\u56FA\u5B9A",
+  "inspector.pinned": "\u5DF2\u56FA\u5B9A \xB7 {item}{line}{away}",
+  "inspector.pinned.away": "\xB7 \u6267\u884C\u5DF2\u5230\u7B2C {line} \u884C",
+  "inspector.pinned.line": "\xB7 \u7B2C {line} \u884C",
+  "inspector.preview": "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C",
+  "inspector.previewOnly": "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C",
+  "inspector.pseudo": "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002",
+  "inspector.ranAt": "\u7B2C {step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09",
+  "inspector.reads": "\u8BFB {items}",
+  "inspector.references": "\u67E5\u627E\u5F15\u7528",
+  "inspector.register": "\u5BC4\u5B58\u5668",
+  "inspector.register.value": "\u6267\u884C {step} \u6B65\u540E\u7684\u503C \xB7 {lastWrite}",
+  "inspector.rule": "\u901A\u7528\u89C4\u5219",
+  "inspector.runToWrite": "\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165",
+  "inspector.sameRegister": "\u53F3\u8FB9\u7684 {reg} \u7528\u7684\u662F\u6267\u884C\u524D\u7684 {before}\uFF0C\u7ED3\u679C {after} \u5199\u56DE\u540E {reg} \u624D\u53D8\u3002",
+  "inspector.stale": "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C",
+  "inspector.substituted": "\u672C\u884C\u4EE3\u5165",
+  "inspector.symbol.address": "\u7B26\u53F7\u5730\u5740",
+  "inspector.symbol.definition": "\u5B9A\u4E49",
+  "inspector.symbol.memory": "\u67E5\u770B\u5185\u5B58",
+  "inspector.symbol.references": "\u5F15\u7528",
+  "inspector.syscall.args": "\u53C2\u6570 {args} \u2192 {result}",
+  "inspector.syscall.noResult": "\u65E0\u8FD4\u56DE\u503C",
+  "inspector.syscall.services": "$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48",
+  "inspector.syscall.terms": "{words} \u5BC4\u5B58\u5668 syscall",
+  "inspector.syscall.title": "syscall\uFF1A$v0 \u9009\u5B9A\u505A\u4EC0\u4E48",
+  "inspector.thisLine": "\u672C\u884C\uFF1A",
+  "inspector.title": "\u8BE6\u7EC6\u68C0\u67E5",
+  "inspector.tools": "\u68C0\u67E5\u5BF9\u8C61\u7684\u64CD\u4F5C",
+  "inspector.unpin": "\u53D6\u6D88\u56FA\u5B9A",
+  "inspector.unpin.tip": "\u53D6\u6D88\u56FA\u5B9A\uFF0C\u56DE\u5230\u8DDF\u968F\u6267\u884C",
+  "inspector.valuesAfter": "\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C",
+  "inspector.valuesBefore": "\u6267\u884C\u524D\u6570\u503C",
+  "inspector.valuesBeforeNow": "\u5F53\u524D\u6267\u884C\u524D\u6570\u503C",
+  "inspector.viewMemory": "\u67E5\u770B\u5185\u5B58 \u2192",
+  "inspector.writes": "\u5199 {items}",
+  "keys.chordPending": "\u5DF2\u6309\u4E0B {key}\uFF0C\u7B49\u5F85\u7B2C\u4E8C\u4E2A\u952E\u2026",
+  "keys.detail": "Ctrl\uFF0B\u70B9\u51FB",
+  "keys.detailMac": "\u2318 \u6216 Ctrl\uFF0B\u70B9\u51FB",
+  "keys.retired.F7": "\u673A\u5668\u5355\u6B65\u5DF2\u6539\u4E3A Alt+F11\uFF08F11 \u4E3A\u6E90\u7801\u5355\u6B65\uFF09",
+  "keys.retired.F8": "\u8DE8\u8FC7\u8C03\u7528\u5DF2\u6539\u4E3A F10",
+  "keys.retired.F9": "F9 \u73B0\u5728\u5207\u6362\u65AD\u70B9\uFF1B\u8FD0\u884C\uFF0F\u7EE7\u7EED\u6539\u4E3A F5\uFF0C\u6682\u505C\u4E3A F6",
+  "keys.retired.back": "\u56DE\u9000\u4E00\u6B65\u5DF2\u6539\u4E3A Shift+F9",
+  "keys.retired.palette": "\u547D\u4EE4\u9762\u677F\u5DF2\u6539\u4E3A Cmd/Ctrl+Shift+P \u6216 F1\uFF1BCmd/Ctrl+K \u73B0\u5728\u662F\u7EC4\u5408\u952E\u524D\u7F00\uFF08\u5982 Cmd/Ctrl+K F \u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F\uFF09",
+  "layout.reset": "\u5DF2\u6062\u590D\u9ED8\u8BA4\u5E03\u5C40\u3002",
+  "layout.splitter.bottom": "\u8C03\u6574\u5E95\u90E8\u9762\u677F\u9AD8\u5EA6",
+  "layout.splitter.context": "\u8C03\u6574\u8BE6\u7EC6\u68C0\u67E5\u9AD8\u5EA6",
+  "layout.splitter.left": "\u8C03\u6574\u6587\u4EF6\u680F\u5BBD\u5EA6",
+  "layout.splitter.registers": "\u8C03\u6574\u5BC4\u5B58\u5668\u9AD8\u5EA6",
+  "layout.splitter.right": "\u8C03\u6574\u53F3\u4FA7\u9762\u677F\u5BBD\u5EA6",
+  "layout.splitter.tip": "\u62D6\u52A8\u8C03\u6574\u5927\u5C0F\uFF0C\u53CC\u51FB\u6062\u590D\u9ED8\u8BA4",
+  "logs.empty": "\u65E5\u5FD7\u65AD\u70B9\uFF08\u65AD\u70B9 \u270E \u4E2D\u586B\u5199\u201C\u65E5\u5FD7\u6D88\u606F\u201D\uFF09\u547D\u4E2D\u65F6\u5728\u8FD9\u91CC\u8BB0\u5F55\uFF0C\u4E0D\u6682\u505C\u7A0B\u5E8F\u3002",
+  "mars.badString": "\u201C{text}\u201D\u4E0D\u662F\u6709\u6548\u7684\u5B57\u7B26\u4E32\uFF08\u5B57\u7B26\u4E32\u8981\u7528\u53CC\u5F15\u53F7\u62EC\u8D77\u6765\uFF09",
+  "mars.globalDefined": "\u201C{name}\u201D\u5DF2\u7ECF\u5728\u53E6\u4E00\u4E2A\u6587\u4EF6\u91CC\u5B9A\u4E49\u4E3A\u5168\u5C40\u6807\u7B7E\u3002",
+  "mars.globalUndefined": "\u201C{name}\u201D\u58F0\u660E\u4E3A\u5168\u5C40\u6807\u7B7E\uFF0C\u4F46\u6CA1\u6709\u5B9A\u4E49\u3002",
+  "mars.invalidElement": "\u65E0\u6CD5\u8BC6\u522B\u7684\u5199\u6CD5\uFF1A{text}",
+  "mars.labelDefined": "\u6807\u7B7E\u201C{name}\u201D\u91CD\u590D\u5B9A\u4E49",
+  "mars.macroOpen": "\u5B8F\u5F00\u59CB\u4E86\u4F46\u6CA1\u6709\u7ED3\u675F\uFF08\u7F3A\u5C11 .end_macro\uFF09",
+  "mars.nonNegative": "\u201C{directive}\u201D\u9700\u8981\u4E00\u4E2A\u975E\u8D1F\u6574\u6570",
+  "mars.operandRange": "\u201C{operand}\u201D\uFF1A\u64CD\u4F5C\u6570\u8D85\u51FA\u8303\u56F4",
+  "mars.operandType": "\u201C{operand}\u201D\uFF1A\u64CD\u4F5C\u6570\u7C7B\u578B\u4E0D\u5BF9",
+  "mars.reason.fetchAlign": "\u8BFB\u53D6\u5730\u5740 {address} \u6CA1\u6709\u6309\u5B57\uFF084 \u5B57\u8282\uFF09\u5BF9\u9F50",
+  "mars.reason.overflow": "\u7B97\u672F\u6EA2\u51FA",
+  "mars.reason.range": "\u5730\u5740 {address} \u8D85\u51FA\u53EF\u8BBF\u95EE\u8303\u56F4",
+  "mars.reason.storeAlign": "\u5199\u5165\u5730\u5740 {address} \u6CA1\u6709\u6309\u5B57\uFF084 \u5B57\u8282\uFF09\u5BF9\u9F50",
+  "mars.runtime": "\u7B2C {line} \u884C\u8FD0\u884C\u65F6\u5F02\u5E38\uFF08{address}\uFF09\uFF1A{reason}",
+  "mars.symbolNotFound": "\u627E\u4E0D\u5230\u7B26\u53F7\u201C{name}\u201D\uFF1A\u6CA1\u6709\u5B9A\u4E49\u8FD9\u4E2A\u6807\u7B7E\u3002",
+  "mars.tooFew": "\u201C{op}\u201D\uFF1A\u64CD\u4F5C\u6570\u592A\u5C11\u6216\u683C\u5F0F\u4E0D\u5BF9\u3002\u5E94\u5199\u6210\uFF1A{expected}",
+  "mars.tooMany": "\u201C{op}\u201D\uFF1A\u64CD\u4F5C\u6570\u592A\u591A\u6216\u683C\u5F0F\u4E0D\u5BF9\u3002\u5E94\u5199\u6210\uFF1A{expected}",
+  "mars.unknownDirective": "MARS \u4E0D\u8BA4\u8BC6 {directive} \u6307\u793A\uFF0C\u5DF2\u5FFD\u7565\u3002",
+  "mars.unknownOperator": "\u201C{name}\u201D\u4E0D\u662F\u53EF\u8BC6\u522B\u7684\u6307\u4EE4",
+  "mars.unsupportedSyscall": "\u4E0D\u652F\u6301\u7684 syscall {n}",
+  "memory.address": "\u5185\u5B58\u5730\u5740\u6216\u7B26\u53F7",
+  "memory.byte.inaccessible": "\u4E0D\u53EF\u8BBF\u95EE",
+  "memory.byte.lastWrite": "\u6700\u540E\u5199\u5165 {step}",
+  "memory.byte.title": "\u5185\u5B58 {address}",
+  "memory.byte.watch": "\u5728\u6B64\u5730\u5740\u8BBE\u7F6E\u5199\u5165\u89C2\u5BDF\u70B9",
+  "memory.byte.what": "\u5730\u5740\u5BF9\u5E94\u7684\u5185\u5BB9 \xB7 1 \u5B57\u8282",
+  "memory.cells.ascii": "\u5355\u5143 \u5B57\u7B26",
+  "memory.cells.bin": "\u5355\u5143 0b",
+  "memory.cells.dec": "\u5355\u5143 0d",
+  "memory.cells.hex": "\u5355\u5143 0x",
+  "memory.data": "\u6570\u636E",
+  "memory.go": "\u5B9A\u4F4D",
+  "memory.invalidAddress": "\u8BF7\u8F93\u5165\u6709\u6548\u5730\u5740\u6216\u6807\u7B7E",
+  "memory.stack": "\u6808",
+  "memory.title": "\u5185\u5B58",
+  "menu.learn": "\u5B66\u4E60",
+  "menu.learn.examples": "\u793A\u4F8B\u7A0B\u5E8F",
+  "menu.learn.examples.hint": "\u6253\u5F00\u524D\u4F1A\u786E\u8BA4\uFF0C\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B",
+  "menu.learn.examples.loading": "\u6B63\u5728\u8F7D\u5165\u793A\u4F8B\u2026",
+  "menu.learn.find": "\u67E5\u6307\u4EE4\u2026",
+  "menu.learn.find.hint": "\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u67E5\u6307\u4EE4\u548C syscall",
+  "menu.learn.tutorial": "\u5165\u95E8\u7EC3\u4E60",
+  "menu.learn.tutorial.hint": "\u8FB9\u5199\u8FB9\u5B66\uFF1AHello World \u4E0E\u8F93\u5165\u540D\u5B57",
+  "menu.project": "\u5DE5\u7A0B",
+  "menu.project.downloadFile": "\u4E0B\u8F7D\u5F53\u524D\u6587\u4EF6",
+  "menu.project.export": "\u5BFC\u51FA\u5230\u7535\u8111\u2026",
+  "menu.project.export.hint": "ZIP \u6216 JSON\uFF0C\u53EF\u91CD\u65B0\u6253\u5F00\u6216\u53D1\u7ED9\u8001\u5E08",
+  "menu.project.import": "\u5BFC\u5165\u2026",
+  "menu.project.import.hint": "\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u3001ZIP \u6216 JSON \u5DE5\u7A0B",
+  "menu.project.new": "\u65B0\u5EFA\u5DE5\u7A0B",
+  "menu.project.new.hint": "\u6E05\u7A7A\u5DE5\u4F5C\u533A\uFF0C\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B",
+  "menu.project.restore": "\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C",
+  "menu.project.restore.hint": "\u627E\u56DE\u66FF\u6362\u3001\u91CD\u547D\u540D\u6216\u5220\u9664\u4E4B\u524D\u7684\u5DE5\u7A0B",
+  "menu.project.saveLocal": "\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668",
+  "menu.project.saveLocal.hint": "Cmd/Ctrl+S \xB7 \u4E0D\u4F1A\u5199\u56DE\u7535\u8111\u4E0A\u7684\u539F\u6587\u4EF6",
+  "menu.view": "\u754C\u9762",
+  "menu.view.codeFont": "\u4EE3\u7801\u5B57\u4F53",
+  "menu.view.codeFont.hint": "\u7F16\u8F91\u5668\u3001\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u7B49\u4EE3\u7801\u6587\u5B57",
+  "menu.view.codeSize": "\u4EE3\u7801\u5B57\u53F7",
+  "menu.view.codeSize.larger": "\u653E\u5927\u4EE3\u7801\u5B57\u53F7",
+  "menu.view.codeSize.largerNow": "\u653E\u5927\u4EE3\u7801\u5B57\u53F7\uFF08\u5F53\u524D {size}\uFF09",
+  "menu.view.codeSize.smaller": "\u7F29\u5C0F\u4EE3\u7801\u5B57\u53F7",
+  "menu.view.codeSize.smallerNow": "\u7F29\u5C0F\u4EE3\u7801\u5B57\u53F7\uFF08\u5F53\u524D {size}\uFF09",
+  "menu.view.language": "\u8BED\u8A00 Language",
+  "menu.view.resetLayout": "\u6062\u590D\u9ED8\u8BA4\u5E03\u5C40",
+  "menu.view.resetLayout.hint": "\u680F\u5BBD\u3001\u9762\u677F\u9AD8\u5EA6\u3001\u6298\u53E0\u4E0E\u4FA7\u680F\u6807\u7B7E",
+  "menu.view.theme": "\u5207\u6362\u6DF1\u8272\uFF0F\u6D45\u8272",
+  "overlay.dashed": "\u865A\u7EBF \xB7 \u4E0B\u4E00\u6B65",
+  "overlay.reads": "\u8BFB\u53D6",
+  "overlay.scope": "\u8FDE\u7EBF\u8303\u56F4",
+  "overlay.scope.all": "\u5168\u90E8\u5173\u7CFB",
+  "overlay.scope.focus": "\u5173\u6CE8\u5BF9\u8C61",
+  "overlay.solid": "\u5B9E\u7EBF \xB7 \u521A\u5B8C\u6210",
+  "overlay.writes": "\u5199\u5165",
+  "page.menubar": "\u83DC\u5355",
+  "path.edge.call": "\u8C03\u7528",
+  "path.edge.fallthrough": "\u6761\u4EF6\u4E0D\u6210\u7ACB",
+  "path.edge.jump": "\u8DF3\u8F6C",
+  "path.edge.next": "\u987A\u5E8F",
+  "path.edge.return": "\u8FD4\u56DE",
+  "path.edge.taken": "\u6761\u4EF6\u6210\u7ACB",
+  "peek.count": "\xB7 {count} \u5904\u5F15\u7528",
+  "peek.none": "\u65E0\u9759\u6001\u5F15\u7528\u3002",
+  "picker.hint": "\u6587\u4EF6\u6216\u6807\u7B7E\u540D \xB7 @ \u5F53\u524D\u6587\u4EF6\u7B26\u53F7 \xB7 :\u884C\u53F7 \xB7 \u6587\u4EF6:\u884C\u53F7 \xB7 0x \u5730\u5740 \xB7",
+  "picker.hint.commands": "\u547D\u4EE4 \xB7 ? \u67E5\u6307\u4EE4\u4E0E\u7528\u9014",
+  "picker.none": "\u6CA1\u6709\u5339\u914D\u9879",
+  "picker.quickOpen": "\u5FEB\u901F\u6253\u5F00",
+  "picker.search": "\u641C\u7D22",
+  "project.backupNote": "\u5F53\u524D\u5DE5\u7A0B\u4F1A\u4FDD\u7559\u4E00\u4EFD\u5907\u4EFD\uFF0C\u53EF\u4ECE\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\uFF1B\u91CD\u8981\u4EE3\u7801\u8BF7\u5148\u5BFC\u51FA\u3002",
+  "project.blankReady": "\u7A7A\u767D\u5DE5\u7A0B\u5DF2\u5C31\u7EEA\uFF1A\u53EF\u76F4\u63A5\u5199\u4EE3\u7801\uFF0C\u6216\u5728\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u81EA\u5DF1\u7684\u6587\u4EF6\u3002",
+  "project.busy": "\u8BF7\u5148\u6682\u505C\u6267\u884C\uFF0C\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002",
+  "project.busyScope": "\u8BF7\u5148\u6682\u505C\u6267\u884C\uFF0C\u518D\u4FEE\u6539\u6C47\u7F16\u8303\u56F4\u3002",
+  "project.defaultName": "\u6211\u7684\u5DE5\u7A0B",
+  "project.draftUnreadable": "\u4E4B\u524D\u7684\u6D4F\u89C8\u5668\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u672A\u8986\u76D6\u65E7\u8349\u7A3F\u3002\u53EF\u5BFC\u5165\u5DE5\u7A0B\u6062\u590D\uFF0C\u6216\u65B0\u5EFA\u5DE5\u7A0B\u91CD\u65B0\u5F00\u59CB\u3002",
+  "project.name": "\u5DE5\u7A0B\u540D\u79F0",
+  "project.name.label": "\u540D\u79F0",
+  "project.name.required": "\u8BF7\u8F93\u5165\u540D\u79F0\u3002",
+  "project.new.note": "\u6E05\u7A7A\u5F53\u524D\u5DE5\u4F5C\u533A\uFF0C\u521B\u5EFA\u4E00\u4E2A\u4E0D\u5E26\u6F14\u793A\u4EE3\u7801\u7684 main.s\u3002",
+  "project.rename.title": "\u4FEE\u6539\u5DE5\u7A0B\u540D\u79F0",
+  "project.restored": "\u5DF2\u6062\u590D\u6B64\u6D4F\u89C8\u5668\u4E2D\u7684\u5DE5\u7A0B\uFF1B\u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002",
+  "project.saveUnavailable": "\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u4FDD\u5B58\u3002",
+  "project.savedNote": "\u6E90\u7801\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668\uFF1B\u6362\u8BBE\u5907\u524D\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u3002",
+  "project.status.failed": "\u672A\u80FD\u4FDD\u5B58 \xB7 \u8BF7\u5BFC\u51FA\u5DE5\u7A0B",
+  "project.status.saved": "\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668",
+  "project.status.saving": "\u6B63\u5728\u4FDD\u5B58\u2026",
+  "project.status.unreadable": "\u65E7\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6 \xB7 \u672A\u8986\u76D6",
+  "project.updated": "\u5DE5\u7A0B\u5DF2\u66F4\u65B0 \xB7 \u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002",
+  "radix.auto": "\u81EA\u52A8",
+  "radix.help.ascii": "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\\0\u3001\\n\u3001\\t \u8868\u793A\u7A7A\u5B57\u7B26\u3001\u6362\u884C\u3001\u5236\u8868\u3002\u4E0D\u50CF\u5B57\u7B26\u7684\u503C\uFF08\u4F8B\u5982 11\uFF09\u4ECD\u7528\u5341\u8FDB\u5236\u663E\u793A\uFF0C\u5E76\u6CE8\u660E\u201C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\u201D\u3002",
+  "radix.help.auto": "\u81EA\u52A8\uFF1A\u770B\u8D77\u6765\u50CF\u5730\u5740\u7684\u503C\uFF08\u843D\u5728\u4EE3\u7801\u3001\u6570\u636E\u6216\u6808\u7684\u8303\u56F4\u5185\uFF09\u7528\u5341\u516D\u8FDB\u5236\uFF0C\u5176\u4F59\u7528\u5341\u8FDB\u5236\u3002\u540C\u4E00\u4E2A\u503C\u4E0D\u4F1A\u56E0\u4E3A\u53D8\u5927\u800C\u6362\u5199\u6CD5\u3002",
+  "radix.help.bin": "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002\u8D1F\u6570\u7528\u8865\u7801\uFF1A\u22121 \u662F 32 \u4E2A 1\uFF0C\u22127 \u662F 1\u20261111_1001\uFF1B\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
+  "radix.help.dec": "DEC\uFF1A\u5341\u8FDB\u5236\uFF0C\u524D\u7F00 0d\u3002\u666E\u901A\u6570\u503C\u6309\u6709\u7B26\u53F7\u6570\u8BFB\uFF08\u53EF\u4EE5\u662F\u8D1F\u6570\uFF09\uFF1B\u539F\u59CB\u5B57\u8282\u548C\u5730\u5740\u6309\u65E0\u7B26\u53F7\u6570\u8BFB\u3002",
+  "radix.help.heading": "\u6570\u503C\u663E\u793A",
+  "radix.help.hex": "HEX\uFF1A\u5341\u516D\u8FDB\u5236\uFF0C\u524D\u7F00 0x\u3002\u6BCF\u4E00\u4F4D\u8868\u793A 0\u201315\uFF08a\u2013f \u8868\u793A 10\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u662F\u4E00\u4E2A\u5B57\u8282\u3002",
+  "radix.help.same": "\u540C\u4E00\u4E2A\u6570\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A{forms}",
+  "radix.help.scope": "\u53EA\u6539\u53D8\u53EA\u8BFB\u533A\u57DF\uFF08\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u3001\u5730\u5740\u3001\u6267\u884C\u7ED3\u679C\u3001\u4E13\u6CE8\u6A21\u5F0F\uFF09\u7684\u663E\u793A\uFF0C\u4EE3\u7801\u4E0D\u4F1A\u53D8\u3002",
+  "radix.help.table": "\u5B57\u7B26\u7F16\u7801\u8868\uFF08ASCII\uFF09",
+  "radix.help.tableNote": "\u5185\u5B58\u91CC\u5B58\u7684\u90FD\u662F\u6570\u5B57\uFF1B\u6309\u8FD9\u5F20\u8868\uFF0C\u6BCF\u4E2A 0\u2013127 \u7684\u6570\u53EF\u4EE5\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\u3002\u8868\u4E2D\u5217\u51FA\u5341\u8FDB\u5236\u3001\u5341\u516D\u8FDB\u5236\u548C\u5BF9\u5E94\u7684\u5B57\u7B26\u3002",
+  "radix.help.title": "\u6570\u503C\u663E\u793A\u8BF4\u660E\u4E0E\u5B57\u7B26\u7F16\u7801\u8868",
+  "radix.legend": "0d \u5341\u8FDB\u5236 \xB7 0x \u5341\u516D\u8FDB\u5236 \xB7 0b \u4E8C\u8FDB\u5236 \xB7 '\u2026' \u5B57\u7B26",
+  "radix.notPrintable": "\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26",
+  "radix.switch": "\u6570\u503C\u663E\u793A",
+  "radix.switch.label": "\u6570\u503C\u663E\u793A\u65B9\u5F0F",
+  "radix.switch.tip": "\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u3001\u5730\u5740\u548C\u4E13\u6CE8\u6A21\u5F0F\u91CC\u7684\u6570\u503C\u663E\u793A\u65B9\u5F0F\uFF08\u4E0D\u6539\u52A8\u4EE3\u7801\uFF09",
+  "radix.table.space": "\u7A7A\u683C",
+  "references.title": "\u5F15\u7528 \xB7 {token}",
+  "refs.kind.definition": "\u5B9A\u4E49",
+  "refs.kind.operand": "\u64CD\u4F5C\u6570\uFF08\u9759\u6001\uFF09",
+  "refs.kind.read": "\u8BFB\u53D6",
+  "refs.kind.readWrite": "\u8BFB\u53D6\uFF0B\u5199\u5165",
+  "refs.kind.transfer": "\u63A7\u5236\u8F6C\u79FB",
+  "refs.kind.use": "\u5F15\u7528",
+  "refs.kind.write": "\u5199\u5165",
+  "registers.filter": "\u5BC4\u5B58\u5668\u8FC7\u6EE4",
+  "registers.filter.all": "\u5168\u90E8",
+  "registers.filter.pinned": "\u5DF2\u56FA\u5B9A",
+  "registers.filter.related": "\u672C\u6B65\u76F8\u5173",
+  "registers.legend.ascii": "'\u2026' \u5B57\u7B26 \xB7 0d \u5341\u8FDB\u5236",
+  "registers.legend.auto": "0d \u5341\u8FDB\u5236 \xB7 0x \u5341\u516D\u8FDB\u5236",
+  "registers.legend.bin": "0b \u4E8C\u8FDB\u5236",
+  "registers.legend.dec": "0d \u5341\u8FDB\u5236",
+  "registers.legend.hex": "0x \u5341\u516D\u8FDB\u5236",
+  "registers.oldValue": "\u539F\u503C",
+  "registers.signNote": "\u6700\u9AD8\u4F4D\u662F 1\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u8BFB\u662F {value}\uFF08\u8865\u7801\uFF09",
+  "registers.tip": "{name} \xB7 {role}\n{full}{note}{sign}\n\u524D\u7F00\uFF1A{legend} \xB7 \u70B9\u51FB\u67E5\u770B",
+  "registers.title": "\u5BC4\u5B58\u5668",
+  "restore.button": "\u6062\u590D",
+  "restore.note": "\u6062\u590D\u201C{name}\u201D\u7684\u6587\u4EF6\u3002\u5F53\u524D\u5185\u5BB9\u4F1A\u6210\u4E3A\u4E0B\u4E00\u4EFD\u5907\u4EFD\u3002",
+  "restore.title": "\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u524D\u7684\u5DE5\u7A0B",
+  "role.a": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u53C2\u6570\u5BC4\u5B58\u5668",
+  "role.at": "\u6C47\u7F16\u5668\u7EA6\u5B9A\uFF1A\u4F2A\u6307\u4EE4\u5C55\u5F00\u4E34\u65F6\u5BC4\u5B58\u5668",
+  "role.fp": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5E27\u6307\u9488\uFF0F\u4FDD\u5B58\u5BC4\u5B58\u5668",
+  "role.gp": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5168\u5C40\u6307\u9488",
+  "role.k": "\u7EA6\u5B9A\uFF1A\u5185\u6838\u4FDD\u7559",
+  "role.ra": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u5730\u5740\uFF1Bjal \u4F1A\u5199\u5165",
+  "role.s": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u88AB\u8C03\u7528\u8005\u4FDD\u5B58\uFF1B\u786C\u4EF6\u4E0D\u4F1A\u81EA\u52A8\u4FDD\u5B58",
+  "role.sp": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u6808\u6307\u9488\uFF0C\u5185\u5BB9\u901A\u5E38\u89E3\u91CA\u4E3A\u5730\u5740",
+  "role.t": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u4E34\u65F6\u5BC4\u5B58\u5668\uFF1B\u8DE8\u51FD\u6570\u8C03\u7528\u4E0D\u4FDD\u8BC1\u4FDD\u6301",
+  "role.v": "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u503C\uFF1Bsyscall \u524D\u4E5F\u7528\u6765\u653E\u201C\u8981\u505A\u4EC0\u4E48\u201D\u7684\u6570",
+  "role.zero": "ISA\uFF1A\u6052\u4E3A 0\uFF0C\u5199\u5165\u4E0D\u63D0\u4EA4",
+  "scope.addFile": "\u628A {file} \u52A0\u5165\u8303\u56F4",
+  "scope.ambiguousSymbol": "{file} \u7528\u5230\u7684 {sym} \u540C\u65F6\u5B9A\u4E49\u5728 {files}\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u94FE\u63A5\u54EA\u4E00\u4E2A\u3002\u8BF7\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002",
+  "scope.assembleAgain": "\u91CD\u65B0\u6C47\u7F16",
+  "scope.assembleEntry": "\u6C47\u7F16\uFF08\u5165\u53E3 {entry}\uFF09",
+  "scope.assembleFile": "\u6C47\u7F16 {file}",
+  "scope.backTo": "\u56DE\u5230 {back}",
+  "scope.describe.many": "{mode} {count} \u4E2A\u6587\u4EF6\uFF08\u5165\u53E3 {entry}\uFF09",
+  "scope.manualChanged": "\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u6539\u4E86",
+  "scope.manualEmpty": "\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u8FD8\u6CA1\u6709\u52FE\u9009\u6E90\u7801\u6587\u4EF6\u3002",
+  "scope.manyMains": "{file} \u6CA1\u6709 main\uFF0C\u6240\u5728\u76EE\u5F55\u91CC\u6709\u591A\u4E2A\u6587\u4EF6\u5B9A\u4E49\u4E86 main\uFF08{mains}\uFF09\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u8FD0\u884C\u54EA\u4E00\u4E2A\u3002\u8BF7\u6253\u5F00\u8981\u8FD0\u884C\u7684\u90A3\u4E2A\u6587\u4EF6\u518D\u6C47\u7F16\uFF0C\u6216\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u5355\u6587\u4EF6\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002",
+  "scope.modeChanged": "{change}\uFF0C\u4F46\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u8FD8\u662F\u4E4B\u524D\u88C5\u5165\u7684\u7A0B\u5E8F\uFF08{program}\uFF09\u3002\u70B9\uFF3B\u91CD\u65B0\u6C47\u7F16\uFF3D\u6309\u65B0\u65B9\u5F0F\u88C5\u5165\u3002",
+  "scope.modeChangedTo": "\u6C47\u7F16\u65B9\u5F0F\u6539\u6210\u4E86{mode}",
+  "scope.noSource": "\uFF08\u5C1A\u672A\u9009\u597D\u6E90\u7801\uFF09",
+  "scope.openSource": "\u8BF7\u5148\u6253\u5F00\u8981\u6C47\u7F16\u7684 .s / .asm \u6E90\u7801\u6587\u4EF6\u3002",
+  "scope.otherFile": "\u4F60\u5728\u770B {file}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F {program}\u3002\u8981\u8FD0\u884C {file}\uFF0C\u5148\u70B9\uFF3B{assemble}\uFF3D\uFF1B\u4E5F\u53EF\u4EE5\uFF3B\u56DE\u5230 {back}\uFF3D\u7EE7\u7EED\u8C03\u8BD5\u3002",
+  "scope.outsideManual": "{file} \u4E0D\u5728\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u91CC\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F {program}\u3002",
+  "scope.runnable.many": "{entry} \u548C\u53E6\u5916 {count} \u4E2A\u6587\u4EF6",
+  "search.symbolDetail": "{kind} \xB7 \u7B2C {line} \u884C{address}",
+  "service.1": "\u6253\u5370\u6574\u6570",
+  "service.10": "\u9000\u51FA\u7A0B\u5E8F",
+  "service.11": "\u6253\u5370\u5B57\u7B26",
+  "service.12": "\u8BFB\u53D6\u5B57\u7B26",
+  "service.13": "\u6253\u5F00\u865A\u62DF\u6587\u4EF6",
+  "service.14": "\u8BFB\u53D6\u6587\u4EF6",
+  "service.15": "\u5199\u5165\u6587\u4EF6",
+  "service.16": "\u5173\u95ED\u6587\u4EF6",
+  "service.17": "\u9000\u51FA\u5E76\u8FD4\u56DE\u72B6\u6001\u7801",
+  "service.2": "\u6253\u5370\u5355\u7CBE\u5EA6\u6570",
+  "service.3": "\u6253\u5370\u53CC\u7CBE\u5EA6\u6570",
+  "service.34": "\u6253\u5370\u5341\u516D\u8FDB\u5236\u6574\u6570",
+  "service.35": "\u6253\u5370\u4E8C\u8FDB\u5236\u6574\u6570",
+  "service.36": "\u6253\u5370\u65E0\u7B26\u53F7\u6574\u6570",
+  "service.4": "\u6253\u5370\u4EE5 NUL \u7ED3\u675F\u7684\u5B57\u7B26\u4E32",
+  "service.5": "\u8BFB\u53D6\u6574\u6570",
+  "service.6": "\u8BFB\u53D6\u5355\u7CBE\u5EA6\u6570",
+  "service.7": "\u8BFB\u53D6\u53CC\u7CBE\u5EA6\u6570",
+  "service.8": "\u8BFB\u53D6\u5B57\u7B26\u4E32",
+  "service.9": "\u5206\u914D\u5806\u5185\u5B58",
+  "side.files": "\u6587\u4EF6",
+  "side.stops": "\u65AD\u70B9",
+  "side.stops.title": "\u65AD\u70B9\u4E0E\u89C2\u5BDF",
+  "side.symbols": "\u7B26\u53F7",
+  "side.symbols.heading": "\u7B26\u53F7\u4E0E\u5B9A\u4F4D",
+  "side.symbols.placeholder": "\u641C\u7D22\u6807\u7B7E / \u5730\u5740",
+  "side.symbols.search": "\u641C\u7D22\u7B26\u53F7",
+  "side.symbols.title": "\u7B26\u53F7\u5B9A\u4F4D",
+  "side.tabs": "\u4FA7\u680F",
+  "side.watches": "\u89C2\u5BDF\u70B9",
+  "side.watches.add": "\u6DFB\u52A0\u89C2\u5BDF\u70B9",
+  "side.watches.add.button": "\uFF0B \u6DFB\u52A0",
+  "status.breakpoint": "\u505C\u5728\u65AD\u70B9\u524D \xB7 {where}\uFF08\u8FD9\u4E00\u884C\u8FD8\u6CA1\u6267\u884C\uFF09\xB7 \u5373\u5C06\u7B2C {visits} \u6B21\u6267\u884C",
+  "status.dirty": "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED",
+  "status.ended": "\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 {exitCode}",
+  "status.error": "\u51FA\u9519 \xB7 {message}",
+  "status.goToLine": "\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C",
+  "status.historyLimit": "\u5DF2\u8FBE\u5230\u5386\u53F2\u4E0A\u9650 100000 \u6B65 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED",
+  "status.notAssembled": "\u672A\u6C47\u7F16",
+  "status.notAssembledYet": "\u5C1A\u672A\u6C47\u7F16",
+  "status.paused": "\u5DF2\u6682\u505C",
+  "status.paused.after": "\u5DF2\u6682\u505C \xB7 \u521A\u6267\u884C {where}",
+  "status.pausing": "\u6B63\u5728\u6682\u505C\u2026",
+  "status.ready": "\u5C31\u7EEA \xB7 \u4ECE {where} \u5F00\u59CB",
+  "status.replay": "\u56DE\u653E\u5386\u53F2 \xB7 \u5DF2\u6267\u884C {step} / {total} \u6B65",
+  "status.running": "\u8FD0\u884C\u4E2D \xB7 \u7B2C {step} \u6B65",
+  "status.start": "\u5C1A\u672A\u6C47\u7F16 \xB7 \u70B9\u201C\u6C47\u7F16\u201D\u5F00\u59CB",
+  "status.waiting": "\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u63A7\u5236\u53F0\u8F93\u5165\u540E\u6309 Enter",
+  "status.watchpoint": "\u89C2\u5BDF\u70B9\u89E6\u53D1 \xB7 \u521A\u6267\u884C\u7684 {where}{access}\u4E86\u88AB\u89C2\u5BDF\u7684\u5BF9\u8C61",
+  "status.watchpoint.read": "\u8BFB\u53D6",
+  "status.watchpoint.write": "\u5199\u5165",
+  "tabs.close": "\u5173\u95ED\u6807\u7B7E {file}",
+  "tabs.close.tip": "\u5173\u95ED\u6807\u7B7E\uFF0C\u6587\u4EF6\u4ECD\u5728\u5DE5\u7A0B\u4E2D",
+  "tabs.empty": "\u4ECE\u5DE6\u4FA7\u9009\u62E9\u6587\u4EF6\uFF0C\u6216\u65B0\u5EFA\u6587\u4EF6",
+  "tip.asciiLow": "ASCII\u4F4E\u5B57\u8282",
+  "tip.constant": "\u5199\u5728\u4EE3\u7801\u91CC\u7684\u5E38\u6570",
+  "tip.detailButton": "\u5728\u53F3\u4FA7\u67E5\u770B\u8BE6\u7EC6 \u2192",
+  "tip.detailHint": "{keys}\uFF1A\u8BE6\u60C5\u5728\u53F3\u4FA7\u201C\u8BE6\u7EC6\u68C0\u67E5\u201D",
+  "tip.directive": "\u6C47\u7F16\u5668\u6307\u793A\uFF0C\u4E0D\u662F\u673A\u5668\u6307\u4EE4",
+  "tip.instructionDoc": "\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E",
+  "tip.label": "\u6807\u7B7E\u6216\u540D\u79F0\uFF1B\u6C47\u7F16\u540E\u53EF\u67E5\u770B\u5730\u5740",
+  "tip.marsExample": "\uFF08\u793A\u4F8B\uFF1A{example}\uFF09",
+  "tip.marsOriginal": "MARS \u539F\u6587{example}",
+  "tip.marsSubstituted": "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09",
+  "tip.notPrintable": "\u4E0D\u53EF\u6253\u5370",
+  "tip.symbolAddress": "\u7B26\u53F7\u5730\u5740 {address}",
+  "tip.symbolJump": "{keys}\u8DF3\u8F6C\u5B9A\u4E49",
+  "tip.syntax": "\u5199\u6CD5\uFF1A",
+  "tip.syscallLater": "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF1B\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002",
+  "tip.syscallSetter": "\u7B2C {line} \u884C {code} \u653E\u5165",
+  "tip.syscallUnknown": "syscall\uFF08$v0 \u672A\u77E5\uFF09",
+  "tip.unsupported": "\u4E0D\u652F\u6301",
+  "tip.valueAfter": "\u6267\u884C {step} \u6B65\u540E\u7684\u503C",
+  "toolbar.assemble": "\u6C47\u7F16 \u2318\u21B5",
+  "toolbar.assemble.tip": "\u6C47\u7F16 \xB7 Cmd/Ctrl+Enter\uFF1B\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F \xB7 Cmd/Ctrl+Shift+F5",
+  "toolbar.assemble.tipScope": "{scope} \xB7 Cmd/Ctrl+Enter\uFF1B\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F \xB7 Cmd/Ctrl+Shift+F5",
+  "toolbar.assembleMode": "\u9009\u62E9\u6C47\u7F16\u65B9\u5F0F",
+  "toolbar.back": "\u56DE\u9000\u4E00\u6B65",
+  "toolbar.back.label": "\u56DE\u9000\u4E00\u6B65\uFF08Shift+F9\uFF09",
+  "toolbar.back.tip": "\u56DE\u9000\u4E00\u6B65 \xB7 Shift+F9",
+  "toolbar.backToStart": "\u56DE\u5230\u5F00\u5934",
+  "toolbar.backToStart.tip": "\u56DE\u5230\u5F00\u5934\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF0C\u505C\u5728\u7B2C\u4E00\u6761\u6307\u4EE4\u524D",
+  "toolbar.bp.none": "{tip}\uFF08\u8FD8\u6CA1\u6709\u8BBE\u7F6E\u65AD\u70B9\uFF09",
+  "toolbar.continue": "\u7EE7\u7EED",
+  "toolbar.continue.run": "\u7EE7\u7EED\u5B8C\u6574\u8FD0\u884C\uFF1A\u5168\u901F\u8FD0\u884C\u5230\u65AD\u70B9\u3001\u7B49\u5F85\u8F93\u5165\u6216\u7ED3\u675F \xB7 F5",
+  "toolbar.continue.steps": "\u7EE7\u7EED\u9010\u6B65\u8FD0\u884C\uFF1A\u4ECE\u5F53\u524D\u4F4D\u7F6E\u63A5\u7740\u4E00\u6B65\u4E00\u6B65\u6267\u884C",
+  "toolbar.delay": "\u5EF6\u8FDF\u5206\u652F",
+  "toolbar.delay.tip": "\u5EF6\u8FDF\u5206\u652F\uFF1A\u5F00\u542F\u540E\uFF0C\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\uFF08MIPS \u786C\u4EF6\u7684\u771F\u5B9E\u884C\u4E3A\uFF09\u3002\u4FEE\u6539\u540E\u9700\u8981\u91CD\u65B0\u6C47\u7F16\u3002",
+  "toolbar.nextBp": "\u8DF3\u5230\u4E0B\u4E00\u4E2A\u65AD\u70B9",
+  "toolbar.nextBp.tip": "\u8DF3\u5230\u4E0B\u4E00\u4E2A\u65AD\u70B9\uFF1A\u5168\u901F\u8FD0\u884C\u5230\u4E0B\u4E00\u4E2A\u65AD\u70B9\uFF08\u6CA1\u6709\u9047\u5230\u5C31\u8FD0\u884C\u5230\u7ED3\u675F\uFF09",
+  "toolbar.out": "\u8DF3\u51FA\u51FD\u6570",
+  "toolbar.out.label": "\u8DF3\u51FA\u51FD\u6570\uFF08Shift+F11\uFF09",
+  "toolbar.out.outside": "{tip}\uFF08\u73B0\u5728\u4E0D\u5728\u51FD\u6570\u91CC\uFF0C\u6CA1\u6709\u53EF\u4EE5\u8FD4\u56DE\u7684\u8C03\u7528\uFF09",
+  "toolbar.out.tip": "\u8DF3\u51FA\u51FD\u6570\uFF1A\u8DD1\u5B8C\u5F53\u524D\u51FD\u6570\uFF0C\u56DE\u5230\u8C03\u7528\u5B83\u7684\u5730\u65B9 \xB7 Shift+F11",
+  "toolbar.over": "\u8DE8\u8FC7\u8C03\u7528",
+  "toolbar.over.label": "\u8DE8\u8FC7\u8C03\u7528\uFF08F10\uFF09",
+  "toolbar.over.tip": "\u8DE8\u8FC7\u8C03\u7528\uFF1A\u6267\u884C\u4E00\u884C\u6E90\u7801\uFF0C\u8C03\u7528\u7684\u51FD\u6570\u6574\u4E2A\u8DD1\u5B8C \xB7 F10",
+  "toolbar.pause": "\u6682\u505C",
+  "toolbar.pause.label": "\u6682\u505C\uFF08F6\uFF09",
+  "toolbar.pause.tip": "\u6682\u505C \xB7 F6",
+  "toolbar.prevBp": "\u8DF3\u56DE\u4E0A\u4E00\u4E2A\u65AD\u70B9",
+  "toolbar.prevBp.none": "\u524D\u9762\u7684\u6267\u884C\u91CC\u6CA1\u6709\u505C\u5728\u65AD\u70B9\u524D\u7684\u4F4D\u7F6E",
+  "toolbar.prevBp.tip": "\u8DF3\u56DE\u4E0A\u4E00\u4E2A\u65AD\u70B9\uFF1A\u56DE\u5230\u5386\u53F2\u91CC\u4E0A\u4E00\u6B21\u505C\u5728\u65AD\u70B9\u524D\u7684\u4F4D\u7F6E",
+  "toolbar.run": "\u5B8C\u6574\u8FD0\u884C",
+  "toolbar.run.label": "\u5B8C\u6574\u8FD0\u884C\uFF08F5\uFF09",
+  "toolbar.run.tip": "\u5B8C\u6574\u8FD0\u884C\uFF1A\u5168\u901F\u8FD0\u884C\u5230\u65AD\u70B9\u3001\u7B49\u5F85\u8F93\u5165\u6216\u7ED3\u675F \xB7 F5",
+  "toolbar.runGroup": "\u8FD0\u884C",
+  "toolbar.source": "\u6E90\u7801\u5355\u6B65",
+  "toolbar.source.label": "\u6E90\u7801\u5355\u6B65\uFF08F11\uFF09",
+  "toolbar.source.tip": "\u6E90\u7801\u5355\u6B65\uFF1A\u6267\u884C\u4E00\u884C\u6E90\u7801\uFF0C\u9047\u5230\u8C03\u7528\u5C31\u8FDB\u5165\u51FD\u6570 \xB7 F11",
+  "toolbar.speed": "\u901F\u5EA6",
+  "toolbar.speed.label": "\u9010\u6B65\u8FD0\u884C\u901F\u5EA6",
+  "toolbar.speed.rate": "{rate} \u6B65/\u79D2",
+  "toolbar.speed.tip": "\u9010\u6B65\u8FD0\u884C\u901F\u5EA6\uFF1A{rate}",
+  "toolbar.speed.value": "\u6BCF\u79D2 {rate} \u6B65",
+  "toolbar.step": "\u673A\u5668\u5355\u6B65",
+  "toolbar.step.label": "\u673A\u5668\u5355\u6B65\uFF08Alt+F11\uFF09",
+  "toolbar.step.tip": "\u673A\u5668\u5355\u6B65\uFF1A\u6267\u884C\u4E00\u6761\u673A\u5668\u6307\u4EE4 \xB7 Alt+F11",
+  "toolbar.stepGroup": "\u5355\u6B65\u8C03\u8BD5",
+  "toolbar.steps": "\u9010\u6B65\u8FD0\u884C",
+  "toolbar.steps.tip": "\u9010\u6B65\u8FD0\u884C\uFF1A\u4E00\u6B65\u4E00\u6B65\u6267\u884C\uFF0C\u7F16\u8F91\u5668\u8DDF\u968F\u6267\u884C\u4F4D\u7F6E",
+  "trace.goToStep": "\u8F6C\u5230\u6B65\u9AA4",
+  "trace.historyStep": "\u5386\u53F2\u6B65\u9AA4",
+  "trace.iteration": "\u7B2C {n} \u6B21 \xB7 \u4ECE #{step} \u5F00\u59CB",
+  "trace.lineGroup": "{key} \xB7 {count} \u6761\u5B9E\u9645\u6307\u4EE4",
+  "trace.loop": "\u5FAA\u73AF {header} \xB7 \u8FDB\u5165 {entries} \u6B21 \xB7 \u56DE\u8DF3 {backJumps} \u6B21",
+  "trace.output": "\xB7 \u8F93\u51FA",
+  "trace.window": "\u663E\u793A\u9644\u8FD1 170 \u6B65\uFF1B\u53EF\u8DF3\u8F6C\u5168\u90E8\u5386\u53F2",
+  "tutorial.backTo": "\u4E5F\u53EF\u4EE5\u56DE\u5230\u7EC3\u4E60\u524D\u7684\u5DE5\u7A0B\u201C{name}\u201D\u3002",
+  "tutorial.card.answer": "\u53C2\u8003\u7B54\u6848",
+  "tutorial.card.answer.note": "\u53C2\u8003\u7B54\u6848\uFF08\u5BF9\u7167\u7740\u81EA\u5DF1\u5199\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u586B\u5165\uFF09\uFF1A",
+  "tutorial.card.back": "\u4E0A\u4E00\u6B65",
+  "tutorial.card.collapse": "\u6536\u8D77",
+  "tutorial.card.exit": "\u9000\u51FA\u7EC3\u4E60",
+  "tutorial.card.finish": "\u5B8C\u6210",
+  "tutorial.card.hint": "\u63D0\u793A {n}\uFF1A{hint}",
+  "tutorial.card.hintButton": "\u63D0\u793A",
+  "tutorial.card.moreHint": "\u518D\u7ED9\u4E00\u70B9\u63D0\u793A",
+  "tutorial.card.next": "\u4E0B\u4E00\u6B65",
+  "tutorial.card.skip": "\u8DF3\u8FC7",
+  "tutorial.card.skip.tip": "\u4E0D\u68C0\u67E5\uFF0C\u76F4\u63A5\u770B\u4E0B\u4E00\u6B65",
+  "tutorial.card.stage": "\u9636\u6BB5 {stage} \xB7 {progress}",
+  "tutorial.card.title": "\u5165\u95E8\u7EC3\u4E60 {progress}{done}",
+  "tutorial.code.age": "li $v0, 5            # $v0 = 5\uFF1A\u8BFB\u53D6\u6574\u6570\uFF0C\u7ED3\u679C\u5728 $v0\n    syscall\n    addi $a0, $v0, 1     # \u660E\u5E74\u7684\u5E74\u9F84\n    li $v0, 1            # $v0 = 1\uFF1A\u6253\u5370\u6574\u6570\n    syscall",
+  "tutorial.code.hello": ".text\n.globl main\nmain:\n    la $a0, greeting   # \u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740\n    li $v0, 4          # $v0 = 4\uFF1A\u6253\u5370\u5B57\u7B26\u4E32\n    syscall\n    li $v0, 10         # $v0 = 10\uFF1A\u9000\u51FA\n    syscall",
+  "tutorial.code.name": "name:     .space 32         # \u5B58\u653E\u540D\u5B57\u7684\u7F13\u51B2\u533A\uFF0832 \u5B57\u8282\uFF09\n.text\n.globl main\nmain:\n    la $a0, name        # \u7F13\u51B2\u533A\u5730\u5740\n    li $a1, 32          # \u6700\u591A\u5360\u7528 32 \u5B57\u8282\n    li $v0, 8           # $v0 = 8\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32\n    syscall\n    la $a0, greeting\n    li $v0, 4\n    syscall\n    la $a0, name        # \u6253\u5370\u540D\u5B57\uFF1A$a0 \u662F\u5730\u5740\n    li $v0, 4\n    syscall\n    la $a0, bang\n    li $v0, 4\n    syscall\n    li $v0, 10\n    syscall",
+  "tutorial.code.overflow": "li $t0, 0x7fffffff   # \u6700\u5927\u7684 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570\n    addi $t0, $t0, 1     # \u518D\u52A0 1 \u4F1A\u600E\u6837\uFF1F",
+  "tutorial.exit": "\u9000\u51FA\u5165\u95E8\u7EC3\u4E60",
+  "tutorial.exit.note": "{praise}\u7EC3\u4E60\u5DE5\u7A0B\u4F1A\u7559\u5728\u5DE5\u4F5C\u533A\uFF0C\u53EF\u4EE5\u7EE7\u7EED\u4FEE\u6539\u6216\u5BFC\u51FA\u3002{back}",
+  "tutorial.finished": "\u5165\u95E8\u7EC3\u4E60\u5B8C\u6210",
+  "tutorial.go.a0": "\u67E5\u770B $a0",
+  "tutorial.go.files": "\u6253\u5F00\u6587\u4EF6\u6807\u7B7E",
+  "tutorial.go.focus": "\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F",
+  "tutorial.go.inspector": "\u5C55\u5F00\u8BE6\u7EC6\u68C0\u67E5",
+  "tutorial.go.printString": "\u67E5\u201C\u6253\u5370\u5B57\u7B26\u4E32\u201D",
+  "tutorial.go.printString.query": "find:\u6253\u5370\u5B57\u7B26\u4E32",
+  "tutorial.go.projectMenu": "\u6253\u5F00\u5DE5\u7A0B\u83DC\u5355",
+  "tutorial.go.readInt": "\u67E5\u201C\u8BFB\u53D6\u6574\u6570\u201D",
+  "tutorial.go.readInt.query": "find:\u8BFB\u53D6\u6574\u6570",
+  "tutorial.go.readString": "\u67E5\u201C\u8BFB\u53D6\u5B57\u7B26\u4E32\u201D",
+  "tutorial.go.readString.query": "find:\u8BFB\u53D6\u5B57\u7B26\u4E32",
+  "tutorial.go.stops": "\u6253\u5F00\u65AD\u70B9\u6807\u7B7E",
+  "tutorial.keepGoing": "\u7EE7\u7EED\u7EC3\u4E60",
+  "tutorial.keepProject": "\u4FDD\u7559\u7EC3\u4E60\u5DE5\u7A0B",
+  "tutorial.restore": "\u56DE\u5230\u4E4B\u524D\u7684\u5DE5\u7A0B",
+  "tutorial.s1.check": "\u5DE5\u7A0B\u91CC\u6709 hello.s",
+  "tutorial.s1.goal": "\u7B2C\u4E00\u4E2A\u7A0B\u5E8F\u653E\u5728\u54EA\u91CC\uFF1F\u5728\u5DE6\u4FA7\u201C\u6587\u4EF6\u201D\u6807\u7B7E\u91CC\u65B0\u5EFA\u4E00\u4E2A\u6E90\u7801\u6587\u4EF6 hello.s\u3002",
+  "tutorial.s1.hint1": "\u70B9\u5DE6\u4FA7\u201C\u5DE5\u7A0B\u6587\u4EF6\u201D\u65C1\u8FB9\u7684 \uFF0B \u6587\u4EF6\u3002",
+  "tutorial.s1.hint2": "\u8DEF\u5F84\u586B hello.s\uFF0C\u6269\u5C55\u540D\u5FC5\u987B\u662F\u5C0F\u5199 .s\u3002",
+  "tutorial.s1.title": "\u65B0\u5EFA hello.s",
+  "tutorial.s10.check1": "\u6709 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9",
+  "tutorial.s10.check2": "\u89C2\u5BDF\u70B9\u8BA9\u7A0B\u5E8F\u505C\u4E0B",
+  "tutorial.s10.goal": "\u662F\u54EA\u4E00\u884C\u628A\u8FD9\u4E2A\u503C\u5199\u8FDB $t0 \u7684\uFF1F\u5728\u201C\u65AD\u70B9\u201D\u6807\u7B7E\u6DFB\u52A0\u5BF9 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9\uFF0C\u7136\u540E\u91CD\u65B0\u8FD0\u884C\u3002",
+  "tutorial.s10.hint1": "\u201C\u89C2\u5BDF\u70B9\u201D\u65C1\u8FB9\u7684 \uFF0B\uFF0C\u76EE\u6807\u586B $t0\uFF0C\u7C7B\u578B\u9009\u5199\u5165\u3002",
+  "tutorial.s10.hint2": "\u4E5F\u53EF\u4EE5\u5728\u5BC4\u5B58\u5668 $t0 \u7684\u8BE6\u7EC6\u68C0\u67E5\u91CC\u70B9\u201C\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165\u201D\u3002",
+  "tutorial.s10.title": "\u7528\u89C2\u5BDF\u70B9\u627E\u5230\u5199\u5165",
+  "tutorial.s11.check1": "\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u6CA1\u6709\u9519\u8BEF",
+  "tutorial.s11.check2": "$t0 \u7684\u52A0 1 \u6CA1\u6709\u8D8A\u754C\uFF08\u7ED3\u679C\u7B49\u4E8E\u539F\u503C + 1\uFF09",
+  "tutorial.s11.fail": "\u8FD0\u884C\u6CA1\u6709\u62A5\u9519\uFF0C\u4F46\u7ED3\u679C\u548C\u201C\u539F\u503C + 1\u201D\u4E0D\u4E00\u6837\uFF1A\u6EA2\u51FA\u8FD8\u5728\uFF0C\u53EA\u662F\u88AB\u5FFD\u7565\u4E86\u3002",
+  "tutorial.s11.goal": "\u628A addi \u6362\u6210 addiu \u53EA\u4F1A\u8BA9\u5B83\u4E0D\u518D\u62A5\u9519\uFF0C\u7ED3\u679C\u5374\u53D8\u6210\u8D1F\u6570\u2014\u2014\u90A3\u4E0D\u662F\u4FEE\u597D\u3002\u628A\u521D\u503C\u6539\u6210\u4E00\u4E2A\u52A0 1 \u4E0D\u4F1A\u8D8A\u754C\u7684\u6570\uFF0C\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u786E\u8BA4 $t0 \u7684\u7ED3\u679C\u6B63\u786E\u3002",
+  "tutorial.s11.hint1": "\u7528\u8BE6\u7EC6\u68C0\u67E5\u5BF9\u6BD4\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u548C\u201C\u7ED3\u679C\u201D\u3002",
+  "tutorial.s11.hint2": "\u4F8B\u5982 li $t0, 41\uFF0C\u518D\u52A0 1 \u5E94\u8BE5\u5F97\u5230 42\u3002",
+  "tutorial.s11.title": "\u4FEE\u597D\u5B83\uFF0C\u5E76\u9A8C\u8BC1\u7ED3\u679C",
+  "tutorial.s12.check": "\u8BFB\u53D6\u4E86\u4E00\u4E2A\u6574\u6570\uFF0C\u5E76\u6253\u5370\u51FA\u5B83\u52A0 1 \u7684\u7ED3\u679C",
+  "tutorial.s12.goal": "\u5728\u95EE\u5019\u4E4B\u540E\uFF0C\u518D\u8BFB\u53D6\u4E00\u4E2A\u6574\u6570\u4F5C\u4E3A\u5E74\u9F84\uFF0C\u6253\u5370\u660E\u5E74\u7684\u5E74\u9F84\u3002\u81EA\u5DF1\u6C47\u7F16\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u3002",
+  "tutorial.s12.hint1": "\u8BFB\u53D6\u6574\u6570\uFF1A$v0 = 5\uFF0C\u8BFB\u5230\u7684\u6570\u4F1A\u653E\u5728 $v0\u3002",
+  "tutorial.s12.hint2": "\u6253\u5370\u6574\u6570\uFF1A$v0 = 1\uFF0C\u8981\u6253\u5370\u7684\u6570\u653E\u5728 $a0\u3002",
+  "tutorial.s12.title": "\u8BFB\u53D6\u5E74\u9F84\uFF0C\u8F93\u51FA\u660E\u5E74\u7684\u5E74\u9F84",
+  "tutorial.s13.check": "\u5BFC\u51FA\u4E86\u5DE5\u7A0B",
+  "tutorial.s13.goal": "\u628A\u4F60\u7684\u7A0B\u5E8F\u4FDD\u5B58\u5230\u7535\u8111\uFF1A\u5DE5\u7A0B\u83DC\u5355 \u2192 \u5BFC\u51FA\u5230\u7535\u8111\u2026\uFF0C\u9009 ZIP \u6216 JSON\u3002",
+  "tutorial.s13.hint": "\u5BFC\u51FA\u7684\u6587\u4EF6\u53EF\u4EE5\u91CD\u65B0\u6253\u5F00\uFF0C\u6216\u4EA4\u7ED9\u8001\u5E08\u3002",
+  "tutorial.s13.title": "\u5BFC\u51FA\u4F60\u7684\u5DE5\u7A0B",
+  "tutorial.s2.check1": "hello.s \u5DF2\u6C47\u7F16\u5E76\u88C5\u5165",
+  "tutorial.s2.check2": "\u8FD0\u884C\u7ED3\u675F",
+  "tutorial.s2.check3": "\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello!",
+  "tutorial.s2.goal": "\u600E\u6837\u8BA9\u7EC8\u7AEF\u663E\u793A Hello!\uFF1F\u5728 hello.s \u91CC\u5199\u7A0B\u5E8F\uFF0C\u7136\u540E\u70B9\u201C\u6C47\u7F16\u201D\uFF0C\u518D\u70B9\u201C\u5B8C\u6574\u8FD0\u884C\u201D\uFF08\u5DE5\u5177\u680F\u91CC\u4E24\u4E2A\u4E09\u89D2\u7684\u56FE\u6807\uFF0CF5 \u4E5F\u53EF\u4EE5\uFF09\u3002",
+  "tutorial.s2.hint1": "\u5B57\u7B26\u4E32\u653E\u5728 .data \u6BB5\uFF0C\u7528 .asciiz \u5199\uFF0C\u672B\u5C3E\u4F1A\u81EA\u52A8\u8865\u4E00\u4E2A \\0\u3002",
+  "tutorial.s2.hint2": "\u6253\u5370\u5B57\u7B26\u4E32\uFF1A$v0 = 4\uFF0C$a0 = \u5B57\u7B26\u4E32\u7684\u5730\u5740\uFF08\u7528 la \u53D6\u5F97\uFF09\uFF0C\u7136\u540E syscall\u3002\u6700\u540E\u7528 $v0 = 10 \u7684 syscall \u9000\u51FA\u3002",
+  "tutorial.s2.title": "\u8BA9\u7A0B\u5E8F\u6253\u5370 Hello!",
+  "tutorial.s3.check1": "\u7A0B\u5E8F\u8BFB\u53D6\u4E86\u4E00\u6B21\u8F93\u5165",
+  "tutorial.s3.check2": "\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello, \u548C\u4F60\u8F93\u5165\u7684\u540D\u5B57",
+  "tutorial.s3.goal": "\u7A0B\u5E8F\u600E\u6837\u77E5\u9053\u4F60\u7684\u540D\u5B57\uFF1F\u5148\u8BFB\u53D6\u4E00\u884C\u6587\u5B57\uFF0C\u518D\u628A Hello,\u3001\u540D\u5B57\u548C ! \u4F9D\u6B21\u6253\u5370\u51FA\u6765\u3002\u8FD0\u884C\u65F6\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540D\u5B57\u3002",
+  "tutorial.s3.hint1": "\u540D\u5B57\u8981\u5148\u653E\u8FDB\u5185\u5B58\uFF1A\u5728 .data \u91CC\u7528 .space 32 \u7559\u51FA\u4E00\u5757\u7F13\u51B2\u533A\u3002",
+  "tutorial.s3.hint2": "\u8BFB\u53D6\u5B57\u7B26\u4E32\uFF1A$v0 = 8\uFF0C$a0 = \u7F13\u51B2\u533A\u5730\u5740\uFF0C$a1 = \u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\u3002\u6253\u5370\u540D\u5B57\u65F6 $a0 \u4ECD\u7136\u662F\u8FD9\u4E2A\u5730\u5740\u3002",
+  "tutorial.s3.hint3": "\u4F60\u4F1A\u53D1\u73B0 ! \u8DD1\u5230\u4E86\u4E0B\u4E00\u884C\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\u4E5F\u88AB\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u7528\u8C03\u8BD5\u5668\u770B\u6E05\u695A\u3002",
+  "tutorial.s3.note": "! \u6362\u5230\u4E86\u4E0B\u4E00\u884C\uFF0C\u662F\u56E0\u4E3A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\uFF08\\n\uFF09\u4E5F\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u53EF\u4EE5\u5728\u5185\u5B58\u91CC\u770B\u5230\u5B83\u3002",
+  "tutorial.s3.title": "\u8BFB\u53D6\u540D\u5B57\uFF0C\u8F93\u51FA Hello, \u540D\u5B57!",
+  "tutorial.s4.check1": "\u8BBE\u7F6E\u4E86\u65AD\u70B9",
+  "tutorial.s4.check2": "\u505C\u5728\u4E00\u4E2A\u6253\u5370\u5B57\u7B26\u4E32\uFF08$v0 = 4\uFF09\u7684 syscall \u4E4B\u524D",
+  "tutorial.s4.goal": "\u6253\u5370\u540D\u5B57\u4E4B\u524D\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u51B3\u5B9A\u8F93\u51FA\u4EC0\u4E48\uFF1F\u5728\u6253\u5370\u540D\u5B57\u7684\u90A3\u4E2A syscall \u884C\u8BBE\u65AD\u70B9\uFF0C\u7136\u540E\u8FD0\u884C\u5230\u90A3\u91CC\u3002",
+  "tutorial.s4.hint1": "\u70B9\u884C\u53F7\u5DE6\u8FB9\u7684\u7A7A\u767D\u5904\uFF0C\u6216\u628A\u5149\u6807\u653E\u5728\u90A3\u4E00\u884C\u6309 F9\u3002",
+  "tutorial.s4.hint2": "\u6253\u5370\u540D\u5B57\u7684 syscall \u524D\u9762\u4E00\u884C\u662F li $v0, 4\uFF0C\u518D\u524D\u9762\u662F la $a0, name\u3002",
+  "tutorial.s4.title": "\u505C\u5728\u6253\u5370\u540D\u5B57\u4E4B\u524D",
+  "tutorial.s5.check": "\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u663E\u793A\u4E86\u8FD9\u4E2A syscall",
+  "tutorial.s5.goal": "\u60AC\u505C\u5728 syscall \u4E0A\u770B\u7B80\u77ED\u8BF4\u660E\uFF0C\u518D\u70B9\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\uFF08\u6216 Cmd/Ctrl\uFF0B\u70B9\u51FB\uFF09\u6253\u5F00\u53F3\u4FA7\u7684\u8BE6\u7EC6\u68C0\u67E5\u3002\u5B83\u8981\u7684\u53C2\u6570\u662F\u4EC0\u4E48\uFF1F",
+  "tutorial.s5.hint1": "\u8BE6\u7EC6\u68C0\u67E5\u91CC\u6709\u201C\u505A\u4EC0\u4E48 \u2192 \u9700\u8981\u7684\u53C2\u6570 \u2192 \u53D1\u751F\u4EC0\u4E48 \u2192 \u53D8\u5316\u201D\u3002",
+  "tutorial.s5.hint2": "\u6253\u5370\u5B57\u7B26\u4E32\u65F6\uFF0C$a0 \u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\u3002",
+  "tutorial.s5.title": "\u770B\u61C2\u8FD9\u4E2A syscall",
+  "tutorial.s6.check": "\u5185\u5B58\u9762\u677F\u663E\u793A\u7684\u662F $a0 \u6307\u5411\u7684\u5730\u65B9",
+  "tutorial.s6.goal": "$a0 \u7684\u503C\u6307\u5411\u54EA\u91CC\uFF1F\u5728\u5BC4\u5B58\u5668\u9762\u677F\u70B9 $a0\uFF0C\u9009\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\uFF0C\u5728\u5185\u5B58\u91CC\u627E\u5230\u4F60\u8F93\u5165\u7684\u540D\u5B57\u3002",
+  "tutorial.s6.hint1": "\u5BC4\u5B58\u5668\u9762\u677F\u91CC\u70B9 $a0\uFF0C\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u4F1A\u51FA\u73B0\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\u3002",
+  "tutorial.s6.hint2": "\u540D\u5B57\u540E\u9762\u90A3\u4E2A 0a \u5B57\u8282\u5C31\u662F\u56DE\u8F66\uFF08\\n\uFF09\uFF0C\u6700\u540E\u7684 00 \u662F \\0\u3002",
+  "tutorial.s6.title": "\u987A\u7740\u5730\u5740\u627E\u5230\u540D\u5B57",
+  "tutorial.s7.check": "\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u4E86\u4E00\u4E2A syscall",
+  "tutorial.s7.goal": "\u6267\u884C\u8FD9\u4E2A syscall \u65F6\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u88AB\u8BFB\u3001\u7EC8\u7AEF\u591A\u4E86\u4EC0\u4E48\uFF1F\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F\uFF08\u5E95\u90E8 \u25CE \u4E13\u6CE8\uFF09\uFF0C\u6309 Shift+\u2193 \u6267\u884C\u4E00\u884C\u3002",
+  "tutorial.s7.hint1": "\u4E13\u6CE8\u6A21\u5F0F\u91CC \u2190\u2192 \u9010\u6761\u770B\u89E3\u91CA\uFF0C? \u770B\u4E3A\u4EC0\u4E48\u3002",
+  "tutorial.s7.hint2": "\u6267\u884C\u540E\u7EC8\u7AEF\u4F1A\u95EA\u4E00\u4E0B\uFF0C\u8868\u793A\u6709\u65B0\u7684\u8F93\u51FA\u3002",
+  "tutorial.s7.title": "\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u5B83",
+  "tutorial.s8.check": "\u7A0B\u5E8F\u56E0\u4E3A\u6EA2\u51FA\u505C\u4E0B",
+  "tutorial.s8.goal": "\u5728\u6700\u540E\u9000\u51FA\u4E4B\u524D\u52A0\u4E0A\u4E0B\u9762\u4E24\u884C\uFF0C\u518D\u6C47\u7F16\u8FD0\u884C\u3002\u7A0B\u5E8F\u4F1A\u600E\u6837\uFF1F\u8BFB\u4E00\u8BFB\u9519\u8BEF\u4FE1\u606F\u3002",
+  "tutorial.s8.hint1": "\u628A\u4E0A\u9762\u4E24\u884C\u653E\u5728 li $v0, 10 \u4E4B\u524D\u3002",
+  "tutorial.s8.hint2": "0x7fffffff \u662F 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570\u80FD\u8868\u793A\u7684\u6700\u5927\u503C\u3002",
+  "tutorial.s8.title": "\u8BA9\u8BA1\u7B97\u8D8A\u754C",
+  "tutorial.s9.check1": "\u56DE\u9000\u5230\u51FA\u9519\u4E4B\u524D",
+  "tutorial.s9.check2": "\u67E5\u770B\u4E86\u90A3\u4E00\u884C\u6307\u4EE4\u7684\u8BE6\u7EC6\u68C0\u67E5",
+  "tutorial.s9.goal": "\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6267\u884C\u524D\uFF0C$t0 \u662F\u591A\u5C11\uFF1F\u6309\u201C\u56DE\u9000\u201D\u9000\u56DE\u53BB\uFF0C\u5728\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6253\u5F00\u8BE6\u7EC6\u68C0\u67E5\u3002",
+  "tutorial.s9.hint1": "\u5DE5\u5177\u680F\u7684 \u21B6\uFF08Shift+F9\uFF09\u662F\u56DE\u9000\u4E00\u6B65\u3002",
+  "tutorial.s9.hint2": "\u8BE6\u7EC6\u68C0\u67E5\u7684\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u5C31\u662F\u7B54\u6848\u3002",
+  "tutorial.s9.title": "\u770B\u51FA\u9519\u524D\u7684\u6570\u503C",
+  "tutorial.stage1": "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
+  "tutorial.stage2": "2 \xB7 \u8F93\u5165\u4E0E\u8F93\u51FA",
+  "tutorial.stage3": "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
+  "tutorial.stage4": "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
+  "tutorial.stage5": "5 \xB7 \u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD",
+  "tutorial.start.about": "\u8FB9\u5199\u8FB9\u5B66\uFF1A\u4ECE\u6253\u5370 Hello! \u5F00\u59CB\uFF0C\u8BFB\u53D6\u4F60\u7684\u540D\u5B57\uFF0C\u7528\u65AD\u70B9\u3001\u8BE6\u7EC6\u68C0\u67E5\u548C\u4E13\u6CE8\u6A21\u5F0F\u770B\u6E05\u5B83\uFF0C\u627E\u5230\u4E00\u4E2A\u6EA2\u51FA\u9519\u8BEF\u5E76\u4FEE\u597D\uFF0C\u6700\u540E\u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD\u5E76\u5BFC\u51FA\u3002",
+  "tutorial.start.begin": "\u5F00\u59CB\u7EC3\u4E60",
+  "tutorial.start.noStorage": "\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u65E0\u6CD5\u5148\u4FDD\u5B58\u5F53\u524D\u5DE5\u7A0B\u3002\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u540E\u518D\u5F00\u59CB\u7EC3\u4E60\u3002",
+  "tutorial.start.safe": "\u7EC3\u4E60\u4F1A\u6253\u5F00\u4E00\u4E2A\u5355\u72EC\u7684\u7EC3\u4E60\u5DE5\u7A0B\u3002\u5F53\u524D\u5DE5\u7A0B\u4F1A\u5148\u4FDD\u5B58\u4E00\u4EFD\uFF0C\u7ED3\u675F\u65F6\u53EF\u4EE5\u56DE\u5230\u5B83\uFF1B\u4F60\u7684\u4EE3\u7801\u4E0D\u4F1A\u88AB\u8986\u76D6\u3002",
+  "tutorial.start.title": "\u5165\u95E8\u7EC3\u4E60\uFF1AHello World",
+  "tutorial.wellDone": "\u505A\u5F97\u597D\uFF01",
+  "usage.base": "\u57FA\u5740\u5BC4\u5B58\u5668\uFF1A\u5185\u5B58\u5730\u5740\u4ECE\u5B83\u7B97\u8D77",
+  "usage.compared": "\u6BD4\u8F83\u7684{side}",
+  "usage.comparedWithZero": "\u548C 0 \u6BD4\u8F83\u7684\u5BC4\u5B58\u5668",
+  "usage.immediate": "\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570",
+  "usage.jumpRegister": "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668",
+  "usage.label.address": "\u8981\u53D6\u5730\u5740\u7684\u6807\u7B7E\uFF08\u6570\u636E\u6216\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09",
+  "usage.label.branch": "\u6761\u4EF6\u6210\u7ACB\u65F6\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E",
+  "usage.label.jump": "\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E",
+  "usage.label.target": "{what}\uFF08\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09",
+  "usage.left": "\u5DE6\u8FB9",
+  "usage.loadTarget": "\u4ECE\u5185\u5B58\u8BFB\u5230\u7684\u503C\u653E\u8FDB\u8FD9\u4E2A\u5BC4\u5B58\u5668",
+  "usage.offset": "\u5B57\u8282\u504F\u79FB\uFF1A\u57FA\u5740\u5BC4\u5B58\u5668 + \u504F\u79FB = \u5185\u5B58\u5730\u5740",
+  "usage.operand": "\u53C2\u4E0E\u8FD0\u7B97\u7684\u5BC4\u5B58\u5668",
+  "usage.result": "\u7ED3\u679C\u5199\u5165\u8FD9\u4E2A\u5BC4\u5B58\u5668",
+  "usage.right": "\u53F3\u8FB9",
+  "usage.shiftAmount": "\u79FB\u52A8\u7684\u4F4D\u6570\uFF080\u201331\uFF09",
+  "usage.shiftRegister": "\u53D6\u4F4E 5 \u4F4D\u4F5C\u4E3A\u79FB\u52A8\u7684\u4F4D\u6570",
+  "usage.storeSource": "\u8981\u5199\u8FDB\u5185\u5B58\u7684\u503C\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668",
+  "view.cfg": "\u63A7\u5236\u6D41",
+  "view.machine": "\u5B9E\u9645\u6307\u4EE4",
+  "view.source": "\u6E90\u7801",
+  "watch.access.read": "\u8BFB\u53D6",
+  "watch.access.write": "\u5199\u5165",
+  "watch.add.access": "\u8BFB\uFF0F\u5199",
+  "watch.add.button": "\u6DFB\u52A0",
+  "watch.add.target": "\u89C2\u5BDF\u5BF9\u8C61",
+  "watch.add.title": "\u6DFB\u52A0\u8BFB\u5199\u89C2\u5BDF\u70B9",
+  "workspace.badFiles": "\u5DE5\u7A0B\u6587\u4EF6\u5217\u8868\u65E0\u6548\u3002",
+  "workspace.badFolders": "\u6587\u4EF6\u5939\u5217\u8868\u65E0\u6548\u3002",
+  "workspace.belongsInSource": "{name} \u5E94\u653E\u5728\u6E90\u7801\u6587\u4EF6\u4E2D\u3002",
+  "workspace.duplicate": "\u6587\u4EF6\u91CD\u590D\uFF1A{name}",
+  "workspace.fileAndFolder": "{name} \u4E0D\u80FD\u540C\u65F6\u4F5C\u4E3A\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u3002",
+  "workspace.import.badFolderMeta": "\u6587\u4EF6\u5939\u5DE5\u7A0B\u4FE1\u606F\u65E0\u6548\u3002",
+  "workspace.import.duplicate": "\u5BFC\u5165\u4E2D\u5B58\u5728\u540C\u540D\u6587\u4EF6\uFF1A{name}",
+  "workspace.import.fileTooLarge": "\u5355\u4E2A\u5BFC\u5165\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 {mb} MB\u3002",
+  "workspace.import.nothing": "\u6CA1\u6709\u53EF\u5BFC\u5165\u7684\u6587\u4EF6\u3002",
+  "workspace.import.skipNotText": "{name}\uFF08\u4E0D\u662F UTF-8 \u6587\u672C\uFF09",
+  "workspace.import.skipTooLarge": "{name}\uFF08\u6587\u4EF6\u592A\u5927\uFF09",
+  "workspace.import.tooLarge": "\u5BFC\u5165\u6700\u591A {limit} \u89E3\u538B\u540E\u6587\u672C\u5185\u5BB9\u3002",
+  "workspace.import.zipBadFolders": "ZIP \u6587\u4EF6\u5939\u4FE1\u606F\u65E0\u6548\u3002",
+  "workspace.import.zipDuplicate": "ZIP \u5185\u5B58\u5728\u91CD\u590D\u6587\u4EF6\uFF1A{name}",
+  "workspace.import.zipTooLarge": "ZIP \u8D85\u8FC7\u89E3\u538B\u5927\u5C0F\u6216\u6587\u4EF6\u6570\u91CF\u9650\u5236\u3002",
+  "workspace.keepKind": "\u91CD\u547D\u540D\u65F6\u8BF7\u4FDD\u6301\u6E90\u7801\u6216\u8F93\u5165\u6587\u4EF6\u7684\u7C7B\u578B\u3002",
+  "workspace.limit": "{files} \u4E2A\u6587\u4EF6\u3001{mb} MB",
+  "workspace.missing": "\u6587\u4EF6\u4E0D\u5B58\u5728\u3002",
+  "workspace.moveIntoItself": "\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u79FB\u52A8\u5230\u5B83\u81EA\u5DF1\u91CC\u9762\u3002",
+  "workspace.newSource": "# \u5728\u8FD9\u91CC\u7F16\u5199 MIPS \u6C47\u7F16\u7A0B\u5E8F\n.text",
+  "workspace.notProject": "\u4E0D\u662F\u6709\u6548\u7684 MARS \u5DE5\u7A0B\u6587\u4EF6\u3002",
+  "workspace.notUtf8": "{name} \u4E0D\u662F UTF-8 \u6587\u672C\uFF0C\u8BF7\u5148\u8F6C\u6362\u7F16\u7801\u3002",
+  "workspace.path.invalid": "\u8BF7\u4F7F\u7528\u5DE5\u7A0B\u5185\u7684\u76F8\u5BF9\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\uFF1B\u8DEF\u5F84\u4E0D\u80FD\u542B\u7A7A\u5C42\u7EA7\u3001.. \u6216\u4FDD\u7559\u540D\u79F0\u3002",
+  "workspace.path.notText": "\u6587\u4EF6\u8DEF\u5F84\u5FC5\u987B\u662F\u6587\u5B57\u3002",
+  "workspace.path.reserved": ".mars-project.json \u662F\u5DE5\u7A0B\u5143\u6570\u636E\u4FDD\u7559\u540D\u79F0\u3002",
+  "workspace.path.tooLong": "\u6587\u4EF6\u8DEF\u5F84\u4E0D\u80FD\u8D85\u8FC7 240 \u4E2A\u5B57\u7B26\u3002",
+  "workspace.sameName": "\u540C\u540D\u6587\u4EF6\uFF1A{files}",
+  "workspace.sourceExtension": "\u6E90\u7801\u6587\u4EF6 {name} \u9700\u8981\u4F7F\u7528\u5C0F\u5199 .s \u6216 .asm \u6269\u5C55\u540D\u3002",
+  "workspace.targetExists": "\u76EE\u6807\u5DF2\u5B58\u5728\uFF1A{path}",
+  "workspace.textOnly": "\u76EE\u524D\u53EA\u652F\u6301 UTF-8 \u6587\u672C\u6587\u4EF6\u3002",
+  "workspace.tooLarge": "\u5DE5\u7A0B\u6700\u591A {limit} \u6587\u672C\u5185\u5BB9\u3002",
+  "workspace.tooManyFolders": "\u5DE5\u7A0B\u6700\u591A {max} \u4E2A\u6587\u4EF6\u5939\u3002"
+};
+
+// ui/i18n/en.json
+var en_default = {
+  "api.noState": "The execution service returned no state",
+  "api.tooLarge": "The project's input files are too large for the execution service. Remove input files you do not need and assemble again.",
+  "assemble.noSource": "Create or import a .s / .asm source file first.",
+  "assembly.entry": "Entry",
+  "assembly.entry.label": "Assembly entry",
+  "assembly.hint.auto": "Starts at main in {entry}{linked}; other files are left out.",
+  "assembly.hint.linked": ", linking {files}",
+  "assembly.hint.manual": "The {count, plural, one {# ticked source is} other {# ticked sources are}} assembled together and run from the entry; unticked ones are left out.",
+  "assembly.hint.single": "Assembles only {entry}.",
+  "assembly.hint.tick": "Tick sources first",
+  "assembly.mode": "Assembly",
+  "assembly.mode.auto": "Auto assembly",
+  "assembly.mode.auto.hint": "Starts from the current file or the main in its folder and links the files it uses",
+  "assembly.mode.manual": "Choose files\u2026",
+  "assembly.mode.manual.hint": "Tick the sources to include in the file tree and choose the entry",
+  "assembly.mode.manualLong": "chosen files",
+  "assembly.mode.manualName": "Chosen files",
+  "assembly.mode.manualShort": "Chosen files",
+  "assembly.mode.single": "Single file",
+  "assembly.mode.single.hint": "Assembles only the file being edited",
+  "assembly.mode.where": "Change it with \u25BE beside the Assemble button",
+  "banner.configChanged": "Run settings changed; assemble again",
+  "banner.inputChanged": "Input file changed \xB7 assemble again to use the new content",
+  "banner.sourceChanged": "Source changed \xB7 assemble again to continue; the old trace belongs to the previous version",
+  "beat.address": "Address = base register + 16-bit signed offset ({imm}).",
+  "beat.address.done": "The address.",
+  "beat.align": "{op} needs an address that is a multiple of {width}; otherwise it raises an address exception.",
+  "beat.align.byte": "Byte access needs no alignment.",
+  "beat.arrowGoTo": "\u2192 go to",
+  "beat.base": "Take the value of the base {base}.",
+  "beat.base.isAddress": "Take the value of the base {base}; it is the address.",
+  "beat.byDefinition": "Computed as this instruction defines.",
+  "beat.byte": "byte",
+  "beat.bytes": "{width, plural, one {# byte} other {# bytes}}",
+  "beat.cannotRun": "cannot run",
+  "beat.compare": "{a} {sym} {b} {verdict}, so the result is {result}.",
+  "beat.compareImmediate": "{a} {sym} {k} {verdict}, so the result is {result}.",
+  "beat.compute": "Compute.",
+  "beat.cond": "The condition {a} {sym} {b} is {verdict}.",
+  "beat.cond.why": "{op} branches {when}. The target {label} ({target}) was written into this instruction when it was assembled (stored as a distance of {imm} instructions from the next one).",
+  "beat.condGoTo": "{cond} \u2192 go to",
+  "beat.condSigned": "The condition {value} {cond} is {verdict}.",
+  "beat.condSigned.why": "{op} compares {name} with 0 as a signed number. The target {label} ({target}) was written into this instruction when it was assembled (stored as a distance of {imm} instructions from the next one).",
+  "beat.condZero": "The condition {value} {sym} 0 is {verdict}.",
+  "beat.condZero.why": "Compares {name} with 0 (on the machine, with $zero, which is always 0) and branches when it is {test}. The target {label} ({target}) was written into this instruction when it was assembled.",
+  "beat.copy": "Copy the value of {name} to {dest}.",
+  "beat.copy.add": "plus",
+  "beat.copy.or": "ORed with",
+  "beat.copy.sub": "minus",
+  "beat.copy.why": "On the machine this is {name} {operation} $zero, which is always 0, so the result is just the value of {name}; {name} itself does not change.",
+  "beat.copy.xor": "XORed with",
+  "beat.delay.branch": "Delayed branching is on: the instruction right after the branch (the delay slot) always runs first.",
+  "beat.div": "Integer division.",
+  "beat.div.divisor": "divisor is",
+  "beat.div.quotient": "quotient",
+  "beat.div.read": "mflo reads the quotient and mfhi the remainder.",
+  "beat.div.remainder": ", remainder",
+  "beat.div.signed": "The quotient rounds toward 0, and the remainder has the sign of the dividend.",
+  "beat.div.unsigned": "Computed as unsigned numbers.",
+  "beat.div.why": "The quotient goes into LO and the remainder into HI. {rule}",
+  "beat.div.zero": "MIPS does not define the result of dividing by 0.",
+  "beat.div.zero.why": "The hardware reports nothing; HI and LO cannot be relied on, so a program should check the divisor before dividing.",
+  "beat.equalZero": "equal to 0",
+  "beat.exception": "execution error",
+  "beat.exit": "Exit the program.",
+  "beat.exitCode": "Exit with a status code.",
+  "beat.fails": "false",
+  "beat.false": "is false",
+  "beat.goTo": "go to",
+  "beat.halfword": "halfword",
+  "beat.hilo": "Write HI and LO.",
+  "beat.holds": "true",
+  "beat.if": "if",
+  "beat.ifZero": "{sym} 0 \u2192 go to",
+  "beat.inOrder": "Carry on in order.",
+  "beat.jal": "Enter the function.",
+  "beat.jal.afterSlot": "after the delay slot",
+  "beat.jal.goTo": "; go to",
+  "beat.jal.next": "right after",
+  "beat.jal.template": "$ra \u2190 return address; go to",
+  "beat.jal.why": "The return address is the instruction {which}, {value}; the function comes back here with jr $ra.",
+  "beat.jr.address": "(the address it holds)",
+  "beat.jr.ra": "$ra holds the return address left by jal.",
+  "beat.jr.runtime": "The target comes from a register at run time.",
+  "beat.jump": "Jump.",
+  "beat.jump.delay": "With delayed branching on, the delay slot runs first.",
+  "beat.jump.why": "The target {label} ({target}) was written into this instruction when it was assembled. {delay}",
+  "beat.line.expansion": "This line is a pseudo-instruction that expands to: {expansion}. Click \u25B8 in the code path to go through each step.",
+  "beat.line.expansionPlain": "This line is a pseudo-instruction that expands to: {expansion}.",
+  "beat.line.goTo": "\u2192 go to {target}",
+  "beat.line.next": "\u2192 go on to the next line",
+  "beat.line.result": "The result of this line (a pseudo-instruction, assembled into {count} machine instructions).",
+  "beat.load": "Load {width, plural, one {# byte} other {# bytes}} from memory.",
+  "beat.load.byte": "Only the 1 byte at this address: {byte}.",
+  "beat.load.endian": "MARS is little-endian, with the lowest byte at the lowest address: {memory} \u2192 {value}.",
+  "beat.load.extend": "Widen to 32 bits: the top bit is {top}, so {fill}.",
+  "beat.load.fillOne": "fill with 1",
+  "beat.load.fillZero": "fill with 0",
+  "beat.load.signExtend.why": "{op} sign-extends: the top bit of {bytes} is {top}, so all upper bits become {top} \u2192 {hex} = {value}. {op}u would fill with 0 and give {raw}.",
+  "beat.load.zeroExtend": "Widen to 32 bits: the upper bits are 0.",
+  "beat.load.zeroExtend.why": "{op} zero-extends: the upper bits are 0 \u2192 {hex} = {value}. {signed} would fill them with the top bit.",
+  "beat.lui": "The immediate goes into the upper 16 bits.",
+  "beat.lui.why": "{uimm} shifted left by 16, with the low 16 bits 0. Often combined with ori to load a 32-bit constant (how la / li expand).",
+  "beat.memory": "memory",
+  "beat.memoryFrom": "memory from {address}",
+  "beat.mov.copy": "\u2192 copy to {dest}",
+  "beat.mov.skip": "\u2192 nothing written",
+  "beat.mov.take": "Take the values of the condition and the data.",
+  "beat.mov.test": "Test the condition.",
+  "beat.mult": "The 64-bit product.",
+  "beat.mult.read": "mflo reads the low 32 bits; if HI is not the sign extension of LO, the product does not fit in 32 bits.",
+  "beat.mult.signed": "as signed numbers",
+  "beat.mult.unsigned": "as unsigned numbers",
+  "beat.mult.why": "Multiplied {kind}, the result has 64 bits: the upper 32 go into HI and the lower 32 into LO.",
+  "beat.neverAgain": "This instruction will not run again.",
+  "beat.next": "next =",
+  "beat.nop": "does nothing",
+  "beat.nop.changes": "no register or memory changes",
+  "beat.nop.what": "No operation.",
+  "beat.notZero": "not 0",
+  "beat.offsetZero": "The offset is 0, so the address is the value of {base}. {align}",
+  "beat.op.add": "Signed addition; a result outside the 32-bit range raises an overflow exception (addu does not check).",
+  "beat.op.addi": "The immediate is sign-extended, then added; overflow raises an exception.",
+  "beat.op.addiu": "The immediate is sign-extended, then added, without an overflow check.",
+  "beat.op.addu": "Addition without an overflow check; anything beyond 32 bits is dropped.",
+  "beat.op.and": "Bitwise AND: 1 only where both bits are 1.",
+  "beat.op.andi": "The immediate is zero-extended (upper 16 bits 0), then ANDed bit by bit.",
+  "beat.op.mul": "Multiplication keeping only the low 32 bits of the product.",
+  "beat.op.nor": "Bitwise OR, then inverted: ~(a | b).",
+  "beat.op.or": "Bitwise OR: 1 where either bit is 1.",
+  "beat.op.ori": "The immediate is zero-extended (upper 16 bits 0), then ORed bit by bit.",
+  "beat.op.sll": "Shift left, filling with 0 on the right.",
+  "beat.op.sllv": "Shift left by the low 5 bits of a register.",
+  "beat.op.slt": "Signed comparison: 1 if it holds, otherwise 0.",
+  "beat.op.slti": "The immediate is sign-extended and compared as signed; 1 if it holds.",
+  "beat.op.sltiu": "The immediate is sign-extended first, then compared as unsigned; 1 if it holds.",
+  "beat.op.sltu": "Unsigned comparison: 1 if it holds, otherwise 0.",
+  "beat.op.sra": "Arithmetic shift right, filling with the sign bit on the left.",
+  "beat.op.srav": "Arithmetic shift right by the low 5 bits of a register.",
+  "beat.op.srl": "Logical shift right, filling with 0 on the left.",
+  "beat.op.srlv": "Logical shift right by the low 5 bits of a register.",
+  "beat.op.sub": "Signed subtraction; overflow raises an exception (subu does not check).",
+  "beat.op.subu": "Subtraction without an overflow check.",
+  "beat.op.xor": "Bitwise XOR: 1 where the bits differ.",
+  "beat.op.xori": "The immediate is zero-extended (upper 16 bits 0), then XORed bit by bit.",
+  "beat.output": "output",
+  "beat.place.step": "step {step} ({file}:{line} `{code}`)",
+  "beat.programEnds": "the program ends",
+  "beat.putConstant": "Put the constant {k} into {dest}.",
+  "beat.putConstant.add": "plus",
+  "beat.putConstant.or": "ORed with",
+  "beat.putConstant.why": "On the machine this is $zero, which is always 0, {operation} {k}, so the result is the constant itself.",
+  "beat.putZero": "Put 0 into {dest}.",
+  "beat.putZero.why": "$zero is always 0, so this line simply puts 0 there.",
+  "beat.read": "Read.",
+  "beat.result": "The result is written to {name}.",
+  "beat.return": "Return to the caller.",
+  "beat.role.argument": "(a syscall argument)",
+  "beat.role.base": "the base (address = base + offset)",
+  "beat.role.bothSources": "both source operands (it is in both places)",
+  "beat.role.callRa": "call instructions always write $ra",
+  "beat.role.compareFirst": "the first thing compared",
+  "beat.role.compareSecond": "the second thing compared",
+  "beat.role.firstSource": "the first source operand",
+  "beat.role.hilo": "the {reg} register (where multiply and divide results go)",
+  "beat.role.jumpTarget": "the jump target address",
+  "beat.role.namedTarget": "the target register this instruction names",
+  "beat.role.operand": "an operand",
+  "beat.role.secondSource": "the second source operand",
+  "beat.role.source": "the source operand",
+  "beat.role.stored": "the value to store in memory",
+  "beat.role.syscallRegister": "(a register the syscall uses)",
+  "beat.role.target": "the target",
+  "beat.role.used": "a register this instruction uses",
+  "beat.role.v0": "(the value of $v0 decides what the syscall does)",
+  "beat.saveReturn": "Save the return address.",
+  "beat.saveReturn.link": "A linking branch writes $ra whether or not it branches.",
+  "beat.shift": "Shift.",
+  "beat.shift.amount": "{name} = {value}; its low 5 bits are {amount}.",
+  "beat.shift.andAmount": " and the shift amount",
+  "beat.shift.take": "Take the value of {name}{amount}.",
+  "beat.store": "Store {width, plural, one {# byte} other {# bytes}}.",
+  "beat.store.endian": "Stored little-endian: {bytes}.",
+  "beat.store.keep": "{name} = {value}; only the low {width} bits {kept} are kept, the rest are dropped.",
+  "beat.store.overwritten": "The old value {before} is overwritten.",
+  "beat.store.take": "Take the low {width} bits of {name}.",
+  "beat.syscall": "system call",
+  "beat.syscall.argument": "argument",
+  "beat.syscall.chooses": "The value of $v0 decides what the syscall does: {what}",
+  "beat.syscall.choosesPlain": "The value of $v0 decides what the syscall does.",
+  "beat.syscall.chosen": "$v0 = {n} chose \u201C{name}\u201D. {effect} What changes: {changes}.",
+  "beat.syscall.printChar": "output '{out}' ({meaning})",
+  "beat.syscall.unsupported": "$v0 = {n} is not supported.",
+  "beat.syscall.unsupportedName": "unsupported $v0 = {n}",
+  "beat.take": "Take the value of {name}.",
+  "beat.takeCompared": "Take the values of the two registers being compared.",
+  "beat.takeHiLo": "Take the value of {reg}.",
+  "beat.takeTwo": "Take the values of {a} and {b}.",
+  "beat.takeValues": "Take the values of {items}.",
+  "beat.thenGoTo": "\u2192 go to {label}",
+  "beat.thenNext": "\u2192 go on to the next one",
+  "beat.toConsole": "Written to the console.",
+  "beat.true": "is true",
+  "beat.waiting": "waiting for input",
+  "beat.waiting.note": "No result yet; submit input in the console.",
+  "beat.whenDifferent": "when the two differ",
+  "beat.whenEqual": "when the two are equal",
+  "beat.why.delay": "Delayed branching is on: the instruction right after runs before the jump takes effect.",
+  "beat.why.from": "The value of {name} comes from {place}.",
+  "beat.why.initial": "Nothing in the recent history wrote it; this is its initial value or one written earlier.",
+  "beat.why.load": "Load {width, plural, one {# byte} other {# bytes}} from memory at {address}.",
+  "beat.why.memoryFrom": "The contents here were written by {place}.",
+  "beat.why.memoryInitial": "Nothing in the recent history wrote here; the contents were there when the program was loaded (e.g. initial values in .data).",
+  "beat.why.notReadLater": "No later step in the window reads it.",
+  "beat.why.nowFrom": "Its current value comes from {place}.",
+  "beat.why.output": "This step added {output} to the console.",
+  "beat.why.pcPlus4": "No jump: the PC (the address of the next instruction to run) grows by 4, so the very next instruction runs.",
+  "beat.why.pcTo": "The address of the next instruction to run (PC) becomes {pc}, that is {where}.",
+  "beat.why.readLater": "Later, {place} reads it.",
+  "beat.why.role": "Here {name} is {role}.",
+  "beat.why.rule": "The rule of {op}: {rule}",
+  "beat.why.syscallArg": "{name}, used by this syscall, is {value}{from}.",
+  "beat.why.writes": "The result goes into {name}{field}.",
+  "beat.why.writesMemory": "The result goes into the {width, plural, one {# byte} other {# bytes}} of memory from {address}.",
+  "beat.why.writtenBy": ", written by {place}",
+  "beat.why.zero": "$zero is always 0; reading it always gives 0.",
+  "beat.write": "Write.",
+  "beat.writeBack": "Write back to {dest}.",
+  "beat.writeHiLo": "Write {reg}.",
+  "beat.writeMemory": "Write the data to memory.",
+  "beat.zero.discard": "$zero is always 0; the result is discarded.",
+  "beat.zero.noEffect": "Writing $zero has no effect.",
+  "bits.add.group": "Bits {from}\u2013{to}: each bit = the two operand bits + the carry; the units digit is written down and the carry goes to the next bit.",
+  "bits.add.intro": "Addition {a} + {b}{note}: bits add one by one from the lowest, carrying 1 to the next bit whenever they reach 2.",
+  "bits.add.result": "The result {value} is written to {reg}.",
+  "bits.add.signExtend": " (the 16-bit immediate is first sign-extended to 32 bits)",
+  "bits.add.title": "{op}: {operation} bit by bit",
+  "bits.addition": "add",
+  "bits.carry": "carry",
+  "bits.div.hi": "HI (remainder)",
+  "bits.div.hilo": "The quotient goes into LO and the remainder into HI; mflo / mfhi read them.",
+  "bits.div.intro": "Dividing as {kind} numbers: {a} \xF7 {b}.",
+  "bits.div.lo": "LO (quotient)",
+  "bits.div.title": "{op}: quotient and remainder",
+  "bits.div.zero": "Division by 0: MIPS raises no exception, and HI and LO hold undefined values that must not be used.",
+  "bits.div.zeroTitle": "{op}: division by 0",
+  "bits.exception": "This step raised an exception; the target register was not written.",
+  "bits.immediate": "immediate",
+  "bits.immediateZero": "immediate (zero-extended)",
+  "bits.inverted": "{b} inverted",
+  "bits.logic.group": "Bits {from}\u2013{to}.",
+  "bits.logic.intro": "{op}: bits are compared one by one, {rule}. The bits do not affect each other; there is no carry.",
+  "bits.logic.result": "The result is written to {reg}.",
+  "bits.logic.title": "{op}: bitwise {kind}",
+  "bits.mismatch": " (differs from the recorded value)",
+  "bits.mul.hilo": "The upper 32 bits of the product go into HI and the lower 32 into LO; mfhi / mflo read them.",
+  "bits.mul.intro": "Multiplying as {kind} numbers: the product of two 32-bit numbers can need 64 bits.",
+  "bits.mul.title": "{op}: the 64-bit product",
+  "bits.overflow.carryOut": "The carry out of the top bit is dropped (32 bits cannot hold it); as a signed number there is no overflow.",
+  "bits.overflow.ignored": "The carries into and out of the top bit differ: as a signed number it overflowed, but {op} does not check for overflow and writes the result anyway.",
+  "bits.overflow.none": "No overflow.",
+  "bits.overflow.trap": "The carries into and out of the top bit differ: signed overflow. {op} checks for overflow and raises an exception.",
+  "bits.product": "product",
+  "bits.result": "result",
+  "bits.rule.and": "1 only where both bits are 1",
+  "bits.rule.nor": "1 only where both bits are 0 (the OR result inverted)",
+  "bits.rule.or": "1 where either bit is 1",
+  "bits.rule.xor": "1 where the bits differ, 0 where they match",
+  "bits.shift.after": "after {k, plural, one {# move} other {# moves}}",
+  "bits.shift.fillLeftSign": "copies of the sign bit come in on the left (arithmetic shift right, keeping the sign)",
+  "bits.shift.fillLeftZero": "0s come in on the left (logical shift right)",
+  "bits.shift.fillRight": "0s come in on the right",
+  "bits.shift.intro": "The 32 bits of {reg} shift {direction} by {amount}{note}; {fill}.",
+  "bits.shift.left": "left",
+  "bits.shift.leftEnd": "left",
+  "bits.shift.none": "A shift by 0: the result equals the original.",
+  "bits.shift.result": "The result {value} is written to {reg}{mismatch}.",
+  "bits.shift.right": "right",
+  "bits.shift.rightEnd": "right",
+  "bits.shift.step": "Move {k}: {out} goes out, {bit} comes in on the {side}.",
+  "bits.shift.title": "{op}: shift bit by bit",
+  "bits.shift.variable": " (the shift amount is the low 5 bits of {reg})",
+  "bits.signed": "signed",
+  "bits.sub.intro": "Subtraction {a} \u2212 {b}: the machine inverts every bit of {b} and adds 1 (two's complement), turning it into an addition.",
+  "bits.subtract": "subtract",
+  "bits.target": "the target register",
+  "bits.unsigned": "unsigned",
+  "block.busy": "still working on the previous action",
+  "block.dirty": "code changed: assemble again first",
+  "block.ended": "the program has ended",
+  "block.error": "the program stopped with an error: fix it and assemble again",
+  "block.notAssembled": "not assembled yet: click \u201CAssemble\u201D first",
+  "block.outside": "you are viewing {file}, which is not in the program that can run now",
+  "block.running": "the program is running",
+  "block.scopeChanged": "assembly mode or files changed: assemble again first",
+  "block.wait": "Wait for the current action to finish.",
+  "bottom.calls": "Calls",
+  "bottom.console": "Console",
+  "bottom.logs": "Log",
+  "bottom.problems": "Problems",
+  "bottom.trace": "Trace",
+  "breakpoint.condition": "Condition",
+  "breakpoint.condition.placeholder": "$t0 == 3 ($register compared with an integer)",
+  "breakpoint.delete": "Delete breakpoint",
+  "breakpoint.dirty": "The code changed; assemble before setting breakpoints.",
+  "breakpoint.edit.note": "The hit count counts runs of this instruction since S0 and follows the history when you step back. Logpoint output goes to the Log tab at the bottom.",
+  "breakpoint.edit.title": "Breakpoint \xB7 {file}:{line}",
+  "breakpoint.enabled": "Enabled",
+  "breakpoint.hit": "Hit count",
+  "breakpoint.hit.placeholder": "Pause before the Nth run; empty means every time",
+  "breakpoint.log": "Log message",
+  "breakpoint.log.placeholder": "t0 = {$t0}, hex {$t0:x}; when filled in, it logs without pausing",
+  "breakpoint.noInstruction": "This line has no instruction to run (blank, comment or data); set breakpoints on lines with instructions.",
+  "breakpoint.notAssembled": "{file} is not part of the current assembly; assemble it before setting breakpoints here.",
+  "breakpoint.onLabel": "The breakpoint is on the first instruction under this label (line {line}).",
+  "breakpoint.outsideScope": "This file is not part of the current assembly; the breakpoint is inactive for now",
+  "breakpoint.row.condition": "condition {condition}",
+  "breakpoint.row.edit": "Edit breakpoint",
+  "breakpoint.row.enable": "Enable {file}:{line}",
+  "breakpoint.row.hit": "hit {hit}",
+  "breakpoint.row.inactive": "not assembled \xB7 inactive",
+  "breakpoint.row.log": "log {log}",
+  "calls.legend": "Calls traced by jal / jalr / jr $ra, following the calling convention.",
+  "calls.row": "#{step} {call} \u2192 returns to {address}",
+  "cfg.backJumps": " \xB7 jumped back {backJumps, plural, one {# time} other {# times}}",
+  "cfg.edge.afterReturn": "after return",
+  "cfg.edge.runtime": "target at run time",
+  "cfg.entered": "entered {count, plural, one {# time} other {# times}}{backJumps}",
+  "cfg.legend": "Static basic blocks \xB7 indirect targets are known only at run time \xB7 purple edges show where control goes; counts come from this run's trace",
+  "commands.allRegisters": "Show all registers",
+  "commands.assemble": "Assemble project",
+  "commands.backToStart": "Back to start (assemble the current program again)",
+  "commands.button": "Commands\u2026",
+  "commands.cfg": "Show control flow",
+  "commands.export": "Export project as ZIP / JSON",
+  "commands.findInstruction": "Find instructions (by name or by what you want to do)",
+  "commands.import": "Import files or a project",
+  "commands.machine": "Show machine code",
+  "commands.memoryAddress": "Enter an address / symbol",
+  "commands.newProject": "New empty project",
+  "commands.outline": "Go to symbol in current file",
+  "commands.palette": "Command palette",
+  "commands.palette.tip": "Command palette \xB7 Cmd/Ctrl+Shift+P or F1",
+  "commands.quickOpen": "Quick open file / label / address",
+  "commands.restart": "Assemble again and restart",
+  "commands.run": "Run / continue at full speed",
+  "commands.runToCursor": "Run to cursor",
+  "commands.saveLocal": "Save project in the browser",
+  "commands.steps": "Step-by-step run (one step at a time, following)",
+  "commands.stop": "Stop and go to step 0",
+  "commands.syscalls": "syscall list (what each $v0 value does)",
+  "commands.toggleBreakpoint": "Toggle breakpoint (cursor line)",
+  "commands.toggleDashed": "Toggle dashed lines",
+  "commands.toggleSolid": "Toggle solid lines",
+  "common.address": "address",
+  "common.cancel": "Cancel",
+  "common.close": "Close",
+  "common.closeParen": ")",
+  "common.code": "code",
+  "common.colon": ": ",
+  "common.comma": ", ",
+  "common.data": "data",
+  "common.delete": "Delete",
+  "common.example": "Example",
+  "common.file": "file",
+  "common.fileLine": "{file} line {line}",
+  "common.inParens": " ({text})",
+  "common.lineN": "line {line}",
+  "common.listSep": ", ",
+  "common.none": "none",
+  "common.off": "off",
+  "common.ok": "OK",
+  "common.on": "on",
+  "common.openParen": " (",
+  "common.period": ".",
+  "common.save": "Save",
+  "common.semicolon": "; ",
+  "common.syntax": "Syntax",
+  "common.terms": "Terms",
+  "common.unknown": "unknown",
+  "console.echo": "What you typed",
+  "console.input.label": "Program input",
+  "console.input.placeholder": "Type a value and press Enter",
+  "console.input.send": "Send",
+  "console.input.waiting": "The program is waiting for input: type here and press Enter",
+  "diag.duplicateGlobal": "{files} in this assembly all define the global label {label}.",
+  "diag.duplicateGlobal.manual": "If they are separate exercises, untick one of them or switch to \u201CAuto assembly\u201D.",
+  "diag.duplicateGlobal.other": "A global label can be defined only once; rename or remove one of them.",
+  "diag.notGlobal": "{sym} is defined in {files} but not declared global with .globl {sym}, so other files cannot see it.",
+  "diag.notTicked": "{sym} is defined in {files}, which is not among the chosen files. Tick it if you need it.",
+  "diag.otherProgram": "{sym} is defined in {files}, which also defines main (another program), so auto assembly does not link it. To assemble them together, switch to \u201CChoose files\u2026\u201D.",
+  "diag.singleFile": "{sym} is defined in {files}, which single-file assembly leaves out. Switch to \u201CAuto assembly\u201D or \u201CChoose files\u2026\u201D.",
+  "directive.align": "Makes the next item start at an address that is a multiple of 2\u207F.",
+  "directive.ascii": "Puts the text in memory byte by byte, with no \\0 at the end.",
+  "directive.ascii.syntax": "label: .ascii",
+  "directive.asciiz": "Puts the text in memory byte by byte and adds a \\0 at the end; printing a string stops there.",
+  "directive.asciiz.syntax": "label: .asciiz",
+  "directive.byte": "Puts 1-byte values in memory.",
+  "directive.byte.syntax": "label: .byte value, value, \u2026",
+  "directive.data": "What follows goes into the data segment: variables, arrays and strings go here.",
+  "directive.double": "Puts double-precision floats in memory.",
+  "directive.double.syntax": "label: .double value, \u2026",
+  "directive.endMacro": "Ends a macro definition.",
+  "directive.eqv": "Gives a value a name that is replaced when assembling.",
+  "directive.eqv.syntax": ".eqv name value",
+  "directive.extern": "Declares a global variable.",
+  "directive.extern.syntax": ".extern label bytes",
+  "directive.float": "Puts single-precision floats in memory.",
+  "directive.float.syntax": "label: .float value, \u2026",
+  "directive.globl": "Lets other files use this label too; common for main and for functions other files call.",
+  "directive.globl.syntax": ".globl label",
+  "directive.half": "Puts 2-byte integers in memory.",
+  "directive.half.syntax": "label: .half value, value, \u2026",
+  "directive.include": "Inserts the contents of another file here.",
+  "directive.include.file": "file name",
+  "directive.kdata": "What follows goes into the kernel data segment.",
+  "directive.ktext": "What follows goes into the kernel code segment.",
+  "directive.macro": "Starts a macro definition, which ends at .end_macro.",
+  "directive.macro.syntax": ".macro name",
+  "directive.space": "Sets aside that many bytes of memory; often used as an input buffer.",
+  "directive.space.syntax": "label: .space bytes",
+  "directive.text": "What follows goes into the code segment: instructions go here.",
+  "directive.text.word": "text",
+  "directive.word": "Puts 4-byte integers in memory; several values make an array.",
+  "directive.word.syntax": "label: .word value, value, \u2026",
+  "editor.delaySlot": "Delay slot filler: with \u201CDelayed branching\u201D on, the instruction right after a jump or branch always runs first; a nop there keeps the program correct with either setting. With it off, it does nothing.",
+  "editor.followReturn": "Back to the executing line, and keep following it",
+  "editor.menu.definition": "Go to definition / explanation",
+  "editor.menu.editBreakpoint": "Edit breakpoint\u2026",
+  "editor.menu.references": "Show references",
+  "editor.menu.runToLine": "Run to this line",
+  "editor.menu.toggleBreakpoint": "Toggle breakpoint",
+  "editor.pc.tip": "Address of the next instruction to run",
+  "editor.target.files": "{mode}; the program that can run now was assembled from:",
+  "editor.target.many": "Program: {entry} +{count, plural, one {# file} other {# files}}",
+  "editor.target.none": "Program: not assembled",
+  "editor.target.notYet": "Not assembled yet",
+  "editor.target.one": "Program: {entry}",
+  "editor.target.willChange": "Clicking \u201CAssemble\u201D loads a new program",
+  "engine.about": "MIPS assembler and simulator (Missouri State University); this IDE adds execution history, stepping back and explanations on top of it.",
+  "engine.state": "Delayed branching: {delay} \xB7 Program: {program}",
+  "engine.switch": "Switch core\u2026",
+  "engine.switch.hint": "Not available yet; a later local version will support other cores",
+  "engine.title": "Assembler and execution core",
+  "examples.hexout": "Hexadecimal \xB7 bits and characters",
+  "examples.none": "No examples",
+  "examples.open": "Open example",
+  "examples.open.note": "The example replaces the current project. \u201CUndo last project change\u201D brings the current contents back.",
+  "examples.task1": "Task 1 \xB7 files and calls",
+  "examples.unavailable": "Examples unavailable",
+  "examples.unavailableNow": "The example service is unavailable right now",
+  "explain.add": "Adds two source registers; signed overflow raises an exception.",
+  "explain.addi": "Reads the source register and adds the sign-extended immediate; signed overflow raises an exception.",
+  "explain.addiu": "Reads the source register, sign-extends the 16-bit immediate, adds them and writes the target. Signed overflow raises no exception.",
+  "explain.addu": "Reads two source registers, adds them and writes the target; signed overflow raises no exception.",
+  "explain.beq": "Compares two registers and branches if they are equal. With delayed branching on, the delay slot runs first.",
+  "explain.bne": "Compares two registers and branches if they differ.",
+  "explain.jal": "Writes the return address to $ra and calls the target; the return address depends on the delayed-branching setting.",
+  "explain.jr": "Jumps to the address held in a register; jr $ra is the usual way to return.",
+  "explain.la": "Pseudo-instruction: loads an address; its expansion may use $at.",
+  "explain.lb": "Reads 1 byte and sign-extends it to 32 bits.",
+  "explain.lbu": "Computes base + offset, reads 1 byte and zero-extends it to 32 bits.",
+  "explain.li": "Pseudo-instruction: loads an immediate into a register; it may expand to several machine instructions.",
+  "explain.lui": "Puts the 16-bit immediate in the upper 16 bits of the target register and clears the lower 16.",
+  "explain.lw": "Reads 4 bytes from the effective address; the address must be 4-byte aligned.",
+  "explain.move": "Pseudo-instruction: copies a register's contents without clearing the source.",
+  "explain.nop": "Changes no register or memory; the program carries on.",
+  "explain.ori": "Bitwise OR of the source register and the zero-extended immediate.",
+  "explain.sb": "Writes the low 8 bits of the source register to 1 byte of memory.",
+  "explain.sll": "Logical shift left, filling with 0 on the right; bits shifted out at the top are dropped.",
+  "explain.slti": "Signed comparison: writes 1 if the source register is less than the sign-extended immediate, otherwise 0.",
+  "explain.srl": "Logical shift right, filling with 0 on the left; bits shifted out at the bottom are dropped.",
+  "explain.subu": "Subtracts two source registers and writes the target; signed overflow raises no exception.",
+  "explain.sw": "Writes the 4 bytes of the source register to address base + offset.",
+  "explain.syscall": "Asks MARS to do something; what it does depends on the value in $v0 (e.g. 4 prints a string, 5 reads an integer). Arguments and results depend on what is done.",
+  "export.json": "Download MARS project JSON",
+  "export.note": "Saved to your computer, it can be imported again or sent to your teacher. Source, input files, folders, the assembly mode and the chosen files are all kept.",
+  "export.title": "Export project",
+  "export.zip": "Download ZIP (with the original files)",
+  "files.confirmDelete": "Delete?",
+  "files.confirmDelete.contents": " and the {count, plural, one {# file} other {# files}} in it",
+  "files.confirmDelete.text": "Delete {path}{contents}?",
+  "files.delete": "Delete file",
+  "files.deleteFolder": "Delete folder and its contents",
+  "files.download": "Download this file",
+  "files.empty": "The project is empty: click + to create a file, or import from the Project menu.",
+  "files.emptyFolder": "Empty folder",
+  "files.exists": "That name already exists.",
+  "files.heading": "Project files",
+  "files.isEntry": "Current assembly entry",
+  "files.joint": "Assemble this file",
+  "files.joint.label": "Assemble {path}",
+  "files.manageFile": "Manage file",
+  "files.manageFile.label": "Manage file {path}",
+  "files.manageFolder": "Manage folder",
+  "files.manageFolder.label": "Manage folder {path}",
+  "files.newFile": "New file",
+  "files.newFile.button": "+ File",
+  "files.newFile.hint": "Lower-case .s / .asm files are MIPS source and are assembled; .c / .h, .txt and others are plain text you can read and edit, and programs can read them as input files.",
+  "files.newFolder": "New folder",
+  "files.newFolder.button": "+ Folder",
+  "files.newFolder.default": "new folder",
+  "files.newFolder.hint": "Folders can be nested; use \u22EF on a folder to create inside it.",
+  "files.newPath": "New path",
+  "files.newSubfolder": "New subfolder",
+  "files.node.file": "File \xB7 {path}",
+  "files.node.folder": "Folder \xB7 {path}",
+  "files.path": "Path in the project",
+  "files.rename": "Rename / move",
+  "files.rename.hint": "To rename or move, give the full path in the project, e.g. src/main.s.",
+  "files.setEntry": "Make it the assembly entry",
+  "files.tree": "Project files",
+  "find.empty": "Type an instruction name, or describe what you want to do.",
+  "find.format": "Format",
+  "find.formula": "General formula",
+  "find.kind.instruction": "instruction",
+  "find.kind.pseudo": "pseudo-instruction",
+  "find.label": "Search instructions or uses",
+  "find.none": "No matching instruction or syscall. Try \u201Caddition\u201D, \u201Ccompare\u201D, \u201Cprint a character\u201D, \u201Cread an integer\u201D, \u201Cshift right\u201D, or an instruction name.",
+  "find.note": "Notes",
+  "find.placeholder": "e.g. add, addition, compare, print a character, read an integer, shift right",
+  "find.related": "Possibly related ({count})",
+  "find.results": "Search results",
+  "find.title": "Find instructions",
+  "find.unused": "This project does not use it yet.",
+  "find.use": "Use",
+  "find.used": "Where this project uses it (click to inspect that line):",
+  "focus.after": "Then: {reason}{at}",
+  "focus.badge.done": "Just done",
+  "focus.badge.earlier": "Line {n} before",
+  "focus.badge.predicted": "Predicted step {n}",
+  "focus.beatN": "Explanation {n}",
+  "focus.beatOf": "{beat}/{total}",
+  "focus.bits": "Bit by bit",
+  "focus.bits.hide": "Hide bits",
+  "focus.bits.instruction": "Machine instruction {op}{part}{predicted}",
+  "focus.bits.next": "Next step \u25B6",
+  "focus.bits.out": "{bit} out",
+  "focus.bits.part": " (instruction {k} of the {total} this pseudo-instruction expands to)",
+  "focus.bits.predicted": " \xB7 predicted",
+  "focus.bits.prev": "\u25C0 Previous step",
+  "focus.bits.replay": "Replay",
+  "focus.bits.step": "Step {bitsStep}/{total}",
+  "focus.bytes": "{n, plural, one {# byte} other {# bytes}}",
+  "focus.close": "Close focus mode",
+  "focus.comment": "Author's comment: {comment}",
+  "focus.dialog": "Focus mode",
+  "focus.expand": "{arrow} {count}",
+  "focus.expanded": "Expansion {k}/{total} \xB7 {basic} \u2014 {caption}",
+  "focus.heading": "Focus",
+  "focus.input": "The program is waiting for input \xB7 type here and press Enter",
+  "focus.input.submit": "Submit",
+  "focus.input.submit.tip": "Submitting continues the interrupted action",
+  "focus.iteration": "time {iteration} of ",
+  "focus.iterations": "{current}{iterations, plural, one {# time} other {# times}} in all",
+  "focus.keys": "\u2191\u2193 look \xB7 \u21E7\u2191 back one line \xB7 \u21E7\u2193 run one line \xB7 \u2190\u2192 explanation by explanation \xB7 Enter run to the selected step \xB7 ? why \xB7 Esc close",
+  "focus.mainLines": "Lines in the main view",
+  "focus.more": "More below: {where} (outside the window)",
+  "focus.more.from": "from line {line}",
+  "focus.more.unknown": "more",
+  "focus.moreObjects": "{n} more",
+  "focus.needsAssembly": "Assemble first, then open focus mode",
+  "focus.next": "Next \u25B6",
+  "focus.nothing": "No step to explain yet",
+  "focus.objects": "Items involved",
+  "focus.open": "Focus mode",
+  "focus.open.tip": "Focus mode: the step before and the path ahead \xB7 Cmd/Ctrl+K F",
+  "focus.partial": " \xB7 only part of this line was predicted",
+  "focus.path": "Code path",
+  "focus.play": "Play",
+  "focus.predicted": "predicted",
+  "focus.prev": "\u25C0 Previous",
+  "focus.progress": "Explanation progress",
+  "focus.range": "Range",
+  "focus.range.label": "How far to predict",
+  "focus.range.lines": "{n, plural, one {# line} other {# lines}}",
+  "focus.setBreakpoint": "Set breakpoint",
+  "focus.stop.ended": "the program ends",
+  "focus.stop.error": "an execution error",
+  "focus.stop.limit": "more than 64 instructions; not predicted further",
+  "focus.stop.waiting": "waiting for input",
+  "focus.substitute": "\u2192 the next explanations fill in the real values one by one",
+  "focus.tag.earlier": "Ran earlier",
+  "focus.tag.predicted": "Predicted +{index}",
+  "focus.thisRun": "this run",
+  "focus.unpredictable": "cannot predict \xB7 {reason}",
+  "focus.untaken": "Path not taken",
+  "focus.untaken.fallthrough": "If the condition failed it would continue in order to {label}",
+  "focus.untaken.note": "Not run: only the code is shown; registers, memory, input and output are unaffected.",
+  "focus.untaken.taken": "If the condition held it would branch to {label}",
+  "focus.where": "{step, plural, one {# step} other {# steps}} done \xB7 next {pc}",
+  "focus.why": "Why?",
+  "follow.entered": "Execution entered {file}{label}",
+  "fonts.system": "System default",
+  "fonts.system.linux": "Linux: DejaVu etc.",
+  "fonts.system.mac": "macOS: SF Mono",
+  "fonts.system.windows": "Windows: Consolas",
+  "gloss.address.def": "The number of each byte in memory, like a house number. For example 0x10010000 is the first byte of the data segment.",
+  "gloss.address.term": "address",
+  "gloss.alignment.def": "An address that is a whole multiple of the access width. For example reading 4 bytes (lw) needs an address that is a multiple of 4, so neighbouring words are 4 apart.",
+  "gloss.alignment.term": "alignment",
+  "gloss.ascii.def": "The most common character table: each of 0\u2013127 stands for one character, e.g. 48 is 0, 65 is A, 104 is h and 10 is a newline. The \u201C?\u201D beside Numbers in the footer has the full table.",
+  "gloss.ascii.term": "ASCII",
+  "gloss.base.def": "The register value an address computation starts from. For example in lw $t0, 4($s0), $s0 is the base.",
+  "gloss.base.term": "base",
+  "gloss.byte.def": "The basic unit of memory: 8 bits, one number from 0 to 255. For example the character h takes 1 byte and is stored as 104.",
+  "gloss.byte.term": "byte",
+  "gloss.carry.def": "The 1 sent to the next higher bit when two bits add up to 2, like carrying 1 when decimal digits reach 10. A carry out of the top bit has nowhere to go and is dropped.",
+  "gloss.carry.term": "carry",
+  "gloss.charEncoding.def": "An agreement for writing characters as numbers: each character has a code, and memory holds the code. For example in ASCII h is 104.",
+  "gloss.charEncoding.term": "character encoding",
+  "gloss.delaySlot.def": "With delayed branching on, the position right after a jump or branch that always runs. Programs often put a nop there so both settings give the same result.",
+  "gloss.delaySlot.term": "delay slot",
+  "gloss.delayedBranch.def": "A way MIPS can run: the instruction right after a jump or branch always runs first, taken or not. For example the line after jal f runs before f is entered.",
+  "gloss.delayedBranch.term": "delayed branching",
+  "gloss.effectiveAddress.def": "The memory address an instruction actually accesses: the base plus the offset. For example in lw $t0, 4($s0), if $s0 = 0x10010000 the effective address is 0x10010004.",
+  "gloss.effectiveAddress.term": "effective address",
+  "gloss.hex.def": "Base-16 notation with the prefix 0x; each digit is 0\u20139 or a\u2013f (10\u201315), and two digits make exactly one byte. For example 0x68 = 6\xD716 + 8 = 104.",
+  "gloss.hex.term": "hexadecimal",
+  "gloss.immediate.def": "A constant written directly in the instruction. For example the 4 in addiu $t0, $t0, 4.",
+  "gloss.immediate.term": "immediate",
+  "gloss.littleEndian.def": "A multi-byte number is stored with its low byte at the low address. For example 7 is stored as 07 00 00 00 and \u22122 as fe ff ff ff.",
+  "gloss.littleEndian.term": "little-endian",
+  "gloss.machineInstruction.def": "An instruction the CPU really runs, 32 bits (4 bytes) each. The Machine code view lists them.",
+  "gloss.machineInstruction.term": "machine instruction",
+  "gloss.nul.def": "A byte whose value is 0, written \\0. Strings usually end with it: reading it means the string is over.",
+  "gloss.nul.term": "NUL",
+  "gloss.offset.def": "The constant added to the base to get the address to access. For example in lw $t0, 4($s0) the offset is 4; 0($s0) means an offset of 0, right at the base.",
+  "gloss.offset.term": "offset",
+  "gloss.overflow.def": "A result outside the range 32 bits can hold. For example 0x7fffffff + 1 does not fit as a signed number.",
+  "gloss.overflow.term": "overflow",
+  "gloss.pc.def": "Program counter: holds the address of the next instruction to run. It usually grows by 4 per instruction; a jump changes it to another address.",
+  "gloss.pc.term": "PC",
+  "gloss.pseudo.def": "A shorthand offered by the assembler that is replaced by one or more real machine instructions when assembling. For example move $t0, $a1 actually runs addu $t0, $a1, $zero.",
+  "gloss.pseudo.term": "pseudo-instruction",
+  "gloss.rd.def": "The destination register field in an R-type instruction's encoding (bits 15\u201311).",
+  "gloss.rd.term": "rd field",
+  "gloss.register.def": "One of the CPU's 32 storage places, 32 bits each, like 32 named variables. For example $t0, $a0, $sp.",
+  "gloss.register.term": "register",
+  "gloss.returnAddress.def": "The address of the instruction to come back to when a function ends. jal saves it in $ra on the way in, and jr $ra at the end of the function jumps back.",
+  "gloss.returnAddress.term": "return address",
+  "gloss.rs.def": "The first register field in a machine instruction's encoding (bits 25\u201321).",
+  "gloss.rs.term": "rs field",
+  "gloss.rt.def": "The second register field in a machine instruction's encoding (bits 20\u201316).",
+  "gloss.rt.term": "rt field",
+  "gloss.signExtend.def": "Widening a shorter number to 32 bits by filling the upper bits with its top bit, so a negative number stays negative. For example the byte 0xf0 (top bit 1) becomes 0xfffffff0, which is \u221216.",
+  "gloss.signExtend.term": "sign extension",
+  "gloss.syscall.def": "Asks the runtime environment (MARS here) to do something such as output, input or reading a file; the number in $v0 chooses what, and arguments go in registers such as $a0. For example $v0 = 11 prints the character in $a0.",
+  "gloss.syscall.term": "syscall",
+  "gloss.twosComplement.def": "How negative numbers are written in binary: invert every bit of the number, then add 1. For example 1 is 0\u20260001, inverted 1\u20261110, plus 1 gives 1\u20261111, so \u22121 is 32 ones. A top bit of 1 means negative.",
+  "gloss.twosComplement.term": "two's complement",
+  "gloss.zeroExtend.def": "Widening a shorter number to 32 bits by filling the upper bits with 0. For example the byte 0xf0 becomes 0x000000f0, which is 240.",
+  "gloss.zeroExtend.term": "zero extension",
+  "guide.1.does": "Prints the value of $a0 to the terminal as a signed decimal.",
+  "guide.1.effect": "The number appears in the terminal in decimal, e.g. 45 prints as 45.",
+  "guide.10.does": "Ends the program.",
+  "guide.10.effect": "The program stops; no further instructions run.",
+  "guide.11.does": "Prints the low 8 bits of $a0 as one character, using the character code table.",
+  "guide.11.effect": "One character appears in the terminal, e.g. 45 prints as - (the same 45 prints as 45 when $v0 = 1).",
+  "guide.12.does": "Waits for one character to be typed in the terminal.",
+  "guide.12.effect": "Afterwards $v0 holds the character's code; the 12 that was there is overwritten.",
+  "guide.13.does": "Opens the project input file named by $a0 (files on your computer are never touched).",
+  "guide.13.effect": "The file descriptor is written to $v0; it is negative if the file cannot be opened.",
+  "guide.14.does": "Reads bytes from an open virtual file into memory.",
+  "guide.14.effect": "The number of bytes read is written to $v0 (0 means the end was reached, negative means an error).",
+  "guide.15.does": "Writes bytes from memory to an open virtual file.",
+  "guide.15.effect": "The number of bytes written is written to $v0.",
+  "guide.16.does": "Closes the virtual file given by $a0.",
+  "guide.16.effect": "The file is closed.",
+  "guide.17.does": "Ends the program with $a0 as the exit code.",
+  "guide.17.effect": "The program stops.",
+  "guide.2.does": "Prints the single-precision float in $f12 to the terminal.",
+  "guide.2.effect": "The number appears in the terminal.",
+  "guide.3.does": "Prints the double-precision float made of $f12/$f13 to the terminal.",
+  "guide.34.does": "Prints $a0 as 8 hexadecimal digits.",
+  "guide.34.effect": "A form starting with 0x appears in the terminal.",
+  "guide.35.does": "Prints $a0 as 32 binary digits.",
+  "guide.35.effect": "32 zeros and ones appear in the terminal.",
+  "guide.36.does": "Prints $a0 as an unsigned decimal.",
+  "guide.36.effect": "The number appears in the terminal (never negative).",
+  "guide.4.does": "Prints byte after byte from the address in $a0, stopping at a byte whose value is 0 (\\0).",
+  "guide.4.effect": "The text appears in the terminal; the \\0 itself is not printed.",
+  "guide.4.name": "print string",
+  "guide.5.does": "Waits for an integer to be typed in the terminal followed by Enter.",
+  "guide.5.effect": "Afterwards $v0 holds the integer read; the 5 that was there is overwritten.",
+  "guide.6.effect": "The number read is written to $f0.",
+  "guide.7.effect": "The number read is written to $f0/$f1.",
+  "guide.8.does": "Waits for a line of text in the terminal and stores its characters in memory.",
+  "guide.8.effect": "Writes at most $a1\u22121 characters (newline included) starting at $a0, then a \\0.",
+  "guide.9.does": "Sets aside $a0 bytes on the heap.",
+  "guide.9.effect": "The start address of that memory is written to $v0.",
+  "guide.arg.buffer": "the buffer address",
+  "guide.arg.bufferAddress": "the address of the first byte of the buffer (the memory that holds the input)",
+  "guide.arg.bufferSize": "the most bytes it may use, including the final \\0",
+  "guide.arg.byteCount": "the number of bytes",
+  "guide.arg.bytesNeeded": "the number of bytes needed",
+  "guide.arg.charCode": "the code of the character to print",
+  "guide.arg.dataAddress": "the address of the data to write",
+  "guide.arg.doubleLow": "the number to print (low half)",
+  "guide.arg.exitCode": "the exit code",
+  "guide.arg.fd": "the file descriptor",
+  "guide.arg.fileName": "the address of the file name string",
+  "guide.arg.intToPrint": "the integer to print",
+  "guide.arg.maxRead": "the most bytes to read",
+  "guide.arg.mode": "mode (ignored)",
+  "guide.arg.numberToPrint": "the number to print",
+  "guide.arg.openFlags": "how to open: 0 read, 1 write, 9 append",
+  "guide.arg.stringAddress": "the address of the string's first byte (not the string itself)",
+  "guide.changes.ended": "Execution ends",
+  "guide.changes.f0": "$f0 (the result)",
+  "guide.changes.f0f1": "$f0, $f1 (the result)",
+  "guide.changes.fileV0": "The virtual file, $v0",
+  "guide.changes.memory": "Memory; registers stay the same",
+  "guide.changes.memoryV0": "Memory, $v0",
+  "guide.changes.terminal": "The terminal; registers stay the same",
+  "guide.changes.v0": "$v0 (the result)",
+  "guide.chosen": "$v0 = {n} chose \u201C{name}\u201D{where}.",
+  "guide.chosen.setter": " (set by line {line} {code}{when})",
+  "guide.chosen.step": ", step {step}",
+  "guide.chosen.unknown": "What a syscall does depends on the number in $v0. No instruction above this line sets $v0 directly, so its value is known only once execution reaches this line.",
+  "guide.heading.args": "Arguments",
+  "guide.heading.changes": "What changes",
+  "guide.heading.does": "What it does",
+  "guide.heading.effect": "What happens",
+  "guide.meaning.address": "this is an address; the contents are in memory",
+  "guide.meaning.char": "code {code} is the character '{char}'",
+  "guide.meaning.notPrintable": "code {code} ({char}, not a printable character)",
+  "guide.meaning.prints": "prints as {value}",
+  "guide.memoryWritten": "{bytes, plural, one {# byte} other {# bytes}} written to memory",
+  "guide.output": "Actual output",
+  "guide.readFloat.does": "Waits for a floating-point number to be typed in the terminal.",
+  "guide.registerChanged": "{name} becomes {value}",
+  "guide.title.unknown": "syscall: $v0 unknown",
+  "guide.title.unsupported": "unsupported",
+  "guide.unsupported": "$v0 = {n}: MARS Trace does not support this number (it supports {supported}); running it stops with an error.",
+  "guide.waiting": "Waiting for input: type in the terminal at the bottom and press Enter. Until then $v0 is still {n}; no made-up result is shown.",
+  "guide.wasWaiting": "it was waiting for input",
+  "history.empty": "0 / 0 steps",
+  "history.position": "{step} / {total} steps",
+  "import.add": "Add to project",
+  "import.addInto": "Add into",
+  "import.addToCurrent": "Add to the current project",
+  "import.added": "Added {count, plural, one {# file} other {# files}}.",
+  "import.asNew": "Open as a new project (replaces the current contents)",
+  "import.backupNote": "A backup of the current project is kept and can be brought back with \u201CUndo last project change\u201D.",
+  "import.chooseFolder": "Choose folder\u2026",
+  "import.conflict": "Files with the same name",
+  "import.conflict.note": "These files will be overwritten: {files}",
+  "import.conflict.overwrite": "Overwrite and add",
+  "import.drop": "Drop files, a folder or a ZIP here, or click to choose",
+  "import.failed": "Import not completed",
+  "import.failed.note": "The current project is unchanged. Check the files and try again.",
+  "import.kind.folder": "Folder",
+  "import.kind.json": "MARS project",
+  "import.kind.zip": "ZIP package",
+  "import.noFolder": "This browser cannot choose folders. Compress the folder into a ZIP and import that.",
+  "import.preview.files": "Files to import",
+  "import.preview.input": "input",
+  "import.preview.skip": "skipped",
+  "import.preview.skipped": ", {count} skipped",
+  "import.preview.source": "source",
+  "import.preview.summary": ": {sources} source and {inputs} input files{skipped}.",
+  "import.project": "Import project",
+  "import.replace": "Replace project",
+  "import.root": "top folder",
+  "import.supported": "Accepts .s / .asm, UTF-8 text, ZIP and MARS project JSON; up to {files} files and {mb} MB of text.",
+  "import.title": "Import",
+  "ins.abs.keywords": "absolute value positive",
+  "ins.abs.note": "Pseudo-instruction",
+  "ins.abs.purpose": "Absolute value",
+  "ins.add.keywords": "add addition plus sum total",
+  "ins.add.note": "Signed; overflow raises an exception",
+  "ins.add.purpose": "Add two registers",
+  "ins.addi.keywords": "add addition constant increment plus one immediate count",
+  "ins.addi.note": "The immediate is a 16-bit signed number; overflow raises an exception",
+  "ins.addi.purpose": "Add a constant to a register",
+  "ins.addiu.keywords": "add addition constant increment stack immediate pointer",
+  "ins.addiu.note": "The immediate is a 16-bit signed number; overflow raises no exception",
+  "ins.addiu.purpose": "Add a constant to a register without an overflow check",
+  "ins.addu.keywords": "add addition plus sum unsigned address",
+  "ins.addu.note": "Overflow raises no exception; common for addresses and unsigned numbers",
+  "ins.addu.purpose": "Add two registers without an overflow check",
+  "ins.and.keywords": "and bitwise mask clear",
+  "ins.and.note": "1 only where both bits are 1",
+  "ins.and.purpose": "Bitwise AND",
+  "ins.andi.keywords": "and bitwise mask low bits byte clear",
+  "ins.andi.note": "The immediate is zero-extended; often used to keep the low bits",
+  "ins.andi.purpose": "Bitwise AND with a constant",
+  "ins.b.formula": "go to label",
+  "ins.b.keywords": "jump unconditional goto loop",
+  "ins.b.note": "Pseudo-instruction: bgez $zero, label",
+  "ins.b.purpose": "Unconditional jump (written as a branch)",
+  "ins.beq.formula": "if rs == rt, go to label",
+  "ins.beq.keywords": "branch equal test if jump condition",
+  "ins.beq.purpose": "Branch if equal",
+  "ins.beqz.formula": "if rs == 0, go to label",
+  "ins.beqz.keywords": "branch zero test",
+  "ins.beqz.note": "Pseudo-instruction: beq rs, $zero, label",
+  "ins.beqz.purpose": "Branch if equal to 0",
+  "ins.bge.formula": "if rs \u2265 rt, go to label",
+  "ins.bge.keywords": "branch compare comparison greater or equal test",
+  "ins.bge.note": "Pseudo-instruction: slt + beq",
+  "ins.bge.purpose": "Compare: branch if greater than or equal",
+  "ins.bgez.formula": "if rs \u2265 0, go to label",
+  "ins.bgez.keywords": "branch non-negative test positive",
+  "ins.bgez.purpose": "Branch if greater than or equal to 0",
+  "ins.bgt.formula": "if rs > rt, go to label",
+  "ins.bgt.keywords": "branch compare comparison greater than test",
+  "ins.bgt.note": "Pseudo-instruction: slt + bne",
+  "ins.bgt.purpose": "Compare: branch if greater than",
+  "ins.bgtz.formula": "if rs > 0, go to label",
+  "ins.bgtz.keywords": "branch positive test",
+  "ins.bgtz.purpose": "Branch if greater than 0",
+  "ins.ble.formula": "if rs \u2264 rt, go to label",
+  "ins.ble.keywords": "branch compare comparison less or equal test",
+  "ins.ble.note": "Pseudo-instruction: slt + beq",
+  "ins.ble.purpose": "Compare: branch if less than or equal",
+  "ins.blez.formula": "if rs \u2264 0, go to label",
+  "ins.blez.keywords": "branch non-positive test",
+  "ins.blez.purpose": "Branch if less than or equal to 0",
+  "ins.blt.formula": "if rs < rt, go to label",
+  "ins.blt.keywords": "branch compare comparison less than loop test",
+  "ins.blt.note": "Pseudo-instruction: slt + bne",
+  "ins.blt.purpose": "Compare: branch if less than",
+  "ins.bltz.formula": "if rs < 0, go to label",
+  "ins.bltz.keywords": "branch negative test",
+  "ins.bltz.purpose": "Branch if less than 0",
+  "ins.bne.formula": "if rs \u2260 rt, go to label",
+  "ins.bne.keywords": "branch not equal test if loop jump condition",
+  "ins.bne.purpose": "Branch if not equal",
+  "ins.bnez.formula": "if rs \u2260 0, go to label",
+  "ins.bnez.keywords": "branch non-zero loop test",
+  "ins.bnez.note": "Pseudo-instruction: bne rs, $zero, label",
+  "ins.bnez.purpose": "Branch if not 0",
+  "ins.div.formula": "LO \u2190 rs \xF7 rt, HI \u2190 the remainder of rs divided by rt",
+  "ins.div.keywords": "divide division quotient remainder modulo mod",
+  "ins.div.note": "The result is undefined when the divisor is 0",
+  "ins.div.purpose": "Signed divide: the quotient goes into LO and the remainder into HI",
+  "ins.divu.formula": "LO \u2190 rs \xF7 rt, HI \u2190 the remainder",
+  "ins.divu.keywords": "divide division quotient remainder unsigned",
+  "ins.divu.note": "Divides as unsigned numbers",
+  "ins.divu.purpose": "Unsigned divide: the quotient goes into LO and the remainder into HI",
+  "ins.j.keywords": "jump unconditional goto loop",
+  "ins.j.purpose": "Jump to a label",
+  "ins.jal.formula": "$ra \u2190 return address; PC \u2190 label",
+  "ins.jal.keywords": "call function subroutine procedure",
+  "ins.jal.purpose": "Call a function: save the return address in $ra, then jump",
+  "ins.jalr.formula": "rd \u2190 return address; PC \u2190 rs",
+  "ins.jalr.keywords": "call function pointer",
+  "ins.jalr.purpose": "Call the address in a register",
+  "ins.jr.keywords": "return function jump",
+  "ins.jr.purpose": "Jump to the address in a register; jr $ra returns from a function",
+  "ins.la.formula": "rd \u2190 the address of label",
+  "ins.la.keywords": "address string array label",
+  "ins.la.note": "Pseudo-instruction: lui + ori; you get the address, not the contents",
+  "ins.la.purpose": "Put a label's address in a register",
+  "ins.lb.formula": "rt \u2190 byte[rs + offset], sign-extended",
+  "ins.lb.keywords": "load read memory byte character",
+  "ins.lb.note": "Fills with 1 when the top bit is 1",
+  "ins.lb.purpose": "Load 1 byte from memory (sign-extended)",
+  "ins.lbu.formula": "rt \u2190 byte[rs + offset], upper bits 0",
+  "ins.lbu.keywords": "load read memory byte character string unsigned",
+  "ins.lbu.note": "The usual way to read a character",
+  "ins.lbu.purpose": "Load 1 byte from memory (zero-extended)",
+  "ins.lh.formula": "rt \u2190 halfword[rs + offset]",
+  "ins.lh.keywords": "load read memory halfword",
+  "ins.lh.note": "The address must be a multiple of 2",
+  "ins.lh.purpose": "Load 2 bytes from memory (sign-extended)",
+  "ins.lhu.formula": "rt \u2190 halfword[rs + offset], upper bits 0",
+  "ins.lhu.keywords": "load read memory halfword unsigned",
+  "ins.lhu.note": "The address must be a multiple of 2",
+  "ins.lhu.purpose": "Load 2 bytes from memory (zero-extended)",
+  "ins.li.keywords": "constant assign load set immediate initialise",
+  "ins.li.note": "Pseudo-instruction: expands to addiu/ori, or lui + ori, by size",
+  "ins.li.purpose": "Put a constant in a register",
+  "ins.lui.keywords": "upper constant address immediate",
+  "ins.lui.note": "The lower 16 bits are cleared",
+  "ins.lui.purpose": "Put a constant in the upper 16 bits",
+  "ins.lw.formula": "rt \u2190 memory[rs + offset]",
+  "ins.lw.keywords": "load read memory array value word",
+  "ins.lw.note": "The address must be a multiple of 4",
+  "ins.lw.purpose": "Load 4 bytes from memory",
+  "ins.marsOriginal": "MARS's own description",
+  "ins.mfhi.keywords": "remainder upper modulo hi",
+  "ins.mfhi.purpose": "Read HI (the upper half of a product or a division remainder)",
+  "ins.mflo.keywords": "quotient lower product lo",
+  "ins.mflo.purpose": "Read LO (the lower half of a product or a division quotient)",
+  "ins.move.keywords": "copy assign move save",
+  "ins.move.note": "Pseudo-instruction: addu rd, rs, $zero",
+  "ins.move.purpose": "Copy a register's value",
+  "ins.mul.formula": "rd \u2190 the low 32 bits of (rs \xD7 rt)",
+  "ins.mul.keywords": "multiply multiplication product times",
+  "ins.mul.note": "The upper bits are dropped; the result can overflow without an error",
+  "ins.mul.purpose": "Multiply, keeping only the low 32 bits",
+  "ins.mult.keywords": "multiply multiplication product times",
+  "ins.mult.note": "The upper 32 bits are in HI and the lower 32 in LO; read them with mfhi/mflo",
+  "ins.mult.purpose": "Signed multiply; the 64-bit result goes into HI and LO",
+  "ins.multu.keywords": "multiply multiplication product unsigned",
+  "ins.multu.note": "Multiplies as unsigned numbers",
+  "ins.multu.purpose": "Unsigned multiply; the 64-bit result goes into HI and LO",
+  "ins.neg.keywords": "negate negative minus",
+  "ins.neg.note": "Pseudo-instruction: sub rd, $zero, rs",
+  "ins.neg.purpose": "Negate",
+  "ins.nop.formula": "(no change)",
+  "ins.nop.keywords": "nothing placeholder delay slot",
+  "ins.nop.note": "Often put in a delay slot",
+  "ins.nop.purpose": "Do nothing",
+  "ins.nor.keywords": "nor not invert",
+  "ins.nor.note": "nor with $zero inverts every bit",
+  "ins.nor.purpose": "Bitwise NOR",
+  "ins.not.keywords": "not invert complement bitwise",
+  "ins.not.note": "Pseudo-instruction: nor rd, rs, $zero",
+  "ins.not.purpose": "Invert every bit",
+  "ins.or.keywords": "or bitwise set combine",
+  "ins.or.note": "1 where either bit is 1",
+  "ins.or.purpose": "Bitwise OR",
+  "ins.ori.keywords": "or bitwise set constant",
+  "ins.ori.note": "The immediate is zero-extended",
+  "ins.ori.purpose": "Bitwise OR with a constant",
+  "ins.sb.formula": "byte[rs + offset] \u2190 the low 8 bits of rt",
+  "ins.sb.keywords": "store write memory byte character",
+  "ins.sb.purpose": "Store the lowest byte to memory",
+  "ins.service.1.keywords": "print output show integer number print int printf",
+  "ins.service.10.keywords": "exit end stop quit",
+  "ins.service.11.keywords": "print output show character char print char putchar",
+  "ins.service.12.keywords": "read input character read char getchar",
+  "ins.service.13.keywords": "open file",
+  "ins.service.14.keywords": "read file",
+  "ins.service.15.keywords": "write file",
+  "ins.service.16.keywords": "close file",
+  "ins.service.17.keywords": "exit end status code return code",
+  "ins.service.2.keywords": "print output float decimal",
+  "ins.service.3.keywords": "print output float decimal double",
+  "ins.service.34.keywords": "print output hexadecimal hex",
+  "ins.service.35.keywords": "print output binary",
+  "ins.service.36.keywords": "print output unsigned",
+  "ins.service.4.keywords": "print output show string text sentence print string printf",
+  "ins.service.5.keywords": "read input keyboard integer number read int scanf",
+  "ins.service.6.keywords": "read input float decimal",
+  "ins.service.7.keywords": "read input float decimal double",
+  "ins.service.8.keywords": "read input keyboard string name line text read string scanf gets",
+  "ins.service.9.keywords": "allocate memory heap malloc",
+  "ins.service.note": "Put {n} in $v0 first, then run syscall",
+  "ins.sh.formula": "halfword[rs + offset] \u2190 the low 16 bits of rt",
+  "ins.sh.keywords": "store write memory halfword",
+  "ins.sh.note": "The address must be a multiple of 2",
+  "ins.sh.purpose": "Store the lowest 2 bytes to memory",
+  "ins.sll.keywords": "shift left multiply by 2 double",
+  "ins.sll.note": "Fills with 0 on the right; shifting left by n multiplies by 2\u207F",
+  "ins.sll.purpose": "Logical shift left",
+  "ins.sllv.formula": "rd \u2190 rt << (the low 5 bits of rs)",
+  "ins.sllv.keywords": "shift left variable",
+  "ins.sllv.purpose": "Shift left by a register amount",
+  "ins.slt.keywords": "compare comparison less than test condition",
+  "ins.slt.note": "Compares as signed numbers",
+  "ins.slt.purpose": "Compare: 1 if less than, otherwise 0",
+  "ins.slti.keywords": "compare comparison less than constant",
+  "ins.slti.note": "Compares as signed numbers",
+  "ins.slti.purpose": "Compare with a constant",
+  "ins.sltiu.keywords": "compare comparison less than unsigned",
+  "ins.sltiu.purpose": "Compare with a constant as unsigned numbers",
+  "ins.sltu.keywords": "compare comparison less than unsigned",
+  "ins.sltu.note": "Compares as unsigned numbers",
+  "ins.sltu.purpose": "Compare as unsigned numbers",
+  "ins.sra.keywords": "shift right divide by 2 signed",
+  "ins.sra.note": "Fills with the sign bit on the left (signed; the sign is kept)",
+  "ins.sra.purpose": "Arithmetic shift right",
+  "ins.srav.formula": "rd \u2190 rt >> (the low 5 bits of rs)",
+  "ins.srav.keywords": "shift right variable signed",
+  "ins.srav.purpose": "Arithmetic shift right by a register amount",
+  "ins.srl.keywords": "shift right divide by 2 unsigned upper bits",
+  "ins.srl.note": "Fills with 0 on the left (unsigned)",
+  "ins.srl.purpose": "Logical shift right",
+  "ins.srlv.formula": "rd \u2190 rt >>> (the low 5 bits of rs)",
+  "ins.srlv.keywords": "shift right variable",
+  "ins.srlv.purpose": "Logical shift right by a register amount",
+  "ins.sub.keywords": "subtract subtraction minus difference",
+  "ins.sub.note": "Signed; overflow raises an exception",
+  "ins.sub.purpose": "Subtract two registers",
+  "ins.subu.keywords": "subtract subtraction minus difference unsigned negate",
+  "ins.subu.note": "Overflow raises no exception",
+  "ins.subu.purpose": "Subtract two registers without an overflow check",
+  "ins.sw.formula": "memory[rs + offset] \u2190 rt",
+  "ins.sw.keywords": "store write memory save array word",
+  "ins.sw.note": "The address must be a multiple of 4",
+  "ins.sw.purpose": "Store 4 bytes to memory",
+  "ins.syscall.formula": "does what the value of $v0 says",
+  "ins.syscall.keywords": "system call print input output read exit service",
+  "ins.syscall.note": "Put the matching number in $v0 first, and arguments in $a0 and so on",
+  "ins.syscall.purpose": "System call: input, output or exit; the value of $v0 decides what",
+  "ins.xor.keywords": "xor exclusive or bitwise flip compare equal",
+  "ins.xor.note": "1 where the bits differ",
+  "ins.xor.purpose": "Bitwise XOR",
+  "ins.xori.keywords": "xor exclusive or flip",
+  "ins.xori.note": "The immediate is zero-extended",
+  "ins.xori.purpose": "Bitwise XOR with a constant",
+  "inspector.accesses": "Reads and writes",
+  "inspector.actualResult": "Actual result after running",
+  "inspector.address.base": "Base",
+  "inspector.address.bytes": "{offset, plural, one {# byte} other {# bytes}}",
+  "inspector.address.offset": "Offset",
+  "inspector.addressAfter": "Address computed from the register values after {step, plural, one {# step} other {# steps}}",
+  "inspector.asAddress": "View as address",
+  "inspector.bits": "Bit by bit in focus mode",
+  "inspector.bitsPast": "Bit by bit (after stepping back to that step)",
+  "inspector.charTable": "Character table",
+  "inspector.computation": "Computation",
+  "inspector.constant": "Constant",
+  "inspector.constant.note": "A number written in the code, the same value in several notations:",
+  "inspector.directive": "Assembler directive",
+  "inspector.directive.note": "It tells the assembler how to lay out the contents; it is not a machine instruction and never runs by itself.",
+  "inspector.empty": "Nothing pinned yet. Hover over code for a short note; {keys}, click \u201CDetails\u201D in the note or press F12 to see the full explanation here.",
+  "inspector.empty.page": "Nothing pinned yet. Hover over code for a short note; click \u201CDetails\u201D in the note, Cmd/Ctrl+click or press F12 to see the full explanation here.",
+  "inspector.followAgain": "Follow execution again",
+  "inspector.following": "Following execution \xB7 line {line}, {when}",
+  "inspector.following.done": "just run",
+  "inspector.following.next": "about to run",
+  "inspector.justRun": "Just run (step {step})",
+  "inspector.label": "A label or name. After assembling you can see its address; you can also find where the code uses it.",
+  "inspector.lastWrite": "Last write",
+  "inspector.lastWriteAt": "last written at step {last}",
+  "inspector.lineRef": " (line {line})",
+  "inspector.locate": "Go to this line",
+  "inspector.memoryCell": "memory[{address}]",
+  "inspector.neverWritten": "not written yet (initial value)",
+  "inspector.noInstruction": "There is no instruction on this line to inspect.",
+  "inspector.noReads": "Reads no register or memory",
+  "inspector.noWrites": "Writes no register or memory",
+  "inspector.notReached": "Execution has not reached this line in this run",
+  "inspector.pin": "Pin",
+  "inspector.pinned": "Pinned \xB7 {item}{line}{away}",
+  "inspector.pinned.away": " \xB7 execution is now at line {line}",
+  "inspector.pinned.line": " \xB7 line {line}",
+  "inspector.preview": "About to run \xB7 a preview below, not run yet",
+  "inspector.previewOnly": "Preview: not run yet",
+  "inspector.pseudo": "This line is a pseudo-instruction: once it has run you see the result of the whole line; focus mode shows the machine instructions it expands to, one by one.",
+  "inspector.ranAt": "Ran at step {step} (not the latest step)",
+  "inspector.reads": "reads {items}",
+  "inspector.references": "Find references",
+  "inspector.register": "register",
+  "inspector.register.value": "Value after {step, plural, one {# step} other {# steps}} \xB7 {lastWrite}",
+  "inspector.rule": "General rule",
+  "inspector.runToWrite": "Run to next write",
+  "inspector.sameRegister": "{reg} on the right uses its value before, {before}; {reg} changes only when the result {after} is written back.",
+  "inspector.stale": "Code changed \xB7 values appear after assembling again",
+  "inspector.substituted": "This line, filled in",
+  "inspector.symbol.address": "Symbol address",
+  "inspector.symbol.definition": "Definition",
+  "inspector.symbol.memory": "View memory",
+  "inspector.symbol.references": "References",
+  "inspector.syscall.args": "Arguments {args} \u2192 {result}",
+  "inspector.syscall.noResult": "no result",
+  "inspector.syscall.services": "What each $v0 value does",
+  "inspector.syscall.terms": "{words} register syscall",
+  "inspector.syscall.title": "syscall: $v0 chooses what happens",
+  "inspector.thisLine": "This line: ",
+  "inspector.title": "Inspector",
+  "inspector.tools": "Actions for the inspected item",
+  "inspector.unpin": "Unpin",
+  "inspector.unpin.tip": "Unpin and follow execution again",
+  "inspector.valuesAfter": "Values after",
+  "inspector.valuesBefore": "Values before",
+  "inspector.valuesBeforeNow": "Values before running now",
+  "inspector.viewMemory": "View memory \u2192",
+  "inspector.writes": "writes {items}",
+  "keys.chordPending": "{key} pressed, waiting for the second key\u2026",
+  "keys.detail": "Ctrl+click",
+  "keys.detailMac": "\u2318 or Ctrl+click",
+  "keys.retired.F7": "Step Instruction is now Alt+F11 (F11 is Step Into)",
+  "keys.retired.F8": "Step Over is now F10",
+  "keys.retired.F9": "F9 now toggles a breakpoint; Run / Continue is F5 and Pause is F6",
+  "keys.retired.back": "Step Back is now Shift+F9",
+  "keys.retired.palette": "The command palette is now Cmd/Ctrl+Shift+P or F1; Cmd/Ctrl+K now starts a key chord (e.g. Cmd/Ctrl+K F opens focus mode)",
+  "layout.reset": "Layout reset.",
+  "layout.splitter.bottom": "Resize the bottom panel",
+  "layout.splitter.context": "Resize the inspector",
+  "layout.splitter.left": "Resize the file column",
+  "layout.splitter.registers": "Resize the registers",
+  "layout.splitter.right": "Resize the right column",
+  "layout.splitter.tip": "Drag to resize, double-click to reset",
+  "logs.empty": "Logpoints (fill in \u201CLog message\u201D with \u270E on a breakpoint) write here when hit, without pausing the program.",
+  "mars.badString": '"{text}" is not a valid character string',
+  "mars.globalDefined": '"{name}" already defined as global in a different file.',
+  "mars.globalUndefined": '"{name}" declared global label but not defined.',
+  "mars.invalidElement": "Invalid language element: {text}",
+  "mars.labelDefined": 'label "{name}" already defined',
+  "mars.macroOpen": "Macro started but not ended (no .end_macro directive)",
+  "mars.nonNegative": '"{directive}" requires a non-negative integer',
+  "mars.operandRange": '"{operand}": operand is out of range',
+  "mars.operandType": '"{operand}": operand is of incorrect type',
+  "mars.reason.fetchAlign": "fetch address not aligned on word boundary {address}",
+  "mars.reason.overflow": "arithmetic overflow",
+  "mars.reason.range": "address out of range {address}",
+  "mars.reason.storeAlign": "store address not aligned on word boundary {address}",
+  "mars.runtime": "line {line}: Runtime exception at {address}: {reason}",
+  "mars.symbolNotFound": 'Symbol "{name}" not found in symbol table.',
+  "mars.tooFew": '"{op}": Too few or incorrectly formatted operands. Expected: {expected}',
+  "mars.tooMany": '"{op}": Too many or incorrectly formatted operands. Expected: {expected}',
+  "mars.unknownDirective": "MARS does not recognize the {directive} directive.  Ignored.",
+  "mars.unknownOperator": '"{name}" is not a recognized operator',
+  "mars.unsupportedSyscall": "unsupported syscall {n}",
+  "memory.address": "Memory address or symbol",
+  "memory.byte.inaccessible": "Not accessible",
+  "memory.byte.lastWrite": "Last write {step}",
+  "memory.byte.title": "Memory {address}",
+  "memory.byte.watch": "Watch writes to this address",
+  "memory.byte.what": "Contents at this address \xB7 1 byte",
+  "memory.cells.ascii": "cells as characters",
+  "memory.cells.bin": "cells 0b",
+  "memory.cells.dec": "cells 0d",
+  "memory.cells.hex": "cells 0x",
+  "memory.data": "Data",
+  "memory.go": "Go",
+  "memory.invalidAddress": "Enter a valid address or label",
+  "memory.stack": "Stack",
+  "memory.title": "Memory",
+  "menu.learn": "Learn",
+  "menu.learn.examples": "Example programs",
+  "menu.learn.examples.hint": "Asks first, then replaces the current project",
+  "menu.learn.examples.loading": "Loading examples\u2026",
+  "menu.learn.find": "Find instruction\u2026",
+  "menu.learn.find.hint": "Look up instructions and syscalls by name or by what you want to do",
+  "menu.learn.tutorial": "Getting started",
+  "menu.learn.tutorial.hint": "Learn by writing: Hello World and reading your name",
+  "menu.project": "Project",
+  "menu.project.downloadFile": "Download current file",
+  "menu.project.export": "Export to computer\u2026",
+  "menu.project.export.hint": "ZIP or JSON, to open again or send to your teacher",
+  "menu.project.import": "Import\u2026",
+  "menu.project.import.hint": "Files, a folder, or a ZIP or JSON project",
+  "menu.project.new": "New project",
+  "menu.project.new.hint": "Empties the workspace and replaces the current project",
+  "menu.project.restore": "Undo last project change",
+  "menu.project.restore.hint": "Brings back the project as it was before a replace, rename or delete",
+  "menu.project.saveLocal": "Save in this browser",
+  "menu.project.saveLocal.hint": "Cmd/Ctrl+S \xB7 does not write back to the original files on your computer",
+  "menu.view": "View",
+  "menu.view.codeFont": "Code font",
+  "menu.view.codeFont.hint": "Editor, registers, memory and other code text",
+  "menu.view.codeSize": "Code size",
+  "menu.view.codeSize.larger": "Larger code",
+  "menu.view.codeSize.largerNow": "Larger code (now {size})",
+  "menu.view.codeSize.smaller": "Smaller code",
+  "menu.view.codeSize.smallerNow": "Smaller code (now {size})",
+  "menu.view.language": "Language \u8BED\u8A00",
+  "menu.view.resetLayout": "Reset layout",
+  "menu.view.resetLayout.hint": "Column widths, panel heights, folding and the side tab",
+  "menu.view.theme": "Toggle dark / light",
+  "overlay.dashed": "Dashed \xB7 next step",
+  "overlay.reads": "Reads",
+  "overlay.scope": "Which lines",
+  "overlay.scope.all": "All relations",
+  "overlay.scope.focus": "Focused item",
+  "overlay.solid": "Solid \xB7 just done",
+  "overlay.writes": "Writes",
+  "page.menubar": "Menu",
+  "path.edge.call": "call",
+  "path.edge.fallthrough": "condition false",
+  "path.edge.jump": "jump",
+  "path.edge.next": "in order",
+  "path.edge.return": "return",
+  "path.edge.taken": "condition true",
+  "peek.count": "\xB7 {count, plural, one {# reference} other {# references}}",
+  "peek.none": "No references in the code.",
+  "picker.hint": "File or label name \xB7 @ symbol in this file \xB7 :line \xB7 file:line \xB7 0x address \xB7",
+  "picker.hint.commands": "commands \xB7 ? find instructions",
+  "picker.none": "No matches",
+  "picker.quickOpen": "Quick open",
+  "picker.search": "Search",
+  "project.backupNote": "A backup of the current project is kept and can be brought back with \u201CUndo last project change\u201D; export important code first.",
+  "project.blankReady": "Blank project ready: start writing, or import your own files from the Project menu.",
+  "project.busy": "Pause execution first and wait for the current action to finish.",
+  "project.busyScope": "Pause execution before changing what is assembled.",
+  "project.defaultName": "My project",
+  "project.draftUnreadable": "The earlier browser draft cannot be read and was not overwritten. Import a project to recover, or start a new one.",
+  "project.name": "Project name",
+  "project.name.label": "Name",
+  "project.name.required": "Enter a name.",
+  "project.new.note": "Empties the workspace and creates a main.s without example code.",
+  "project.rename.title": "Rename the project",
+  "project.restored": "Project restored from this browser; click \u201CAssemble\u201D to start.",
+  "project.saveUnavailable": "Browser storage is unavailable; export the project to keep it.",
+  "project.savedNote": "Source saved in this browser; export the project before switching devices.",
+  "project.status.failed": "Could not save \xB7 export the project",
+  "project.status.saved": "Saved in this browser",
+  "project.status.saving": "Saving\u2026",
+  "project.status.unreadable": "Old draft unreadable \xB7 not overwritten",
+  "project.updated": "Project updated \xB7 click \u201CAssemble\u201D to start.",
+  "radix.auto": "Auto",
+  "radix.help.ascii": "ASCII: each byte is read as a character from the character code table, e.g. 104 reads as h and 48 as 0; \\0, \\n and \\t stand for the null character, newline and tab. Values that do not look like characters (e.g. 11) stay in decimal, marked \u201Cnot a printable character\u201D.",
+  "radix.help.auto": "Auto: values that look like addresses (inside the code, data or stack range) are shown in hexadecimal, everything else in decimal. A value never switches notation just because it grows.",
+  "radix.help.bin": "BIN: binary, prefix 0b, with _ every 4 bits; these are the bits themselves. Negative numbers use two's complement: \u22121 is 32 ones, \u22127 is 1\u20261111_1001; a top bit of 1 means negative.",
+  "radix.help.dec": "DEC: decimal, prefix 0d. Ordinary values are read as signed (they can be negative); raw bytes and addresses are read as unsigned.",
+  "radix.help.heading": "Number formats",
+  "radix.help.hex": "HEX: hexadecimal, prefix 0x. Each digit stands for 0\u201315 (a\u2013f for 10\u201315); two digits make exactly one byte.",
+  "radix.help.same": "One number in each notation: {forms}",
+  "radix.help.scope": "Changes only the read-only areas (registers, memory, addresses, results, focus mode); the code never changes.",
+  "radix.help.table": "Character table (ASCII)",
+  "radix.help.tableNote": "Memory holds only numbers; with this table each number from 0 to 127 can be read as a character. It lists decimal, hexadecimal and the character.",
+  "radix.help.title": "Number formats and the character table",
+  "radix.legend": "0d dec \xB7 0x hex \xB7 0b bin \xB7 '\u2026' char",
+  "radix.notPrintable": "not a printable character",
+  "radix.switch": "Numbers",
+  "radix.switch.label": "Number format",
+  "radix.switch.tip": "How numbers are shown in registers, memory, addresses and focus mode (code is never changed)",
+  "radix.table.space": "space",
+  "references.title": "References \xB7 {token}",
+  "refs.kind.definition": "definition",
+  "refs.kind.operand": "operand (static)",
+  "refs.kind.read": "read",
+  "refs.kind.readWrite": "read + write",
+  "refs.kind.transfer": "control transfer",
+  "refs.kind.use": "reference",
+  "refs.kind.write": "write",
+  "registers.filter": "Register filter",
+  "registers.filter.all": "All",
+  "registers.filter.pinned": "Pinned",
+  "registers.filter.related": "This step",
+  "registers.legend.ascii": "'\u2026' char \xB7 0d dec",
+  "registers.legend.auto": "0d dec \xB7 0x hex",
+  "registers.legend.bin": "0b bin",
+  "registers.legend.dec": "0d dec",
+  "registers.legend.hex": "0x hex",
+  "registers.oldValue": "old value",
+  "registers.signNote": "Top bit is 1: read as signed it is {value} (two's complement)",
+  "registers.tip": "{name} \xB7 {role}\n{full}{note}{sign}\nPrefixes: {legend} \xB7 click for details",
+  "registers.title": "Registers",
+  "restore.button": "Restore",
+  "restore.note": "Restores the files of \u201C{name}\u201D. The current contents become the next backup.",
+  "restore.title": "Restore the project from before the last change",
+  "role.a": "Calling convention: argument register",
+  "role.at": "Assembler convention: temporary for pseudo-instruction expansions",
+  "role.fp": "Calling convention: frame pointer / saved register",
+  "role.gp": "Calling convention: global pointer",
+  "role.k": "Convention: reserved for the kernel",
+  "role.ra": "Calling convention: return address; written by jal",
+  "role.s": "Calling convention: callee-saved; the hardware does not save it for you",
+  "role.sp": "Calling convention: stack pointer; its value is usually read as an address",
+  "role.t": "Calling convention: temporary; not kept across function calls",
+  "role.v": "Calling convention: return value; before a syscall it also holds the number saying what to do",
+  "role.zero": "ISA: always 0; writes are discarded",
+  "scope.addFile": "Add {file} to the chosen files",
+  "scope.ambiguousSymbol": "{sym}, used by {file}, is defined in {files}, so which one to link cannot be decided automatically. Switch to \u201CChoose files\u2026\u201D beside the Assemble button.",
+  "scope.assembleAgain": "Assemble again",
+  "scope.assembleEntry": "Assemble (entry {entry})",
+  "scope.assembleFile": "Assemble {file}",
+  "scope.backTo": "Back to {back}",
+  "scope.describe.many": "{mode}, {count} files (entry {entry})",
+  "scope.manualChanged": "The chosen files changed",
+  "scope.manualEmpty": "No source files are ticked for the chosen assembly yet.",
+  "scope.manyMains": "{file} has no main, and several files in its folder define main ({mains}), so which one to run cannot be decided automatically. Open the one you want to run and assemble it, or switch to \u201CSingle file\u201D or \u201CChoose files\u2026\u201D beside the Assemble button.",
+  "scope.modeChanged": "{change}, but the program that can run is still the one loaded before ({program}). Click [Assemble again] to load it the new way.",
+  "scope.modeChangedTo": "The assembly mode is now {mode}",
+  "scope.noSource": "(no source chosen yet)",
+  "scope.openSource": "Open the .s / .asm source file to assemble first.",
+  "scope.otherFile": "You are viewing {file}; the program that can run now is {program}. To run {file}, click [{assemble}] first, or [back to {back}] to keep debugging.",
+  "scope.outsideManual": "{file} is not among the chosen files; the program that can run now is {program}.",
+  "scope.runnable.many": "{entry} and {count, plural, one {# other file} other {# other files}}",
+  "search.symbolDetail": "{kind} \xB7 line {line}{address}",
+  "service.1": "print integer",
+  "service.10": "exit program",
+  "service.11": "print character",
+  "service.12": "read character",
+  "service.13": "open virtual file",
+  "service.14": "read file",
+  "service.15": "write file",
+  "service.16": "close file",
+  "service.17": "exit with status code",
+  "service.2": "print float",
+  "service.3": "print double",
+  "service.34": "print integer in hexadecimal",
+  "service.35": "print integer in binary",
+  "service.36": "print unsigned integer",
+  "service.4": "print NUL-terminated string",
+  "service.5": "read integer",
+  "service.6": "read float",
+  "service.7": "read double",
+  "service.8": "read string",
+  "service.9": "allocate heap memory",
+  "side.files": "Files",
+  "side.stops": "Break\xADpoints",
+  "side.stops.title": "Breakpoints and watchpoints",
+  "side.symbols": "Symbols",
+  "side.symbols.heading": "Symbols and locations",
+  "side.symbols.placeholder": "Search labels / addresses",
+  "side.symbols.search": "Search symbols",
+  "side.symbols.title": "Find symbols",
+  "side.tabs": "Side bar",
+  "side.watches": "Watchpoints",
+  "side.watches.add": "Add watchpoint",
+  "side.watches.add.button": "+ Add",
+  "status.breakpoint": "Stopped before a breakpoint \xB7 {where} (not run yet) \xB7 about to run for time {visits}",
+  "status.dirty": "Source changed \xB7 assemble again to continue",
+  "status.ended": "Ended \xB7 exit code {exitCode}",
+  "status.error": "Error \xB7 {message}",
+  "status.goToLine": "Click to go to this line",
+  "status.historyLimit": "History limit of 100000 steps reached \xB7 assemble again to continue",
+  "status.notAssembled": "Not assembled",
+  "status.notAssembledYet": "Not assembled yet",
+  "status.paused": "Paused",
+  "status.paused.after": "Paused \xB7 just ran {where}",
+  "status.pausing": "Pausing\u2026",
+  "status.ready": "Ready \xB7 starts at {where}",
+  "status.replay": "Replaying history \xB7 step {step} of {total}",
+  "status.running": "Running \xB7 step {step}",
+  "status.start": "Not assembled \xB7 click \u201CAssemble\u201D to start",
+  "status.waiting": "Waiting for input \xB7 type in the console and press Enter",
+  "status.watchpoint": "Watchpoint hit \xB7 {where} just {access} the watched item",
+  "status.watchpoint.read": "read",
+  "status.watchpoint.write": "wrote",
+  "tabs.close": "Close tab {file}",
+  "tabs.close.tip": "Close the tab; the file stays in the project",
+  "tabs.empty": "Choose a file on the left, or create one",
+  "tip.asciiLow": "ASCII low byte",
+  "tip.constant": "A constant written in the code",
+  "tip.detailButton": "Details on the right \u2192",
+  "tip.detailHint": "{keys}: details in the Inspector on the right",
+  "tip.directive": "Assembler directive, not a machine instruction",
+  "tip.instructionDoc": "Instruction / assembler note",
+  "tip.label": "Label or name; its address shows after assembling",
+  "tip.marsExample": " (example: {example})",
+  "tip.marsOriginal": "MARS original{example}",
+  "tip.marsSubstituted": " (with this line's operands)",
+  "tip.notPrintable": "not printable",
+  "tip.symbolAddress": "Symbol address {address}",
+  "tip.symbolJump": "{keys} to go to the definition",
+  "tip.syntax": "Syntax: ",
+  "tip.syscallLater": "What a syscall does depends on the number in $v0; it is known only once execution reaches this line.",
+  "tip.syscallSetter": "set by line {line} {code}",
+  "tip.syscallUnknown": "syscall ($v0 unknown)",
+  "tip.unsupported": "unsupported",
+  "tip.valueAfter": "Value after {step, plural, one {# step} other {# steps}}",
+  "toolbar.assemble": "Assemble \u2318\u21B5",
+  "toolbar.assemble.tip": "Assemble \xB7 Cmd/Ctrl+Enter; assemble again and restart \xB7 Cmd/Ctrl+Shift+F5",
+  "toolbar.assemble.tipScope": "{scope} \xB7 Cmd/Ctrl+Enter; assemble again and restart \xB7 Cmd/Ctrl+Shift+F5",
+  "toolbar.assembleMode": "Choose how to assemble",
+  "toolbar.back": "Step Back",
+  "toolbar.back.label": "Step Back (Shift+F9)",
+  "toolbar.back.tip": "Step Back \xB7 Shift+F9",
+  "toolbar.backToStart": "Back to start",
+  "toolbar.backToStart.tip": "Back to start: assemble the current program again and stop before its first instruction",
+  "toolbar.bp.none": "{tip} (no breakpoints set yet)",
+  "toolbar.continue": "Continue",
+  "toolbar.continue.run": "Continue running at full speed to a breakpoint, an input wait or the end \xB7 F5",
+  "toolbar.continue.steps": "Continue step by step from here",
+  "toolbar.delay": "Delayed branching",
+  "toolbar.delay.tip": "Delayed branching: when on, the instruction right after a jump or branch always runs first, taken or not (how real MIPS hardware behaves). Assemble again after changing it.",
+  "toolbar.nextBp": "Run to next breakpoint",
+  "toolbar.nextBp.tip": "Run to next breakpoint: full speed to the next breakpoint (or to the end if there is none)",
+  "toolbar.out": "Step Out",
+  "toolbar.out.label": "Step Out (Shift+F11)",
+  "toolbar.out.outside": "{tip} (not inside a function: there is no call to return to)",
+  "toolbar.out.tip": "Step Out: finish the current function and return to where it was called \xB7 Shift+F11",
+  "toolbar.over": "Step Over",
+  "toolbar.over.label": "Step Over (F10)",
+  "toolbar.over.tip": "Step Over: run one source line, with any function it calls run to completion \xB7 F10",
+  "toolbar.pause": "Pause",
+  "toolbar.pause.label": "Pause (F6)",
+  "toolbar.pause.tip": "Pause \xB7 F6",
+  "toolbar.prevBp": "Back to previous breakpoint",
+  "toolbar.prevBp.none": "No earlier point in this run stood before a breakpoint",
+  "toolbar.prevBp.tip": "Back to previous breakpoint: return to the last point in the history where execution stood before a breakpoint",
+  "toolbar.run": "Run",
+  "toolbar.run.label": "Run (F5)",
+  "toolbar.run.tip": "Run: full speed to a breakpoint, an input wait or the end \xB7 F5",
+  "toolbar.runGroup": "Run",
+  "toolbar.source": "Step Into",
+  "toolbar.source.label": "Step Into (F11)",
+  "toolbar.source.tip": "Step Into: run one source line, entering any function it calls \xB7 F11",
+  "toolbar.speed": "Speed",
+  "toolbar.speed.label": "Step-by-step speed",
+  "toolbar.speed.rate": "{rate} steps/s",
+  "toolbar.speed.tip": "Step-by-step speed: {rate}",
+  "toolbar.speed.value": "{rate} steps per second",
+  "toolbar.step": "Step Instruction",
+  "toolbar.step.label": "Step Instruction (Alt+F11)",
+  "toolbar.step.tip": "Step Instruction: run one machine instruction \xB7 Alt+F11",
+  "toolbar.stepGroup": "Stepping",
+  "toolbar.steps": "Step-by-step run",
+  "toolbar.steps.tip": "Step-by-step run: one step at a time, the editor follows execution",
+  "trace.goToStep": "Go to step",
+  "trace.historyStep": "History step",
+  "trace.iteration": "Iteration {n} \xB7 from #{step}",
+  "trace.lineGroup": "{key} \xB7 {count, plural, one {# machine instruction} other {# machine instructions}}",
+  "trace.loop": "Loop {header} \xB7 entered {entries, plural, one {# time} other {# times}} \xB7 jumped back {backJumps, plural, one {# time} other {# times}}",
+  "trace.output": " \xB7 output",
+  "trace.window": "Showing the nearby 170 steps; you can jump anywhere in the history",
+  "tutorial.backTo": " You can also go back to your project \u201C{name}\u201D.",
+  "tutorial.card.answer": "Reference answer",
+  "tutorial.card.answer.note": "Reference answer (compare it with your own; it is never filled in for you):",
+  "tutorial.card.back": "Back",
+  "tutorial.card.collapse": "Collapse",
+  "tutorial.card.exit": "Leave",
+  "tutorial.card.finish": "Finish",
+  "tutorial.card.hint": "Hint {n}: {hint}",
+  "tutorial.card.hintButton": "Hint",
+  "tutorial.card.moreHint": "Another hint",
+  "tutorial.card.next": "Next",
+  "tutorial.card.skip": "Skip",
+  "tutorial.card.skip.tip": "Go to the next step without checking",
+  "tutorial.card.stage": "Stage {stage} \xB7 {progress}",
+  "tutorial.card.title": "Getting started {progress}{done}",
+  "tutorial.code.age": "li $v0, 5            # $v0 = 5: read integer, result in $v0\n    syscall\n    addi $a0, $v0, 1     # next year's age\n    li $v0, 1            # $v0 = 1: print integer\n    syscall",
+  "tutorial.code.hello": ".text\n.globl main\nmain:\n    la $a0, greeting   # address of the string's first byte\n    li $v0, 4          # $v0 = 4: print string\n    syscall\n    li $v0, 10         # $v0 = 10: exit\n    syscall",
+  "tutorial.code.name": "name:     .space 32         # buffer for the name (32 bytes)\n.text\n.globl main\nmain:\n    la $a0, name        # buffer address\n    li $a1, 32          # use at most 32 bytes\n    li $v0, 8           # $v0 = 8: read string\n    syscall\n    la $a0, greeting\n    li $v0, 4\n    syscall\n    la $a0, name        # print the name: $a0 is the address\n    li $v0, 4\n    syscall\n    la $a0, bang\n    li $v0, 4\n    syscall\n    li $v0, 10\n    syscall",
+  "tutorial.code.overflow": "li $t0, 0x7fffffff   # the largest 32-bit signed integer\n    addi $t0, $t0, 1     # what happens if we add 1?",
+  "tutorial.exit": "Leave Getting started",
+  "tutorial.exit.note": "{praise}The practice project stays in the workspace; you can keep editing or export it.{back}",
+  "tutorial.finished": "Getting started complete",
+  "tutorial.go.a0": "Inspect $a0",
+  "tutorial.go.files": "Open the Files tab",
+  "tutorial.go.focus": "Open focus mode",
+  "tutorial.go.inspector": "Open the Inspector",
+  "tutorial.go.printString": "Look up \u201Cprint string\u201D",
+  "tutorial.go.printString.query": "find:print string",
+  "tutorial.go.projectMenu": "Open the Project menu",
+  "tutorial.go.readInt": "Look up \u201Cread integer\u201D",
+  "tutorial.go.readInt.query": "find:read integer",
+  "tutorial.go.readString": "Look up \u201Cread string\u201D",
+  "tutorial.go.readString.query": "find:read string",
+  "tutorial.go.stops": "Open the Breakpoints tab",
+  "tutorial.keepGoing": "Keep practising",
+  "tutorial.keepProject": "Keep the practice project",
+  "tutorial.restore": "Back to my project",
+  "tutorial.s1.check": "The project has hello.s",
+  "tutorial.s1.goal": "Where does your first program go? Create a source file hello.s in the Files tab on the left.",
+  "tutorial.s1.hint1": "Click + File next to \u201CProject files\u201D on the left.",
+  "tutorial.s1.hint2": "Enter hello.s as the path; the extension must be a lower-case .s.",
+  "tutorial.s1.title": "Create hello.s",
+  "tutorial.s10.check1": "There is a write watchpoint on $t0",
+  "tutorial.s10.check2": "The watchpoint stopped the program",
+  "tutorial.s10.goal": "Which line wrote this value into $t0? Add a write watchpoint on $t0 in the Breakpoints tab, then run again.",
+  "tutorial.s10.hint1": "Use + next to \u201CWatchpoints\u201D, enter $t0 as the target and choose write.",
+  "tutorial.s10.hint2": "You can also click \u201CRun to next write\u201D in the Inspector for register $t0.",
+  "tutorial.s10.title": "Find the write with a watchpoint",
+  "tutorial.s11.check1": "Ran to the end without an error",
+  "tutorial.s11.check2": "Adding 1 to $t0 did not overflow (the result equals the old value + 1)",
+  "tutorial.s11.fail": "The run has no error, but the result is not \u201Cold value + 1\u201D: the overflow is still there, just ignored.",
+  "tutorial.s11.goal": "Changing addi to addiu only stops the error; the result turns negative, which is not a fix. Change the starting value to a number that can take +1 without overflowing, run to the end, and check that $t0 is right.",
+  "tutorial.s11.hint1": "Compare \u201CValues before\u201D with the result in the Inspector.",
+  "tutorial.s11.hint2": "For example li $t0, 41; adding 1 should give 42.",
+  "tutorial.s11.title": "Fix it and check the result",
+  "tutorial.s12.check": "An integer was read and that integer + 1 was printed",
+  "tutorial.s12.goal": "After the greeting, read an integer as an age and print next year's age. Assemble, run and check it yourself.",
+  "tutorial.s12.hint1": "To read an integer: $v0 = 5; the number read ends up in $v0.",
+  "tutorial.s12.hint2": "To print an integer: $v0 = 1, with the number to print in $a0.",
+  "tutorial.s12.title": "Read an age and print next year's age",
+  "tutorial.s13.check": "The project was exported",
+  "tutorial.s13.goal": "Save your program to your computer: Project menu \u2192 Export to computer\u2026, then ZIP or JSON.",
+  "tutorial.s13.hint": "The exported file can be opened again or handed to your teacher.",
+  "tutorial.s13.title": "Export your project",
+  "tutorial.s2.check1": "hello.s is assembled and loaded",
+  "tutorial.s2.check2": "The run has ended",
+  "tutorial.s2.check3": "Hello! appears in the terminal",
+  "tutorial.s2.goal": "How do you make the terminal show Hello!? Write the program in hello.s, click \u201CAssemble\u201D, then \u201CRun\u201D (the double-triangle icon in the toolbar, or F5).",
+  "tutorial.s2.hint1": "Strings go in the .data segment, written with .asciiz, which adds a \\0 at the end.",
+  "tutorial.s2.hint2": "To print a string: $v0 = 4, $a0 = the string's address (from la), then syscall. Finish with a syscall where $v0 = 10 to exit.",
+  "tutorial.s2.title": "Make the program print Hello!",
+  "tutorial.s3.check1": "The program read input once",
+  "tutorial.s3.check2": "Hello, and the name you typed appear in the terminal",
+  "tutorial.s3.goal": "How does the program learn your name? Read a line of text first, then print Hello, the name and ! one after another. Type the name in the terminal at the bottom when it runs.",
+  "tutorial.s3.hint1": "The name has to go into memory first: set aside a buffer in .data with .space 32.",
+  "tutorial.s3.hint2": "To read a string: $v0 = 8, $a0 = the buffer address, $a1 = the most bytes to use. To print the name, $a0 is that address again.",
+  "tutorial.s3.hint3": "You will see the ! land on the next line: reading a string stores the Enter key in the buffer too. The next stage uses the debugger to see it.",
+  "tutorial.s3.note": "The ! is on the next line because reading the string also stored Enter (\\n) in the buffer. In the next stage you can see it in memory.",
+  "tutorial.s3.title": "Read a name and print Hello, name!",
+  "tutorial.s4.check1": "A breakpoint is set",
+  "tutorial.s4.check2": "Stopped before a print-string syscall ($v0 = 4)",
+  "tutorial.s4.goal": "Before the name is printed, which register decides what comes out? Set a breakpoint on the syscall line that prints the name, then run to it.",
+  "tutorial.s4.hint1": "Click the space left of the line number, or put the cursor on the line and press F9.",
+  "tutorial.s4.hint2": "The syscall that prints the name comes right after li $v0, 4, which comes after la $a0, name.",
+  "tutorial.s4.title": "Stop before the name is printed",
+  "tutorial.s5.check": "The Inspector on the right shows this syscall",
+  "tutorial.s5.goal": "Hover over syscall for a short note, then click \u201CDetails\u201D (or Cmd/Ctrl+click) to open the Inspector on the right. What arguments does it need?",
+  "tutorial.s5.hint1": "The Inspector shows \u201CWhat it does \u2192 Arguments \u2192 What happens \u2192 What changes\u201D.",
+  "tutorial.s5.hint2": "When printing a string, $a0 is an address, not the string itself.",
+  "tutorial.s5.title": "Understand this syscall",
+  "tutorial.s6.check": "The Memory panel shows where $a0 points",
+  "tutorial.s6.goal": "Where does the value of $a0 point? Click $a0 in the Registers panel, choose \u201CView as address\u201D, and find the name you typed in memory.",
+  "tutorial.s6.hint1": "Click $a0 in the Registers panel; the Inspector on the right shows \u201CView as address\u201D.",
+  "tutorial.s6.hint2": "The 0a byte after the name is the Enter key (\\n), and the final 00 is the \\0.",
+  "tutorial.s6.title": "Follow the address to the name",
+  "tutorial.s7.check": "A syscall ran in focus mode",
+  "tutorial.s7.goal": "When this syscall runs, which register is read and what appears in the terminal? Open focus mode (Focus mode at the bottom) and press Shift+\u2193 to run one line.",
+  "tutorial.s7.hint1": "In focus mode, \u2190\u2192 goes through the explanations and ? shows why.",
+  "tutorial.s7.hint2": "After it runs the terminal flashes to show there is new output.",
+  "tutorial.s7.title": "Run it in focus mode",
+  "tutorial.s8.check": "The program stopped because of an overflow",
+  "tutorial.s8.goal": "Add the two lines below just before the final exit, then assemble and run. What does the program do? Read the error message.",
+  "tutorial.s8.hint1": "Put the two lines above before li $v0, 10.",
+  "tutorial.s8.hint2": "0x7fffffff is the largest value a 32-bit signed integer can hold.",
+  "tutorial.s8.title": "Make a calculation overflow",
+  "tutorial.s9.check1": "Stepped back to before the error",
+  "tutorial.s9.check2": "Opened the Inspector for that instruction",
+  "tutorial.s9.goal": "Before the failing line ran, what was $t0? Use Step Back to go back and open the Inspector on the failing line.",
+  "tutorial.s9.hint1": "\u21B6 in the toolbar (Shift+F9) is Step Back.",
+  "tutorial.s9.hint2": "\u201CValues before\u201D in the Inspector is the answer.",
+  "tutorial.s9.title": "See the values before the error",
+  "tutorial.stage1": "1 \xB7 Write, assemble, run",
+  "tutorial.stage2": "2 \xB7 Input and output",
+  "tutorial.stage3": "3 \xB7 Breakpoints and inspecting",
+  "tutorial.stage4": "4 \xB7 Find and fix a bug",
+  "tutorial.stage5": "5 \xB7 Add a feature yourself",
+  "tutorial.start.about": "Learn by writing: start by printing Hello!, read your name, look at it closely with breakpoints, the Inspector and focus mode, find and fix an overflow, and finally add a feature yourself and export it.",
+  "tutorial.start.begin": "Start",
+  "tutorial.start.noStorage": "Browser storage is unavailable, so the current project cannot be saved first. Export the project, then start.",
+  "tutorial.start.safe": "The exercises open a separate practice project. Your current project is saved first and you can go back to it at the end; your code is not overwritten.",
+  "tutorial.start.title": "Getting started: Hello World",
+  "tutorial.wellDone": "Well done! ",
+  "usage.base": "base register: the memory address is counted from it",
+  "usage.compared": "the {side} side of the comparison",
+  "usage.comparedWithZero": "the register compared with 0",
+  "usage.immediate": "a constant written in the instruction",
+  "usage.jumpRegister": "the jump target address is in this register",
+  "usage.label.address": "the label whose address is taken (where the data or code says name:)",
+  "usage.label.branch": "branch here when the condition holds",
+  "usage.label.jump": "jump to this label",
+  "usage.label.target": "{what} (where the code says name:)",
+  "usage.left": "left",
+  "usage.loadTarget": "the value read from memory goes into this register",
+  "usage.offset": "byte offset: base register + offset = memory address",
+  "usage.operand": "a register used in the operation",
+  "usage.result": "the result is written to this register",
+  "usage.right": "right",
+  "usage.shiftAmount": "how many bits to shift (0\u201331)",
+  "usage.shiftRegister": "its low 5 bits are the shift amount",
+  "usage.storeSource": "the value to write to memory is in this register",
+  "view.cfg": "Control flow",
+  "view.machine": "Machine code",
+  "view.source": "Source",
+  "watch.access.read": "read",
+  "watch.access.write": "write",
+  "watch.add.access": "Read / write",
+  "watch.add.button": "Add",
+  "watch.add.target": "Watch",
+  "watch.add.title": "Add a read / write watchpoint",
+  "workspace.badFiles": "Invalid project file list.",
+  "workspace.badFolders": "Invalid folder list.",
+  "workspace.belongsInSource": "{name} belongs with the source files.",
+  "workspace.duplicate": "Duplicate file: {name}",
+  "workspace.fileAndFolder": "{name} cannot be both a file and a folder.",
+  "workspace.import.badFolderMeta": "Invalid folder project information.",
+  "workspace.import.duplicate": "The import has two files named {name}",
+  "workspace.import.fileTooLarge": "A single imported file cannot exceed {mb} MB.",
+  "workspace.import.nothing": "There are no files to import.",
+  "workspace.import.skipNotText": "{name} (not UTF-8 text)",
+  "workspace.import.skipTooLarge": "{name} (file too large)",
+  "workspace.import.tooLarge": "An import holds at most {limit} of unpacked text.",
+  "workspace.import.zipBadFolders": "Invalid ZIP folder information.",
+  "workspace.import.zipDuplicate": "The ZIP has two files named {name}",
+  "workspace.import.zipTooLarge": "The ZIP exceeds the unpacked size or file count limit.",
+  "workspace.keepKind": "Keep the file a source or an input file when renaming.",
+  "workspace.limit": "{files} files and {mb} MB",
+  "workspace.missing": "The file does not exist.",
+  "workspace.moveIntoItself": "A folder cannot be moved into itself.",
+  "workspace.newSource": "# Write your MIPS assembly program here\n.text",
+  "workspace.notProject": "Not a valid MARS project file.",
+  "workspace.notUtf8": "{name} is not UTF-8 text; convert its encoding first.",
+  "workspace.path.invalid": "Use a relative path inside the project, e.g. src/main.s; paths cannot contain empty parts, .. or reserved names.",
+  "workspace.path.notText": "A file path must be text.",
+  "workspace.path.reserved": ".mars-project.json is reserved for project metadata.",
+  "workspace.path.tooLong": "A file path cannot be longer than 240 characters.",
+  "workspace.sameName": "Files with the same name: {files}",
+  "workspace.sourceExtension": "Source file {name} needs a lower-case .s or .asm extension.",
+  "workspace.targetExists": "Already exists: {path}",
+  "workspace.textOnly": "Only UTF-8 text files are supported for now.",
+  "workspace.tooLarge": "A project holds at most {limit} of text.",
+  "workspace.tooManyFolders": "A project holds at most {max} folders."
+};
+
+// ui/i18n/index.js
+var LANGUAGES = [
+  { code: "zh-CN", name: "\u7B80\u4F53\u4E2D\u6587", messages: zh_CN_default },
+  { code: "en", name: "English", messages: en_default }
+];
+var REFERENCE = "zh-CN";
+var STORE = "mars-trace:language";
+var pseudo = (text2) => "\u27E6" + text2.replace(/(\{[^{}]*\}|<[^>]*>)|[A-Za-z]+/g, (m, keep) => keep ? m : m + "\xB7".repeat(Math.ceil(m.length * 0.4))) + "\u27E7";
+var pseudoMessages = null;
+function pseudoCatalog() {
+  return pseudoMessages ??= Object.fromEntries(Object.entries(en_default).map(([k, v]) => [k, v.includes("plural") ? v : pseudo(v)]));
+}
+function pick() {
+  const known = (code) => LANGUAGES.find((l) => l.code.toLowerCase() === String(code).toLowerCase()) || LANGUAGES.find((l) => l.code.split("-")[0] === String(code).toLowerCase().split("-")[0]);
+  try {
+    const asked = new URLSearchParams(location.search).get("lang");
+    if (asked === "pseudo") return "pseudo";
+    if (asked && known(asked)) return known(asked).code;
+  } catch {
+  }
+  try {
+    const saved = localStorage.getItem(STORE);
+    if (saved && known(saved)) return known(saved).code;
+  } catch {
+  }
+  for (const l of globalThis.navigator?.languages || [globalThis.navigator?.language || ""])
+    if (/^zh\b/i.test(l)) return "zh-CN";
+  return "en";
+}
+var current = pick();
+var listeners = /* @__PURE__ */ new Set();
+var catalog = (code) => code === "pseudo" ? pseudoCatalog() : LANGUAGES.find((l) => l.code === code)?.messages || {};
+var language = () => current;
+function setLanguage(code) {
+  if (!LANGUAGES.some((l) => l.code === code) || code === current) return;
+  current = code;
+  try {
+    localStorage.setItem(STORE, code);
+  } catch {
+  }
+  if (globalThis.document) {
+    document.documentElement.lang = code;
+    applyDom();
+  }
+  for (const fn of listeners) fn(code);
+}
+function onLanguageChange(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+function plural(n, forms) {
+  const rule = new Intl.PluralRules(current === "pseudo" ? "en" : current).select(Number(n));
+  return (forms[rule] ?? forms.other ?? "").replace(/#/g, String(n));
+}
+function format(message, params = {}) {
+  let out = "", i = 0;
+  while (i < message.length) {
+    const open = message.indexOf("{", i);
+    if (open < 0) break;
+    const m = /^\{([A-Za-z_]\w*)(\s*,\s*plural\s*,)?/.exec(message.slice(open));
+    if (!m) {
+      out += message.slice(i, open + 1);
+      i = open + 1;
+      continue;
+    }
+    out += message.slice(i, open);
+    if (!m[2]) {
+      const close = message.indexOf("}", open);
+      out += params[m[1]] ?? "";
+      i = close + 1;
+      continue;
+    }
+    let j = open + m[0].length, depth = 1;
+    const forms = {};
+    while (j < message.length && depth > 0) {
+      const sel = /^\s*([=\w]+)\s*\{/.exec(message.slice(j));
+      if (!sel) {
+        j = message.indexOf("}", j) + 1;
+        depth--;
+        break;
+      }
+      let k = j + sel[0].length, d = 1;
+      const startText = k;
+      while (k < message.length && d > 0) {
+        if (message[k] === "{") d++;
+        else if (message[k] === "}") d--;
+        k++;
+      }
+      forms[sel[1]] = format(message.slice(startText, k - 1), params);
+      j = k;
+      const end = /^\s*\}/.exec(message.slice(j));
+      if (end) {
+        j += end[0].length;
+        depth--;
+      }
+    }
+    out += plural(params[m[1]], forms);
+    i = j;
+  }
+  return out + message.slice(i);
+}
+function t(key, params) {
+  let message = catalog(current)[key];
+  if (message == null) message = catalog("en")[key] ?? catalog(REFERENCE)[key];
+  if (message == null) {
+    if (globalThis.console) console.warn("Missing text", key);
+    return key;
+  }
+  return params || message.includes("{") ? format(message, params) : message;
+}
+function localized(build) {
+  let cache, built;
+  const now = () => built === current ? cache : (built = current, cache = build());
+  return new Proxy(
+    {},
+    {
+      get(_, k) {
+        const target2 = now(), v = Reflect.get(target2, k);
+        return typeof v === "function" ? v.bind(target2) : v;
+      },
+      has: (_, k) => k in now(),
+      ownKeys: () => Reflect.ownKeys(now()).filter((k) => k !== "length"),
+      getOwnPropertyDescriptor(_, k) {
+        const d = Reflect.getOwnPropertyDescriptor(now(), k);
+        return d && { ...d, configurable: true };
+      }
+    }
+  );
+}
+var ATTRS = ["title", "aria-label", "placeholder", "tip"];
+function applyDom(root = globalThis.document) {
+  if (!root) return;
+  const params = (el) => el.dataset.i18nParams ? JSON.parse(el.dataset.i18nParams) : void 0;
+  for (const el of root.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n, params(el));
+  for (const a of ATTRS)
+    for (const el of root.querySelectorAll(`[data-i18n-${a}]`)) {
+      const name2 = a === "tip" ? "data-tip" : a;
+      el.setAttribute(name2, t(el.getAttribute(`data-i18n-${a}`)));
+      if (a === "tip") delete el.dataset.tipBase;
+    }
+}
+if (globalThis.document) document.documentElement.lang = current;
+
+// ui/i18n/mars.js
+var MESSAGES = [
+  [/^"(.+)" is not a recognized operator$/, "mars.unknownOperator", ["name"]],
+  [/^"(.+)": Too few or incorrectly formatted operands\. Expected: (.+)$/, "mars.tooFew", ["op", "expected"]],
+  [/^"(.+)": Too many or incorrectly formatted operands\. Expected: (.+)$/, "mars.tooMany", ["op", "expected"]],
+  [/^"(.+)": operand is of incorrect type$/, "mars.operandType", ["operand"]],
+  [/^"(.+)": operand is out of range$/, "mars.operandRange", ["operand"]],
+  [/^Symbol "(.+)" not found in symbol table\.$/, "mars.symbolNotFound", ["name"]],
+  [/^label "(.+)" already defined$/, "mars.labelDefined", ["name"]],
+  [/^"(.+)" already defined as global in a different file\.$/, "mars.globalDefined", ["name"]],
+  [/^"(.+)" declared global label but not defined\.$/, "mars.globalUndefined", ["name"]],
+  [/^"(.+)" is not a valid character string$/, "mars.badString", ["text"]],
+  [/^MARS does not recognize the (\S+) directive\.\s+Ignored\.$/, "mars.unknownDirective", ["directive"]],
+  [/^"(.+)" requires a non-negative integer$/, "mars.nonNegative", ["directive"]],
+  [/^Macro started but not ended \(no \.end_macro directive\)$/, "mars.macroOpen", []],
+  [/^[\s\S]*\nInvalid language element: (.+)$/, "mars.invalidElement", ["text"]],
+  [/^unsupported syscall (\d+)$/, "mars.unsupportedSyscall", ["n"]]
+];
+var REASONS = [
+  [/^arithmetic overflow$/, "mars.reason.overflow", []],
+  [/^fetch address not aligned on word boundary (\S+)$/, "mars.reason.fetchAlign", ["address"]],
+  [/^store address not aligned on word boundary (\S+)$/, "mars.reason.storeAlign", ["address"]],
+  [/^address out of range (\S+)$/, "mars.reason.range", ["address"]]
+];
+function match(table, text2) {
+  for (const [re, key, names] of table) {
+    const m = re.exec(text2);
+    if (m) return t(key, Object.fromEntries(names.map((n, i) => [n, m[i + 1]])));
+  }
+  return null;
+}
+function marsText(message) {
+  const text2 = String(message ?? "").trim();
+  const runtime = /^Error in .*? line (\d+): Runtime exception at (0x[0-9a-f]+): ([\s\S]*)$/i.exec(text2);
+  if (runtime) {
+    const reason = runtime[3].trim();
+    return t("mars.runtime", { line: runtime[1], address: runtime[2], reason: match(REASONS, reason) ?? reason });
+  }
+  return match(MESSAGES, text2) ?? text2;
+}
+
 // node_modules/@marijn/find-cluster-break/src/index.js
 var rangeFrom = [];
 var rangeTo = [];
@@ -2633,12 +5961,12 @@ function combineConfig(configs, defaults3, combine = {}) {
   let result = {};
   for (let config2 of configs)
     for (let key of Object.keys(config2)) {
-      let value = config2[key], current = result[key];
-      if (current === void 0)
+      let value = config2[key], current2 = result[key];
+      if (current2 === void 0)
         result[key] = value;
-      else if (current === value || value === void 0) ;
+      else if (current2 === value || value === void 0) ;
       else if (Object.hasOwnProperty.call(combine, key))
-        result[key] = combine[key](current, value);
+        result[key] = combine[key](current2, value);
       else
         throw new Error("Config merge conflict for field " + key);
     }
@@ -4921,7 +8249,7 @@ var ScrollTarget = class _ScrollTarget {
     return this.range.to <= state2.doc.length ? this : new _ScrollTarget(EditorSelection.cursor(state2.doc.length), this.y, this.x, this.yMargin, this.xMargin, this.isSnapshot);
   }
 };
-var scrollIntoView = /* @__PURE__ */ StateEffect.define({ map: (t2, ch) => t2.map(ch) });
+var scrollIntoView = /* @__PURE__ */ StateEffect.define({ map: (t3, ch) => t3.map(ch) });
 var setEditContextFormatting = /* @__PURE__ */ StateEffect.define();
 function logException(state2, exception, context) {
   let handler = state2.facet(exceptionSink);
@@ -5345,9 +8673,9 @@ var Tile = class {
     return null;
   }
   get root() {
-    for (let t2 = this; t2; t2 = t2.parent)
-      if (t2 instanceof DocTile)
-        return t2;
+    for (let t3 = this; t3; t3 = t3.parent)
+      if (t3 instanceof DocTile)
+        return t3;
     return null;
   }
   static get(dom) {
@@ -6014,7 +9342,7 @@ var TileBuilder = class {
       if (wrap.from < this.pos && last2 instanceof BlockWrapperTile && last2.wrapper.eq(wrap.wrapper)) {
         parent = last2;
       } else {
-        let tile = BlockWrapperTile.of(wrap.wrapper, (_a3 = this.cache.find(BlockWrapperTile, (t2) => t2.wrapper.eq(wrap.wrapper))) === null || _a3 === void 0 ? void 0 : _a3.dom);
+        let tile = BlockWrapperTile.of(wrap.wrapper, (_a3 = this.cache.find(BlockWrapperTile, (t3) => t3.wrapper.eq(wrap.wrapper))) === null || _a3 === void 0 ? void 0 : _a3.dom);
         parent.append(tile);
         parent = tile;
       }
@@ -9754,7 +13082,7 @@ var ViewState = class {
   // since actual DOM coordinates aren't always available and
   // predictable. Relies on generous margins (see LG.Margin) to hide
   // the artifacts this might produce from the user.
-  ensureLineGaps(current, mayMeasure) {
+  ensureLineGaps(current2, mayMeasure) {
     let wrapping = this.heightOracle.lineWrapping;
     let margin = wrapping ? 1e4 : 2e3, halfMargin = margin >> 1, doubleMargin = margin << 1;
     if (this.defaultTextDirection != Direction.LTR && !wrapping)
@@ -9773,7 +13101,7 @@ var ViewState = class {
           return;
         }
       }
-      let gap = find(current, (gap2) => gap2.from >= line.from && gap2.to <= line.to && Math.abs(gap2.from - from) < halfMargin && Math.abs(gap2.to - to) < halfMargin && !avoid.some((pos) => gap2.from < pos && gap2.to > pos));
+      let gap = find(current2, (gap2) => gap2.from >= line.from && gap2.to <= line.to && Math.abs(gap2.from - from) < halfMargin && Math.abs(gap2.to - to) < halfMargin && !avoid.some((pos) => gap2.from < pos && gap2.to > pos));
       if (!gap) {
         if (to < line.to && mayMeasure && wrapping && mayMeasure.visibleRanges.some((r) => r.from <= to && r.to >= to)) {
           let lineStart = mayMeasure.moveToLineBoundary(EditorSelection.cursor(to), false, true).head;
@@ -9813,7 +13141,7 @@ var ViewState = class {
         let marginWidth = margin * this.heightOracle.charWidth;
         let horizOffset = 0;
         if (totalWidth > 2e6)
-          for (let old of current) {
+          for (let old of current2) {
             if (old.from >= line.from && old.from < line.to && old.size != old.displaySize && old.from * this.heightOracle.charWidth + horizOffset < this.pixelViewport.left)
               horizOffset = old.size - old.displaySize;
           }
@@ -10858,10 +14186,10 @@ var EditContextManager = class {
     };
     this.handlers.textformatupdate = (e) => {
       let deco = [];
-      for (let format of e.getTextFormats()) {
-        let lineStyle = format.underlineStyle, thickness = format.underlineThickness;
+      for (let format2 of e.getTextFormats()) {
+        let lineStyle = format2.underlineStyle, thickness = format2.underlineThickness;
         if (!/none/i.test(lineStyle) && !/none/i.test(thickness)) {
-          let from = this.toEditorPos(format.rangeStart), to = this.toEditorPos(format.rangeEnd);
+          let from = this.toEditorPos(format2.rangeStart), to = this.toEditorPos(format2.rangeEnd);
           if (from < to) {
             let style = `text-decoration: underline ${/^[a-z]/.test(lineStyle) ? lineStyle + " " : lineStyle == "Dashed" ? "dashed " : lineStyle == "Squiggle" ? "wavy " : ""}${/thin/i.test(thickness) ? 1 : 2}px`;
             deco.push(Decoration.mark({ attributes: { style } }).range(from, to));
@@ -12071,10 +15399,10 @@ function buildKeymap(bindings2, platform = currentPlatform) {
   let bound = /* @__PURE__ */ Object.create(null);
   let isPrefix = /* @__PURE__ */ Object.create(null);
   let checkPrefix = (name2, is) => {
-    let current = isPrefix[name2];
-    if (current == null)
+    let current2 = isPrefix[name2];
+    if (current2 == null)
       isPrefix[name2] = is;
-    else if (current != is)
+    else if (current2 != is)
       throw new Error("Key binding " + name2 + " is used both as a regular binding and as a multi-stroke prefix");
   };
   let add2 = (scope, key, command3, preventDefault, stopPropagation) => {
@@ -12649,15 +15977,15 @@ var MatchDecorator = class {
       throw new RangeError("The regular expression given to MatchDecorator should have its 'g' flag set");
     this.regexp = regexp;
     if (decorate) {
-      this.addMatch = (match, view2, from, add2) => decorate(add2, from, from + match[0].length, match, view2);
+      this.addMatch = (match2, view2, from, add2) => decorate(add2, from, from + match2[0].length, match2, view2);
     } else if (typeof decoration == "function") {
-      this.addMatch = (match, view2, from, add2) => {
-        let deco = decoration(match, view2, from);
+      this.addMatch = (match2, view2, from, add2) => {
+        let deco = decoration(match2, view2, from);
         if (deco)
-          add2(from, from + match[0].length, deco);
+          add2(from, from + match2[0].length, deco);
       };
     } else if (decoration) {
-      this.addMatch = (match, _view, from, add2) => add2(from, from + match[0].length, decoration);
+      this.addMatch = (match2, _view, from, add2) => add2(from, from + match2[0].length, decoration);
     } else {
       throw new RangeError("Either 'decorate' or 'decoration' should be provided to MatchDecorator");
     }
@@ -13015,18 +16343,18 @@ var TooltipViewManager = class {
     this.createTooltipView = createTooltipView;
     this.removeTooltipView = removeTooltipView;
     this.input = view2.state.facet(facet);
-    this.tooltips = this.input.filter((t2) => t2);
+    this.tooltips = this.input.filter((t3) => t3);
     let prev = null;
-    this.tooltipViews = this.tooltips.map((t2) => prev = createTooltipView(t2, prev));
+    this.tooltipViews = this.tooltips.map((t3) => prev = createTooltipView(t3, prev));
   }
   update(update, above) {
     var _a3;
     let input = update.state.facet(this.facet);
     let tooltips = input.filter((x) => x);
     if (input === this.input) {
-      for (let t2 of this.tooltipViews)
-        if (t2.update)
-          t2.update(update);
+      for (let t3 of this.tooltipViews)
+        if (t3.update)
+          t3.update(update);
       return false;
     }
     let tooltipViews = [], newAbove = above ? [] : null;
@@ -13051,10 +16379,10 @@ var TooltipViewManager = class {
           tooltipView.update(update);
       }
     }
-    for (let t2 of this.tooltipViews)
-      if (tooltipViews.indexOf(t2) < 0) {
-        this.removeTooltipView(t2);
-        (_a3 = t2.destroy) === null || _a3 === void 0 ? void 0 : _a3.call(t2);
+    for (let t3 of this.tooltipViews)
+      if (tooltipViews.indexOf(t3) < 0) {
+        this.removeTooltipView(t3);
+        (_a3 = t3.destroy) === null || _a3 === void 0 ? void 0 : _a3.call(t3);
       }
     if (above) {
       newAbove.forEach((val, i) => above[i] = val);
@@ -13107,12 +16435,12 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
     this.createContainer();
     this.measureReq = { read: this.readMeasure.bind(this), write: this.writeMeasure.bind(this), key: this };
     this.resizeObserver = typeof ResizeObserver == "function" ? new ResizeObserver(() => this.measureSoon()) : null;
-    this.manager = new TooltipViewManager(view2, showTooltip, (t2, p) => this.createTooltip(t2, p), (t2) => {
+    this.manager = new TooltipViewManager(view2, showTooltip, (t3, p) => this.createTooltip(t3, p), (t3) => {
       if (this.resizeObserver)
-        this.resizeObserver.unobserve(t2.dom);
-      t2.dom.remove();
+        this.resizeObserver.unobserve(t3.dom);
+      t3.dom.remove();
     });
-    this.above = this.manager.tooltips.map((t2) => !!t2.above);
+    this.above = this.manager.tooltips.map((t3) => !!t3.above);
     this.intersectionObserver = typeof IntersectionObserver == "function" ? new IntersectionObserver((entries) => {
       if (Date.now() > this.lastTransaction - 50 && entries.length > 0 && entries[entries.length - 1].intersectionRatio < 1)
         this.measureSoon();
@@ -13155,8 +16483,8 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
     let newConfig = update.state.facet(tooltipConfig);
     if (newConfig.position != this.position && !this.madeAbsolute) {
       this.position = newConfig.position;
-      for (let t2 of this.manager.tooltipViews)
-        t2.dom.style.position = this.position;
+      for (let t3 of this.manager.tooltipViews)
+        t3.dom.style.position = this.position;
       shouldMeasure = true;
     }
     if (newConfig.parent != this.parent) {
@@ -13164,8 +16492,8 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
         this.container.remove();
       this.parent = newConfig.parent;
       this.createContainer();
-      for (let t2 of this.manager.tooltipViews)
-        this.container.appendChild(t2.dom);
+      for (let t3 of this.manager.tooltipViews)
+        this.container.appendChild(t3.dom);
       shouldMeasure = true;
     } else if (this.parent && this.view.themeClasses != this.classes) {
       this.classes = this.container.className = this.view.themeClasses;
@@ -13238,9 +16566,9 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
         bottom: visible.bottom - margins.bottom
       },
       parent: this.parent ? this.container.getBoundingClientRect() : this.view.dom.getBoundingClientRect(),
-      pos: this.manager.tooltips.map((t2, i) => {
+      pos: this.manager.tooltips.map((t3, i) => {
         let tv = this.manager.tooltipViews[i];
-        return tv.getCoords ? tv.getCoords(t2.pos) : this.view.coordsAtPos(t2.pos);
+        return tv.getCoords ? tv.getCoords(t3.pos) : this.view.coordsAtPos(t3.pos);
       }),
       size: this.manager.tooltipViews.map(({ dom }) => dom.getBoundingClientRect()),
       space: this.view.state.facet(tooltipConfig).tooltipSpace(this.view),
@@ -13255,8 +16583,8 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
     if (measured.makeAbsolute) {
       this.madeAbsolute = true;
       this.position = "absolute";
-      for (let t2 of this.manager.tooltipViews)
-        t2.dom.style.position = "absolute";
+      for (let t3 of this.manager.tooltipViews)
+        t3.dom.style.position = "absolute";
     }
     let { visible, space, scaleX, scaleY } = measured;
     let others = [];
@@ -13332,8 +16660,8 @@ var tooltipPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
   }
 });
 function setLeftStyle(elt, value) {
-  let current = parseInt(elt.style.left, 10);
-  if (isNaN(current) || Math.abs(value - current) > 1)
+  let current2 = parseInt(elt.style.left, 10);
+  if (isNaN(current2) || Math.abs(value - current2) > 1)
     elt.style.left = value + "px";
 }
 var baseTheme = /* @__PURE__ */ EditorView.baseTheme({
@@ -13415,7 +16743,7 @@ var HoverTooltipHost = class _HoverTooltipHost {
     this.mounted = false;
     this.dom = document.createElement("div");
     this.dom.classList.add("cm-tooltip-hover");
-    this.manager = new TooltipViewManager(view2, showHoverTooltip, (t2, p) => this.createHostedView(t2, p), (t2) => t2.dom.remove());
+    this.manager = new TooltipViewManager(view2, showHoverTooltip, (t3, p) => this.createHostedView(t3, p), (t3) => t3.dom.remove());
   }
   createHostedView(tooltip, prev) {
     let hostedView = tooltip.create(this.view);
@@ -13443,8 +16771,8 @@ var HoverTooltipHost = class _HoverTooltipHost {
   }
   destroy() {
     var _a3;
-    for (let t2 of this.manager.tooltipViews)
-      (_a3 = t2.destroy) === null || _a3 === void 0 ? void 0 : _a3.call(t2);
+    for (let t3 of this.manager.tooltipViews)
+      (_a3 = t3.destroy) === null || _a3 === void 0 ? void 0 : _a3.call(t3);
   }
   passProp(name2) {
     let value = void 0;
@@ -13477,14 +16805,14 @@ var showHoverTooltipHost = /* @__PURE__ */ showTooltip.compute([showHoverTooltip
   if (tooltips.length === 0)
     return null;
   return {
-    pos: Math.min(...tooltips.map((t2) => t2.pos)),
-    end: Math.max(...tooltips.map((t2) => {
+    pos: Math.min(...tooltips.map((t3) => t3.pos)),
+    end: Math.max(...tooltips.map((t3) => {
       var _a3;
-      return (_a3 = t2.end) !== null && _a3 !== void 0 ? _a3 : t2.pos;
+      return (_a3 = t3.end) !== null && _a3 !== void 0 ? _a3 : t3.pos;
     })),
     create: HoverTooltipHost.create,
     above: tooltips[0].above,
-    arrow: tooltips.some((t2) => t2.arrow)
+    arrow: tooltips.some((t3) => t3.arrow)
   };
 });
 var hoverPlugin = /* @__PURE__ */ Facet.define();
@@ -13570,7 +16898,7 @@ var HoverPlugin = class {
   }
   get tooltip() {
     let plugin = this.view.plugin(tooltipPlugin);
-    let index = plugin ? plugin.manager.tooltips.findIndex((t2) => t2.create == HoverTooltipHost.create) : -1;
+    let index = plugin ? plugin.manager.tooltips.findIndex((t3) => t3.create == HoverTooltipHost.create) : -1;
     return index > -1 ? plugin.manager.tooltipViews[index] : null;
   }
   mousemove(event) {
@@ -14482,13 +17810,13 @@ var NodeProp = class {
   if the node type doesn't get this prop, and the prop's value if
   it does.
   */
-  add(match) {
+  add(match2) {
     if (this.perNode)
       throw new RangeError("Can't add per-node props to node types");
-    if (typeof match != "function")
-      match = NodeType.match(match);
+    if (typeof match2 != "function")
+      match2 = NodeType.match(match2);
     return (type) => {
-      let result = match(type);
+      let result = match2(type);
       return result === void 0 ? null : [this, result];
     };
   }
@@ -14870,15 +18198,15 @@ var TreeBuffer = class _TreeBuffer {
   @internal
   */
   findChild(startIndex, endIndex, dir, pos, side) {
-    let { buffer } = this, pick = -1;
+    let { buffer } = this, pick2 = -1;
     for (let i = startIndex; i != endIndex; i = buffer[i + 3]) {
       if (checkSide(side, pos, buffer[i + 1], buffer[i + 2])) {
-        pick = i;
+        pick2 = i;
         if (dir > 0)
           break;
       }
     }
-    return pick;
+    return pick2;
   }
   /**
   @internal
@@ -15273,20 +18601,20 @@ var BufferNode = class _BufferNode extends BaseNode {
 function iterStack(heads) {
   if (!heads.length)
     return null;
-  let pick = 0, picked = heads[0];
+  let pick2 = 0, picked = heads[0];
   for (let i = 1; i < heads.length; i++) {
     let node = heads[i];
     if (node.from > picked.from || node.to < picked.to) {
       picked = node;
-      pick = i;
+      pick2 = i;
     }
   }
   let next = picked instanceof TreeNode && picked.index < 0 ? null : picked.parent;
   let newHeads = heads.slice();
   if (next)
-    newHeads[pick] = next;
+    newHeads[pick2] = next;
   else
-    newHeads.splice(pick, 1);
+    newHeads.splice(pick2, 1);
   return new StackIterator(newHeads, picked);
 }
 var StackIterator = class {
@@ -16069,8 +19397,8 @@ var Tag = class _Tag {
     let tag = new _Tag(name2, [], null, []);
     tag.set.push(tag);
     if (parent)
-      for (let t2 of parent.set)
-        tag.set.push(t2);
+      for (let t3 of parent.set)
+        tag.set.push(t3);
     return tag;
   }
   /**
@@ -16104,7 +19432,7 @@ var Modifier = class _Modifier {
   static get(base2, mods) {
     if (!mods.length)
       return base2;
-    let exists = mods[0].instances.find((t2) => t2.base == base2 && sameArray2(mods, t2.modified));
+    let exists = mods[0].instances.find((t3) => t3.base == base2 && sameArray2(mods, t3.modified));
     if (exists)
       return exists;
     let set = [], tag = new Tag(base2.name, set, base2, mods);
@@ -16345,21 +19673,21 @@ function getStyleTags(node) {
     rule = rule.next;
   return rule || null;
 }
-var t = Tag.define;
-var comment = t();
-var name = t();
-var typeName = t(name);
-var propertyName = t(name);
-var literal = t();
-var string = t(literal);
-var number = t(literal);
-var content = t();
-var heading = t(content);
-var keyword = t();
-var operator = t();
-var punctuation = t();
-var bracket = t(punctuation);
-var meta = t();
+var t2 = Tag.define;
+var comment = t2();
+var name = t2();
+var typeName = t2(name);
+var propertyName = t2(name);
+var literal = t2();
+var string = t2(literal);
+var number = t2(literal);
+var content = t2();
+var heading = t2(content);
+var keyword = t2();
+var operator = t2();
+var punctuation = t2();
+var bracket = t2(punctuation);
+var meta = t2();
 var tags = {
   /**
   A comment.
@@ -16368,15 +19696,15 @@ var tags = {
   /**
   A line [comment](#highlight.tags.comment).
   */
-  lineComment: t(comment),
+  lineComment: t2(comment),
   /**
   A block [comment](#highlight.tags.comment).
   */
-  blockComment: t(comment),
+  blockComment: t2(comment),
   /**
   A documentation [comment](#highlight.tags.comment).
   */
-  docComment: t(comment),
+  docComment: t2(comment),
   /**
   Any kind of identifier.
   */
@@ -16384,7 +19712,7 @@ var tags = {
   /**
   The [name](#highlight.tags.name) of a variable.
   */
-  variableName: t(name),
+  variableName: t2(name),
   /**
   A type [name](#highlight.tags.name).
   */
@@ -16392,7 +19720,7 @@ var tags = {
   /**
   A tag name (subtag of [`typeName`](#highlight.tags.typeName)).
   */
-  tagName: t(typeName),
+  tagName: t2(typeName),
   /**
   A property or field [name](#highlight.tags.name).
   */
@@ -16400,23 +19728,23 @@ var tags = {
   /**
   An attribute name (subtag of [`propertyName`](#highlight.tags.propertyName)).
   */
-  attributeName: t(propertyName),
+  attributeName: t2(propertyName),
   /**
   The [name](#highlight.tags.name) of a class.
   */
-  className: t(name),
+  className: t2(name),
   /**
   A label [name](#highlight.tags.name).
   */
-  labelName: t(name),
+  labelName: t2(name),
   /**
   A namespace [name](#highlight.tags.name).
   */
-  namespace: t(name),
+  namespace: t2(name),
   /**
   The [name](#highlight.tags.name) of a macro.
   */
-  macroName: t(name),
+  macroName: t2(name),
   /**
   A literal value.
   */
@@ -16428,15 +19756,15 @@ var tags = {
   /**
   A documentation [string](#highlight.tags.string).
   */
-  docString: t(string),
+  docString: t2(string),
   /**
   A character literal (subtag of [string](#highlight.tags.string)).
   */
-  character: t(string),
+  character: t2(string),
   /**
   An attribute value (subtag of [string](#highlight.tags.string)).
   */
-  attributeValue: t(string),
+  attributeValue: t2(string),
   /**
   A number [literal](#highlight.tags.literal).
   */
@@ -16444,32 +19772,32 @@ var tags = {
   /**
   An integer [number](#highlight.tags.number) literal.
   */
-  integer: t(number),
+  integer: t2(number),
   /**
   A floating-point [number](#highlight.tags.number) literal.
   */
-  float: t(number),
+  float: t2(number),
   /**
   A boolean [literal](#highlight.tags.literal).
   */
-  bool: t(literal),
+  bool: t2(literal),
   /**
   Regular expression [literal](#highlight.tags.literal).
   */
-  regexp: t(literal),
+  regexp: t2(literal),
   /**
   An escape [literal](#highlight.tags.literal), for example a
   backslash escape in a string.
   */
-  escape: t(literal),
+  escape: t2(literal),
   /**
   A color [literal](#highlight.tags.literal).
   */
-  color: t(literal),
+  color: t2(literal),
   /**
   A URL [literal](#highlight.tags.literal).
   */
-  url: t(literal),
+  url: t2(literal),
   /**
   A language keyword.
   */
@@ -16478,40 +19806,40 @@ var tags = {
   The [keyword](#highlight.tags.keyword) for the self or this
   object.
   */
-  self: t(keyword),
+  self: t2(keyword),
   /**
   The [keyword](#highlight.tags.keyword) for null.
   */
-  null: t(keyword),
+  null: t2(keyword),
   /**
   A [keyword](#highlight.tags.keyword) denoting some atomic value.
   */
-  atom: t(keyword),
+  atom: t2(keyword),
   /**
   A [keyword](#highlight.tags.keyword) that represents a unit.
   */
-  unit: t(keyword),
+  unit: t2(keyword),
   /**
   A modifier [keyword](#highlight.tags.keyword).
   */
-  modifier: t(keyword),
+  modifier: t2(keyword),
   /**
   A [keyword](#highlight.tags.keyword) that acts as an operator.
   */
-  operatorKeyword: t(keyword),
+  operatorKeyword: t2(keyword),
   /**
   A control-flow related [keyword](#highlight.tags.keyword).
   */
-  controlKeyword: t(keyword),
+  controlKeyword: t2(keyword),
   /**
   A [keyword](#highlight.tags.keyword) that defines something.
   */
-  definitionKeyword: t(keyword),
+  definitionKeyword: t2(keyword),
   /**
   A [keyword](#highlight.tags.keyword) related to defining or
   interfacing with modules.
   */
-  moduleKeyword: t(keyword),
+  moduleKeyword: t2(keyword),
   /**
   An operator.
   */
@@ -16519,39 +19847,39 @@ var tags = {
   /**
   An [operator](#highlight.tags.operator) that dereferences something.
   */
-  derefOperator: t(operator),
+  derefOperator: t2(operator),
   /**
   Arithmetic-related [operator](#highlight.tags.operator).
   */
-  arithmeticOperator: t(operator),
+  arithmeticOperator: t2(operator),
   /**
   Logical [operator](#highlight.tags.operator).
   */
-  logicOperator: t(operator),
+  logicOperator: t2(operator),
   /**
   Bit [operator](#highlight.tags.operator).
   */
-  bitwiseOperator: t(operator),
+  bitwiseOperator: t2(operator),
   /**
   Comparison [operator](#highlight.tags.operator).
   */
-  compareOperator: t(operator),
+  compareOperator: t2(operator),
   /**
   [Operator](#highlight.tags.operator) that updates its operand.
   */
-  updateOperator: t(operator),
+  updateOperator: t2(operator),
   /**
   [Operator](#highlight.tags.operator) that defines something.
   */
-  definitionOperator: t(operator),
+  definitionOperator: t2(operator),
   /**
   Type-related [operator](#highlight.tags.operator).
   */
-  typeOperator: t(operator),
+  typeOperator: t2(operator),
   /**
   Control-flow [operator](#highlight.tags.operator).
   */
-  controlOperator: t(operator),
+  controlOperator: t2(operator),
   /**
   Program or markup punctuation.
   */
@@ -16560,7 +19888,7 @@ var tags = {
   [Punctuation](#highlight.tags.punctuation) that separates
   things.
   */
-  separator: t(punctuation),
+  separator: t2(punctuation),
   /**
   Bracket-style [punctuation](#highlight.tags.punctuation).
   */
@@ -16569,22 +19897,22 @@ var tags = {
   Angle [brackets](#highlight.tags.bracket) (usually `<` and `>`
   tokens).
   */
-  angleBracket: t(bracket),
+  angleBracket: t2(bracket),
   /**
   Square [brackets](#highlight.tags.bracket) (usually `[` and `]`
   tokens).
   */
-  squareBracket: t(bracket),
+  squareBracket: t2(bracket),
   /**
   Parentheses (usually `(` and `)` tokens). Subtag of
   [bracket](#highlight.tags.bracket).
   */
-  paren: t(bracket),
+  paren: t2(bracket),
   /**
   Braces (usually `{` and `}` tokens). Subtag of
   [bracket](#highlight.tags.bracket).
   */
-  brace: t(bracket),
+  brace: t2(bracket),
   /**
   Content, for example plain text in XML or markup documents.
   */
@@ -16596,77 +19924,77 @@ var tags = {
   /**
   A level 1 [heading](#highlight.tags.heading).
   */
-  heading1: t(heading),
+  heading1: t2(heading),
   /**
   A level 2 [heading](#highlight.tags.heading).
   */
-  heading2: t(heading),
+  heading2: t2(heading),
   /**
   A level 3 [heading](#highlight.tags.heading).
   */
-  heading3: t(heading),
+  heading3: t2(heading),
   /**
   A level 4 [heading](#highlight.tags.heading).
   */
-  heading4: t(heading),
+  heading4: t2(heading),
   /**
   A level 5 [heading](#highlight.tags.heading).
   */
-  heading5: t(heading),
+  heading5: t2(heading),
   /**
   A level 6 [heading](#highlight.tags.heading).
   */
-  heading6: t(heading),
+  heading6: t2(heading),
   /**
   A prose [content](#highlight.tags.content) separator (such as a horizontal rule).
   */
-  contentSeparator: t(content),
+  contentSeparator: t2(content),
   /**
   [Content](#highlight.tags.content) that represents a list.
   */
-  list: t(content),
+  list: t2(content),
   /**
   [Content](#highlight.tags.content) that represents a quote.
   */
-  quote: t(content),
+  quote: t2(content),
   /**
   [Content](#highlight.tags.content) that is emphasized.
   */
-  emphasis: t(content),
+  emphasis: t2(content),
   /**
   [Content](#highlight.tags.content) that is styled strong.
   */
-  strong: t(content),
+  strong: t2(content),
   /**
   [Content](#highlight.tags.content) that is part of a link.
   */
-  link: t(content),
+  link: t2(content),
   /**
   [Content](#highlight.tags.content) that is styled as code or
   monospace.
   */
-  monospace: t(content),
+  monospace: t2(content),
   /**
   [Content](#highlight.tags.content) that has a strike-through
   style.
   */
-  strikethrough: t(content),
+  strikethrough: t2(content),
   /**
   Inserted text in a change-tracking format.
   */
-  inserted: t(),
+  inserted: t2(),
   /**
   Deleted text.
   */
-  deleted: t(),
+  deleted: t2(),
   /**
   Changed text.
   */
-  changed: t(),
+  changed: t2(),
   /**
   An invalid or unsyntactic element.
   */
-  invalid: t(),
+  invalid: t2(),
   /**
   Metadata or meta-instruction.
   */
@@ -16675,17 +20003,17 @@ var tags = {
   [Metadata](#highlight.tags.meta) that applies to the entire
   document.
   */
-  documentMeta: t(meta),
+  documentMeta: t2(meta),
   /**
   [Metadata](#highlight.tags.meta) that annotates or adds
   attributes to a given syntactic element.
   */
-  annotation: t(meta),
+  annotation: t2(meta),
   /**
   Processing instruction or preprocessor directive. Subtag of
   [meta](#highlight.tags.meta).
   */
-  processingInstruction: t(meta),
+  processingInstruction: t2(meta),
   /**
   [Modifier](#highlight.Tag^defineModifier) that indicates that a
   given element is being defined. Expected to be used with the
@@ -16785,7 +20113,7 @@ var Language = class {
       } });
     this.parser = parser;
     this.extension = [
-      language.of(this),
+      language2.of(this),
       EditorState.languageData.of((state2, pos, side) => {
         let top2 = topNodeAt(state2, pos, side), data3 = top2.type.prop(languageDataProp);
         if (!data3)
@@ -16815,7 +20143,7 @@ var Language = class {
   in this language, when those exist.
   */
   findRegions(state2) {
-    let lang = state2.facet(language);
+    let lang = state2.facet(language2);
     if ((lang === null || lang === void 0 ? void 0 : lang.data) == this.data)
       return [{ from: 0, to: state2.doc.length }];
     if (!lang || !lang.allowsNesting)
@@ -16861,7 +20189,7 @@ var Language = class {
 };
 Language.setState = /* @__PURE__ */ StateEffect.define();
 function topNodeAt(state2, pos, side) {
-  let topLang = state2.facet(language), tree = syntaxTree(state2).topNode;
+  let topLang = state2.facet(language2), tree = syntaxTree(state2).topNode;
   if (!topLang || topLang.allowsNesting) {
     for (let node = tree; node; node = node.enter(pos, side, IterMode.ExcludeBuffers | IterMode.EnterBracketed))
       if (node.type.isTop)
@@ -17128,7 +20456,7 @@ var LanguageState = class _LanguageState {
   }
   static init(state2) {
     let vpTo = Math.min(3e3, state2.doc.length);
-    let parseState = ParseContext.create(state2.facet(language).parser, state2, { from: 0, to: vpTo });
+    let parseState = ParseContext.create(state2.facet(language2).parser, state2, { from: 0, to: vpTo });
     if (!parseState.work(20, vpTo))
       parseState.takeTree();
     return new _LanguageState(parseState);
@@ -17140,7 +20468,7 @@ Language.state = /* @__PURE__ */ StateField.define({
     for (let e of tr.effects)
       if (e.is(Language.setState))
         return e.value;
-    if (tr.startState.facet(language) != tr.state.facet(language))
+    if (tr.startState.facet(language2) != tr.state.facet(language2))
       return LanguageState.init(tr.state);
     return value.apply(tr);
   }
@@ -17244,15 +20572,15 @@ var parseWorker = /* @__PURE__ */ ViewPlugin.fromClass(class ParseWorker {
     this.scheduleWork();
   } }
 });
-var language = /* @__PURE__ */ Facet.define({
+var language2 = /* @__PURE__ */ Facet.define({
   combine(languages) {
     return languages.length ? languages[0] : null;
   },
-  enables: (language2) => [
+  enables: (language3) => [
     Language.state,
     parseWorker,
-    EditorView.contentAttributes.compute([language2], (state2) => {
-      let lang = state2.facet(language2);
+    EditorView.contentAttributes.compute([language3], (state2) => {
+      let lang = state2.facet(language3);
       return lang && lang.name ? { "data-language": lang.name } : {};
     })
   ]
@@ -17818,7 +21146,7 @@ function foldGutter(config2 = {}) {
       this.markers = this.buildMarkers(view2);
     }
     update(update) {
-      if (update.docChanged || update.viewportChanged || update.startState.facet(language) != update.state.facet(language) || update.startState.field(foldState, false) != update.state.field(foldState, false) || syntaxTree(update.startState) != syntaxTree(update.state) || fullConfig.foldingChanged(update))
+      if (update.docChanged || update.viewportChanged || update.startState.facet(language2) != update.state.facet(language2) || update.startState.field(foldState, false) != update.state.field(foldState, false) || syntaxTree(update.startState) != syntaxTree(update.state) || fullConfig.foldingChanged(update))
         this.markers = this.buildMarkers(update.view);
     }
     buildMarkers(view2) {
@@ -18079,12 +21407,12 @@ var bracketMatchingConfig = /* @__PURE__ */ Facet.define({
 });
 var matchingMark = /* @__PURE__ */ Decoration.mark({ class: "cm-matchingBracket" });
 var nonmatchingMark = /* @__PURE__ */ Decoration.mark({ class: "cm-nonmatchingBracket" });
-function defaultRenderMatch(match) {
+function defaultRenderMatch(match2) {
   let decorations3 = [];
-  let mark = match.matched ? matchingMark : nonmatchingMark;
-  decorations3.push(mark.range(match.start.from, match.start.to));
-  if (match.end)
-    decorations3.push(mark.range(match.end.from, match.end.to));
+  let mark = match2.matched ? matchingMark : nonmatchingMark;
+  decorations3.push(mark.range(match2.start.from, match2.start.to));
+  if (match2.end)
+    decorations3.push(mark.range(match2.end.from, match2.end.to));
   return decorations3;
 }
 function bracketDeco(state2) {
@@ -18093,9 +21421,9 @@ function bracketDeco(state2) {
   for (let range of state2.selection.ranges) {
     if (!range.empty)
       continue;
-    let match = matchBrackets(state2, range.head, -1, config2) || range.head > 0 && matchBrackets(state2, range.head - 1, 1, config2) || config2.afterCursor && (matchBrackets(state2, range.head, 1, config2) || range.head < state2.doc.length && matchBrackets(state2, range.head + 1, -1, config2));
-    if (match)
-      decorations3 = decorations3.concat(config2.renderMatch(match, state2));
+    let match2 = matchBrackets(state2, range.head, -1, config2) || range.head > 0 && matchBrackets(state2, range.head - 1, 1, config2) || config2.afterCursor && (matchBrackets(state2, range.head, 1, config2) || range.head < state2.doc.length && matchBrackets(state2, range.head + 1, -1, config2));
+    if (match2)
+      decorations3 = decorations3.concat(config2.renderMatch(match2, state2));
   }
   return Decoration.set(decorations3, true);
 }
@@ -18262,7 +21590,7 @@ function createTokenType(extra, tagStr) {
   }
   if (!tags$1.length)
     return 0;
-  let name2 = tagStr.replace(/ /g, "_"), key = name2 + " " + tags$1.map((t2) => t2.id);
+  let name2 = tagStr.replace(/ /g, "_"), key = name2 + " " + tags$1.map((t3) => t3.id);
   let known = byTag[key];
   if (known)
     return known.id;
@@ -18574,11 +21902,11 @@ function updateBranch(branch, to, maxLen, newEvent) {
 }
 function isAdjacent(a, b) {
   let ranges = [], isAdjacent2 = false;
-  a.iterChangedRanges((f, t2) => ranges.push(f, t2));
-  b.iterChangedRanges((_f, _t, f, t2) => {
+  a.iterChangedRanges((f, t3) => ranges.push(f, t3));
+  b.iterChangedRanges((_f, _t, f, t3) => {
     for (let i = 0; i < ranges.length; ) {
       let from = ranges[i++], to = ranges[i++];
-      if (t2 >= from && f <= to)
+      if (t3 >= from && f <= to)
         isAdjacent2 = true;
     }
   });
@@ -18752,9 +22080,9 @@ function moveBySyntax(state2, start, forward) {
     else
       at = forward ? next.to : next.from;
   }
-  let bracket2 = pos.type.prop(bracketProp), match, newPos;
-  if (bracket2 && (match = forward ? matchBrackets(state2, pos.from, 1) : matchBrackets(state2, pos.to, -1)) && match.matched)
-    newPos = forward ? match.end.to : match.end.from;
+  let bracket2 = pos.type.prop(bracketProp), match2, newPos;
+  if (bracket2 && (match2 = forward ? matchBrackets(state2, pos.from, 1) : matchBrackets(state2, pos.to, -1)) && match2.matched)
+    newPos = forward ? match2.end.to : match2.end.from;
   else
     newPos = forward ? pos.to : pos.from;
   return EditorSelection.cursor(newPos, forward ? -1 : 1);
@@ -19442,9 +22770,9 @@ var SearchCursor = class {
       if (norm.length)
         for (let i = 0, pos = start, posPrecise = true; ; i++) {
           let code = norm.charCodeAt(i);
-          let match = this.match(code, pos, posPrecise, this.bufferPos + this.bufferStart, i == norm.length - 1);
-          if (match) {
-            this.value = match;
+          let match2 = this.match(code, pos, posPrecise, this.bufferPos + this.bufferStart, i == norm.length - 1);
+          if (match2) {
+            this.value = match2;
             return this;
           }
           if (i == norm.length - 1)
@@ -19457,12 +22785,12 @@ var SearchCursor = class {
     }
   }
   match(code, pos, posPrecise, end, endPrecise) {
-    let match = null;
+    let match2 = null;
     for (let i = 0; i < this.matches.length; ) {
       let partial = this.matches[i], keep = false;
       if (this.query.charCodeAt(partial.index) == code) {
         if (partial.index == this.query.length - 1) {
-          match = { from: partial.from, to: end, precise: endPrecise && partial.precise };
+          match2 = { from: partial.from, to: end, precise: endPrecise && partial.precise };
         } else {
           partial.index++;
           keep = true;
@@ -19475,13 +22803,13 @@ var SearchCursor = class {
     }
     if (this.query.charCodeAt(0) == code) {
       if (this.query.length == 1)
-        match = { from: pos, to: end, precise: posPrecise && endPrecise };
+        match2 = { from: pos, to: end, precise: posPrecise && endPrecise };
       else
         this.matches.push({ from: pos, index: 1, precise: posPrecise });
     }
-    if (match && this.test && !this.test(match.from, match.to, this.buffer, this.bufferStart))
-      match = null;
-    return match;
+    if (match2 && this.test && !this.test(match2.from, match2.to, this.buffer, this.bufferStart))
+      match2 = null;
+    return match2;
   }
 };
 if (typeof Symbol != "undefined")
@@ -19536,14 +22864,14 @@ var RegExpCursor = class {
   next() {
     for (let off = this.matchPos - this.curLineStart; ; ) {
       this.re.lastIndex = off;
-      let match = this.matchPos <= this.to && this.re.exec(this.curLine);
-      if (match) {
-        let from = this.curLineStart + match.index, to = from + match[0].length;
+      let match2 = this.matchPos <= this.to && this.re.exec(this.curLine);
+      if (match2) {
+        let from = this.curLineStart + match2.index, to = from + match2[0].length;
         this.matchPos = toCharEnd(this.text, to + (from == to ? 1 : 0));
         if (from == this.curLineStart + this.curLine.length)
           this.nextLine();
-        if ((from < to || from > this.value.to) && (!this.test || this.test(from, to, match))) {
-          this.value = { from, to, precise: true, match };
+        if ((from < to || from > this.value.to) && (!this.test || this.test(from, to, match2))) {
+          this.value = { from, to, precise: true, match: match2 };
           return this;
         }
         off = this.matchPos - this.curLineStart;
@@ -19606,15 +22934,15 @@ var MultilineRegExpCursor = class {
   next() {
     for (; ; ) {
       let off = this.re.lastIndex = this.matchPos - this.flat.from;
-      let match = this.re.exec(this.flat.text);
-      if (match && !match[0] && match.index == off) {
+      let match2 = this.re.exec(this.flat.text);
+      if (match2 && !match2[0] && match2.index == off) {
         this.re.lastIndex = off + 1;
-        match = this.re.exec(this.flat.text);
+        match2 = this.re.exec(this.flat.text);
       }
-      if (match) {
-        let from = this.flat.from + match.index, to = from + match[0].length;
-        if ((this.flat.to >= this.to || match.index + match[0].length <= this.flat.text.length - 10) && (!this.test || this.test(from, to, match))) {
-          this.value = { from, to, precise: true, match };
+      if (match2) {
+        let from = this.flat.from + match2.index, to = from + match2[0].length;
+        if ((this.flat.to >= this.to || match2.index + match2[0].length <= this.flat.text.length - 10) && (!this.test || this.test(from, to, match2))) {
+          this.value = { from, to, precise: true, match: match2 };
           this.matchPos = toCharEnd(this.text, to + (from == to ? 1 : 0));
           return this;
         }
@@ -19666,13 +22994,13 @@ var gotoLine = (view2) => {
     submitLabel: state2.phrase("go")
   });
   result.then((form) => {
-    let match = form && /^([+-])?(\d+)?(:\d+)?(%)?$/.exec(form.elements["line"].value);
-    if (!match) {
+    let match2 = form && /^([+-])?(\d+)?(:\d+)?(%)?$/.exec(form.elements["line"].value);
+    if (!match2) {
       view2.dispatch({ effects: close });
       return;
     }
     let startLine = state2.doc.lineAt(state2.selection.main.head);
-    let [, sign, ln2, cl, percent] = match;
+    let [, sign, ln2, cl, percent] = match2;
     let col = cl ? +cl.slice(1) : 0;
     let line2 = ln2 ? +ln2 : startLine.number;
     if (ln2 && percent) {
@@ -19894,8 +23222,8 @@ function wrapStringTest(test, state2, inner) {
   return (from, to, buffer, bufferPos) => {
     if (inner && !inner(from, to, buffer, bufferPos))
       return false;
-    let match = from >= bufferPos && to <= bufferPos + buffer.length ? buffer.slice(from - bufferPos, to - bufferPos) : state2.doc.sliceString(from, to);
-    return test(match, state2, from, to);
+    let match2 = from >= bufferPos && to <= bufferPos + buffer.length ? buffer.slice(from - bufferPos, to - bufferPos) : state2.doc.sliceString(from, to);
+    return test(match2, state2, from, to);
   };
 }
 function stringCursor(spec, state2, from, to) {
@@ -19967,8 +23295,8 @@ var StringQuery = class extends QueryType2 {
   }
 };
 function wrapRegexpTest(test, state2, inner) {
-  return (from, to, match) => {
-    return (!inner || inner(from, to, match)) && test(match[0], state2, from, to);
+  return (from, to, match2) => {
+    return (!inner || inner(from, to, match2)) && test(match2[0], state2, from, to);
   };
 }
 function regexpCursor(spec, state2, from, to) {
@@ -19986,7 +23314,7 @@ function charAfter(str, index) {
   return str.slice(index, findClusterBreak2(str, index));
 }
 function regexpWordTest(categorizer) {
-  return (_from, _to, match) => !match[0].length || (categorizer(charBefore(match.input, match.index)) != CharCategory.Word || categorizer(charAfter(match.input, match.index)) != CharCategory.Word) && (categorizer(charAfter(match.input, match.index + match[0].length)) != CharCategory.Word || categorizer(charBefore(match.input, match.index + match[0].length)) != CharCategory.Word);
+  return (_from, _to, match2) => !match2[0].length || (categorizer(charBefore(match2.input, match2.index)) != CharCategory.Word || categorizer(charAfter(match2.input, match2.index)) != CharCategory.Word) && (categorizer(charAfter(match2.input, match2.index + match2[0].length)) != CharCategory.Word || categorizer(charBefore(match2.input, match2.index + match2[0].length)) != CharCategory.Word);
 }
 var RegExpQuery = class extends QueryType2 {
   nextMatch(state2, curFrom, curTo) {
@@ -20170,10 +23498,10 @@ var replaceNext = /* @__PURE__ */ searchCommand((view2, { query }) => {
   let { state: state2 } = view2, { from, to } = state2.selection.main;
   if (state2.readOnly)
     return false;
-  let match = query.nextMatch(state2, from, from);
-  if (!match)
+  let match2 = query.nextMatch(state2, from, from);
+  if (!match2)
     return false;
-  let next = match;
+  let next = match2;
   let changes = [], selection, replacement;
   let effects = [];
   if (!next.precise) {
@@ -20202,10 +23530,10 @@ var replaceAll = /* @__PURE__ */ searchCommand((view2, { query }) => {
   if (view2.state.readOnly)
     return false;
   let changes = [];
-  for (let match of query.matchAll(view2.state, 1e9)) {
-    let { from, to, precise } = match;
+  for (let match2 of query.matchAll(view2.state, 1e9)) {
+    let { from, to, precise } = match2;
     if (precise)
-      changes.push({ from, to, insert: query.getReplacement(match) });
+      changes.push({ from, to, insert: query.getReplacement(match2) });
   }
   if (!changes.length)
     return false;
@@ -20552,17 +23880,17 @@ function prefixMatch(options) {
 }
 function completeFromList(list) {
   let options = list.map((o) => typeof o == "string" ? { label: o } : o);
-  let [validFor, match] = options.every((o) => /^\w+$/.test(o.label)) ? [/\w*$/, /\w+$/] : prefixMatch(options);
+  let [validFor, match2] = options.every((o) => /^\w+$/.test(o.label)) ? [/\w*$/, /\w+$/] : prefixMatch(options);
   return (context) => {
-    let token = context.matchBefore(match);
+    let token = context.matchBefore(match2);
     return token || context.explicit ? { from: token ? token.from : context.pos, options, validFor } : null;
   };
 }
 var Option = class {
-  constructor(completion2, source, match, score3) {
+  constructor(completion2, source, match2, score3) {
     this.completion = completion2;
     this.source = source;
-    this.match = match;
+    this.match = match2;
     this.score = score3;
   }
 };
@@ -20606,8 +23934,8 @@ function asSource(source) {
 var startCompletionEffect = /* @__PURE__ */ StateEffect.define();
 var closeCompletionEffect = /* @__PURE__ */ StateEffect.define();
 var FuzzyMatcher = class {
-  constructor(pattern2) {
-    this.pattern = pattern2;
+  constructor(pattern) {
+    this.pattern = pattern;
     this.chars = [];
     this.folded = [];
     this.any = [];
@@ -20615,14 +23943,14 @@ var FuzzyMatcher = class {
     this.byWord = [];
     this.score = 0;
     this.matched = [];
-    for (let p = 0; p < pattern2.length; ) {
-      let char = codePointAt2(pattern2, p), size = codePointSize2(char);
+    for (let p = 0; p < pattern.length; ) {
+      let char = codePointAt2(pattern, p), size = codePointSize2(char);
       this.chars.push(char);
-      let part = pattern2.slice(p, p + size), upper = part.toUpperCase();
+      let part = pattern.slice(p, p + size), upper = part.toUpperCase();
       this.folded.push(codePointAt2(upper == part ? part.toLowerCase() : upper, 0));
       p += size;
     }
-    this.astral = pattern2.length != this.chars.length;
+    this.astral = pattern.length != this.chars.length;
   }
   ret(score3, matched) {
     this.score = score3;
@@ -20723,21 +24051,21 @@ var FuzzyMatcher = class {
   }
 };
 var StrictMatcher = class {
-  constructor(pattern2) {
-    this.pattern = pattern2;
+  constructor(pattern) {
+    this.pattern = pattern;
     this.matched = [];
     this.score = 0;
-    this.folded = pattern2.toLowerCase();
+    this.folded = pattern.toLowerCase();
   }
   match(word) {
     if (word.length < this.pattern.length)
       return null;
     let start = word.slice(0, this.pattern.length);
-    let match = start == this.pattern ? 0 : start.toLowerCase() == this.folded ? -200 : null;
-    if (match == null)
+    let match2 = start == this.pattern ? 0 : start.toLowerCase() == this.folded ? -200 : null;
+    if (match2 == null)
       return null;
     this.matched = [0, start.length];
-    this.score = match + (word.length == this.pattern.length ? 0 : -100);
+    this.score = match2 + (word.length == this.pattern.length ? 0 : -100);
     return this;
   }
 };
@@ -20826,12 +24154,12 @@ function optionContent(config2) {
       position: 20
     });
   content2.push({
-    render(completion2, _s, _v, match) {
+    render(completion2, _s, _v, match2) {
       let labelElt = document.createElement("span");
       labelElt.className = "cm-completionLabel";
       let label2 = completion2.displayLabel || completion2.label, off = 0;
-      for (let j = 0; j < match.length; ) {
-        let from = match[j++], to = match[j++];
+      for (let j = 0; j < match2.length; ) {
+        let from = match2[j++], to = match2[j++];
         if (from > off)
           labelElt.appendChild(document.createTextNode(label2.slice(off, from)));
         let span = labelElt.appendChild(document.createElement("span"));
@@ -20895,9 +24223,9 @@ var CompletionTooltip = class {
     this.updateTooltipClass(view2.state);
     this.dom.addEventListener("mousedown", (e) => {
       let { options: options2 } = view2.state.field(stateField).open;
-      for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
-        if (dom.nodeName == "LI" && (match = /-(\d+)$/.exec(dom.id)) && +match[1] < options2.length) {
-          this.applyCompletion(view2, options2[+match[1]]);
+      for (let dom = e.target, match2; dom && dom != this.dom; dom = dom.parentNode) {
+        if (dom.nodeName == "LI" && (match2 = /-(\d+)$/.exec(dom.id)) && +match2[1] < options2.length) {
+          this.applyCompletion(view2, options2[+match2[1]]);
           e.preventDefault();
           return;
         }
@@ -21065,7 +24393,7 @@ var CompletionTooltip = class {
     });
     let curSection = null;
     for (let i = range.from; i < range.to; i++) {
-      let { completion: completion2, match } = options[i], { section } = completion2;
+      let { completion: completion2, match: match2 } = options[i], { section } = completion2;
       if (section) {
         let name2 = typeof section == "string" ? section : section.name;
         if (name2 != curSection && (i > range.from || range.from == 0)) {
@@ -21085,7 +24413,7 @@ var CompletionTooltip = class {
       if (cls)
         li.className = cls;
       for (let source of this.optionContent) {
-        let node = source(completion2, this.view.state, this.view, match);
+        let node = source(completion2, this.view.state, this.view, match2);
         if (node)
           li.appendChild(node);
       }
@@ -21146,12 +24474,12 @@ function sortOptions(active, state2) {
           addOption(new Option(option, a.source, getMatch ? getMatch(option) : [], 1e9 - options.length));
         }
       } else {
-        let pattern2 = state2.sliceDoc(a.from, a.to), match;
-        let matcher = conf.filterStrict ? new StrictMatcher(pattern2) : new FuzzyMatcher(pattern2);
+        let pattern = state2.sliceDoc(a.from, a.to), match2;
+        let matcher2 = conf.filterStrict ? new StrictMatcher(pattern) : new FuzzyMatcher(pattern);
         for (let option of a.result.options)
-          if (match = matcher.match(option.label)) {
-            let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
-            let score3 = match.score + (option.boost || 0);
+          if (match2 = matcher2.match(option.label)) {
+            let matched = !option.displayLabel ? match2.matched : getMatch ? getMatch(option, match2.matched) : [];
+            let score3 = match2.score + (option.boost || 0);
             addOption(new Option(option, a.source, matched, score3));
             if (typeof option.section == "object" && option.section.rank === "dynamic") {
               let { name: name2 } = option.section;
@@ -21619,8 +24947,8 @@ var completionPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
           continue;
         }
       }
-      let current = cState.active.find((a) => a.source == query.active.source);
-      if (current && current.isPending) {
+      let current2 = cState.active.find((a) => a.source == query.active.source);
+      if (current2 && current2.isPending) {
         if (query.done == null) {
           let active = new ActiveSource(
             query.active.source,
@@ -21632,7 +24960,7 @@ var completionPlugin = /* @__PURE__ */ ViewPlugin.fromClass(class {
           if (!active.isPending)
             updated.push(active);
         } else {
-          this.startQuery(current);
+          this.startQuery(current2);
         }
       }
     }
@@ -22288,7 +25616,7 @@ var lintConfig = /* @__PURE__ */ Facet.define({
         markerFilter: combineFilter,
         tooltipFilter: combineFilter,
         needsRefresh: (a, b) => !a ? b : !b ? a : (u) => a(u) || b(u),
-        hideOn: (a, b) => !a ? b : !b ? a : (t2, x, y) => a(t2, x, y) || b(t2, x, y),
+        hideOn: (a, b) => !a ? b : !b ? a : (t3, x, y) => a(t3, x, y) || b(t3, x, y),
         autoPanel: (a, b) => a || b
       })
     };
@@ -22734,78 +26062,78 @@ function canonicalReg(token) {
   if (/^\$\d+$/.test(token)) return "$" + registerNames[Number(token.slice(1))];
   return token === "$s8" ? "$fp" : token;
 }
-var services = {
-  1: ["\u6253\u5370\u6574\u6570", ["$a0"], []],
-  2: ["\u6253\u5370\u5355\u7CBE\u5EA6\u6570", ["$f12"], []],
-  3: ["\u6253\u5370\u53CC\u7CBE\u5EA6\u6570", ["$f12", "$f13"], []],
-  4: ["\u6253\u5370\u4EE5 NUL \u7ED3\u675F\u7684\u5B57\u7B26\u4E32", ["$a0"], []],
-  5: ["\u8BFB\u53D6\u6574\u6570", [], ["$v0"]],
-  6: ["\u8BFB\u53D6\u5355\u7CBE\u5EA6\u6570", [], ["$f0"]],
-  7: ["\u8BFB\u53D6\u53CC\u7CBE\u5EA6\u6570", [], ["$f0", "$f1"]],
-  8: ["\u8BFB\u53D6\u5B57\u7B26\u4E32", ["$a0", "$a1"], ["memory"]],
-  9: ["\u5206\u914D\u5806\u5185\u5B58", ["$a0"], ["$v0"]],
-  10: ["\u9000\u51FA\u7A0B\u5E8F", [], []],
-  11: ["\u6253\u5370\u5B57\u7B26", ["$a0"], []],
-  12: ["\u8BFB\u53D6\u5B57\u7B26", [], ["$v0"]],
-  13: ["\u6253\u5F00\u865A\u62DF\u6587\u4EF6", ["$a0", "$a1", "$a2"], ["$v0"]],
-  14: ["\u8BFB\u53D6\u6587\u4EF6", ["$a0", "$a1", "$a2"], ["memory", "$v0"]],
-  15: ["\u5199\u5165\u6587\u4EF6", ["$a0", "$a1", "$a2"], ["$v0"]],
-  16: ["\u5173\u95ED\u6587\u4EF6", ["$a0"], []],
-  17: ["\u9000\u51FA\u5E76\u8FD4\u56DE\u72B6\u6001\u7801", ["$a0"], []],
-  34: ["\u6253\u5370\u5341\u516D\u8FDB\u5236\u6574\u6570", ["$a0"], []],
-  35: ["\u6253\u5370\u4E8C\u8FDB\u5236\u6574\u6570", ["$a0"], []],
-  36: ["\u6253\u5370\u65E0\u7B26\u53F7\u6574\u6570", ["$a0"], []]
-};
-var explanations = {
-  addiu: "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06 16 \u4F4D\u7ACB\u5373\u6570\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF0C\u5199\u5165\u76EE\u6807\u3002\u4E0D\u4F1A\u56E0\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
-  addi: "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06\u7B26\u53F7\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
-  addu: "\u8BFB\u53D6\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\uFF0C\u76F8\u52A0\u540E\u5199\u5165\u76EE\u6807\uFF0C\u4E0D\u4EA7\u751F\u6709\u7B26\u53F7\u6EA2\u51FA\u5F02\u5E38\u3002",
-  add: "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
-  subu: "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u51CF\uFF0C\u5199\u5165\u76EE\u6807\uFF0C\u4E0D\u4EA7\u751F\u6709\u7B26\u53F7\u6EA2\u51FA\u5F02\u5E38\u3002",
-  lbu: "\u8BA1\u7B97\u57FA\u5740\uFF0B\u504F\u79FB\uFF0C\u8BFB\u53D6 1 \u5B57\u8282\u5E76\u96F6\u6269\u5C55\u4E3A 32 \u4F4D\u3002",
-  lb: "\u8BFB\u53D6 1 \u5B57\u8282\u5E76\u7B26\u53F7\u6269\u5C55\u4E3A 32 \u4F4D\u3002",
-  lw: "\u4ECE\u6709\u6548\u5730\u5740\u8BFB\u53D6 4 \u5B57\u8282\uFF1B\u5730\u5740\u5FC5\u987B\u6309 4 \u5B57\u8282\u5BF9\u9F50\u3002",
-  sw: "\u5C06\u6E90\u5BC4\u5B58\u5668\u7684 4 \u5B57\u8282\u5185\u5BB9\u5199\u5165\u57FA\u5740\uFF0B\u504F\u79FB\u5730\u5740\u3002",
-  sb: "\u5C06\u6E90\u5BC4\u5B58\u5668\u4F4E 8 \u4F4D\u5199\u5165 1 \u5B57\u8282\u5185\u5B58\u3002",
-  srl: "\u903B\u8F91\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865 0\uFF1B\u79FB\u51FA\u7684\u4F4E\u4F4D\u4E22\u5F03\u3002",
-  sll: "\u903B\u8F91\u5DE6\u79FB\uFF0C\u53F3\u4FA7\u8865 0\uFF1B\u79FB\u51FA\u7684\u9AD8\u4F4D\u4E22\u5F03\u3002",
-  slti: "\u6709\u7B26\u53F7\u6BD4\u8F83\uFF1A\u6E90\u5BC4\u5B58\u5668\u5C0F\u4E8E\u7B26\u53F7\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u5219\u5199\u5165 1\uFF0C\u5426\u5219\u5199\u5165 0\u3002",
-  beq: "\u6BD4\u8F83\u4E24\u4E2A\u5BC4\u5B58\u5668\uFF1B\u76F8\u7B49\u65F6\u8DF3\u8F6C\u3002\u5EF6\u8FDF\u5206\u652F\u5F00\u542F\u65F6\u5148\u6267\u884C delay slot\u3002",
-  bne: "\u6BD4\u8F83\u4E24\u4E2A\u5BC4\u5B58\u5668\uFF1B\u4E0D\u76F8\u7B49\u65F6\u8DF3\u8F6C\u3002",
-  jal: "\u5C06\u8FD4\u56DE\u5730\u5740\u5199\u5165 $ra\uFF0C\u5E76\u8C03\u7528\u76EE\u6807\uFF1B\u8FD4\u56DE\u5730\u5740\u53D7\u5EF6\u8FDF\u5206\u652F\u914D\u7F6E\u5F71\u54CD\u3002",
-  jr: "\u8DF3\u8F6C\u5230\u5BC4\u5B58\u5668\u4E2D\u5B58\u50A8\u7684\u5730\u5740\uFF1Bjr $ra \u5E38\u7528\u4E8E\u8FD4\u56DE\u3002",
-  syscall: "\u8BF7 MARS \u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF08\u4F8B\u5982 4 \u6253\u5370\u5B57\u7B26\u4E32\u30015 \u8BFB\u53D6\u6574\u6570\uFF09\uFF1B\u53C2\u6570\u548C\u7ED3\u679C\u4F9D\u6240\u505A\u7684\u4E8B\u800C\u5B9A\u3002",
-  li: "\u4F2A\u6307\u4EE4\uFF1A\u5C06\u7ACB\u5373\u6570\u88C5\u5165\u5BC4\u5B58\u5668\uFF0C\u53EF\u80FD\u5C55\u5F00\u4E3A\u591A\u6761\u5B9E\u9645\u6307\u4EE4\u3002",
-  la: "\u4F2A\u6307\u4EE4\uFF1A\u52A0\u8F7D\u5730\u5740\uFF1B\u5C55\u5F00\u53EF\u80FD\u4F7F\u7528 $at\u3002",
-  move: "\u4F2A\u6307\u4EE4\uFF1A\u590D\u5236\u5BC4\u5B58\u5668\u5185\u5BB9\uFF0C\u4E0D\u6E05\u9664\u6E90\u5BC4\u5B58\u5668\u3002",
-  nop: "\u4E0D\u4FEE\u6539\u901A\u7528\u5BC4\u5B58\u5668\u6216\u5185\u5B58\uFF1B\u7A0B\u5E8F\u7EE7\u7EED\u6267\u884C\u3002",
-  lui: "\u5C06 16 \u4F4D\u7ACB\u5373\u6570\u653E\u5165\u76EE\u6807\u5BC4\u5B58\u5668\u9AD8 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u6E05\u96F6\u3002",
-  ori: "\u6E90\u5BC4\u5B58\u5668\u4E0E\u96F6\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u6309\u4F4D\u6216\u3002"
-};
+var services = localized(() => ({
+  1: [t("service.1"), ["$a0"], []],
+  2: [t("service.2"), ["$f12"], []],
+  3: [t("service.3"), ["$f12", "$f13"], []],
+  4: [t("service.4"), ["$a0"], []],
+  5: [t("service.5"), [], ["$v0"]],
+  6: [t("service.6"), [], ["$f0"]],
+  7: [t("service.7"), [], ["$f0", "$f1"]],
+  8: [t("service.8"), ["$a0", "$a1"], ["memory"]],
+  9: [t("service.9"), ["$a0"], ["$v0"]],
+  10: [t("service.10"), [], []],
+  11: [t("service.11"), ["$a0"], []],
+  12: [t("service.12"), [], ["$v0"]],
+  13: [t("service.13"), ["$a0", "$a1", "$a2"], ["$v0"]],
+  14: [t("service.14"), ["$a0", "$a1", "$a2"], ["memory", "$v0"]],
+  15: [t("service.15"), ["$a0", "$a1", "$a2"], ["$v0"]],
+  16: [t("service.16"), ["$a0"], []],
+  17: [t("service.17"), ["$a0"], []],
+  34: [t("service.34"), ["$a0"], []],
+  35: [t("service.35"), ["$a0"], []],
+  36: [t("service.36"), ["$a0"], []]
+}));
+var explanations = localized(() => ({
+  addiu: t("explain.addiu"),
+  addi: t("explain.addi"),
+  addu: t("explain.addu"),
+  add: t("explain.add"),
+  subu: t("explain.subu"),
+  lbu: t("explain.lbu"),
+  lb: t("explain.lb"),
+  lw: t("explain.lw"),
+  sw: t("explain.sw"),
+  sb: t("explain.sb"),
+  srl: t("explain.srl"),
+  sll: t("explain.sll"),
+  slti: t("explain.slti"),
+  beq: t("explain.beq"),
+  bne: t("explain.bne"),
+  jal: t("explain.jal"),
+  jr: t("explain.jr"),
+  syscall: t("explain.syscall"),
+  li: t("explain.li"),
+  la: t("explain.la"),
+  move: t("explain.move"),
+  nop: t("explain.nop"),
+  lui: t("explain.lui"),
+  ori: t("explain.ori")
+}));
 function role(name2) {
   let n = registerNames.indexOf(name2.replace("$", ""));
-  return n === 0 ? "ISA\uFF1A\u6052\u4E3A 0\uFF0C\u5199\u5165\u4E0D\u63D0\u4EA4" : n === 1 ? "\u6C47\u7F16\u5668\u7EA6\u5B9A\uFF1A\u4F2A\u6307\u4EE4\u5C55\u5F00\u4E34\u65F6\u5BC4\u5B58\u5668" : n === 2 || n === 3 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u503C\uFF1Bsyscall \u524D\u4E5F\u7528\u6765\u653E\u201C\u8981\u505A\u4EC0\u4E48\u201D\u7684\u6570" : n >= 4 && n <= 7 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u53C2\u6570\u5BC4\u5B58\u5668" : n >= 16 && n <= 23 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u88AB\u8C03\u7528\u8005\u4FDD\u5B58\uFF1B\u786C\u4EF6\u4E0D\u4F1A\u81EA\u52A8\u4FDD\u5B58" : n === 29 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u6808\u6307\u9488\uFF0C\u5185\u5BB9\u901A\u5E38\u89E3\u91CA\u4E3A\u5730\u5740" : n === 31 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u8FD4\u56DE\u5730\u5740\uFF1Bjal \u4F1A\u5199\u5165" : n === 28 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5168\u5C40\u6307\u9488" : n === 30 ? "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u5E27\u6307\u9488\uFF0F\u4FDD\u5B58\u5BC4\u5B58\u5668" : n === 26 || n === 27 ? "\u7EA6\u5B9A\uFF1A\u5185\u6838\u4FDD\u7559" : "\u8C03\u7528\u7EA6\u5B9A\uFF1A\u4E34\u65F6\u5BC4\u5B58\u5668\uFF1B\u8DE8\u51FD\u6570\u8C03\u7528\u4E0D\u4FDD\u8BC1\u4FDD\u6301";
+  return n === 0 ? t("role.zero") : n === 1 ? t("role.at") : n === 2 || n === 3 ? t("role.v") : n >= 4 && n <= 7 ? t("role.a") : n >= 16 && n <= 23 ? t("role.s") : n === 29 ? t("role.sp") : n === 31 ? t("role.ra") : n === 28 ? t("role.gp") : n === 30 ? t("role.fp") : n === 26 || n === 27 ? t("role.k") : t("role.t");
 }
 function references(files2, token) {
   let out = [];
   for (let [file, text2] of Object.entries(files2))
     text2.split("\n").forEach((line, i) => {
       let code = line.split("#")[0], tokens = code.match(/\$\w+|[\w.]+/g) || [];
-      if (!tokens.some((t2) => canonicalReg(t2) === canonicalReg(token))) return;
-      let op = tokens[0], regs = tokens.filter((t2) => t2.startsWith("$")), r = canonicalReg(token), k = "\u5F15\u7528";
+      if (!tokens.some((t3) => canonicalReg(t3) === canonicalReg(token))) return;
+      let op = tokens[0], regs = tokens.filter((t3) => t3.startsWith("$")), r = canonicalReg(token), k = t("refs.kind.use");
       if (token.startsWith("$")) {
         let occurrences = regs.map(canonicalReg), first = occurrences[0] === r, read = occurrences.slice(1).includes(r);
-        if (/^(sw|sb|sh|b\w*|jr|multu?|divu?|mthi|mtlo)$/.test(op)) k = "\u8BFB\u53D6";
+        if (/^(sw|sb|sh|b\w*|jr|multu?|divu?|mthi|mtlo)$/.test(op)) k = t("refs.kind.read");
         else if (/^(li|la|move|l[bhw]u?|sll|srl|sra|add\w*|sub\w*|and\w*|or\w*|xor\w*|nor|slt\w*|mfhi|mflo)$/.test(
           op
         ))
-          k = first ? read ? "\u8BFB\u53D6\uFF0B\u5199\u5165" : "\u5199\u5165" : "\u8BFB\u53D6";
-        else k = "\u64CD\u4F5C\u6570\uFF08\u9759\u6001\uFF09";
+          k = first ? read ? t("refs.kind.readWrite") : t("refs.kind.write") : t("refs.kind.read");
+        else k = t("refs.kind.operand");
       } else if (new RegExp(
         "^\\s*" + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:"
       ).test(code))
-        k = "\u5B9A\u4E49";
-      else if (/^(b\w*|j|jal)$/.test(op)) k = "\u63A7\u5236\u8F6C\u79FB";
+        k = t("refs.kind.definition");
+      else if (/^(b\w*|j|jal)$/.test(op)) k = t("refs.kind.transfer");
       out.push({ file, line: i + 1, text: line, type: k });
     });
   return out;
@@ -22819,20 +26147,20 @@ function buildCFG(instructions, delay = false) {
       let next = i.address + (delay ? 8 : 4);
       if (by.has(next)) leaders.add(next);
     }
-  let blocks = [], current;
+  let blocks = [], current2;
   for (let i of instructions) {
-    if (!current || leaders.has(i.address) || i.address !== current.end + 4) {
-      current = {
+    if (!current2 || leaders.has(i.address) || i.address !== current2.end + 4) {
+      current2 = {
         id: i.address,
         start: i.address,
         end: i.address,
         instructions: [],
         edges: []
       };
-      blocks.push(current);
+      blocks.push(current2);
     }
-    current.instructions.push(i);
-    current.end = i.address;
+    current2.instructions.push(i);
+    current2.end = i.address;
   }
   let owner = /* @__PURE__ */ new Map();
   for (let b of blocks)
@@ -22844,15 +26172,15 @@ function buildCFG(instructions, delay = false) {
         b.edges.push({ target: owner.get(address), label: label2 });
     };
     if (terminal.flow === "branch") {
-      add2(terminal.target, "\u6761\u4EF6\u6210\u7ACB");
-      add2(terminal.address + (delay ? 8 : 4), "\u6761\u4EF6\u4E0D\u6210\u7ACB");
-    } else if (terminal.flow === "jump") add2(terminal.target, "\u8DF3\u8F6C");
+      add2(terminal.target, t("path.edge.taken"));
+      add2(terminal.address + (delay ? 8 : 4), t("path.edge.fallthrough"));
+    } else if (terminal.flow === "jump") add2(terminal.target, t("path.edge.jump"));
     else if (terminal.flow === "call") {
-      add2(terminal.target, "\u8C03\u7528");
-      add2(terminal.address + (delay ? 8 : 4), "\u8FD4\u56DE\u540E");
+      add2(terminal.target, t("path.edge.call"));
+      add2(terminal.address + (delay ? 8 : 4), t("cfg.edge.afterReturn"));
     } else if (terminal.flow === "indirect")
-      b.edges.push({ target: null, label: "\u8FD0\u884C\u65F6\u76EE\u6807" });
-    else add2(b.end + 4, "\u987A\u5E8F");
+      b.edges.push({ target: null, label: t("cfg.edge.runtime") });
+    else add2(b.end + 4, t("path.edge.next"));
   }
   return blocks;
 }
@@ -22888,12 +26216,12 @@ function withOperands(description, example, line) {
   if (!from.length || from.length !== to.length)
     return { text: description, substituted: false };
   const map = new Map(from.map((f, i) => [f, to[i]]));
-  const pattern2 = new RegExp(
-    [...map.keys()].sort((a, b) => b.length - a.length).map((t2) => t2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])").join("|"),
+  const pattern = new RegExp(
+    [...map.keys()].sort((a, b) => b.length - a.length).map((t3) => t3.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])").join("|"),
     "g"
   );
   return {
-    text: description.replace(pattern2, (m) => map.get(m) ?? m),
+    text: description.replace(pattern, (m) => map.get(m) ?? m),
     substituted: true
   };
 }
@@ -23063,15 +26391,15 @@ var row = (label2, bits2, marks2 = {}, extra = {}) => ({ label: label2, bits: bi
 var hexOf = (v) => "0x" + (v >>> 0).toString(16).padStart(8, "0");
 var SHIFTS = { sll: "left", sllv: "left", srl: "logical", srlv: "logical", sra: "arith", srav: "arith" };
 var ADDS = { add: "add", addu: "add", addi: "add", addiu: "add", sub: "sub", subu: "sub" };
-var LOGIC = {
-  and: ["and", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1"],
-  andi: ["and", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1"],
-  or: ["or", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1"],
-  ori: ["or", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1"],
-  xor: ["xor", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1\uFF0C\u76F8\u540C\u5F97 0"],
-  xori: ["xor", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1\uFF0C\u76F8\u540C\u5F97 0"],
-  nor: ["nor", "\u4E24\u4F4D\u90FD\u662F 0 \u624D\u5F97 1\uFF08\u6216\u7684\u7ED3\u679C\u518D\u53D6\u53CD\uFF09"]
-};
+var LOGIC = localized(() => ({
+  and: ["and", t("bits.rule.and")],
+  andi: ["and", t("bits.rule.and")],
+  or: ["or", t("bits.rule.or")],
+  ori: ["or", t("bits.rule.or")],
+  xor: ["xor", t("bits.rule.xor")],
+  xori: ["xor", t("bits.rule.xor")],
+  nor: ["nor", t("bits.rule.nor")]
+}));
 var MULDIV = { mult: true, multu: false, div: true, divu: false };
 function supportsBits(event) {
   const op = event?.instruction?.op;
@@ -23087,23 +26415,23 @@ function bitStory(event, name2 = (n) => "$" + n) {
   const result = written[0];
   const steps = [];
   const step = (caption, rows) => steps.push({ caption, rows });
-  const failed = event.error ? "\u8FD9\u4E00\u6B65\u89E6\u53D1\u4E86\u5F02\u5E38\uFF0C\u76EE\u6807\u5BC4\u5B58\u5668\u6CA1\u6709\u88AB\u5199\u5165\u3002" : "";
+  const failed = event.error ? t("bits.exception") : "";
   if (SHIFTS[op]) {
     const kind = SHIFTS[op], src = read(rtN) | 0, amount = op.endsWith("v") ? read(rsN) & 31 : sa;
-    const fill = kind === "left" ? "\u53F3\u7AEF\u8865 0" : kind === "logical" ? "\u5DE6\u7AEF\u8865 0\uFF08\u903B\u8F91\u53F3\u79FB\uFF09" : "\u5DE6\u7AEF\u8865\u7B26\u53F7\u4F4D\uFF08\u7B97\u672F\u53F3\u79FB\uFF0C\u4FDD\u6301\u6B63\u8D1F\uFF09";
-    step(`${name2(rtN)} \u7684 32 \u4F4D\uFF0C\u8981${kind === "left" ? "\u5DE6" : "\u53F3"}\u79FB ${amount} \u4F4D${op.endsWith("v") ? `\uFF08\u79FB\u4F4D\u6570\u53D6 ${name2(rsN)} \u7684\u4F4E 5 \u4F4D\uFF09` : ""}\uFF1B${fill}\u3002`, [row(name2(rtN), bitsOf(src))]);
+    const fill = kind === "left" ? t("bits.shift.fillRight") : kind === "logical" ? t("bits.shift.fillLeftZero") : t("bits.shift.fillLeftSign");
+    step(t("bits.shift.intro", { reg: name2(rtN), direction: kind === "left" ? t("bits.shift.left") : t("bits.shift.right"), amount, note: op.endsWith("v") ? t("bits.shift.variable", { reg: name2(rsN) }) : "", fill }), [row(name2(rtN), bitsOf(src))]);
     let v = src;
     for (let k = 1; k <= amount; k++) {
       const out = kind === "left" ? v >>> 31 & 1 : v & 1;
       v = kind === "left" ? v << 1 : kind === "logical" ? v >>> 1 : v >> 1;
       const at = kind === "left" ? 31 : 0;
-      step(`\u7B2C ${k} \u6B21\u79FB\u52A8\uFF1A\u79FB\u51FA ${out}\uFF0C${kind === "left" ? "\u53F3\u7AEF" : "\u5DE6\u7AEF"}\u8865\u5165 ${kind === "left" ? 0 : v >>> 31 & 1}\u3002`, [
-        row(`\u79FB ${k} \u4F4D`, bitsOf(v), { [at]: "in" }, { out: { side: kind === "left" ? "left" : "right", bit: out } })
+      step(t("bits.shift.step", { k, out, side: kind === "left" ? t("bits.shift.rightEnd") : t("bits.shift.leftEnd"), bit: kind === "left" ? 0 : v >>> 31 & 1 }), [
+        row(t("bits.shift.after", { k }), bitsOf(v), { [at]: "in" }, { out: { side: kind === "left" ? "left" : "right", bit: out } })
       ]);
     }
-    if (!amount) step("\u79FB\u52A8 0 \u4F4D\uFF1A\u7ED3\u679C\u4E0E\u539F\u503C\u76F8\u540C\u3002", [row("\u7ED3\u679C", bitsOf(v))]);
-    step(`\u7ED3\u679C ${hexOf(v)} \u5199\u5165 ${result?.name ?? "\u76EE\u6807\u5BC4\u5B58\u5668"}${result && (result.value | 0) !== (v | 0) ? "\uFF08\u4E0E\u8BB0\u5F55\u4E0D\u4E00\u81F4\uFF09" : ""}\u3002`, [row(result?.name ?? "\u7ED3\u679C", bitsOf(v), {}, { result: true })]);
-    return { title: `${op}\uFF1A\u9010\u4F4D\u79FB\u4F4D`, steps };
+    if (!amount) step(t("bits.shift.none"), [row(t("bits.result"), bitsOf(v))]);
+    step(t("bits.shift.result", { value: hexOf(v), reg: result?.name ?? t("bits.target"), mismatch: result && (result.value | 0) !== (v | 0) ? t("bits.mismatch") : "" }), [row(result?.name ?? t("bits.result"), bitsOf(v), {}, { result: true })]);
+    return { title: t("bits.shift.title", { op }), steps };
   }
   if (ADDS[op]) {
     const sub = ADDS[op] === "sub", a2 = read(rsN) | 0, bv = op.startsWith("addi") ? imm : read(rtN) | 0, operand = sub ? ~bv : bv;
@@ -23115,73 +26443,73 @@ function bitStory(event, name2 = (n) => "$" + n) {
       carries[i + 1] = ai & bi | ai & c2 | bi & c2;
     }
     const overflow = carries[31] !== carries[32];
-    const bLabel = op.startsWith("addi") ? "\u7ACB\u5373\u6570" : name2(rtN);
-    const intro = sub ? `\u51CF\u6CD5 ${name2(rsN)} \u2212 ${bLabel}\uFF1A\u673A\u5668\u628A ${bLabel} \u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\u518D\u52A0 1\uFF08\u8865\u7801\uFF09\uFF0C\u53D8\u6210\u52A0\u6CD5\u3002` : `\u52A0\u6CD5 ${name2(rsN)} + ${bLabel}${op.startsWith("addi") ? "\uFF0816 \u4F4D\u7ACB\u5373\u6570\u5148\u7B26\u53F7\u6269\u5C55\u6210 32 \u4F4D\uFF09" : ""}\uFF1A\u4ECE\u6700\u4F4E\u4F4D\u5F00\u59CB\u9010\u4F4D\u76F8\u52A0\uFF0C\u6EE1 2 \u5411\u9AD8\u4F4D\u8FDB 1\u3002`;
-    const carryRow = (upto) => row("\u8FDB\u4F4D", Array.from({ length: 32 }, (_, j) => 31 - j < upto ? carries[31 - j] : null), {}, { carry: true });
+    const bLabel = op.startsWith("addi") ? t("bits.immediate") : name2(rtN);
+    const intro = sub ? t("bits.sub.intro", { a: name2(rsN), b: bLabel, b: bLabel }) : t("bits.add.intro", { a: name2(rsN), b: bLabel, note: op.startsWith("addi") ? t("bits.add.signExtend") : "" });
+    const carryRow = (upto) => row(t("bits.carry"), Array.from({ length: 32 }, (_, j) => 31 - j < upto ? carries[31 - j] : null), {}, { carry: true });
     const pending = (upto) => S.map((s, j) => 31 - j < upto ? s : null);
-    step(intro, [row(name2(rsN), A), row(sub ? `${bLabel} \u53D6\u53CD` : bLabel, B), carryRow(sub ? 1 : 0), row("\u7ED3\u679C", pending(0))]);
+    step(intro, [row(name2(rsN), A), row(sub ? t("bits.inverted", { b: bLabel }) : bLabel, B), carryRow(sub ? 1 : 0), row(t("bits.result"), pending(0))]);
     for (let k = 4; k <= 32; k += 4) {
       const marks2 = {};
       for (let j = 32 - k; j < 36 - k; j++) marks2[j] = "new";
-      step(`\u7B2C ${k - 3}\u2013${k} \u4F4D\uFF1A\u6BCF\u4E00\u4F4D = \u4E24\u4E2A\u52A0\u6570\u7684\u4F4D + \u8FDB\u4F4D\uFF0C\u7ED3\u679C\u5199\u4E0B\u4E2A\u4F4D\uFF0C\u8FDB\u4F4D\u5E26\u5230\u66F4\u9AD8\u4E00\u4F4D\u3002`, [
+      step(t("bits.add.group", { from: k - 3, to: k }), [
         row(name2(rsN), A),
-        row(sub ? `${bLabel} \u53D6\u53CD` : bLabel, B),
+        row(sub ? t("bits.inverted", { b: bLabel }) : bLabel, B),
         carryRow(k),
-        row("\u7ED3\u679C", pending(k), marks2)
+        row(t("bits.result"), pending(k), marks2)
       ]);
     }
     const trapping = op === "add" || op === "addi" || op === "sub";
-    const note = overflow ? trapping ? `\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6709\u7B26\u53F7\u6EA2\u51FA\u3002${op} \u68C0\u67E5\u6EA2\u51FA\uFF0C\u4F1A\u89E6\u53D1\u5F02\u5E38\u3002` : `\u6700\u9AD8\u4F4D\u7684\u8FDB\u4F4D\u8FDB\u51FA\u4E0D\u4E00\u81F4\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u770B\u6EA2\u51FA\u4E86\uFF0C\u4F46 ${op} \u4E0D\u68C0\u67E5\u6EA2\u51FA\uFF0C\u7167\u5E38\u5199\u5165\u3002` : carries[32] ? "\u6700\u9AD8\u4F4D\u5411\u5916\u7684\u8FDB\u4F4D\u88AB\u4E22\u5F03\uFF0832 \u4F4D\u653E\u4E0D\u4E0B\uFF09\uFF0C\u6309\u6709\u7B26\u53F7\u6570\u770B\u6CA1\u6709\u6EA2\u51FA\u3002" : "\u6CA1\u6709\u6EA2\u51FA\u3002";
-    step(`${note}${failed}${result ? ` \u7ED3\u679C ${hexOf(S.reduce((v, s) => v << 1 | s, 0))} \u5199\u5165 ${result.name}\u3002` : ""}`, [
-      row("\u7ED3\u679C", S, {}, { result: true })
+    const note = overflow ? trapping ? t("bits.overflow.trap", { op }) : t("bits.overflow.ignored", { op }) : carries[32] ? t("bits.overflow.carryOut") : t("bits.overflow.none");
+    step(`${note}${failed}${result ? ` ${t("bits.add.result", { value: hexOf(S.reduce((v, s) => v << 1 | s, 0)), reg: result.name })}` : ""}`, [
+      row(t("bits.result"), S, {}, { result: true })
     ]);
-    return { title: `${op}\uFF1A\u9010\u4F4D${sub ? "\u76F8\u51CF" : "\u76F8\u52A0"}`, steps, overflow };
+    return { title: t("bits.add.title", { op, operation: sub ? t("bits.subtract") : t("bits.addition") }), steps, overflow };
   }
   if (LOGIC[op]) {
     const [kind, rule] = LOGIC[op], a2 = read(rsN) | 0, bv = op.endsWith("i") ? uimm : read(rtN) | 0;
     const A = bitsOf(a2), B = bitsOf(bv), f = { and: (x, y) => x & y, or: (x, y) => x | y, xor: (x, y) => x ^ y, nor: (x, y) => 1 - (x | y) }[kind], S = A.map((x, j) => f(x, B[j]));
-    const bLabel = op.endsWith("i") ? "\u7ACB\u5373\u6570\uFF08\u96F6\u6269\u5C55\uFF09" : name2(rtN);
-    step(`${op}\uFF1A\u9010\u4F4D\u6BD4\u8F83\uFF0C${rule}\u3002\u5404\u4F4D\u4E92\u4E0D\u5F71\u54CD\uFF0C\u6CA1\u6709\u8FDB\u4F4D\u3002`, [row(name2(rsN), A), row(bLabel, B), row("\u7ED3\u679C", S.map(() => null))]);
+    const bLabel = op.endsWith("i") ? t("bits.immediateZero") : name2(rtN);
+    step(t("bits.logic.intro", { op, rule }), [row(name2(rsN), A), row(bLabel, B), row(t("bits.result"), S.map(() => null))]);
     for (let k = 8; k <= 32; k += 8) {
       const marks2 = {};
       for (let j = 32 - k; j < 40 - k; j++) marks2[j] = "new";
-      step(`\u7B2C ${k - 7}\u2013${k} \u4F4D\u3002`, [row(name2(rsN), A), row(bLabel, B), row("\u7ED3\u679C", S.map((s, j) => 31 - j < k ? s : null), marks2)]);
+      step(t("bits.logic.group", { from: k - 7, to: k }), [row(name2(rsN), A), row(bLabel, B), row(t("bits.result"), S.map((s, j) => 31 - j < k ? s : null), marks2)]);
     }
-    step(`\u7ED3\u679C\u5199\u5165 ${result?.name ?? "\u76EE\u6807\u5BC4\u5B58\u5668"}\u3002`, [row("\u7ED3\u679C", S, {}, { result: true })]);
-    return { title: `${op}\uFF1A\u9010\u4F4D${kind}`, steps };
+    step(t("bits.logic.result", { reg: result?.name ?? t("bits.target") }), [row(t("bits.result"), S, {}, { result: true })]);
+    return { title: t("bits.logic.title", { op, kind }), steps };
   }
   const signed = MULDIV[op], a = read(rsN), c = read(rtN);
   const big = (v) => signed ? BigInt(v | 0) : BigInt(v >>> 0);
   if (op.startsWith("mult")) {
     const product = BigInt.asUintN(64, big(a) * big(c));
     const bits2 = bitsOf(product, 64);
-    step(`${signed ? "\u6709\u7B26\u53F7" : "\u65E0\u7B26\u53F7"}\u76F8\u4E58\uFF1A\u4E24\u4E2A 32 \u4F4D\u6570\u7684\u4E58\u79EF\u6700\u591A\u8981 64 \u4F4D\u3002`, [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
-    step("\u4E58\u79EF\u7684\u9AD8 32 \u4F4D\u653E\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u653E\u8FDB LO\uFF1B\u7528 mfhi / mflo \u53D6\u51FA\u3002", [
-      row("\u4E58\u79EF", bits2, Object.fromEntries(bits2.map((_, j) => [j, j < 32 ? "hi" : "lo"])), { wide: true }),
+    step(t("bits.mul.intro", { kind: signed ? t("bits.signed") : t("bits.unsigned") }), [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+    step(t("bits.mul.hilo"), [
+      row(t("bits.product"), bits2, Object.fromEntries(bits2.map((_, j) => [j, j < 32 ? "hi" : "lo"])), { wide: true }),
       row("HI", bits2.slice(0, 32)),
       row("LO", bits2.slice(32))
     ]);
-    return { title: `${op}\uFF1A64 \u4F4D\u4E58\u79EF`, steps };
+    return { title: t("bits.mul.title", { op }), steps };
   }
   if (!c) {
-    step("\u9664\u6570\u4E3A 0\uFF1AMIPS \u4E0D\u4EA7\u751F\u5F02\u5E38\uFF0CHI \u548C LO \u7684\u503C\u6CA1\u6709\u89C4\u5B9A\uFF0C\u4E0D\u80FD\u4F7F\u7528\u3002", [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
-    return { title: `${op}\uFF1A\u9664\u4EE5 0`, steps };
+    step(t("bits.div.zero"), [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+    return { title: t("bits.div.zeroTitle", { op }), steps };
   }
   const q = big(a) / big(c), r = big(a) - q * big(c);
-  step(`${signed ? "\u6709\u7B26\u53F7" : "\u65E0\u7B26\u53F7"}\u76F8\u9664\uFF1A${name2(rsN)} \xF7 ${name2(rtN)}\u3002`, [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
-  step("\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI\uFF1B\u7528 mflo / mfhi \u53D6\u51FA\u3002", [row("LO\uFF08\u5546\uFF09", bitsOf(q)), row("HI\uFF08\u4F59\u6570\uFF09", bitsOf(r))]);
-  return { title: `${op}\uFF1A\u5546\u548C\u4F59\u6570`, steps };
+  step(t("bits.div.intro", { kind: signed ? t("bits.signed") : t("bits.unsigned"), a: name2(rsN), b: name2(rtN) }), [row(name2(rsN), bitsOf(a)), row(name2(rtN), bitsOf(c))]);
+  step(t("bits.div.hilo"), [row(t("bits.div.lo"), bitsOf(q)), row(t("bits.div.hi"), bitsOf(r))]);
+  return { title: t("bits.div.title", { op }), steps };
 }
 
 // ui/path.js
-var edgeLabels = {
-  next: "\u987A\u5E8F",
-  fallthrough: "\u6761\u4EF6\u4E0D\u6210\u7ACB",
-  taken: "\u6761\u4EF6\u6210\u7ACB",
-  jump: "\u8DF3\u8F6C",
-  call: "\u8C03\u7528",
-  return: "\u8FD4\u56DE"
-};
+var edgeLabels = localized(() => ({
+  next: t("path.edge.next"),
+  fallthrough: t("path.edge.fallthrough"),
+  taken: t("path.edge.taken"),
+  jump: t("path.edge.jump"),
+  call: t("path.edge.call"),
+  return: t("path.edge.return")
+}));
 function unconditional(ins) {
   const rs = ins.binary >>> 21 & 31, rt = ins.binary >>> 16 & 31;
   if (ins.op === "beq") return rs === rt;
@@ -23235,7 +26563,7 @@ function layoutPath({
   const labelOf = (address) => {
     if (names.has(address)) return names.get(address);
     const w = where(address);
-    return w.line ? `\u7B2C ${w.line} \u884C` : "";
+    return w.line ? t("common.lineN", { line: w.line }) : "";
   };
   const steps = [];
   const addStep = (index, predicted, file, line, events) => steps.push({
@@ -23381,20 +26709,20 @@ function untakenLines(instructions, target2, max2 = 4) {
 }
 
 // ui/radix.js
-var RADIX_HELP = {
-  auto: "\u81EA\u52A8\uFF1A\u770B\u8D77\u6765\u50CF\u5730\u5740\u7684\u503C\uFF08\u843D\u5728\u4EE3\u7801\u3001\u6570\u636E\u6216\u6808\u7684\u8303\u56F4\u5185\uFF09\u7528\u5341\u516D\u8FDB\u5236\uFF0C\u5176\u4F59\u7528\u5341\u8FDB\u5236\u3002\u540C\u4E00\u4E2A\u503C\u4E0D\u4F1A\u56E0\u4E3A\u53D8\u5927\u800C\u6362\u5199\u6CD5\u3002",
-  hex: "HEX\uFF1A\u5341\u516D\u8FDB\u5236\uFF0C\u524D\u7F00 0x\u3002\u6BCF\u4E00\u4F4D\u8868\u793A 0\u201315\uFF08a\u2013f \u8868\u793A 10\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u662F\u4E00\u4E2A\u5B57\u8282\u3002",
-  dec: "DEC\uFF1A\u5341\u8FDB\u5236\uFF0C\u524D\u7F00 0d\u3002\u666E\u901A\u6570\u503C\u6309\u6709\u7B26\u53F7\u6570\u8BFB\uFF08\u53EF\u4EE5\u662F\u8D1F\u6570\uFF09\uFF1B\u539F\u59CB\u5B57\u8282\u548C\u5730\u5740\u6309\u65E0\u7B26\u53F7\u6570\u8BFB\u3002",
-  bin: "BIN\uFF1A\u4E8C\u8FDB\u5236\uFF0C\u524D\u7F00 0b\uFF0C\u6BCF 4 \u4F4D\u7528 _ \u5206\u5F00\uFF1B\u5C31\u662F\u8FD9\u4E9B\u4F4D\u672C\u8EAB\u3002\u8D1F\u6570\u7528\u8865\u7801\uFF1A\u22121 \u662F 32 \u4E2A 1\uFF0C\u22127 \u662F 1\u20261111_1001\uFF1B\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
-  ascii: "ASCII\uFF1A\u628A\u6BCF\u4E2A\u5B57\u8282\u6309\u5B57\u7B26\u7F16\u7801\u8868\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 104 \u8BFB\u4F5C h\u300148 \u8BFB\u4F5C 0\uFF1B\\0\u3001\\n\u3001\\t \u8868\u793A\u7A7A\u5B57\u7B26\u3001\u6362\u884C\u3001\u5236\u8868\u3002\u4E0D\u50CF\u5B57\u7B26\u7684\u503C\uFF08\u4F8B\u5982 11\uFF09\u4ECD\u7528\u5341\u8FDB\u5236\u663E\u793A\uFF0C\u5E76\u6CE8\u660E\u201C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\u201D\u3002"
-};
-var RADIXES = [
-  ["auto", "\u81EA\u52A8"],
+var RADIX_HELP = localized(() => ({
+  auto: t("radix.help.auto"),
+  hex: t("radix.help.hex"),
+  dec: t("radix.help.dec"),
+  bin: t("radix.help.bin"),
+  ascii: t("radix.help.ascii")
+}));
+var RADIXES = localized(() => [
+  ["auto", t("radix.auto")],
   ["hex", "HEX"],
   ["dec", "DEC"],
   ["bin", "BIN"],
   ["ascii", "ASCII"]
-];
+]);
 var printable = (b) => b >= 32 && b < 127;
 var escapeByte = (b) => printable(b) ? String.fromCharCode(b) : b === 0 ? "\\0" : b === 10 ? "\\n" : b === 9 ? "\\t" : "\\x" + b.toString(16).padStart(2, "0");
 function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = {}) {
@@ -23420,7 +26748,7 @@ function formatValue(n, { radix: radix2 = "auto", width = 4, kind = "value" } = 
   const fallback = radix2 === "ascii" && !characters;
   const mode = radix2 === "auto" ? kind === "address" || width === 4 && looksLikeAddress(unsigned) ? "hex" : "dec" : fallback ? "dec" : radix2;
   const text2 = { hex: hex2, dec: dec2, bin: bin(false), ascii }[mode] ?? hex2;
-  const note = fallback ? "\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26" : mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
+  const note = fallback ? t("radix.notPrintable") : mode !== "ascii" && width === 1 && printable(unsigned) ? `'${String.fromCharCode(unsigned)}'` : "";
   return { text: text2, note, full: { hex: hex2, dec: dec2, bin: bin(true), ascii }[mode] ?? hex2 };
 }
 function looksLikeAddress(u) {
@@ -23439,39 +26767,39 @@ function bitDots(value, bytes = 4, label2 = "") {
 }
 
 // ui/syscalls.js
-var serviceGuide = {
-  1: ["\u6253\u5370\u6574\u6570", "\u628A $a0 \u7684\u503C\u6309\u6709\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u7684\u5341\u8FDB\u5236\u5199\u6CD5\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 45\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  2: ["\u6253\u5370\u5355\u7CBE\u5EA6\u6570", "\u628A $f12 \u7684\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  3: ["\u6253\u5370\u53CC\u7CBE\u5EA6\u6570", "\u628A $f12/$f13 \u7EC4\u6210\u7684\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u6253\u5370\u5230\u7EC8\u7AEF\u3002", [["$f12", "\u8981\u6253\u5370\u7684\u6570\uFF08\u4F4E\u4F4D\u4E00\u534A\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  4: ["\u6253\u5370\u5B57\u7B26\u4E32", "\u4ECE $a0 \u7ED9\u51FA\u7684\u5730\u5740\u5F00\u59CB\u9010\u4E2A\u5B57\u8282\u6253\u5370\uFF0C\u9047\u5230\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF08\\0\uFF09\u505C\u4E0B\u3002", [["$a0", "\u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740\uFF08\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\uFF09"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u6BB5\u6587\u5B57\uFF1B\\0 \u672C\u8EAB\u4E0D\u6253\u5370\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  5: ["\u8BFB\u53D6\u6574\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6574\u6570\u5E76\u6309 Enter\u3002", [], "\u6267\u884C\u540E $v0 \u53D8\u6210\u8BFB\u5230\u7684\u6574\u6570\uFF0C\u539F\u6765\u7684 5 \u88AB\u8986\u76D6\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  6: ["\u8BFB\u53D6\u5355\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0\u3002", "$f0\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  7: ["\u8BFB\u53D6\u53CC\u7CBE\u5EA6\u6570", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u6D6E\u70B9\u6570\u3002", [], "\u8BFB\u5230\u7684\u6570\u5199\u5165 $f0/$f1\u3002", "$f0\u3001$f1\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  8: ["\u8BFB\u53D6\u5B57\u7B26\u4E32", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u884C\u6587\u5B57\uFF0C\u628A\u5B57\u7B26\u5B58\u8FDB\u5185\u5B58\u3002", [["$a0", "\u7F13\u51B2\u533A\uFF08\u5B58\u653E\u8F93\u5165\u7684\u5185\u5B58\uFF09\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740"], ["$a1", "\u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\uFF0C\u542B\u672B\u5C3E\u7684 \\0"]], "\u4ECE $a0 \u5F00\u59CB\u6700\u591A\u5199\u5165 $a1\u22121 \u4E2A\u5B57\u7B26\uFF08\u542B\u6362\u884C\uFF09\uFF0C\u672B\u5C3E\u8865 \\0\u3002", "\u5185\u5B58\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  9: ["\u5206\u914D\u5806\u5185\u5B58", "\u5728\u5806\u4E0A\u7559\u51FA $a0 \u4E2A\u5B57\u8282\u3002", [["$a0", "\u9700\u8981\u7684\u5B57\u8282\u6570"]], "\u8FD9\u5757\u5185\u5B58\u7684\u8D77\u59CB\u5730\u5740\u5199\u5165 $v0\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  10: ["\u9000\u51FA\u7A0B\u5E8F", "\u7ED3\u675F\u7A0B\u5E8F\u3002", [], "\u7A0B\u5E8F\u505C\u6B62\uFF0C\u4E0D\u518D\u6267\u884C\u540E\u9762\u7684\u6307\u4EE4\u3002", "\u6267\u884C\u7ED3\u675F"],
-  11: ["\u6253\u5370\u5B57\u7B26", "\u628A $a0 \u4F4E 8 \u4F4D\u6309\u5B57\u7B26\u7F16\u7801\u8868\u5F53\u4F5C\u4E00\u4E2A\u5B57\u7B26\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u5B57\u7B26\u7684\u7F16\u7801"]], "\u7EC8\u7AEF\u591A\u51FA\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 45 \u6253\u5370\u6210 -\uFF08\u540C\u6837\u7684 45\uFF0C$v0 = 1 \u65F6\u4F1A\u6253\u5370\u6210 45\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  12: ["\u8BFB\u53D6\u5B57\u7B26", "\u7B49\u5F85\u5728\u7EC8\u7AEF\u8F93\u5165\u4E00\u4E2A\u5B57\u7B26\u3002", [], "\u6267\u884C\u540E $v0 \u53D8\u6210\u8FD9\u4E2A\u5B57\u7B26\u7684\u7F16\u7801\uFF0C\u539F\u6765\u7684 12 \u88AB\u8986\u76D6\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  13: ["\u6253\u5F00\u865A\u62DF\u6587\u4EF6", "\u6309 $a0 \u7684\u6587\u4EF6\u540D\u6253\u5F00\u5DE5\u7A0B\u91CC\u7684\u8F93\u5165\u6587\u4EF6\uFF08\u4E0D\u4F1A\u8BBF\u95EE\u7535\u8111\u4E0A\u7684\u6587\u4EF6\uFF09\u3002", [["$a0", "\u6587\u4EF6\u540D\u5B57\u7B26\u4E32\u7684\u5730\u5740"], ["$a1", "\u6253\u5F00\u65B9\u5F0F\uFF1A0 \u8BFB\u30011 \u5199\u30019 \u8FFD\u52A0"], ["$a2", "\u6A21\u5F0F\uFF08\u5FFD\u7565\uFF09"]], "\u6587\u4EF6\u63CF\u8FF0\u7B26\u5199\u5165 $v0\uFF1B\u6253\u4E0D\u5F00\u65F6\u4E3A\u8D1F\u6570\u3002", "$v0\uFF08\u8FD4\u56DE\u503C\uFF09"],
-  14: ["\u8BFB\u53D6\u6587\u4EF6", "\u4ECE\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u8BFB\u53D6\u5B57\u8282\u5230\u5185\u5B58\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u7F13\u51B2\u533A\u5730\u5740"], ["$a2", "\u6700\u591A\u8BFB\u53D6\u7684\u5B57\u8282\u6570"]], "\u8BFB\u5230\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\uFF080 \u8868\u793A\u8BFB\u5B8C\uFF0C\u8D1F\u6570\u8868\u793A\u51FA\u9519\uFF09\u3002", "\u5185\u5B58\u3001$v0"],
-  15: ["\u5199\u5165\u6587\u4EF6", "\u628A\u5185\u5B58\u4E2D\u7684\u5B57\u8282\u5199\u5165\u5DF2\u6253\u5F00\u7684\u865A\u62DF\u6587\u4EF6\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"], ["$a1", "\u8981\u5199\u7684\u6570\u636E\u5730\u5740"], ["$a2", "\u5B57\u8282\u6570"]], "\u5199\u5165\u7684\u5B57\u8282\u6570\u5199\u5165 $v0\u3002", "\u865A\u62DF\u6587\u4EF6\u3001$v0"],
-  16: ["\u5173\u95ED\u6587\u4EF6", "\u5173\u95ED $a0 \u6307\u5B9A\u7684\u865A\u62DF\u6587\u4EF6\u3002", [["$a0", "\u6587\u4EF6\u63CF\u8FF0\u7B26"]], "\u6587\u4EF6\u5173\u95ED\u3002", "\u65E0"],
-  17: ["\u9000\u51FA\u5E76\u8FD4\u56DE\u72B6\u6001\u7801", "\u7ED3\u675F\u7A0B\u5E8F\uFF0C\u5E76\u628A $a0 \u4F5C\u4E3A\u9000\u51FA\u7801\u3002", [["$a0", "\u9000\u51FA\u7801"]], "\u7A0B\u5E8F\u505C\u6B62\u3002", "\u6267\u884C\u7ED3\u675F"],
-  34: ["\u6253\u5370\u5341\u516D\u8FDB\u5236\u6574\u6570", "\u628A $a0 \u6309 8 \u4F4D\u5341\u516D\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA 0x \u5F00\u5934\u7684\u5199\u6CD5\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  35: ["\u6253\u5370\u4E8C\u8FDB\u5236\u6574\u6570", "\u628A $a0 \u6309 32 \u4F4D\u4E8C\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA 32 \u4E2A 0/1\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"],
-  36: ["\u6253\u5370\u65E0\u7B26\u53F7\u6574\u6570", "\u628A $a0 \u6309\u65E0\u7B26\u53F7\u5341\u8FDB\u5236\u6253\u5370\u3002", [["$a0", "\u8981\u6253\u5370\u7684\u6574\u6570"]], "\u7EC8\u7AEF\u591A\u51FA\u8FD9\u4E2A\u6570\uFF08\u4E0D\u4F1A\u662F\u8D1F\u6570\uFF09\u3002", "\u7EC8\u7AEF\uFF1B\u5BC4\u5B58\u5668\u4E0D\u53D8"]
-};
+var serviceGuide = localized(() => ({
+  1: [t("service.1"), t("guide.1.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.1.effect"), t("guide.changes.terminal")],
+  2: [t("service.2"), t("guide.2.does"), [["$f12", t("guide.arg.numberToPrint")]], t("guide.2.effect"), t("guide.changes.terminal")],
+  3: [t("service.3"), t("guide.3.does"), [["$f12", t("guide.arg.doubleLow")]], t("guide.2.effect"), t("guide.changes.terminal")],
+  4: [t("guide.4.name"), t("guide.4.does"), [["$a0", t("guide.arg.stringAddress")]], t("guide.4.effect"), t("guide.changes.terminal")],
+  5: [t("service.5"), t("guide.5.does"), [], t("guide.5.effect"), t("guide.changes.v0")],
+  6: [t("service.6"), t("guide.readFloat.does"), [], t("guide.6.effect"), t("guide.changes.f0")],
+  7: [t("service.7"), t("guide.readFloat.does"), [], t("guide.7.effect"), t("guide.changes.f0f1")],
+  8: [t("service.8"), t("guide.8.does"), [["$a0", t("guide.arg.bufferAddress")], ["$a1", t("guide.arg.bufferSize")]], t("guide.8.effect"), t("guide.changes.memory")],
+  9: [t("service.9"), t("guide.9.does"), [["$a0", t("guide.arg.bytesNeeded")]], t("guide.9.effect"), t("guide.changes.v0")],
+  10: [t("service.10"), t("guide.10.does"), [], t("guide.10.effect"), t("guide.changes.ended")],
+  11: [t("service.11"), t("guide.11.does"), [["$a0", t("guide.arg.charCode")]], t("guide.11.effect"), t("guide.changes.terminal")],
+  12: [t("service.12"), t("guide.12.does"), [], t("guide.12.effect"), t("guide.changes.v0")],
+  13: [t("service.13"), t("guide.13.does"), [["$a0", t("guide.arg.fileName")], ["$a1", t("guide.arg.openFlags")], ["$a2", t("guide.arg.mode")]], t("guide.13.effect"), t("guide.changes.v0")],
+  14: [t("service.14"), t("guide.14.does"), [["$a0", t("guide.arg.fd")], ["$a1", t("guide.arg.buffer")], ["$a2", t("guide.arg.maxRead")]], t("guide.14.effect"), t("guide.changes.memoryV0")],
+  15: [t("service.15"), t("guide.15.does"), [["$a0", t("guide.arg.fd")], ["$a1", t("guide.arg.dataAddress")], ["$a2", t("guide.arg.byteCount")]], t("guide.15.effect"), t("guide.changes.fileV0")],
+  16: [t("service.16"), t("guide.16.does"), [["$a0", t("guide.arg.fd")]], t("guide.16.effect"), t("common.none")],
+  17: [t("service.17"), t("guide.17.does"), [["$a0", t("guide.arg.exitCode")]], t("guide.17.effect"), t("guide.changes.ended")],
+  34: [t("service.34"), t("guide.34.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.34.effect"), t("guide.changes.terminal")],
+  35: [t("service.35"), t("guide.35.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.35.effect"), t("guide.changes.terminal")],
+  36: [t("service.36"), t("guide.36.does"), [["$a0", t("guide.arg.intToPrint")]], t("guide.36.effect"), t("guide.changes.terminal")]
+}));
 var printable2 = (b) => b >= 32 && b < 127;
 function argumentMeaning(n, register, value) {
   if (value == null) return "";
   if (n === 11 && register === "$a0") {
     const b = value & 255;
-    return printable2(b) ? `\u7F16\u7801 ${b} \u662F\u5B57\u7B26 '${escapeByte(b)}'` : `\u7F16\u7801 ${b}\uFF08${escapeByte(b)}\uFF0C\u4E0D\u662F\u53EF\u663E\u793A\u5B57\u7B26\uFF09`;
+    return printable2(b) ? t("guide.meaning.char", { code: b, char: escapeByte(b) }) : t("guide.meaning.notPrintable", { code: b, char: escapeByte(b) });
   }
-  if (n === 1 && register === "$a0") return `\u6253\u5370\u51FA\u6765\u662F ${value | 0}`;
-  if (n === 36 && register === "$a0") return `\u6253\u5370\u51FA\u6765\u662F ${value >>> 0}`;
-  if ((n === 4 || n === 8 || n === 13) && register === "$a0") return "\u8FD9\u662F\u5730\u5740\uFF0C\u5185\u5BB9\u5728\u5185\u5B58\u91CC";
-  if ((n === 14 || n === 15) && register === "$a1") return "\u8FD9\u662F\u5730\u5740\uFF0C\u5185\u5BB9\u5728\u5185\u5B58\u91CC";
+  if (n === 1 && register === "$a0") return t("guide.meaning.prints", { value: value | 0 });
+  if (n === 36 && register === "$a0") return t("guide.meaning.prints", { value: value >>> 0 });
+  if ((n === 4 || n === 8 || n === 13) && register === "$a0") return t("guide.meaning.address");
+  if ((n === 14 || n === 15) && register === "$a1") return t("guide.meaning.address");
   return "";
 }
 function serviceAt({ next, event, v0, lines = [], line = 0 }) {
@@ -23489,16 +26817,16 @@ function serviceAt({ next, event, v0, lines = [], line = 0 }) {
   return { n, from: next ? "next" : event ? "ran" : setter ? "source" : "unknown", event, setter: setter?.n === n ? setter : null };
 }
 function chosenBy(n, name2, setter, step) {
-  if (n == null) return "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\u3002\u8FD9\u4E00\u884C\u4E0A\u65B9\u6CA1\u6709\u76F4\u63A5\u8BBE\u7F6E $v0 \u7684\u6307\u4EE4\uFF0C$v0 \u7684\u503C\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002";
-  const where = setter ? `\uFF08\u7B2C ${setter.line} \u884C ${setter.text} \u653E\u5165${step ? `\uFF0C\u7B2C ${step} \u6B65` : ""}\uFF09` : "";
-  return `$v0 = ${n} \u9009\u5B9A\u4E86\u201C${name2}\u201D${where}\u3002`;
+  if (n == null) return t("guide.chosen.unknown");
+  const where = setter ? t("guide.chosen.setter", { line: setter.line, code: setter.text, when: step ? t("guide.chosen.step", { step }) : "" }) : "";
+  return t("guide.chosen", { n, name: name2, where });
 }
 function syscallDetail({ n, values = {}, event, waiting, esc, show: show2 = String, regTitle = null, setter = null, step = null }) {
   const reg2 = (r) => regTitle ? `<abbr class="reg-term" title="${esc(regTitle(r))}">${r}</abbr>` : r;
   const g = serviceGuide[n];
-  const head = n == null ? "syscall\uFF1A$v0 \u672A\u77E5" : `syscall\uFF1A${g ? g[0] : "\u4E0D\u652F\u6301"}`;
+  const head = n == null ? t("guide.title.unknown") : `syscall${t("common.colon")}${g ? g[0] : t("guide.title.unsupported")}`;
   if (n != null && !g)
-    return { title: head, html: `<p>$v0 = ${esc(String(n))}\uFF1AMARS Trace \u4E0D\u652F\u6301\u8FD9\u4E2A\u6570\uFF08\u652F\u6301 ${Object.keys(serviceGuide).join("\u3001")}\uFF09\uFF0C\u6267\u884C\u65F6\u4F1A\u62A5\u9519\u505C\u4E0B\u3002</p>` };
+    return { title: head, html: `<p>${t("guide.unsupported", { n: esc(String(n)), supported: Object.keys(serviceGuide).join(t("common.listSep")) })}</p>` };
   if (!g) return { title: head, html: `<p>${esc(chosenBy(null))}</p>` };
   const [, does, args, effect, changes] = g;
   const arg = ([r, meaning]) => {
@@ -23506,18 +26834,18 @@ function syscallDetail({ n, values = {}, event, waiting, esc, show: show2 = Stri
     return `<li><code>${reg2(r)}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show2(v, r))}</b>`}${m ? `<small> \xB7 ${esc(m)}</small>` : ""}</li>`;
   };
   const happened = [];
-  if (waiting) happened.push(`\u6B63\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u8BF7\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540E\u6309 Enter\u3002\u8F93\u5165\u5B8C\u6210\u524D $v0 \u4ECD\u662F ${n}\uFF0C\u4E0D\u4F1A\u663E\u793A\u865A\u6784\u7684\u7ED3\u679C\u3002`);
+  if (waiting) happened.push(t("guide.waiting", { n }));
   if (event) {
-    if (event.output) happened.push(`\u5B9E\u9645\u8F93\u51FA "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
+    if (event.output) happened.push(`${t("guide.output")} "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
     for (const a of event.accesses || [])
-      if (a.write && a.kind === "register") happened.push(`${a.name} \u53D8\u4E3A ${esc(show2(a.value, a.name))}`);
+      if (a.write && a.kind === "register") happened.push(t("guide.registerChanged", { name: a.name, value: esc(show2(a.value, a.name)) }));
     const bytes = (event.accesses || []).filter((a) => a.kind === "memory" && a.write).reduce((s, a) => s + a.width, 0);
-    if (bytes) happened.push(`\u5199\u5165\u5185\u5B58 ${bytes} \u5B57\u8282`);
-    if (event.status === "waiting-input") happened.push("\u5F53\u65F6\u5728\u7B49\u5F85\u8F93\u5165");
+    if (bytes) happened.push(t("guide.memoryWritten", { bytes }));
+    if (event.status === "waiting-input") happened.push(t("guide.wasWaiting"));
   }
   return {
     title: head,
-    html: `<p class="syscall-chosen">${esc(chosenBy(n, g[0], setter, step))}</p><dl class="syscall-steps"><dt>\u505A\u4EC0\u4E48</dt><dd>${esc(does)}</dd><dt>\u9700\u8981\u7684\u53C2\u6570</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : "\u65E0"}</dd><dt>\u53D1\u751F\u4EC0\u4E48</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>\u53D8\u5316</dt><dd>${esc(changes)}</dd></dl>`
+    html: `<p class="syscall-chosen">${esc(chosenBy(n, g[0], setter, step))}</p><dl class="syscall-steps"><dt>${t("guide.heading.does")}</dt><dd>${esc(does)}</dd><dt>${t("guide.heading.args")}</dt><dd>${args.length ? `<ul>${args.map(arg).join("")}</ul>` : t("common.none")}</dd><dt>${t("guide.heading.effect")}</dt><dd>${esc(effect)}${happened.length ? `<ul>${happened.map((h) => `<li>${h}</li>`).join("")}</ul>` : ""}</dd><dt>${t("guide.heading.changes")}</dt><dd>${esc(changes)}</dd></dl>`
   };
 }
 
@@ -23529,7 +26857,7 @@ var N = (v, w = 4, k = "value") => ({
   w,
   k
 });
-var styled = (c) => (t2) => t2 && typeof t2 === "object" && t2.num ? { ...t2, c } : { t: String(t2), c };
+var styled = (c) => (t3) => t3 && typeof t3 === "object" && t3.num ? { ...t3, c } : { t: String(t3), c };
 var dim = styled("dim");
 var fresh = styled("fresh");
 var ok = styled("ok");
@@ -23542,36 +26870,36 @@ var littleEndian = (address, n, width) => Array.from(
   { length: width },
   (_, i) => `[${hex(address + i)}] ${byteHex(n >>> 8 * i, 1)}`
 ).join(" ");
-var binaryOps = {
-  add: ["+", "\u6709\u7B26\u53F7\u76F8\u52A0\uFF1B\u7ED3\u679C\u8D85\u51FA 32 \u4F4D\u8303\u56F4\u65F6\u89E6\u53D1\u6EA2\u51FA\u5F02\u5E38\uFF08addu \u4E0D\u68C0\u67E5\uFF09\u3002"],
-  addu: ["+", "\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\uFF1B\u8D85\u51FA 32 \u4F4D\u7684\u90E8\u5206\u88AB\u4E22\u5F03\u3002"],
-  sub: ["\u2212", "\u6709\u7B26\u53F7\u76F8\u51CF\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38\uFF08subu \u4E0D\u68C0\u67E5\uFF09\u3002"],
-  subu: ["\u2212", "\u76F8\u51CF\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\u3002"],
-  and: ["&", "\u9010\u4F4D\u4E0E\uFF1A\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1\u3002", true],
-  or: ["|", "\u9010\u4F4D\u6216\uFF1A\u4EFB\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1\u3002", true],
-  xor: ["^", "\u9010\u4F4D\u5F02\u6216\uFF1A\u4E24\u4F4D\u4E0D\u540C\u5F97 1\u3002", true],
-  nor: ["nor", "\u9010\u4F4D\u6216\u4E4B\u540E\u53D6\u53CD\uFF1A~(a | b)\u3002", true],
-  slt: ["<", "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\uFF0C\u5426\u5219\u5F97 0\u3002"],
-  sltu: ["<\u1D64", "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\uFF0C\u5426\u5219\u5F97 0\u3002"],
-  mul: ["\xD7", "\u76F8\u4E58\uFF0C\u53EA\u4FDD\u7559\u4E58\u79EF\u7684\u4F4E 32 \u4F4D\u3002"]
-};
-var immediateOps = {
-  addi: ["+", "\u7ACB\u5373\u6570\u505A\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38\u3002"],
-  addiu: ["+", "\u7ACB\u5373\u6570\u505A\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA\u3002"],
-  slti: ["<", "\u7ACB\u5373\u6570\u7B26\u53F7\u6269\u5C55\u540E\u6309\u6709\u7B26\u53F7\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\u3002"],
-  sltiu: ["<\u1D64", "\u7ACB\u5373\u6570\u5148\u7B26\u53F7\u6269\u5C55\uFF0C\u518D\u6309\u65E0\u7B26\u53F7\u6BD4\u8F83\uFF0C\u6210\u7ACB\u5F97 1\u3002"],
-  andi: ["&", "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u4E0E\u3002", true],
-  ori: ["|", "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u6216\u3002", true],
-  xori: ["^", "\u7ACB\u5373\u6570\u505A\u96F6\u6269\u5C55\uFF08\u9AD8 16 \u4F4D\u8865 0\uFF09\u540E\u9010\u4F4D\u5F02\u6216\u3002", true]
-};
-var shiftOps = {
-  sll: ["<<", "\u5DE6\u79FB\uFF0C\u53F3\u4FA7\u8865 0\u3002"],
-  srl: [">>>", "\u903B\u8F91\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865 0\u3002"],
-  sra: [">>", "\u7B97\u672F\u53F3\u79FB\uFF0C\u5DE6\u4FA7\u8865\u7B26\u53F7\u4F4D\u3002"],
-  sllv: ["<<", "\u5DE6\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002"],
-  srlv: [">>>", "\u903B\u8F91\u53F3\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002"],
-  srav: [">>", "\u7B97\u672F\u53F3\u79FB\uFF0C\u79FB\u4F4D\u91CF\u53D6\u5BC4\u5B58\u5668\u7684\u4F4E 5 \u4F4D\u3002"]
-};
+var binaryOps = localized(() => ({
+  add: ["+", t("beat.op.add")],
+  addu: ["+", t("beat.op.addu")],
+  sub: ["\u2212", t("beat.op.sub")],
+  subu: ["\u2212", t("beat.op.subu")],
+  and: ["&", t("beat.op.and"), true],
+  or: ["|", t("beat.op.or"), true],
+  xor: ["^", t("beat.op.xor"), true],
+  nor: ["nor", t("beat.op.nor"), true],
+  slt: ["<", t("beat.op.slt")],
+  sltu: ["<\u1D64", t("beat.op.sltu")],
+  mul: ["\xD7", t("beat.op.mul")]
+}));
+var immediateOps = localized(() => ({
+  addi: ["+", t("beat.op.addi")],
+  addiu: ["+", t("beat.op.addiu")],
+  slti: ["<", t("beat.op.slti")],
+  sltiu: ["<\u1D64", t("beat.op.sltiu")],
+  andi: ["&", t("beat.op.andi"), true],
+  ori: ["|", t("beat.op.ori"), true],
+  xori: ["^", t("beat.op.xori"), true]
+}));
+var shiftOps = localized(() => ({
+  sll: ["<<", t("beat.op.sll")],
+  srl: [">>>", t("beat.op.srl")],
+  sra: [">>", t("beat.op.sra")],
+  sllv: ["<<", t("beat.op.sllv")],
+  srlv: [">>>", t("beat.op.srlv")],
+  srav: [">>", t("beat.op.srav")]
+}));
 var compareZero = {
   blez: ["\u2264 0", (v) => v <= 0],
   bgtz: ["> 0", (v) => v > 0],
@@ -23580,20 +26908,20 @@ var compareZero = {
   bltzal: ["< 0", (v) => v < 0],
   bgezal: ["\u2265 0", (v) => v >= 0]
 };
-var loads = {
-  lw: [4, "\u5185\u5B58", false],
-  ll: [4, "\u5185\u5B58", false],
-  lh: [2, "\u534A\u5B57", true],
-  lhu: [2, "\u534A\u5B57", false],
-  lb: [1, "\u5B57\u8282", true],
-  lbu: [1, "\u5B57\u8282", false]
-};
-var stores = {
-  sw: [4, "\u5185\u5B58"],
-  sc: [4, "\u5185\u5B58"],
-  sh: [2, "\u534A\u5B57"],
-  sb: [1, "\u5B57\u8282"]
-};
+var loads = localized(() => ({
+  lw: [4, t("beat.memory"), false],
+  ll: [4, t("beat.memory"), false],
+  lh: [2, t("beat.halfword"), true],
+  lhu: [2, t("beat.halfword"), false],
+  lb: [1, t("beat.byte"), true],
+  lbu: [1, t("beat.byte"), false]
+}));
+var stores = localized(() => ({
+  sw: [4, t("beat.memory")],
+  sc: [4, t("beat.memory")],
+  sh: [2, t("beat.halfword")],
+  sb: [1, t("beat.byte")]
+}));
 function beatModel(event, { delay = false, instructions = [], symbols = [] } = {}) {
   if (!event?.instruction)
     return { template: [], beats: [], summary: "", objects: [] };
@@ -23611,7 +26939,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     const s = symbols.find((x) => x.address === address && !x.data);
     if (s) return s.name;
     const i = instructions.find((x) => x.address === address);
-    return i ? `\u7B2C ${i.line} \u884C` : hex(address);
+    return i ? t("common.lineN", { line: i.line }) : hex(address);
   };
   let template = [ins.source?.trim() || ins.basic || op];
   if (event.nextPC == null && !accesses2.length && event.status !== "waiting-input")
@@ -23619,14 +26947,14 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       template,
       beats: [
         {
-          eq: [fresh(event.status === "ended" ? "\u7A0B\u5E8F\u5DF2\u7ED3\u675F" : "\u65E0\u6CD5\u6267\u884C")],
-          caption: event.status === "ended" ? "\u8FD9\u6761\u6307\u4EE4\u4E0D\u4F1A\u518D\u6267\u884C\u3002" : String(event.status ?? ""),
+          eq: [fresh(event.status === "ended" ? t("block.ended") : t("beat.cannotRun"))],
+          caption: event.status === "ended" ? t("beat.neverAgain") : String(event.status ?? ""),
           lit: [],
           tokens: [],
           why: ""
         }
       ],
-      summary: event.status === "ended" ? "\u7A0B\u5E8F\u5DF2\u7ED3\u675F" : "\u65E0\u6CD5\u6267\u884C",
+      summary: event.status === "ended" ? t("block.ended") : t("beat.cannotRun"),
       objects: []
     };
   const beats = [];
@@ -23658,40 +26986,40 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     ]
   });
   const addressing = (at, base2, off, addr, width) => {
-    const align = width > 1 ? `${op} \u8981\u6C42\u5730\u5740\u662F ${width} \u7684\u500D\u6570\uFF0C\u5426\u5219\u89E6\u53D1\u5730\u5740\u5F02\u5E38\u3002` : "\u6309\u5B57\u8282\u8BBF\u95EE\u4E0D\u9700\u8981\u5BF9\u9F50\u3002";
+    const align = width > 1 ? t("beat.align", { op, width }) : t("beat.align.byte");
     if (rs && imm !== 0) {
-      beat(at([fresh(N(rs.value, 4, "bits")), off]), `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\u3002`, {
+      beat(at([fresh(N(rs.value, 4, "bits")), off]), t("beat.base", { base: base2 }), {
         ...reading([rs]),
-        why: `\u5730\u5740 = \u57FA\u5740\u5BC4\u5B58\u5668 + 16 \u4F4D\u6709\u7B26\u53F7\u504F\u79FB\uFF08${imm}\uFF09\u3002`
+        why: t("beat.address", { imm })
       });
-      beat(at([fresh(N(addr, 4, "bits"))]), "\u5F97\u5230\u5730\u5740\u3002", {
-        why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}\u3002${align}`
+      beat(at([fresh(N(addr, 4, "bits"))]), t("beat.address.done"), {
+        why: `${hex(rs.value)} + (${imm}) = ${hex(addr)}${t("common.period")}${align}`
       });
     } else if (rs)
       beat(
         at([fresh(N(addr, 4, "bits"))]),
-        `\u53D6\u57FA\u5740 ${base2} \u7684\u503C\uFF0C\u5B83\u5C31\u662F\u5730\u5740\u3002`,
+        t("beat.base.isAddress", { base: base2 }),
         {
           ...reading([rs]),
-          why: `\u504F\u79FB\u4E3A 0\uFF0C\u5730\u5740\u5C31\u662F ${base2} \u7684\u503C\u3002${align}`
+          why: t("beat.offsetZero", { base: base2, align })
         }
       );
-    else beat(at([fresh(N(addr, 4, "bits"))]), "\u5F97\u5230\u5730\u5740\u3002", { why: align });
+    else beat(at([fresh(N(addr, 4, "bits"))]), t("beat.address.done"), { why: align });
   };
   const writeBack = (dest, value, asHex, why) => {
     const a = written(dest);
     if (a)
       beat(
         [dest, " = ", ok(N(a.value, 4, asHex ? "bits" : "value")), " \u2713"],
-        `\u5199\u56DE ${dest}\u3002`,
+        t("beat.writeBack", { dest }),
         {
           ...writing(a, show(a.value, asHex)),
           why
         }
       );
     else if (dest === "$zero")
-      beat([dest, " = ", ok("0"), " \u2713"], "$zero \u6052\u4E3A 0\uFF0C\u7ED3\u679C\u88AB\u4E22\u5F03\u3002", {
-        why: "\u5199\u5165 $zero \u4E0D\u4EA7\u751F\u6548\u679C\u3002"
+      beat([dest, " = ", ok("0"), " \u2713"], t("beat.zero.discard"), {
+        why: t("beat.zero.noEffect")
       });
   };
   const copyFrom = /^(add|addu|or|xor)$/.test(op) && (rsN === 0 || rtN === 0) ? rsN === 0 ? rtN : rsN : /^(sub|subu)$/.test(op) && rtN === 0 ? rsN : null;
@@ -23701,25 +27029,25 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (!src) {
       template = [dest, " \u2190 0"];
       if (res)
-        beat([dest, " = ", ok(N(res.value)), " \u2713"], `\u628A 0 \u653E\u8FDB ${dest}\u3002`, {
+        beat([dest, " = ", ok(N(res.value)), " \u2713"], t("beat.putZero", { dest }), {
           ...writing(res),
-          why: "$zero \u6052\u4E3A 0\uFF0C\u6240\u4EE5\u8FD9\u4E00\u884C\u5C31\u662F\u628A 0 \u653E\u8FDB\u53BB\u3002"
+          why: t("beat.putZero.why")
         });
       else writeBack(dest);
     } else {
       template = [dest, " \u2190 ", dim(src.name)];
       beat(
         [dest, " \u2190 ", fresh(N(src.value))],
-        `\u53D6 ${src.name} \u7684\u503C\u3002`,
+        t("beat.take", { name: src.name }),
         reading([src])
       );
       if (res)
         beat(
           [dest, " = ", ok(N(res.value)), " \u2713"],
-          `\u628A ${src.name} \u7684\u503C\u590D\u5236\u5230 ${dest}\u3002`,
+          t("beat.copy", { name: src.name, dest }),
           {
             ...writing(res),
-            why: `\u673A\u5668\u4E0A\u8FD9\u662F ${src.name} \u548C\u6052\u4E3A 0 \u7684 $zero \u505A${/^(add|addu)$/.test(op) ? "\u52A0\u6CD5" : /^(sub|subu)$/.test(op) ? "\u51CF\u6CD5" : op === "or" ? "\u6309\u4F4D\u6216" : "\u6309\u4F4D\u5F02\u6216"}\uFF0C\u7ED3\u679C\u5C31\u662F ${src.name} \u539F\u6765\u7684\u503C\uFF1B${src.name} \u81EA\u5DF1\u4E0D\u53D8\u3002`
+            why: t("beat.copy.why", { name: src.name, operation: /^(add|addu)$/.test(op) ? t("beat.copy.add") : /^(sub|subu)$/.test(op) ? t("beat.copy.sub") : op === "or" ? t("beat.copy.or") : t("beat.copy.xor"), name: src.name, name: src.name })
           }
         );
       else writeBack(dest);
@@ -23730,10 +27058,10 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (res)
       beat(
         [dest, " = ", ok(N(res.value)), " \u2713"],
-        `\u628A\u5E38\u6570 ${k} \u653E\u8FDB ${dest}\u3002`,
+        t("beat.putConstant", { k, dest }),
         {
           ...writing(res),
-          why: `\u673A\u5668\u4E0A\u8FD9\u662F\u6052\u4E3A 0 \u7684 $zero ${/^addi/.test(op) ? "\u52A0\u4E0A" : "\u6309\u4F4D\u6216\u4E0A"} ${k}\uFF0C\u7ED3\u679C\u5C31\u662F\u8FD9\u4E2A\u5E38\u6570\u672C\u8EAB\u3002`
+          why: t("beat.putConstant.why", { operation: /^addi/.test(op) ? t("beat.putConstant.add") : t("beat.putConstant.or"), k })
         }
       );
     else writeBack(dest);
@@ -23750,13 +27078,13 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           fresh(N(rt.value, 4, asHex ? "bits" : "value"))
         )
       ],
-      `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
+      t("beat.takeTwo", { a: rs.name, b: rt.name }),
       reading([rs, rt])
     );
     if (res)
       beat(
         [dest, " \u2190 ", fresh(N(res.value, 4, asHex ? "bits" : "value"))],
-        /^sltu?$/.test(op) ? `${rs.value} ${sym} ${rt.value} ${res.value ? "\u4E3A\u771F" : "\u4E3A\u5047"}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F ${res.value}\u3002` : "\u8BA1\u7B97\u3002",
+        /^sltu?$/.test(op) ? t("beat.compare", { a: rs.value, sym, b: rt.value, verdict: res.value ? t("beat.true") : t("beat.false"), result: res.value }) : t("beat.compute"),
         {
           why: rule
         }
@@ -23772,13 +27100,13 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         fresh(N(rs.value, 4, logical ? "bits" : "value")),
         ` ${sym} ${k}`
       ],
-      `\u53D6 ${rs.name} \u7684\u503C\u3002`,
+      t("beat.take", { name: rs.name }),
       reading([rs])
     );
     if (res)
       beat(
         [dest, " \u2190 ", fresh(N(res.value, 4, logical ? "bits" : "value"))],
-        /^sltiu?$/.test(op) ? `${rs.value} ${sym} ${k} ${res.value ? "\u4E3A\u771F" : "\u4E3A\u5047"}\uFF0C\u6240\u4EE5\u7ED3\u679C\u662F ${res.value}\u3002` : "\u8BA1\u7B97\u3002",
+        /^sltiu?$/.test(op) ? t("beat.compareImmediate", { a: rs.value, sym, k, verdict: res.value ? t("beat.true") : t("beat.false"), result: res.value }) : t("beat.compute"),
         {
           why: rule
         }
@@ -23791,9 +27119,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (res)
       beat(
         [dest, " \u2190 ", fresh(N(res.value, 4, "bits"))],
-        "\u7ACB\u5373\u6570\u653E\u5230\u9AD8 16 \u4F4D\u3002",
+        t("beat.lui"),
         {
-          why: `${hex(uimm)} \u5DE6\u79FB 16 \u4F4D\uFF0C\u4F4E 16 \u4F4D\u8865 0\u3002\u5E38\u4E0E ori \u7EC4\u5408\u88C5\u5165 32 \u4F4D\u5E38\u6570\uFF08la / li \u5C55\u5F00\uFF09\u3002`
+          why: t("beat.lui.why", { uimm: hex(uimm) })
         }
       );
     writeBack(dest, res?.value, true);
@@ -23815,12 +27143,12 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ` ${sym} `,
         variable ? fresh(N(amount)) : String(sa)
       ],
-      `\u53D6 ${rt.name}${variable ? " \u548C\u79FB\u4F4D\u91CF" : ""} \u7684\u503C\u3002`,
+      t("beat.shift.take", { name: rt.name, amount: variable ? ` ${t("beat.shift.andAmount")}` : "" }),
       reading(variable && rs ? [rt, rs] : [rt])
     );
     if (res)
-      beat([dest, " \u2190 ", fresh(N(res.value, 4, "bits"))], "\u79FB\u4F4D\u3002", {
-        why: rule + (variable && rs ? ` ${rs.name} = ${rs.value}\uFF0C\u4F4E 5 \u4F4D\u4E3A ${amount}\u3002` : "")
+      beat([dest, " \u2190 ", fresh(N(res.value, 4, "bits"))], t("beat.shift"), {
+        why: rule + (variable && rs ? ` ${t("beat.shift.amount", { name: rs.name, value: rs.value, amount })}` : "")
       });
     writeBack(dest, res?.value, true);
   } else if (/^(mult|multu|madd|maddu|msub|msubu|div|divu)$/.test(op) && rs && rt) {
@@ -23828,27 +27156,27 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = division ? ["LO, HI \u2190 ", dim(rs.name), " \xF7 ", dim(rt.name)] : ["HI:LO \u2190 ", acc, dim(rs.name), " \xD7 ", dim(rt.name)];
     beat(
       division ? ["LO, HI \u2190 ", fresh(N(rs.value)), " \xF7 ", fresh(N(rt.value))] : ["HI:LO \u2190 ", acc, fresh(N(rs.value)), " \xD7 ", fresh(N(rt.value))],
-      `\u53D6 ${rs.name} \u548C ${rt.name} \u7684\u503C\u3002`,
+      t("beat.takeTwo", { a: rs.name, b: rt.name }),
       reading([rs, rt])
     );
     if (division && rt.value === 0)
-      beat(["\u9664\u6570\u4E3A ", fresh("0")], "MIPS \u4E0D\u5B9A\u4E49\u9664\u4EE5 0 \u7684\u7ED3\u679C\u3002", {
-        why: "\u786C\u4EF6\u4E0D\u62A5\u9519\uFF1BHI\u3001LO \u7684\u503C\u4E0D\u53EF\u4F9D\u8D56\uFF0C\u7A0B\u5E8F\u5E94\u5728\u9664\u6CD5\u524D\u81EA\u884C\u68C0\u67E5\u9664\u6570\u3002"
+      beat([`${t("beat.div.divisor")} `, fresh("0")], t("beat.div.zero"), {
+        why: t("beat.div.zero.why")
       });
     else if (H && L) {
       const unsigned = op.endsWith("u");
       const big = (n) => unsigned ? BigInt(n >>> 0) : BigInt(n | 0);
       const p64 = "0x" + ((big(H.value) << 32n | BigInt(L.value >>> 0)) & (1n << 64n) - 1n).toString(16).padStart(16, "0");
       beat(
-        division ? ["\u5546 ", fresh(N(L.value)), "\uFF0C\u4F59\u6570 ", fresh(N(H.value))] : ["HI:LO \u2190 ", fresh(p64)],
-        division ? "\u6574\u6570\u9664\u6CD5\u3002" : "\u5F97\u5230 64 \u4F4D\u4E58\u79EF\u3002",
+        division ? [`${t("beat.div.quotient")} `, fresh(N(L.value)), `${t("beat.div.remainder")} `, fresh(N(H.value))] : ["HI:LO \u2190 ", fresh(p64)],
+        division ? t("beat.div") : t("beat.mult"),
         {
-          why: division ? `\u5546\u653E\u5165 LO\uFF0C\u4F59\u6570\u653E\u5165 HI\u3002${unsigned ? "\u6309\u65E0\u7B26\u53F7\u6570\u8BA1\u7B97\u3002" : "\u5546\u5411 0 \u53D6\u6574\uFF0C\u4F59\u6570\u4E0E\u88AB\u9664\u6570\u540C\u53F7\u3002"}` : `${unsigned ? "\u6309\u65E0\u7B26\u53F7\u6570" : "\u6309\u6709\u7B26\u53F7\u6570"}\u76F8\u4E58\uFF0C\u7ED3\u679C\u6709 64 \u4F4D\uFF1A\u9AD8 32 \u4F4D\u8FDB HI\uFF0C\u4F4E 32 \u4F4D\u8FDB LO\u3002`
+          why: division ? t("beat.div.why", { rule: unsigned ? t("beat.div.unsigned") : t("beat.div.signed") }) : t("beat.mult.why", { kind: unsigned ? t("beat.mult.unsigned") : t("beat.mult.signed") })
         }
       );
       beat(
-        ["HI = ", ok(N(H.value)), "\uFF0CLO = ", ok(N(L.value)), " \u2713"],
-        "\u5199\u5165 HI \u548C LO\u3002",
+        ["HI = ", ok(N(H.value)), t("common.comma") + "LO = ", ok(N(L.value)), " \u2713"],
+        t("beat.hilo"),
         {
           lit: [
             { id: id(H), mode: "write" },
@@ -23858,7 +27186,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
             { from: "code", to: id(H), label: show(H.value), kind: "write" },
             { from: "code", to: id(L), label: show(L.value), kind: "write" }
           ],
-          why: division ? "\u7528 mflo \u53D6\u5546\u3001mfhi \u53D6\u4F59\u6570\u3002" : "\u7528 mflo \u53D6\u4F4E 32 \u4F4D\uFF1B\u82E5 HI \u4E0D\u662F LO \u7684\u7B26\u53F7\u6269\u5C55\uFF0C\u8BF4\u660E\u4E58\u79EF\u8D85\u51FA 32 \u4F4D\u3002"
+          why: division ? t("beat.div.read") : t("beat.mult.read")
         }
       );
     }
@@ -23868,7 +27196,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     if (src)
       beat(
         [dest, " \u2190 ", fresh(N(src.value))],
-        `\u53D6 ${op === "mfhi" ? "HI" : "LO"} \u7684\u503C\u3002`,
+        t("beat.takeHiLo", { reg: op === "mfhi" ? "HI" : "LO" }),
         reading([src])
       );
     writeBack(dest);
@@ -23877,34 +27205,34 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
     template = [dest.toUpperCase(), " \u2190 ", dim(rs.name)];
     beat(
       [dest.toUpperCase(), " \u2190 ", fresh(N(rs.value))],
-      `\u53D6 ${rs.name} \u7684\u503C\u3002`,
+      t("beat.take", { name: rs.name }),
       reading([rs])
     );
     const a = written(dest);
     if (a)
       beat(
         [dest.toUpperCase(), " = ", ok(N(a.value)), " \u2713"],
-        `\u5199\u5165 ${dest.toUpperCase()}\u3002`,
+        t("beat.writeHiLo", { reg: dest.toUpperCase() }),
         writing(a)
       );
   } else if (/^(movn|movz)$/.test(op) && rs && rt) {
     const dest = name2(rdN), cond = op === "movn" ? "\u2260" : "==", yes = op === "movn" ? rt.value !== 0 : rt.value === 0;
-    template = ["\u82E5 ", dim(rt.name), ` ${cond} 0\uFF1A`, dest, " \u2190 ", dim(rs.name)];
+    template = [`${t("beat.if")} `, dim(rt.name), ` ${cond} 0${t("common.colon")}`, dest, " \u2190 ", dim(rs.name)];
     beat(
       [
-        "\u82E5 ",
+        `${t("beat.if")} `,
         fresh(N(rt.value)),
-        ` ${cond} 0\uFF1A`,
+        ` ${cond} 0${t("common.colon")}`,
         dest,
         " \u2190 ",
         fresh(N(rs.value))
       ],
-      "\u53D6\u6761\u4EF6\u548C\u6570\u636E\u7684\u503C\u3002",
+      t("beat.mov.take"),
       reading([rt, rs])
     );
     beat(
-      [fresh(yes ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"), yes ? ` \u2192 \u590D\u5236\u5230 ${dest}` : " \u2192 \u4E0D\u5199\u5165"],
-      "\u5224\u65AD\u6761\u4EF6\u3002"
+      [fresh(yes ? t("beat.holds") : t("beat.fails")), yes ? ` ${t("beat.mov.copy", { dest })}` : ` ${t("beat.mov.skip")}`],
+      t("beat.mov.test")
     );
     if (yes) writeBack(dest);
   } else if (loads[op] && mem) {
@@ -23930,7 +27258,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
           )
         )
       ],
-      `\u4ECE\u5185\u5B58\u53D6 ${width} \u5B57\u8282\u3002`,
+      t("beat.load", { width }),
       {
         lit: [{ id: id(mem), mode: "read", width }],
         tokens: [
@@ -23941,7 +27269,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
             kind: "read"
           }
         ],
-        why: width === 1 ? `\u53EA\u53D6\u8FD9\u4E2A\u5730\u5740\u4E0A\u7684 1 \u4E2A\u5B57\u8282 ${byteHex(raw, 1)}\u3002` : `MARS \u4F7F\u7528\u5C0F\u7AEF\u5E8F\uFF0C\u6700\u4F4E\u5730\u5740\u653E\u6700\u4F4E\u5B57\u8282\uFF1A${littleEndian(addr, raw, width)} \u2192 ${byteHex(raw, width)}\u3002`
+        why: width === 1 ? t("beat.load.byte", { byte: byteHex(raw, 1) }) : t("beat.load.endian", { memory: littleEndian(addr, raw, width), value: byteHex(raw, width) })
       }
     );
     const res = written(dest);
@@ -23949,9 +27277,9 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       const top2 = raw >>> 8 * width - 1;
       beat(
         [dest, " \u2190 ", fresh(N(res.value))],
-        signed ? `\u6269\u6210 32 \u4F4D\uFF1A\u6700\u9AD8\u4F4D\u662F ${top2}\uFF0C${top2 ? "\u8865 1" : "\u8865 0"}\u3002` : "\u6269\u6210 32 \u4F4D\uFF1A\u9AD8\u4F4D\u8865 0\u3002",
+        signed ? t("beat.load.extend", { top: top2, fill: top2 ? t("beat.load.fillOne") : t("beat.load.fillZero") }) : t("beat.load.zeroExtend"),
         {
-          why: signed ? `${op} \u505A\u7B26\u53F7\u6269\u5C55\uFF1A${byteHex(raw, width)} \u7684\u6700\u9AD8\u4F4D\u4E3A ${top2}\uFF0C\u9AD8\u4F4D\u5168\u90E8\u8865 ${top2} \u2192 ${hex(res.value)} = ${res.value}\u3002\u82E5\u7528 ${op}u \u5219\u8865 0\uFF0C\u5F97\u5230 ${raw}\u3002` : `${op} \u505A\u96F6\u6269\u5C55\uFF1A\u9AD8\u4F4D\u8865 0 \u2192 ${hex(res.value)} = ${res.value}\u3002\u82E5\u7528 ${op.slice(0, -1)} \u5219\u6309\u6700\u9AD8\u4F4D\u8865\u9F50\u3002`
+          why: signed ? t("beat.load.signExtend.why", { op, bytes: byteHex(raw, width), top: top2, top: top2, hex: hex(res.value), value: res.value, op, raw }) : t("beat.load.zeroExtend.why", { op, hex: hex(res.value), value: res.value, signed: op.slice(0, -1) })
         }
       );
     }
@@ -23984,10 +27312,10 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
             )
           )
         ],
-        width === 4 ? `\u53D6 ${src.name} \u7684\u503C\u3002` : `\u53D6 ${src.name} \u7684\u4F4E ${8 * width} \u4F4D\u3002`,
+        width === 4 ? t("beat.take", { name: src.name }) : t("beat.store.take", { name: src.name, width: 8 * width }),
         {
           ...reading([src]),
-          why: width === 4 ? `${src.name} = ${show(src.value)}\u3002` : `${src.name} = ${hex(src.value)}\uFF0C\u53EA\u4FDD\u7559\u4F4E ${8 * width} \u4F4D ${byteHex(value, width)}\uFF0C\u5176\u4F59\u4F4D\u4E22\u5F03\u3002`
+          why: width === 4 ? `${src.name} = ${show(src.value)}${t("common.period")}` : t("beat.store.keep", { name: src.name, value: hex(src.value), width: 8 * width, kept: byteHex(value, width) })
         }
       );
     beat(
@@ -23996,7 +27324,7 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         ok(N(value, width, width === 4 ? "value" : "bits")),
         " \u2713"
       ],
-      `\u5199\u5165 ${width} \u5B57\u8282\u3002`,
+      t("beat.store", { width }),
       {
         lit: [{ id: id(mem), mode: "write", width }],
         tokens: [
@@ -24007,169 +27335,169 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
             kind: "write"
           }
         ],
-        why: width === 1 ? `\u539F\u503C ${byteHex(mem.before, 1)} \u88AB\u8986\u76D6\u3002` : `\u5C0F\u7AEF\u5E8F\u5B58\u653E\uFF1A${littleEndian(addr, value, width)}\u3002`
+        why: width === 1 ? t("beat.store.overwritten", { before: byteHex(mem.before, 1) }) : t("beat.store.endian", { bytes: littleEndian(addr, value, width) })
       }
     );
   } else if (ins.flow === "branch") {
     const target2 = ins.target, label2 = where(target2), fallthrough = ins.address + (delay ? 8 : 4);
     const always = op === "beq" ? rsN === rtN : rsN === 0 && /^(bgez|blez|bgezal)$/.test(op);
     let taken = always;
-    if (always) template = ["\u8DF3\u5230 ", label2];
+    if (always) template = [`${t("beat.goTo")} `, label2];
     else if (/^(beq|bne)$/.test(op) && rs && rt && (rsN === 0 || rtN === 0)) {
       const x = rsN === 0 ? rt : rs, sym = op === "beq" ? "==" : "\u2260";
       taken = op === "beq" ? x.value === 0 : x.value !== 0;
-      template = ["\u82E5 ", dim(x.name), ` ${sym} 0 \u2192 \u8DF3\u5230 `, label2];
+      template = [`${t("beat.if")} `, dim(x.name), ` ${t("beat.ifZero", { sym })} `, label2];
       beat(
-        ["\u82E5 ", fresh(N(x.value)), ` ${sym} 0 \u2192 \u8DF3\u5230 `, label2],
-        `\u53D6 ${x.name} \u7684\u503C\u3002`,
+        [`${t("beat.if")} `, fresh(N(x.value)), ` ${t("beat.ifZero", { sym })} `, label2],
+        t("beat.take", { name: x.name }),
         reading([x])
       );
       beat(
         [
-          fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
-          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+          fresh(taken ? t("beat.holds") : t("beat.fails")),
+          taken ? ` ${t("beat.thenGoTo", { label: label2 })}` : ` ${t("beat.thenNext")}`
         ],
-        `\u6761\u4EF6 ${x.value} ${sym} 0 ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
+        t("beat.condZero", { value: x.value, sym, verdict: taken ? t("beat.holds") : t("beat.fails") }),
         {
-          why: `\u628A ${x.name} \u548C 0 \u6BD4\u8F83\uFF08\u673A\u5668\u4E0A\u662F\u548C\u6052\u4E3A 0 \u7684 $zero \u6BD4\u8F83\uFF09\uFF0C${op === "beq" ? "\u7B49\u4E8E 0" : "\u4E0D\u7B49\u4E8E 0"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002`
+          why: t("beat.condZero.why", { name: x.name, test: op === "beq" ? t("beat.equalZero") : t("beat.notZero"), label: label2, target: hex(target2) })
         }
       );
     } else if (/^(beq|bne)$/.test(op) && rs && rt) {
       const sym = op === "beq" ? "==" : "\u2260";
       taken = op === "beq" ? rs.value === rt.value : rs.value !== rt.value;
       template = [
-        "\u82E5 ",
+        `${t("beat.if")} `,
         dim(rs.name),
         ` ${sym} `,
         dim(rt.name),
-        " \u2192 \u8DF3\u5230 ",
+        ` ${t("beat.arrowGoTo")} `,
         label2
       ];
       beat(
         [
-          "\u82E5 ",
+          `${t("beat.if")} `,
           fresh(N(rs.value)),
           ` ${sym} `,
           fresh(N(rt.value)),
-          " \u2192 \u8DF3\u5230 ",
+          ` ${t("beat.arrowGoTo")} `,
           label2
         ],
-        "\u53D6\u8981\u6BD4\u8F83\u7684\u4E24\u4E2A\u5BC4\u5B58\u5668\u7684\u503C\u3002",
+        t("beat.takeCompared"),
         reading([rs, rt])
       );
       beat(
         [
-          fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
-          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+          fresh(taken ? t("beat.holds") : t("beat.fails")),
+          taken ? ` ${t("beat.thenGoTo", { label: label2 })}` : ` ${t("beat.thenNext")}`
         ],
-        `\u6761\u4EF6 ${rs.value} ${sym} ${rt.value} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
+        t("beat.cond", { a: rs.value, sym, b: rt.value, verdict: taken ? t("beat.holds") : t("beat.fails") }),
         {
-          why: `${op} ${op === "beq" ? "\u5728\u4E24\u6570\u76F8\u7B49" : "\u5728\u4E24\u6570\u4E0D\u7B49"}\u65F6\u8DF3\u8F6C\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
+          why: t("beat.cond.why", { op, when: op === "beq" ? t("beat.whenEqual") : t("beat.whenDifferent"), label: label2, target: hex(target2), imm })
         }
       );
     } else if (compareZero[op] && rs) {
       const [cond, test] = compareZero[op];
       taken = test(rs.value);
-      template = ["\u82E5 ", dim(rs.name), ` ${cond} \u2192 \u8DF3\u5230 `, label2];
+      template = [`${t("beat.if")} `, dim(rs.name), ` ${t("beat.condGoTo", { cond })} `, label2];
       beat(
-        ["\u82E5 ", fresh(N(rs.value)), ` ${cond} \u2192 \u8DF3\u5230 `, label2],
-        `\u53D6 ${rs.name} \u7684\u503C\u3002`,
+        [`${t("beat.if")} `, fresh(N(rs.value)), ` ${t("beat.condGoTo", { cond })} `, label2],
+        t("beat.take", { name: rs.name }),
         reading([rs])
       );
       beat(
         [
-          fresh(taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"),
-          taken ? ` \u2192 \u8DF3\u5230 ${label2}` : " \u2192 \u7EE7\u7EED\u4E0B\u4E00\u6761"
+          fresh(taken ? t("beat.holds") : t("beat.fails")),
+          taken ? ` ${t("beat.thenGoTo", { label: label2 })}` : ` ${t("beat.thenNext")}`
         ],
-        `\u6761\u4EF6 ${rs.value} ${cond} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"}\u3002`,
+        t("beat.condSigned", { value: rs.value, cond, verdict: taken ? t("beat.holds") : t("beat.fails") }),
         {
-          why: `${op} \u628A ${rs.name} \u5F53\u4F5C\u6709\u7B26\u53F7\u6570\u4E0E 0 \u6BD4\u8F83\u3002\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(target2)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\uFF08\u5B58\u7684\u662F\u76F8\u5BF9\u4E0B\u4E00\u6761\u6307\u4EE4\u7684\u8DDD\u79BB ${imm} \u6761\uFF09\u3002`
+          why: t("beat.condSigned.why", { op, name: rs.name, label: label2, target: hex(target2), imm })
         }
       );
     }
     const ra = written("$ra");
     if (ra)
-      beat(["$ra = ", ok(N(ra.value, 4, "bits")), " \u2713"], "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002", {
+      beat(["$ra = ", ok(N(ra.value, 4, "bits")), " \u2713"], t("beat.saveReturn"), {
         ...writing(ra, hex(ra.value)),
-        why: "\u94FE\u63A5\u5206\u652F\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u5199 $ra\u3002"
+        why: t("beat.saveReturn.link")
       });
     const dest = taken ? target2 : fallthrough;
     beat(
-      ["\u4E0B\u4E00\u6761 = ", ok(where(dest)), " \u2713"],
-      taken ? "\u8DF3\u8F6C\u3002" : "\u987A\u5E8F\u6267\u884C\u3002",
+      [`${t("beat.next")} `, ok(where(dest)), " \u2713"],
+      taken ? t("beat.jump") : t("beat.inOrder"),
       {
         tokens: [
           {
             from: "code",
             to: "next",
-            label: taken ? "\u8DF3\u8F6C" : "PC+4",
+            label: taken ? t("path.edge.jump") : "PC+4",
             kind: "flow"
           }
         ],
-        why: delay ? "\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u7D27\u8DDF\u5728\u5206\u652F\u540E\u7684\u90A3\u6761\u6307\u4EE4\uFF08\u5EF6\u8FDF\u69FD\uFF09\u603B\u4F1A\u5148\u6267\u884C\u3002" : ""
+        why: delay ? t("beat.delay.branch") : ""
       }
     );
   } else if (/^(j|jal)$/.test(op)) {
     const label2 = where(ins.target);
-    template = op === "jal" ? ["$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1B\u8DF3\u5230 ", label2] : ["\u8DF3\u5230 ", label2];
+    template = op === "jal" ? [`${t("beat.jal.template")} `, label2] : [`${t("beat.goTo")} `, label2];
     const ra = written("$ra");
     if (ra)
       beat(
-        ["$ra = ", ok(N(ra.value, 4, "bits")), "\uFF1B\u8DF3\u5230 ", label2],
-        "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002",
+        ["$ra = ", ok(N(ra.value, 4, "bits")), `${t("beat.jal.goTo")} `, label2],
+        t("beat.saveReturn"),
         {
           ...writing(ra, hex(ra.value)),
-          why: `\u8FD4\u56DE\u5730\u5740\u662F${delay ? "\u5EF6\u8FDF\u69FD\u4E4B\u540E" : "\u4E0B\u4E00\u6761"}\u6307\u4EE4 ${where(ra.value)}\uFF0C\u51FD\u6570\u7528 jr $ra \u56DE\u5230\u8FD9\u91CC\u3002`
+          why: t("beat.jal.why", { which: delay ? t("beat.jal.afterSlot") : t("beat.jal.next"), value: where(ra.value) })
         }
       );
     beat(
-      ["\u4E0B\u4E00\u6761 = ", ok(label2), " \u2713"],
-      op === "jal" ? "\u8FDB\u5165\u51FD\u6570\u3002" : "\u8DF3\u8F6C\u3002",
+      [`${t("beat.next")} `, ok(label2), " \u2713"],
+      op === "jal" ? t("beat.jal") : t("beat.jump"),
       {
         tokens: [{ from: "code", to: "next", label: label2, kind: "flow" }],
-        why: `\u8DF3\u8F6C\u76EE\u6807 ${label2}\uFF08${hex(ins.target)}\uFF09\u5728\u6C47\u7F16\u65F6\u5C31\u5DF2\u5199\u8FDB\u8FD9\u6761\u6307\u4EE4\u3002${delay ? "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002" : ""}`
+        why: t("beat.jump.why", { label: label2, target: hex(ins.target), delay: delay ? t("beat.jump.delay") : "" })
       }
     );
   } else if (/^(jr|jalr)$/.test(op) && rs) {
     const back = op === "jr" && rs.name === "$ra";
-    template = ["\u8DF3\u5230 ", dim(rs.name), " \u4E2D\u7684\u5730\u5740"];
-    beat(["\u8DF3\u5230 ", fresh(N(rs.value, 4, "bits"))], `\u53D6 ${rs.name} \u7684\u503C\u3002`, {
+    template = [`${t("beat.goTo")} `, dim(rs.name), ` ${t("beat.jr.address")}`];
+    beat([`${t("beat.goTo")} `, fresh(N(rs.value, 4, "bits"))], t("beat.take", { name: rs.name }), {
       ...reading([rs]),
-      why: back ? "$ra \u4FDD\u5B58\u7740 jal \u7559\u4E0B\u7684\u8FD4\u56DE\u5730\u5740\u3002" : "\u76EE\u6807\u5728\u8FD0\u884C\u65F6\u7531\u5BC4\u5B58\u5668\u51B3\u5B9A\u3002"
+      why: back ? t("beat.jr.ra") : t("beat.jr.runtime")
     });
     const link = op === "jalr" ? writes.find((a) => a.number === rdN) : null;
     if (link)
       beat(
         [link.name, " = ", ok(N(link.value, 4, "bits")), " \u2713"],
-        "\u4FDD\u5B58\u8FD4\u56DE\u5730\u5740\u3002",
+        t("beat.saveReturn"),
         writing(link, hex(link.value))
       );
     beat(
-      ["\u4E0B\u4E00\u6761 = ", ok(where(rs.value)), " \u2713"],
-      back ? "\u8FD4\u56DE\u8C03\u7528\u8005\u3002" : "\u8DF3\u8F6C\u3002",
+      [`${t("beat.next")} `, ok(where(rs.value)), " \u2713"],
+      back ? t("beat.return") : t("beat.jump"),
       {
         tokens: [
           {
             from: "code",
             to: "next",
-            label: back ? "\u8FD4\u56DE" : hex(rs.value),
+            label: back ? t("path.edge.return") : hex(rs.value),
             kind: "flow"
           }
         ],
-        why: delay ? "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\u5148\u6267\u884C\u5EF6\u8FDF\u69FD\u3002" : ""
+        why: delay ? t("beat.jump.delay") : ""
       }
     );
   } else if (op === "syscall") {
-    const v0 = readNamed("$v0"), n = event.service ?? v0?.value, [title, args = []] = services[n] || ["\u7CFB\u7EDF\u8C03\u7528"];
+    const v0 = readNamed("$v0"), n = event.service ?? v0?.value, [title, args = []] = services[n] || [t("beat.syscall")];
     const guide = serviceGuide[n];
-    template = ["syscall\uFF08", dim("$v0"), "\uFF09"];
+    template = ["syscall" + t("common.openParen"), dim("$v0"), t("common.closeParen")];
     if (v0)
       beat(
         ["$v0 = ", fresh(N(n)), ` \u2192 ${guide?.[0] || title}`],
-        guide ? `$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\uFF1A${guide[1]}` : "$v0 \u7684\u503C\u51B3\u5B9A syscall \u505A\u4EC0\u4E48\u3002",
+        guide ? t("beat.syscall.chooses", { what: guide[1] }) : t("beat.syscall.choosesPlain"),
         {
           ...reading([v0]),
-          why: guide ? `$v0 = ${n} \u9009\u5B9A\u4E86\u201C${guide[0]}\u201D\u3002${guide[3]}\u53D8\u5316\uFF1A${guide[4]}\u3002` : `$v0 = ${n} \u4E0D\u5728\u652F\u6301\u8303\u56F4\u5185\u3002`
+          why: guide ? t("beat.syscall.chosen", { n, name: guide[0], effect: guide[3], changes: guide[4] }) : t("beat.syscall.unsupported", { n })
         }
       );
     const params = reads.filter((a) => a !== v0 && args.includes(a.name));
@@ -24177,35 +27505,35 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
       const meaning = (a) => guide?.[2].find(([r]) => r === a.name)?.[1];
       beat(
         params.flatMap((a, i) => [
-          i ? "\uFF0C" : "",
+          i ? t("common.comma") : "",
           a.name,
           " = ",
           fresh(N(a.value))
         ]),
         params.map((a) => {
           const m = argumentMeaning(n, a.name, a.value);
-          return `${a.name}\uFF1A${meaning(a) || "\u53C2\u6570"}${m ? `\uFF08${m}\uFF09` : ""}`;
-        }).join("\uFF1B") + "\u3002",
+          return `${a.name}${t("common.colon")}${meaning(a) || t("beat.syscall.argument")}${m ? t("common.inParens", { text: m }) : ""}`;
+        }).join(t("common.semicolon")) + t("common.period"),
         reading(params)
       );
     }
     if (event.status === "waiting-input")
-      beat([fresh("\u7B49\u5F85\u8F93\u5165")], "\u7ED3\u679C\u5C1A\u672A\u4EA7\u751F\uFF0C\u8BF7\u5728\u63A7\u5236\u53F0\u63D0\u4EA4\u8F93\u5165\u3002");
+      beat([fresh(t("beat.waiting"))], t("beat.waiting.note"));
     for (const a of writes)
       beat(
         [a.name, " = ", ok(N(a.value)), " \u2713"],
-        `\u7ED3\u679C\u5199\u5165 ${a.name}\u3002`,
+        t("beat.result", { name: a.name }),
         writing(a)
       );
     const stored = accesses2.filter((a) => a.kind === "memory" && a.write);
     if (stored.length)
       beat(
         [
-          `\u5185\u5B58 ${hex(stored[0].address)} \u8D77 `,
-          ok(`${stored.reduce((s, a) => s + a.width, 0)} \u5B57\u8282`),
+          `${t("beat.memoryFrom", { address: hex(stored[0].address) })} `,
+          ok(t("beat.bytes", { width: stored.reduce((s, a) => s + a.width, 0) })),
           " \u2713"
         ],
-        "\u628A\u6570\u636E\u5199\u5165\u5185\u5B58\u3002",
+        t("beat.writeMemory"),
         {
           lit: stored.map((a) => ({
             id: id(a),
@@ -24215,40 +27543,40 @@ function beatModel(event, { delay = false, instructions = [], symbols = [] } = {
         }
       );
     if (event.output)
-      beat(["\u8F93\u51FA ", ok(JSON.stringify(event.output))], "\u5199\u5230\u63A7\u5236\u53F0\u3002");
+      beat([`${t("beat.output")} `, ok(JSON.stringify(event.output))], t("beat.toConsole"));
     if (n === 10 || n === 17)
-      beat([ok("\u7A0B\u5E8F\u7ED3\u675F")], n === 17 ? "\u5E26\u8FD4\u56DE\u7801\u9000\u51FA\u3002" : "\u9000\u51FA\u7A0B\u5E8F\u3002");
+      beat([ok(t("beat.programEnds"))], n === 17 ? t("beat.exitCode") : t("beat.exit"));
   } else {
     if (reads.length)
       beat(
         reads.flatMap((a, i) => [
-          i ? "\uFF0C" : "",
+          i ? t("common.comma") : "",
           a.name,
           " = ",
           fresh(N(a.value))
         ]),
-        "\u8BFB\u53D6\u3002",
+        t("beat.read"),
         reading(reads)
       );
     for (const a of accesses2.filter((a2) => a2.write))
       beat(
         [
-          a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
+          a.kind === "register" ? a.name : t("inspector.memoryCell", { address: hex(a.address) }),
           " = ",
           ok(N(masked(a.value, a.width ?? 4))),
           " \u2713"
         ],
-        "\u5199\u5165\u3002",
+        t("beat.write"),
         writing(a, show(masked(a.value, a.width ?? 4)))
       );
     if (!beats.length)
       beat(
-        [ok(op === "nop" ? "\u4E0D\u505A\u4EFB\u4F55\u4E8B" : "\u65E0\u5BC4\u5B58\u5668\u6216\u5185\u5B58\u53D8\u5316")],
-        op === "nop" ? "\u7A7A\u64CD\u4F5C\u3002" : ""
+        [ok(op === "nop" ? t("beat.nop") : t("beat.nop.changes"))],
+        op === "nop" ? t("beat.nop.what") : ""
       );
   }
   if (event.error)
-    beat([fresh("\u6267\u884C\u5F02\u5E38")], event.error.split("\n")[0], { why: event.error });
+    beat([fresh(t("beat.exception"))], marsText(event.error).split("\n")[0], { why: marsText(event.error) });
   const objects = /* @__PURE__ */ new Map();
   for (const a of accesses2) {
     const o = objects.get(id(a)) || {
@@ -24286,37 +27614,37 @@ function roleOf(ins, number2, name2) {
   const bits2 = ins.binary | 0, opcode = bits2 >>> 26, rs = bits2 >>> 21 & 31, rt = bits2 >>> 16 & 31, rd = bits2 >>> 11 & 31;
   if (ins.op === "syscall") {
     if (name2 === "$v0")
-      return "\uFF08syscall \u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A\uFF09";
-    if (/^\$a[0-3]$/.test(name2)) return "\uFF08syscall \u7684\u53C2\u6570\uFF09";
-    return "\uFF08syscall \u7528\u5230\u7684\u5BC4\u5B58\u5668\uFF09";
+      return t("beat.role.v0");
+    if (/^\$a[0-3]$/.test(name2)) return t("beat.role.argument");
+    return t("beat.role.syscallRegister");
   }
   if (name2 === "hi" || name2 === "lo")
-    return `${name2.toUpperCase()} \u5BC4\u5B58\u5668\uFF08\u4E58\u9664\u6CD5\u7ED3\u679C\u7684\u5B58\u653E\u5904\uFF09`;
-  if (LOADS.has(opcode) && number2 === rs) return "\u57FA\u5740\uFF08\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
-  if (STORES.has(opcode) && number2 === rs) return "\u57FA\u5740\uFF08\u5730\u5740 = \u57FA\u5740 + \u504F\u79FB\uFF09";
-  if (STORES.has(opcode) && number2 === rt) return "\u8981\u5B58\u8FDB\u5185\u5B58\u7684\u503C";
+    return t("beat.role.hilo", { reg: name2.toUpperCase() });
+  if (LOADS.has(opcode) && number2 === rs) return t("beat.role.base");
+  if (STORES.has(opcode) && number2 === rs) return t("beat.role.base");
+  if (STORES.has(opcode) && number2 === rt) return t("beat.role.stored");
   if (ins.flow === "branch")
-    return number2 === rs ? "\u6BD4\u8F83\u7684\u7B2C\u4E00\u4E2A\u5BF9\u8C61" : "\u6BD4\u8F83\u7684\u7B2C\u4E8C\u4E2A\u5BF9\u8C61";
+    return number2 === rs ? t("beat.role.compareFirst") : t("beat.role.compareSecond");
   if (ins.flow === "indirect" || opcode === 0 && (bits2 & 63) === 9 && number2 === rs)
-    return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740";
+    return t("beat.role.jumpTarget");
   if (opcode === 0) {
-    if (number2 === rs && number2 === rt) return "\u4E24\u4E2A\u6E90\u64CD\u4F5C\u6570\uFF08\u4E24\u4E2A\u4F4D\u7F6E\u90FD\u662F\u5B83\uFF09";
-    if (number2 === rs) return "\u7B2C\u4E00\u4E2A\u6E90\u64CD\u4F5C\u6570";
-    if (number2 === rt) return "\u7B2C\u4E8C\u4E2A\u6E90\u64CD\u4F5C\u6570";
-    if (number2 === rd) return "\u76EE\u6807";
+    if (number2 === rs && number2 === rt) return t("beat.role.bothSources");
+    if (number2 === rs) return t("beat.role.firstSource");
+    if (number2 === rt) return t("beat.role.secondSource");
+    if (number2 === rd) return t("beat.role.target");
   }
-  if (number2 === rs) return "\u6E90\u64CD\u4F5C\u6570";
-  if (number2 === rt) return "\u64CD\u4F5C\u6570";
-  return "\u8FD9\u6761\u6307\u4EE4\u7528\u5230\u7684\u4E00\u4E2A\u5BC4\u5B58\u5668";
+  if (number2 === rs) return t("beat.role.source");
+  if (number2 === rt) return t("beat.role.operand");
+  return t("beat.role.used");
 }
 function destField(ins, number2) {
   const bits2 = ins.binary | 0, opcode = bits2 >>> 26;
   if (number2 === (bits2 >>> 11 & 31) && opcode === 0)
-    return "\u8FD9\u6761\u6307\u4EE4\u5199\u660E\u7684\u76EE\u6807\u5BC4\u5B58\u5668";
+    return t("beat.role.namedTarget");
   if (number2 === (bits2 >>> 16 & 31) && opcode !== 0)
-    return "\u8FD9\u6761\u6307\u4EE4\u5199\u660E\u7684\u76EE\u6807\u5BC4\u5B58\u5668";
+    return t("beat.role.namedTarget");
   if (number2 === 31 && (opcode === 3 || ins.flow === "call"))
-    return "\u8C03\u7528\u6307\u4EE4\u56FA\u5B9A\u5199 $ra";
+    return t("beat.role.callRa");
   return "";
 }
 var touches = (a, id2) => {
@@ -24339,13 +27667,13 @@ function completeWhys(model, event, {
     const i = e.instruction, line = instructions.find(
       (x) => x.file === i.file && x.line === i.line && x.source
     )?.source || i.source || i.basic || i.op;
-    return `\u7B2C ${e.step} \u6B65\uFF08${i.file}:${i.line} \`${line.split("#")[0].trim().replace(/\s+/g, " ")}\`\uFF09`;
+    return t("beat.place.step", { step: e.step, file: i.file, line: i.line, code: line.split("#")[0].trim().replace(/\s+/g, " ") });
   };
   const where = (address) => {
     const s = symbols.find((x) => x.address === address && !x.data);
     if (s) return s.name;
     const i = instructions.find((x) => x.address === address);
-    return i ? `${i.file} \u7B2C ${i.line} \u884C` : hex(address);
+    return i ? t("common.fileLine", { file: i.file, line: i.line }) : hex(address);
   };
   const writer = (id2) => {
     for (let k = before.length - 1; k >= 0; k--)
@@ -24357,33 +27685,33 @@ function completeWhys(model, event, {
     (e) => (e.accesses || []).some((a) => !a.write && touches(a, id2))
   ) || null;
   const access = (id2) => (event.accesses || []).find((a) => touches(a, id2));
-  const rule = () => explanations2[ins.op] || ins.description || "\u6309\u8FD9\u6761\u6307\u4EE4\u7684\u5B9A\u4E49\u8BA1\u7B97\u3002";
+  const rule = () => explanations2[ins.op] || ins.description || t("beat.byDefinition");
   const generate = (b, provenanceOnly = false) => {
     const reads = b.tokens.filter(
-      (t2) => t2.kind === "read" && t2.from !== "code"
+      (t3) => t3.kind === "read" && t3.from !== "code"
     );
     const writes = b.lit.filter((l) => l.mode === "write");
-    const flow = b.tokens.find((t2) => t2.to === "next");
+    const flow = b.tokens.find((t3) => t3.to === "next");
     const parts = [];
-    for (const t2 of reads) {
-      const a = access(t2.from);
+    for (const token of reads) {
+      const a = access(token.from);
       if (!a) continue;
-      const w = writer(t2.from);
+      const w = writer(token.from);
       if (a.kind === "register") {
         if (a.name === "$zero") {
-          if (!provenanceOnly) parts.push("$zero \u6052\u4E3A 0\uFF0C\u8BFB\u5B83\u603B\u662F\u5F97\u5230 0\u3002");
+          if (!provenanceOnly) parts.push(t("beat.why.zero"));
           continue;
         }
         if (provenanceOnly) {
-          if (w) parts.push(`${a.name} \u7684\u503C\u6765\u81EA${place(w)}\u3002`);
+          if (w) parts.push(t("beat.why.from", { name: a.name, place: place(w) }));
           continue;
         }
         parts.push(
-          `${a.name} \u5728\u8FD9\u91CC\u662F${roleOf(ins, a.number, a.name)}\u3002` + (w ? `\u5B83\u73B0\u5728\u7684\u503C\u6765\u81EA${place(w)}\u3002` : "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u5B83\uFF0C\u8FD9\u662F\u5B83\u7684\u521D\u59CB\u503C\u6216\u66F4\u65E9\u5199\u5165\u7684\u503C\u3002")
+          t("beat.why.role", { name: a.name, role: roleOf(ins, a.number, a.name) }) + (w ? t("beat.why.nowFrom", { place: place(w) }) : t("beat.why.initial"))
         );
       } else {
         parts.push(
-          (provenanceOnly ? "" : `\u4ECE\u5185\u5B58 ${hex(a.address)} \u53D6 ${a.width} \u5B57\u8282\u3002`) + (w ? `\u8FD9\u91CC\u7684\u5185\u5BB9\u662F${place(w)}\u5199\u8FDB\u53BB\u7684\u3002` : "\u6700\u8FD1\u7684\u6267\u884C\u8BB0\u5F55\u91CC\u6CA1\u6709\u5199\u8FC7\u8FD9\u91CC\uFF0C\u5185\u5BB9\u662F\u7A0B\u5E8F\u52A0\u8F7D\u65F6\u5C31\u6709\u7684\u6570\u636E\uFF08\u4F8B\u5982 .data \u91CC\u7684\u521D\u503C\uFF09\u3002")
+          (provenanceOnly ? "" : t("beat.why.load", { address: hex(a.address), width: a.width })) + (w ? t("beat.why.memoryFrom", { place: place(w) }) : t("beat.why.memoryInitial"))
         );
       }
     }
@@ -24392,19 +27720,19 @@ function completeWhys(model, event, {
       if (!a) continue;
       const r = reader(l.id);
       const field = a.kind === "register" ? destField(ins, a.number) : "";
-      const what = provenanceOnly ? "" : a.kind === "register" ? `\u7ED3\u679C\u5199\u8FDB ${a.name}${field ? `\uFF08${field}\uFF09` : ""}\u3002` : `\u7ED3\u679C\u5199\u8FDB\u5185\u5B58 ${hex(a.address)} \u8D77\u7684 ${a.width} \u5B57\u8282\u3002`;
+      const what = provenanceOnly ? "" : a.kind === "register" ? t("beat.why.writes", { name: a.name, field: field ? t("common.inParens", { text: field }) : "" }) : t("beat.why.writesMemory", { address: hex(a.address), width: a.width });
       parts.push(
-        what + (r ? `\u4E4B\u540E${place(r)}\u4F1A\u8BFB\u53D6\u5B83\u3002` : "\u5728\u7A97\u53E3\u91CC\u4E4B\u540E\u7684\u6B65\u9AA4\u4E0D\u4F1A\u518D\u8BFB\u53D6\u5B83\u3002")
+        what + (r ? t("beat.why.readLater", { place: place(r) }) : t("beat.why.notReadLater"))
       );
     }
     if (provenanceOnly) return parts.join("");
     if (flow && event.nextPC != null) {
       const sequential = event.nextPC === ins.address + 4;
       parts.push(
-        sequential ? "\u6CA1\u6709\u53D1\u751F\u8DF3\u8F6C\uFF1APC\uFF08\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF09\u52A0 4\uFF0C\u6267\u884C\u7D27\u6328\u7740\u7684\u4E0B\u4E00\u6761\u6307\u4EE4\u3002" : `\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u5730\u5740\uFF08PC\uFF09\u53D8\u6210 ${hex(event.nextPC)}\uFF0C\u4E5F\u5C31\u662F ${where(event.nextPC)}\u3002`
+        sequential ? t("beat.why.pcPlus4") : t("beat.why.pcTo", { pc: hex(event.nextPC), where: where(event.nextPC) })
       );
       if (delay && ins.flow !== "next")
-        parts.push("\u5DF2\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\uFF1A\u8DF3\u8F6C\u524D\u4F1A\u5148\u6267\u884C\u7D27\u8DDF\u5728\u540E\u9762\u7684\u90A3\u4E00\u6761\u3002");
+        parts.push(t("beat.why.delay"));
     }
     if (!parts.length) {
       if (event.output && event.service != null) {
@@ -24412,12 +27740,12 @@ function completeWhys(model, event, {
           (x) => x.kind === "register" && !x.write && x.name !== "$v0"
         );
         parts.push(
-          `\u63A7\u5236\u53F0\u5728\u8FD9\u4E00\u6B65\u591A\u4E86 ${JSON.stringify(event.output)}\u3002` + args.map((x) => {
+          t("beat.why.output", { output: JSON.stringify(event.output) }) + args.map((x) => {
             const w = writer("reg:" + x.name);
-            return `\u8FD9\u4E2A syscall \u7528\u5230\u7684 ${x.name} \u7B49\u4E8E ${show(x.value)}${w ? `\uFF0C\u662F${place(w)}\u5199\u5165\u7684` : ""}\u3002`;
+            return t("beat.why.syscallArg", { name: x.name, value: show(x.value), from: w ? t("beat.why.writtenBy", { place: place(w) }) : "" });
           }).join("")
         );
-      } else parts.push(`\u6307\u4EE4 ${ins.op} \u7684\u89C4\u5219\uFF1A${rule()}`);
+      } else parts.push(t("beat.why.rule", { op: ins.op, rule: rule() }));
     }
     return parts.join("");
   };
@@ -24461,7 +27789,7 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
     const s = symbols.find((x) => x.address === address && !x.data);
     if (s) return s.name;
     const i = instructions.find((x) => x.address === address);
-    return i ? `\u7B2C ${i.line} \u884C` : hex(address);
+    return i ? t("common.lineN", { line: i.line }) : hex(address);
   };
   const written = /* @__PURE__ */ new Set(), reads = /* @__PURE__ */ new Map(), writes = /* @__PURE__ */ new Map(), firstBefore = /* @__PURE__ */ new Map();
   for (const e of events)
@@ -24475,18 +27803,18 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
         if (a.name !== "$at") writes.set(key, a);
       }
     }
-  const expansion = events.map((e) => e.instruction.basic).join("\uFF1B");
+  const expansion = events.map((e) => e.instruction.basic).join(t("common.semicolon"));
   const beats = [];
   const R = [...reads.values()], W = [...writes.values()];
   if (R.length)
     beats.push({
       eq: R.flatMap((a, i) => [
-        i ? "\uFF0C" : "",
-        a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
+        i ? t("common.comma") : "",
+        a.kind === "register" ? a.name : t("inspector.memoryCell", { address: hex(a.address) }),
         " = ",
         fresh(N(a.value, a.width || 4, a.kind === "memory" ? "bits" : "value"))
       ]),
-      caption: `\u53D6 ${R.map((a) => a.name || hex(a.address)).join("\u3001")} \u7684\u503C\u3002`,
+      caption: t("beat.takeValues", { items: R.map((a) => a.name || hex(a.address)).join(t("common.listSep")) }),
       lit: R.map((a) => ({ id: id(a), mode: "read" })),
       tokens: R.map((a) => ({
         from: id(a),
@@ -24501,8 +27829,8 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
     beats.push({
       eq: [
         ...W.flatMap((a, i) => [
-          i ? "\uFF0C" : "",
-          a.kind === "register" ? a.name : `\u5185\u5B58[${hex(a.address)}]`,
+          i ? t("common.comma") : "",
+          a.kind === "register" ? a.name : t("inspector.memoryCell", { address: hex(a.address) }),
           " = ",
           ok(
             N(
@@ -24514,7 +27842,7 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
         ]),
         " \u2713"
       ],
-      caption: `\u8FD9\u4E00\u884C\u7684\u7ED3\u679C\uFF08\u4F2A\u6307\u4EE4\uFF0C\u6C47\u7F16\u65F6\u6362\u6210 ${events.length} \u6761\u673A\u5668\u6307\u4EE4\uFF09\u3002`,
+      caption: t("beat.line.result", { count: events.length }),
       lit: W.map((a) => ({ id: id(a), mode: "write" })),
       tokens: W.map((a) => ({
         from: "code",
@@ -24523,23 +27851,23 @@ function lineSummary(events, { source = "", instructions = [], symbols = [] } = 
         kind: "write",
         value: N(a.value, a.width || 4)
       })),
-      why: `\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A${expansion}\u3002\u5728\u4EE3\u7801\u8DEF\u5F84\u91CC\u70B9 \u25B8 \u53EF\u4EE5\u9010\u6761\u67E5\u770B\u6BCF\u4E00\u6B65\u3002`
+      why: t("beat.line.expansion", { expansion })
     });
   const jumped = last2.nextPC != null && last2.nextPC !== last2.instruction.address + 4;
   if (jumped || !beats.length)
     beats.push({
-      eq: ["\u4E0B\u4E00\u6761 = ", ok(where(last2.nextPC)), " \u2713"],
-      caption: jumped ? "\u8DF3\u8F6C\u3002" : "\u987A\u5E8F\u6267\u884C\u3002",
+      eq: [`${t("beat.next")} `, ok(where(last2.nextPC)), " \u2713"],
+      caption: jumped ? t("beat.jump") : t("beat.inOrder"),
       lit: [],
       tokens: [
         {
           from: "code",
           to: "next",
-          label: jumped ? "\u8DF3\u8F6C" : "PC+4",
+          label: jumped ? t("path.edge.jump") : "PC+4",
           kind: "flow"
         }
       ],
-      why: beats.length ? "" : `\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u5C55\u5F00\u4E3A\uFF1A${expansion}\u3002`
+      why: beats.length ? "" : t("beat.line.expansionPlain", { expansion })
     });
   const accesses2 = [...R, ...W];
   return {
@@ -24583,7 +27911,7 @@ var sourceCompare = {
   beqz: "== 0",
   bnez: "\u2260 0"
 };
-function lineDecision(events, { symbols = [], instructions = [], format = (v) => show(v) } = {}) {
+function lineDecision(events, { symbols = [], instructions = [], format: format2 = (v) => show(v) } = {}) {
   const last2 = events?.at(-1), ins = last2?.instruction;
   if (!ins || ins.flow !== "branch" && ins.op !== "syscall") return null;
   const reads = /* @__PURE__ */ new Map(), written = /* @__PURE__ */ new Set();
@@ -24598,23 +27926,23 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   const reg2 = (t3) => /^\$\d+$/.test(t3) ? "$" + registerNames[Number(t3.slice(1))] : t3;
   if (ins.op === "syscall") {
     const n = last2.service ?? val("$v0");
-    const [name2, args2 = []] = services[n] || [`\u4E0D\u652F\u6301\u7684 $v0 = ${n}`];
-    const parts = [`$v0 = ${format(n, "$v0")} ${name2}`];
-    const shown = args2.filter((r) => r !== "memory" && val(r) != null).map((r) => `${r} = ${format(val(r), r)}`);
-    if (shown.length) parts.push(" \xB7 " + shown.join("\uFF0C"));
+    const [name2, args2 = []] = services[n] || [t("beat.syscall.unsupportedName", { n })];
+    const parts = [`$v0 = ${format2(n, "$v0")} ${name2}`];
+    const shown = args2.filter((r) => r !== "memory" && val(r) != null).map((r) => `${r} = ${format2(val(r), r)}`);
+    if (shown.length) parts.push(" \xB7 " + shown.join(t("common.comma")));
     const results = [];
     if (last2.output) {
       const out = [...last2.output].map((c) => escapeByte(c.charCodeAt(0))).join("");
       results.push(
-        n === 11 && val("$a0") != null ? `\u8F93\u51FA '${out}'\uFF08${argumentMeaning(11, "$a0", val("$a0"))}\uFF09` : `\u8F93\u51FA "${out.length > 16 ? out.slice(0, 15) + "\u2026" : out}"`
+        n === 11 && val("$a0") != null ? t("beat.syscall.printChar", { out, meaning: argumentMeaning(11, "$a0", val("$a0")) }) : `${t("beat.output")} "${out.length > 16 ? out.slice(0, 15) + "\u2026" : out}"`
       );
     }
     for (const a of last2.accesses || [])
       if (a.write && a.kind === "register")
-        results.push(`${a.name} = ${format(a.value, a.name)}`);
-    if (/^waiting/.test(last2.status || "")) results.push("\u7B49\u5F85\u8F93\u5165");
-    else if (n === 10 || n === 17) results.push("\u7A0B\u5E8F\u7ED3\u675F");
-    if (results.length) parts.push(" \u2192 " + results.join("\uFF0C"));
+        results.push(`${a.name} = ${format2(a.value, a.name)}`);
+    if (/^waiting/.test(last2.status || "")) results.push(t("beat.waiting"));
+    else if (n === 10 || n === 17) results.push(t("beat.programEnds"));
+    if (results.length) parts.push(" \u2192 " + results.join(t("common.comma")));
     return parts.join("");
   }
   const op = ins.op, rs = "$" + registerNames[ins.binary >>> 21 & 31], rt = "$" + registerNames[ins.binary >>> 16 & 31];
@@ -24624,20 +27952,20 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
   const x = own(rs), y = own(rt);
   const taken = op === "beq" ? x === y : op === "bne" ? x !== y : compareZero[op] && x != null ? compareZero[op][1](x) : null;
   if (taken == null) return null;
-  const s = symbols.find((v) => v.address === ins.target && !v.data), t2 = instructions.find((v) => v.address === ins.target);
-  const target2 = s ? s.name : t2 ? `\u7B2C ${t2.line} \u884C` : hex(ins.target);
+  const s = symbols.find((v) => v.address === ins.target && !v.data), targetLine = instructions.find((v) => v.address === ins.target);
+  const target2 = s ? s.name : targetLine ? t("common.lineN", { line: targetLine.line }) : hex(ins.target);
   const always = op === "beq" && rs === rt || rs === "$zero" && /^(bgez|blez|bgezal)$/.test(op);
-  if (always) return `\u2192 \u8DF3\u5230 ${target2}`;
+  if (always) return t("beat.line.goTo", { target: target2 });
   const [mn, ...args] = (events[0].instruction.source || "").replace(/#.*/, "").replace(/^\s*[\w.]+:/, "").trim().split(/[\s,]+/);
   const unsigned = /u$/.test(mn);
   const operand = (a) => {
     if (a == null) return void 0;
     if (a.startsWith("$")) {
       const v = val(reg2(a));
-      return v == null ? void 0 : format(unsigned ? v >>> 0 : v, reg2(a));
+      return v == null ? void 0 : format2(unsigned ? v >>> 0 : v, reg2(a));
     }
     const n = Number(a);
-    return Number.isFinite(n) ? format(unsigned ? n >>> 0 : n) : void 0;
+    return Number.isFinite(n) ? format2(unsigned ? n >>> 0 : n) : void 0;
   };
   let test = null;
   if (sourceCompare[mn]) {
@@ -24645,20 +27973,20 @@ function lineDecision(events, { symbols = [], instructions = [], format = (v) =>
     if (a != null && b != null)
       test = `${a} ${sourceCompare[mn]}${b === "" ? "" : " " + b}`;
   } else if (compareZero[mn] && mn === op)
-    test = `${format(x, rs)} ${compareZero[op][0]}`;
-  const result = taken ? `\u2192 \u8DF3\u5230 ${target2}` : "\u2192 \u7EE7\u7EED\u4E0B\u4E00\u884C";
-  if (test) return `${test} ${taken ? "\u6210\u7ACB" : "\u4E0D\u6210\u7ACB"} ${result}`;
-  const listed = [...reads].filter(([n]) => n !== "$zero" && n !== "$at").map(([n, v]) => `${n} = ${format(v, n)}`);
-  return [listed.join("\uFF0C"), result].filter(Boolean).join(" ");
+    test = `${format2(x, rs)} ${compareZero[op][0]}`;
+  const result = taken ? t("beat.line.goTo", { target: target2 }) : t("beat.line.next");
+  if (test) return `${test} ${taken ? t("beat.holds") : t("beat.fails")} ${result}`;
+  const listed = [...reads].filter(([n]) => n !== "$zero" && n !== "$at").map(([n, v]) => `${n} = ${format2(v, n)}`);
+  return [listed.join(t("common.comma")), result].filter(Boolean).join(" ");
 }
 function genericTemplate(template, source = "") {
-  const operands = source.replace(/#.*/, "").trim().replace(/^(?:[\w.$]+:\s*)*\S+\s*/, "").split(/\s*,\s*/).filter(Boolean).map((t2) => t2.replace(/^-?\d+\((\$\w+)\)$/, "$1"));
+  const operands = source.replace(/#.*/, "").trim().replace(/^(?:[\w.$]+:\s*)*\S+\s*/, "").split(/\s*,\s*/).filter(Boolean).map((t3) => t3.replace(/^-?\d+\((\$\w+)\)$/, "$1"));
   const letters = "abcdefgh", used = /* @__PURE__ */ new Set();
   const placeholder = (token, kind) => {
     const i = operands.findIndex((o, n) => !used.has(n) && o === token);
     if (i < 0) return token;
     used.add(i);
-    return kind === "reg" ? "$" + letters[i] : "\u7ACB\u5373\u6570";
+    return kind === "reg" ? "$" + letters[i] : t("bits.immediate");
   };
   return text(Array.isArray(template) ? template : [template]).replace(
     /\$\w+|(?<![\w$.])-?\d+\b/g,
@@ -24667,62 +27995,46 @@ function genericTemplate(template, source = "") {
 }
 
 // ui/glossary.js
-var glossary = {
-  \u5B57\u8282: "\u5185\u5B58\u7684\u57FA\u672C\u5355\u4F4D\uFF0C8 \u4F4D\uFF0C\u80FD\u8868\u793A 0\u2013255 \u7684\u4E00\u4E2A\u6570\u3002\u4F8B\u5982\u5B57\u7B26 h \u5360 1 \u4E2A\u5B57\u8282\uFF0C\u5B58\u7684\u662F 104\u3002",
-  \u5730\u5740: "\u5185\u5B58\u4E2D\u6BCF\u4E2A\u5B57\u8282\u7684\u7F16\u53F7\uFF0C\u50CF\u95E8\u724C\u53F7\u3002\u4F8B\u5982 0x10010000 \u662F\u6570\u636E\u533A\u7684\u7B2C\u4E00\u4E2A\u5B57\u8282\u3002",
-  \u6709\u6548\u5730\u5740: "\u4E00\u6761\u6307\u4EE4\u771F\u6B63\u8981\u8BBF\u95EE\u7684\u5185\u5B58\u5730\u5740\uFF0C\u7B49\u4E8E\u57FA\u5740\u52A0\u504F\u79FB\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D\uFF0C\u82E5 $s0 = 0x10010000\uFF0C\u6709\u6548\u5730\u5740\u5C31\u662F 0x10010004\u3002",
-  \u4F2A\u6307\u4EE4: "\u6C47\u7F16\u5668\u63D0\u4F9B\u7684\u4FBF\u6377\u5199\u6CD5\uFF0C\u6C47\u7F16\u65F6\u4F1A\u6362\u6210\u4E00\u6761\u6216\u591A\u6761\u771F\u6B63\u7684\u673A\u5668\u6307\u4EE4\u3002\u4F8B\u5982 move $t0, $a1 \u5B9E\u9645\u6267\u884C\u7684\u662F addu $t0, $a1, $zero\u3002",
-  \u673A\u5668\u6307\u4EE4: "CPU \u771F\u6B63\u6267\u884C\u7684\u6307\u4EE4\uFF0C\u6BCF\u6761 32 \u4F4D\uFF084 \u5B57\u8282\uFF09\u3002\u201C\u5B9E\u9645\u6307\u4EE4\u201D\u89C6\u56FE\u91CC\u5217\u51FA\u7684\u5C31\u662F\u5B83\u4EEC\u3002",
-  \u5EF6\u8FDF\u5206\u652F: "MIPS \u7684\u4E00\u79CD\u6267\u884C\u65B9\u5F0F\uFF1A\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u7D27\u8DDF\u7684\u90A3\u4E00\u6761\uFF0C\u65E0\u8BBA\u662F\u5426\u8DF3\u8F6C\u90FD\u4F1A\u5148\u6267\u884C\u3002\u4F8B\u5982 jal f \u540E\u9762\u90A3\u4E00\u884C\u4F1A\u5728\u8FDB\u5165 f \u4E4B\u524D\u6267\u884C\u3002",
-  \u5EF6\u8FDF\u69FD: "\u5F00\u542F\u5EF6\u8FDF\u5206\u652F\u65F6\uFF0C\u7D27\u8DDF\u5728\u8DF3\u8F6C\u6216\u5206\u652F\u6307\u4EE4\u540E\u9762\u3001\u603B\u4F1A\u88AB\u6267\u884C\u7684\u90A3\u4E2A\u4F4D\u7F6E\u3002\u7A0B\u5E8F\u5E38\u5728\u8FD9\u91CC\u653E nop\uFF0C\u8FD9\u6837\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u7ED3\u679C\u76F8\u540C\u3002",
-  \u7B26\u53F7\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u7528\u5B83\u7684\u6700\u9AD8\u4F4D\u586B\u6EE1\u9AD8\u4F4D\uFF0C\u8D1F\u6570\u4ECD\u7136\u662F\u8D1F\u6570\u3002\u4F8B\u5982\u5B57\u8282 0xf0\uFF08\u6700\u9AD8\u4F4D\u662F 1\uFF09\u6269\u6210 0xfffffff0\uFF0C\u4E5F\u5C31\u662F \u221216\u3002",
-  \u96F6\u6269\u5C55: "\u628A\u8F83\u77ED\u7684\u6570\u6269\u6210 32 \u4F4D\u65F6\uFF0C\u9AD8\u4F4D\u4E00\u5F8B\u586B 0\u3002\u4F8B\u5982\u5B57\u8282 0xf0 \u6269\u6210 0x000000f0\uFF0C\u4E5F\u5C31\u662F 240\u3002",
-  \u5C0F\u7AEF\u5E8F: "\u591A\u5B57\u8282\u7684\u6570\u5728\u5185\u5B58\u91CC\uFF0C\u4F4E\u4F4D\u5B57\u8282\u653E\u5728\u4F4E\u5730\u5740\u3002\u4F8B\u5982 7 \u5B58\u6210 07 00 00 00\uFF0C\u22122 \u5B58\u6210 fe ff ff ff\u3002",
-  \u8865\u7801: "\u8D1F\u6570\u7684\u4E8C\u8FDB\u5236\u5199\u6CD5\uFF1A\u628A\u8FD9\u4E2A\u6570\u7684\u6BCF\u4E00\u4F4D\u53D6\u53CD\uFF0C\u518D\u52A0 1\u3002\u4F8B\u5982 1 \u662F 0\u20260001\uFF0C\u53D6\u53CD\u5F97 1\u20261110\uFF0C\u52A0 1 \u5F97 1\u20261111\uFF0C\u6240\u4EE5 \u22121 \u662F 32 \u4E2A 1\u3002\u6700\u9AD8\u4F4D\u662F 1 \u5C31\u8868\u793A\u8D1F\u6570\u3002",
-  \u8FDB\u4F4D: "\u4E24\u4F4D\u76F8\u52A0\u6EE1 2 \u65F6\uFF0C\u5411\u66F4\u9AD8\u4E00\u4F4D\u9001\u51FA\u7684 1\uFF0C\u5C31\u50CF\u5341\u8FDB\u5236\u6EE1 10 \u8FDB 1\u3002\u6700\u9AD8\u4F4D\u518D\u5411\u5916\u7684\u8FDB\u4F4D\u653E\u4E0D\u4E0B\uFF0C\u4F1A\u88AB\u4E22\u5F03\u3002",
-  NUL: "\u503C\u4E3A 0 \u7684\u5B57\u8282\uFF0C\u5199\u4F5C \\0\u3002\u5B57\u7B26\u4E32\u5E38\u7528\u5B83\u6807\u8BB0\u7ED3\u5C3E\uFF1A\u8BFB\u5230\u5B83\u5C31\u8868\u793A\u5B57\u7B26\u4E32\u7ED3\u675F\u4E86\u3002",
-  \u7ACB\u5373\u6570: "\u76F4\u63A5\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570\u3002\u4F8B\u5982 addiu $t0, $t0, 4 \u91CC\u7684 4\u3002",
-  \u57FA\u5740: "\u8BA1\u7B97\u5185\u5B58\u5730\u5740\u65F6\u7528\u4F5C\u8D77\u70B9\u7684\u5BC4\u5B58\u5668\u503C\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D $s0 \u662F\u57FA\u5740\u3002",
-  \u504F\u79FB: "\u52A0\u5728\u57FA\u5740\u4E0A\u7684\u5E38\u6570\uFF0C\u5F97\u5230\u8981\u8BBF\u95EE\u7684\u5730\u5740\u3002\u4F8B\u5982 lw $t0, 4($s0) \u4E2D 4 \u662F\u504F\u79FB\uFF0C0($s0) \u8868\u793A\u504F\u79FB\u4E3A 0\uFF0C\u4E5F\u5C31\u662F\u6B63\u597D\u5728\u57FA\u5740\u90A3\u91CC\u3002",
-  \u5BC4\u5B58\u5668: "CPU \u5185\u90E8\u7684 32 \u4E2A\u5B58\u50A8\u4F4D\u7F6E\uFF0C\u6BCF\u4E2A\u653E 32 \u4F4D\uFF0C\u50CF 32 \u4E2A\u6709\u540D\u5B57\u7684\u53D8\u91CF\u3002\u4F8B\u5982 $t0\u3001$a0\u3001$sp\u3002",
-  syscall: "\u8BF7\u8FD0\u884C\u73AF\u5883\uFF08\u8FD9\u91CC\u662F MARS\uFF09\u5E2E\u5FD9\u505A\u4E00\u4EF6\u4E8B\uFF0C\u4F8B\u5982\u8F93\u51FA\u3001\u8F93\u5165\u3001\u8BFB\u6587\u4EF6\uFF1B\u505A\u54EA\u4EF6\u4E8B\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF0C\u53C2\u6570\u653E\u5728 $a0 \u7B49\u5BC4\u5B58\u5668\u91CC\u3002\u4F8B\u5982 $v0 = 11 \u662F\u6253\u5370 $a0 \u91CC\u7684\u5B57\u7B26\u3002",
-  \u6EA2\u51FA: "\u8FD0\u7B97\u7ED3\u679C\u8D85\u51FA\u4E86 32 \u4F4D\u80FD\u8868\u793A\u7684\u8303\u56F4\u3002\u4F8B\u5982 0x7fffffff + 1 \u7528\u6709\u7B26\u53F7\u6570\u8868\u793A\u4E0D\u4E0B\u3002",
-  \u5BF9\u9F50: "\u5730\u5740\u662F\u8BBF\u95EE\u5BBD\u5EA6\u7684\u6574\u6570\u500D\u3002\u4F8B\u5982\u8BFB 4 \u5B57\u8282\uFF08lw\uFF09\u65F6\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570\uFF0C\u6240\u4EE5\u76F8\u90BB\u7684\u5B57\u4E4B\u95F4\u5730\u5740\u5DEE 4\u3002",
-  \u8FD4\u56DE\u5730\u5740: "\u51FD\u6570\u7ED3\u675F\u540E\u8981\u56DE\u5230\u7684\u90A3\u6761\u6307\u4EE4\u7684\u5730\u5740\u3002jal \u5728\u8DF3\u8FDB\u51FD\u6570\u65F6\u628A\u5B83\u5B58\u8FDB $ra\uFF0C\u51FD\u6570\u672B\u5C3E\u7684 jr $ra \u518D\u8DF3\u56DE\u53BB\u3002",
-  PC: "\u7A0B\u5E8F\u8BA1\u6570\u5668\uFF1A\u4FDD\u5B58\u201C\u4E0B\u4E00\u6761\u8981\u6267\u884C\u7684\u6307\u4EE4\u7684\u5730\u5740\u201D\u3002\u6BCF\u6267\u884C\u4E00\u6761\u6307\u4EE4\u901A\u5E38\u52A0 4\uFF1B\u8DF3\u8F6C\u5C31\u662F\u628A\u5B83\u6539\u6210\u522B\u7684\u5730\u5740\u3002",
-  \u5B57\u7B26\u7F16\u7801: "\u7528\u6570\u5B57\u8868\u793A\u5B57\u7B26\u7684\u7EA6\u5B9A\uFF1A\u6BCF\u4E2A\u5B57\u7B26\u5BF9\u5E94\u4E00\u4E2A\u7F16\u53F7\uFF0C\u5185\u5B58\u91CC\u5B58\u7684\u662F\u7F16\u53F7\u3002\u4F8B\u5982\u6309 ASCII\uFF0Ch \u7684\u7F16\u53F7\u662F 104\u3002",
-  ASCII: "\u6700\u5E38\u7528\u7684\u5B57\u7B26\u7F16\u7801\u8868\uFF1A0\u2013127 \u5404\u5BF9\u5E94\u4E00\u4E2A\u5B57\u7B26\uFF0C\u4F8B\u5982 48 \u662F 0\u300165 \u662F A\u3001104 \u662F h\u300110 \u662F\u6362\u884C\u3002\u9875\u811A\u201C\u6570\u503C\u201D\u65C1\u7684\u201C?\u201D\u91CC\u6709\u5B8C\u6574\u7684\u8868\u3002",
-  \u5341\u516D\u8FDB\u5236: "\u4EE5 16 \u4E3A\u57FA\u6570\u7684\u5199\u6CD5\uFF0C\u524D\u7F00 0x\uFF1B\u6BCF\u4F4D\u662F 0\u20139 \u6216 a\u2013f\uFF0810\u201315\uFF09\uFF0C\u4E24\u4F4D\u6B63\u597D\u8868\u793A\u4E00\u4E2A\u5B57\u8282\u3002\u4F8B\u5982 0x68 = 6\xD716 + 8 = 104\u3002",
-  "rs \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E00\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 25\u201321 \u4F4D\uFF09\u3002",
-  "rt \u5B57\u6BB5": "\u673A\u5668\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u7B2C\u4E8C\u4E2A\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 20\u201316 \u4F4D\uFF09\u3002",
-  "rd \u5B57\u6BB5": "R \u578B\u6307\u4EE4\u7F16\u7801\u4E2D\u7684\u76EE\u6807\u5BC4\u5B58\u5668\u5B57\u6BB5\uFF08\u7B2C 15\u201311 \u4F4D\uFF09\u3002"
-};
-var pattern = new RegExp(
-  Object.keys(glossary).sort((a, b) => b.length - a.length).map((t2) => t2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
-  "g"
+var TERMS = ["byte", "address", "effectiveAddress", "pseudo", "machineInstruction", "delayedBranch", "delaySlot", "signExtend", "zeroExtend", "littleEndian", "twosComplement", "carry", "nul", "immediate", "base", "offset", "register", "syscall", "overflow", "alignment", "returnAddress", "pc", "charEncoding", "ascii", "hex", "rs", "rt", "rd"];
+var glossary = localized(
+  () => Object.fromEntries(TERMS.map((id2) => [t(`gloss.${id2}.term`), t(`gloss.${id2}.def`)]))
 );
+var matcher = localized(() => {
+  const terms = Object.keys(glossary).sort((a, b) => b.length - a.length);
+  const lower = new Map(terms.map((term) => [term.toLowerCase(), term]));
+  const re = new RegExp(
+    terms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).map((term) => /^[\w' -]+$/.test(term) ? `\\b${term}(?:e?s)?\\b` : term).join("|"),
+    "gi"
+  );
+  const find2 = (text2) => {
+    const l = text2.toLowerCase();
+    return lower.get(l) ?? lower.get(l.replace(/e?s$/, "")) ?? lower.get(l.replace(/s$/, ""));
+  };
+  return { re, find: find2 };
+});
 function glossify(text2) {
   const seen = /* @__PURE__ */ new Set();
-  return escapeHTML(text2).replace(pattern, (term) => {
-    if (seen.has(term)) return term;
+  return escapeHTML(text2).replace(matcher.re, (found) => {
+    const term = matcher.find(found);
+    if (!term || seen.has(term)) return found;
     seen.add(term);
-    return `<abbr class="term" title="${escapeHTML(glossary[term])}">${term}</abbr>`;
+    return `<abbr class="term" title="${escapeHTML(glossary[term])}">${found}</abbr>`;
   });
 }
 function termsIn(text2) {
-  return [...new Set(String(text2).match(pattern) || [])].map((t2) => [
-    t2,
-    glossary[t2]
+  return [...new Set((String(text2).match(matcher.re) || []).map(matcher.find).filter(Boolean))].map((term) => [
+    term,
+    glossary[term]
   ]);
 }
 
 // ui/focus.js
-var stopText = {
-  "waiting-input": "\u7B49\u5F85\u8F93\u5165",
-  ended: "\u7A0B\u5E8F\u7ED3\u675F",
-  error: "\u6267\u884C\u5F02\u5E38",
-  "instruction-limit": "\u8D85\u8FC7 64 \u6761\u6307\u4EE4\uFF0C\u672A\u7EE7\u7EED\u9884\u8BA1"
-};
+var stopText = localized(() => ({
+  "waiting-input": t("focus.stop.waiting"),
+  ended: t("focus.stop.ended"),
+  error: t("focus.stop.error"),
+  "instruction-limit": t("focus.stop.limit")
+}));
 var BEAT_MS = 900;
 var SEQUENTIAL = /* @__PURE__ */ new Set(["next", "fallthrough"]);
 var FocusLens = class {
@@ -24739,29 +28051,29 @@ var FocusLens = class {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<div id="focus-backdrop" hidden></div>
-      <section id="focus-lens" role="dialog" aria-modal="true" aria-label="\u4E13\u6CE8\u8C03\u8BD5" tabindex="-1" hidden>
+      <section id="focus-lens" role="dialog" aria-modal="true" aria-label="${t("focus.dialog")}" data-i18n-aria-label="focus.dialog" tabindex="-1" hidden>
         <header id="focus-head">
-          <strong>\u4E13\u6CE8</strong><span id="focus-where"></span>
-          <label>\u8303\u56F4 <select id="focus-range" aria-label="\u9884\u8BA1\u8303\u56F4"><option value="auto">\u81EA\u52A8</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} \u884C</option>`).join("")}</select></label>
-          <span id="focus-keys">\u2191\u2193 \u67E5\u770B \xB7 \u21E7\u2191 \u540E\u9000\u4E00\u884C \xB7 \u21E7\u2193 \u6267\u884C\u4E00\u884C \xB7 \u2190\u2192 \u9010\u6761\u89E3\u91CA \xB7 Enter \u6267\u884C\u5230\u9009\u4E2D\u7684\u8FD9\u4E00\u6B65 \xB7 ? \u4E3A\u4EC0\u4E48 \xB7 Esc \u9000\u51FA</span>
-          <button id="focus-close" aria-label="\u9000\u51FA\u4E13\u6CE8\u6A21\u5F0F">\xD7</button>
+          <strong data-i18n="focus.heading">${t("focus.heading")}</strong><span id="focus-where"></span>
+          <label><span data-i18n="focus.range">${t("focus.range")}</span> <select id="focus-range" aria-label="${t("focus.range.label")}" data-i18n-aria-label="focus.range.label"><option value="auto" data-i18n="radix.auto">${t("radix.auto")}</option>${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}" data-i18n="focus.range.lines" data-i18n-params='{"n":${n}}'>${t("focus.range.lines", { n })}</option>`).join("")}</select></label>
+          <span id="focus-keys" data-i18n="focus.keys">${t("focus.keys")}</span>
+          <button id="focus-close" aria-label="${t("focus.close")}" data-i18n-aria-label="focus.close">\xD7</button>
         </header>
         <div id="focus-body">
-          <div id="focus-path" aria-label="\u4EE3\u7801\u8DEF\u5F84"></div>
-          <div id="focus-objects" aria-label="\u6D89\u53CA\u5BF9\u8C61"></div>
+          <div id="focus-path" aria-label="${t("focus.path")}" data-i18n-aria-label="focus.path"></div>
+          <div id="focus-objects" aria-label="${t("focus.objects")}" data-i18n-aria-label="focus.objects"></div>
           <svg id="focus-svg" aria-hidden="true"></svg>
         </div>
         <div id="focus-beat">
-          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="\u89E3\u91CA\u8FDB\u5EA6"></span></div>
+          <div class="focus-beat-top"><span id="focus-tag"></span><code id="focus-src"></code><span id="focus-progress"></span><span id="focus-dots" role="group" aria-label="${t("focus.progress")}" data-i18n-aria-label="focus.progress"></span></div>
           <div id="focus-eq" aria-live="polite"></div>
           <div id="focus-caption"></div>
           <div id="focus-note" hidden></div>
           <div class="focus-controls">
-            <button id="focus-prev">\u25C0 \u4E0A\u4E00\u6761\u89E3\u91CA</button><button id="focus-next">\u4E0B\u4E00\u6761\u89E3\u91CA \u25B6</button><button id="focus-play">\u64AD\u653E</button><button id="focus-why" aria-expanded="false">\u4E3A\u4EC0\u4E48\uFF1F</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>\u9010\u4F4D\u67E5\u770B</button>
+            <button id="focus-prev" data-i18n="focus.prev">${t("focus.prev")}</button><button id="focus-next" data-i18n="focus.next">${t("focus.next")}</button><button id="focus-play">${t("focus.play")}</button><button id="focus-why" aria-expanded="false" data-i18n="focus.why">${t("focus.why")}</button><button id="focus-bits-toggle" aria-expanded="false" aria-controls="focus-bits" hidden>${t("focus.bits")}</button>
           </div>
           <div id="focus-why-text" hidden></div>
-          <div id="focus-bits" aria-label="\u9010\u4F4D\u67E5\u770B" hidden></div>
-          <form id="focus-input" hidden><label for="focus-input-value">\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter</label><input id="focus-input-value" autocomplete="off" /><button>\u63D0\u4EA4</button><span>\u63D0\u4EA4\u540E\u7EE7\u7EED\u88AB\u4E2D\u65AD\u7684\u64CD\u4F5C</span></form>
+          <div id="focus-bits" aria-label="${t("focus.bits")}" data-i18n-aria-label="focus.bits" hidden></div>
+          <form id="focus-input" hidden><label for="focus-input-value" data-i18n="focus.input">${t("focus.input")}</label><input id="focus-input-value" autocomplete="off" /><button data-i18n="focus.input.submit">${t("focus.input.submit")}</button><span data-i18n="focus.input.submit.tip">${t("focus.input.submit.tip")}</span></form>
         </div>
       </section>`
     );
@@ -24930,7 +28242,7 @@ var FocusLens = class {
     const beats = parts.flatMap(
       (p, i) => p.beats.map((b) => ({
         ...b,
-        caption: `\u5C55\u5F00 ${i + 1}/${parts.length} \xB7 ${step.events[i].instruction.basic} \u2014 ${b.caption}`
+        caption: t("focus.expanded", { k: i + 1, total: parts.length, basic: step.events[i].instruction.basic, caption: b.caption })
       }))
     );
     const objects = /* @__PURE__ */ new Map();
@@ -24973,7 +28285,7 @@ var FocusLens = class {
     if (!m?.beats.length) return;
     this.stop();
     if (this.beat >= m.beats.length) this.beat = 0;
-    document.getElementById("focus-play").textContent = "\u6682\u505C";
+    document.getElementById("focus-play").textContent = t("toolbar.pause");
     const tick = () => {
       if (this.beat >= m.beats.length) return this.stop();
       this.beat++;
@@ -24987,7 +28299,7 @@ var FocusLens = class {
     clearTimeout(this.timer);
     this.timer = null;
     const b = document.getElementById("focus-play");
-    if (b) b.textContent = "\u64AD\u653E";
+    if (b) b.textContent = t("focus.play");
   }
   seekBeat(n) {
     this.stop();
@@ -25044,7 +28356,7 @@ var FocusLens = class {
         if (!this.holding) {
           this.holding = true;
           this.stop();
-          this.el.querySelectorAll(".ftoken").forEach((t2) => t2.remove());
+          this.el.querySelectorAll(".ftoken").forEach((t3) => t3.remove());
         }
         if (now - (this.lastMove || 0) < 125) return;
       }
@@ -25075,13 +28387,13 @@ var FocusLens = class {
   // ---- rendering ----
   render() {
     const $3 = (id2) => document.getElementById(id2), state2 = this.host.getState(), L = this.layout;
-    $3("focus-where").textContent = state2 ? `\u5DF2\u6267\u884C ${state2.step} \u6B65 \xB7 \u4E0B\u4E00\u6761 ${hex(state2.pc)}` : "";
+    $3("focus-where").textContent = state2 ? t("focus.where", { step: state2.step, pc: hex(state2.pc) }) : "";
     const waiting = state2?.status === "waiting";
     if ($3("focus-input").hidden === waiting) {
       $3("focus-input").hidden = !waiting;
       if (waiting) $3("focus-input-value").focus();
     }
-    const badge2 = (s) => `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? "\u9884\u8BA1\u7B2C " + (s.index + 1) + " \u6B65" : s.index < -1 ? "\u4E4B\u524D\u6267\u884C\u7684\u7B2C " + -s.index + " \u884C" : "\u521A\u5B8C\u6210"}">${s.predicted ? "+" + (s.index + 1) : "\u2713"}</button>`;
+    const badge2 = (s) => `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? t("focus.badge.predicted", { n: s.index + 1 }) : s.index < -1 ? t("focus.badge.earlier", { n: -s.index }) : t("focus.badge.done")}">${s.predicted ? "+" + (s.index + 1) : "\u2713"}</button>`;
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
     const selectedStep = byIndex.get(this.selected);
     const instructions = this.host.getProgram().instructions;
@@ -25105,7 +28417,7 @@ var FocusLens = class {
     this.ghosts = ghosts;
     $3("focus-path").innerHTML = L.segments.map((seg) => {
       const iteration = selectedStep?.segment === seg.id ? selectedStep.iteration : null;
-      const head = `${escapeHTML(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${iteration ? `\u7B2C ${iteration} \u6B21 / ` : ""}\u5171 ${seg.iterations} \u6B21</span>` : ""}`;
+      const head = `${escapeHTML(seg.label ?? seg.file + ":" + seg.lines[0].line)}${seg.iterations > 1 ? ` <span class="fiter">${t("focus.iterations", { current: iteration ? `${t("focus.iteration", { iteration })} ` : "", iterations: seg.iterations })}</span>` : ""}`;
       const rows = seg.lines.map((line) => {
         const steps = line.steps.map((k) => byIndex.get(k));
         const machine = instructions.filter(
@@ -25114,10 +28426,10 @@ var FocusLens = class {
         const open = this.expanded.has(line.address);
         const bp = this.host.hasBreakpoint(line.address);
         return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}" data-line="${line.line}">
-                <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? "\u5220\u9664\u65AD\u70B9" : "\u8BBE\u7F6E\u65AD\u70B9"}">${bp ? "\u25CF" : "\u25CB"}</button>
+                <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? t("breakpoint.delete") : t("focus.setBreakpoint")}">${bp ? "\u25CF" : "\u25CB"}</button>
                 <span class="fln">${line.line}</span>
                 <code>${escapeHTML(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
-                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${open ? "\u25BE" : "\u25B8"} ${machine.length} \u6761</button>` : ""}
+                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${t("focus.expand", { arrow: open ? "\u25BE" : "\u25B8", count: machine.length })}</button>` : ""}
                 <span class="fbadges">${steps.map(badge2).join("")}</span>
               </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}`;
       }).join("");
@@ -25161,9 +28473,9 @@ var FocusLens = class {
   stopNote() {
     const s = this.layout.stop;
     if (!s.reason) return "";
-    const at = s.at?.line ? `\uFF08\u7B2C ${s.at.line} \u884C\uFF09` : "";
-    const text2 = s.reason === "window" ? `\u4E0B\u9762\u8FD8\u6709\uFF1A${s.at?.line ? `\u7B2C ${s.at.line} \u884C\u8D77` : "\u66F4\u591A"}\uFF08\u4E0D\u5728\u7A97\u53E3\u5185\uFF09` : `\u4E4B\u540E\uFF1A${stopText[s.reason] || "\u65E0\u6CD5\u9884\u8BA1 \xB7 " + s.reason}${at}`;
-    return `<div class="fstop" data-anchor="stop">${escapeHTML(text2)}${s.complete ? "" : " \xB7 \u8BE5\u884C\u53EA\u9884\u8BA1\u4E86\u4E00\u90E8\u5206"}</div>`;
+    const at = s.at?.line ? t("inspector.lineRef", { line: s.at.line }) : "";
+    const text2 = s.reason === "window" ? t("focus.more", { where: s.at?.line ? t("focus.more.from", { line: s.at.line }) : t("focus.more.unknown") }) : t("focus.after", { reason: stopText[s.reason] || t("focus.unpredictable", { reason: s.reason }), at });
+    return `<div class="fstop" data-anchor="stop">${escapeHTML(text2)}${s.complete ? "" : ` ${t("focus.partial")}`}</div>`;
   }
   // Values of every object the window touches, as of the selected step:
   // recorded before/after for objects it touches, otherwise the last value
@@ -25194,7 +28506,7 @@ var FocusLens = class {
   renderBeat(animate) {
     const $3 = (id2) => document.getElementById(id2), m = this.current(), step = this.layout?.steps.find((s) => s.index === this.selected);
     if (!m || !step) {
-      $3("focus-eq").textContent = "\u5C1A\u65E0\u53EF\u89E3\u91CA\u7684\u6B65\u9AA4";
+      $3("focus-eq").textContent = t("focus.nothing");
       $3("focus-caption").textContent = "";
       $3("focus-dots").innerHTML = "";
       $3("focus-objects").innerHTML = "";
@@ -25203,24 +28515,24 @@ var FocusLens = class {
     }
     const b = this.beat > 0 ? m.beats[this.beat - 1] : null;
     this.renderBits(step);
-    $3("focus-tag").textContent = step.predicted ? `\u9884\u8BA1 +${step.index + 1}` : step.index < -1 ? "\u4E4B\u524D\u6267\u884C" : "\u521A\u5B8C\u6210";
+    $3("focus-tag").textContent = step.predicted ? t("focus.tag.predicted", { index: step.index + 1 }) : step.index < -1 ? t("focus.tag.earlier") : t("focus.badge.done");
     $3("focus-tag").className = step.predicted ? "pred" : "done";
     const source = splitComment(
       this.host.getSource(step.file, step.line) || ""
     );
     $3("focus-src").textContent = `${step.file}:${step.line}  ${source.code}`;
     $3("focus-note").hidden = !source.comment;
-    $3("focus-note").textContent = source.comment ? "\u4F5C\u8005\u6CE8\u91CA\uFF1A" + source.comment : "";
+    $3("focus-note").textContent = source.comment ? t("focus.comment", { comment: source.comment }) : "";
     const parts = b ? b.eq : m.template;
     $3("focus-eq").innerHTML = parts.map(
       (p) => typeof p === "string" ? escapeHTML(p) : `<span class="${p.c || ""}">${this.number(p)}</span>`
     ).join("");
     $3("focus-caption").innerHTML = glossify(
-      b ? b.caption : m.beats.length ? "\u2192 \u4E0B\u4E00\u6761\u89E3\u91CA\u9010\u4E2A\u4EE3\u5165\u771F\u5B9E\u503C" : ""
+      b ? b.caption : m.beats.length ? t("focus.substitute") : ""
     );
-    $3("focus-progress").textContent = m.beats.length ? `\u7B2C ${this.beat}/${m.beats.length} \u6761` : "";
+    $3("focus-progress").textContent = m.beats.length ? t("focus.beatOf", { beat: this.beat, total: m.beats.length }) : "";
     $3("focus-dots").innerHTML = m.beats.map(
-      (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="\u7B2C ${i + 1} \u6761\u89E3\u91CA"></button>`
+      (_, i) => `<button class="fdot ${i + 1 < this.beat ? "past" : ""} ${i + 1 === this.beat ? "now" : ""}" data-beat="${i + 1}" aria-label="${t("focus.beatN", { n: i + 1 })}"></button>`
     ).join("");
     $3("focus-dots").querySelectorAll("[data-beat]").forEach(
       (d) => d.onclick = () => this.seekBeat(Number(d.dataset.beat))
@@ -25241,15 +28553,15 @@ var FocusLens = class {
       });
       return f.text + (f.note ? " " + f.note : "");
     };
-    $3("focus-objects").innerHTML = `<div class="fobj-title">\u6D89\u53CA\u5BF9\u8C61</div>` + shown.map((o) => {
+    $3("focus-objects").innerHTML = `<div class="fobj-title">${t("focus.objects")}</div>` + shown.map((o) => {
       const grouped = o.kind === "memory" && o.bytes.length > 1;
       const label2 = o.kind === "register" ? o.name : `[${hex(o.address)}${grouped ? "\u2026" : ""}]\xB7${o.width}B`;
       const dots = this.host.getRadix() === "bin" && !grouped && (o.kind === "register" || o.width > 1), now = o.touched && o.write ? o.after : o.value;
-      const v = grouped ? escapeHTML(o.text ?? `${o.bytes.length} \u5B57\u8282`) : dots ? bitDots(now, o.kind === "memory" ? Math.min(4, o.width) : 4, value(o, now)) : escapeHTML(o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value));
+      const v = grouped ? escapeHTML(o.text ?? t("focus.bytes", { n: o.bytes.length })) : dots ? bitDots(now, o.kind === "memory" ? Math.min(4, o.width) : 4, value(o, now)) : escapeHTML(o.touched && o.write && o.before !== o.after ? `${value(o, o.before)} \u2192 ${value(o, o.after)}` : value(o, o.value));
       const raw = grouped ? `<small class="fraw">${o.bytes.slice(0, 16).map((x) => x.toString(16).padStart(2, "0")).join(" ")}${o.bytes.length > 16 ? " \u2026" : ""}</small>` : "";
       const mode = litMode(o);
       return `<div class="fobj ${mode ? "lit-" + mode : ""} ${o.touched ? "touched" : ""} ${grouped ? "group" : ""}" data-obj="${o.ids.join(" ")}"><span>${escapeHTML(label2)}</span><span class="fval">${v}</span>${raw}</div>`;
-    }).join("") + (objects.length > 12 ? `<div class="fmore">\u53E6\u6709 ${objects.length - 12} \u4E2A\u5BF9\u8C61</div>` : "");
+    }).join("") + (objects.length > 12 ? `<div class="fmore">${t("focus.moreObjects", { n: objects.length - 12 })}</div>` : "");
     this.draw(animate ? b : null);
   }
   // A number part in the chosen radix; the character reading stays faint.
@@ -25275,12 +28587,12 @@ var FocusLens = class {
         false
       )
     }) : null;
-    const where = hint.kind === "taken" ? `\u6761\u4EF6\u6210\u7ACB\u65F6\u4F1A\u8DF3\u5230 ${hint.label}` : `\u6761\u4EF6\u4E0D\u6210\u7ACB\u65F6\u4F1A\u987A\u5E8F\u6267\u884C\u5230 ${hint.label}`;
+    const where = hint.kind === "taken" ? t("focus.untaken.taken", { label: hint.label }) : t("focus.untaken.fallthrough", { label: hint.label });
     const key = hint.branch * 2 + (hint.kind === "taken" ? 1 : 0);
     const lines = hint.target.address != null ? untakenLines(instructions, hint.target.address) : [];
-    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">\u672A\u8D70\u7684\u8DEF\u5F84</span> ${escapeHTML(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? "\u9884\u8BA1" : "\u672C\u6B21"}\uFF1A${escapeHTML(decision)}</span>` : ""}</summary>${lines.map(
+    return `<details class="funtaken" data-untaken="${key}" ${this.untakenOpen.has(key) ? "open" : ""}><summary><span class="funtaken-tag">${t("focus.untaken")}</span> ${escapeHTML(where)}${decision ? ` <span class="funtaken-now">${step.predicted ? t("focus.predicted") : t("focus.thisRun")}${t("common.colon")}${escapeHTML(decision)}</span>` : ""}</summary>${lines.map(
       (l) => `<div class="frow untaken"><span class="fbp"></span><span class="fln">${l.line}</span><code>${escapeHTML(splitComment(this.host.getSource(l.file, l.line) || "").code)}</code></div>`
-    ).join("")}<p class="funtaken-note">\u6CA1\u6709\u6267\u884C\uFF1A\u53EA\u663E\u793A\u4EE3\u7801\uFF0C\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u548C\u8F93\u5165\u8F93\u51FA\u90FD\u4E0D\u4F1A\u56E0\u6B64\u6539\u53D8\u3002</p></details>`;
+    ).join("")}<p class="funtaken-note">${t("focus.untaken.note")}</p></details>`;
   }
   // Bit by bit (classroom 2026-10-24): the selected step's machine instruction
   // — for a pseudo-instruction line, the expanded instruction that computes —
@@ -25294,7 +28606,7 @@ var FocusLens = class {
     const $3 = (id2) => document.getElementById(id2), events = step?.events || [], k = events.map(supportsBits).lastIndexOf(true), event = events[k];
     $3("focus-bits-toggle").hidden = !event;
     $3("focus-bits-toggle").setAttribute("aria-expanded", String(this.bitsOpen && !!event));
-    $3("focus-bits-toggle").textContent = this.bitsOpen && event ? "\u6536\u8D77\u9010\u4F4D" : "\u9010\u4F4D\u67E5\u770B";
+    $3("focus-bits-toggle").textContent = this.bitsOpen && event ? t("focus.bits.hide") : t("focus.bits");
     const panel = $3("focus-bits");
     if (!event || !this.bitsOpen) {
       panel.hidden = true;
@@ -25302,13 +28614,13 @@ var FocusLens = class {
     }
     const story = bitStory(event, (n) => "$" + registerNames[n]);
     this.bitsStep = Math.min(this.bitsStep, story.steps.length - 1);
-    const where = `\u673A\u5668\u6307\u4EE4 ${event.instruction.basic || event.instruction.op}${events.length > 1 ? `\uFF08\u8FD9\u4E00\u884C\u4F2A\u6307\u4EE4\u5C55\u5F00\u540E\u7684\u7B2C ${k + 1} \u6761\uFF0C\u5171 ${events.length} \u6761\uFF09` : ""}${step.predicted ? " \xB7 \u9884\u8BA1" : ""}`;
+    const where = t("focus.bits.instruction", { op: event.instruction.basic || event.instruction.op, part: events.length > 1 ? t("focus.bits.part", { k: k + 1, total: events.length }) : "", predicted: step.predicted ? ` ${t("focus.bits.predicted")}` : "" });
     const reduced = this.motion.matches, shown = reduced ? story.steps : [story.steps[this.bitsStep]];
     const rowHTML = (r) => `<div class="brow${r.carry ? " carry" : ""}${r.result ? " result" : ""}"><span class="blabel">${escapeHTML(r.label)}</span><span class="bbits">${r.bits.map(
       (bit, j) => `<i class="${r.marks[j] || ""}${bit == null ? " pending" : ""}">${bit == null ? "\xB7" : bit}</i>${(j + 1) % 4 === 0 && j < r.bits.length - 1 ? '<span class="bgap"></span>' : ""}`
-    ).join("")}</span>${r.out ? `<span class="bout">\u79FB\u51FA ${r.out.bit}</span>` : ""}</div>`;
+    ).join("")}</span>${r.out ? `<span class="bout">${t("focus.bits.out", { bit: r.out.bit })}</span>` : ""}</div>`;
     panel.hidden = false;
-    panel.innerHTML = `<div class="bits-head"><b>${escapeHTML(story.title)}</b><span>${escapeHTML(where)}</span>${reduced ? "" : `<span class="bits-progress">\u7B2C ${this.bitsStep + 1}/${story.steps.length} \u6B65</span>`}</div>` + shown.map((st) => `<div class="bits-step"><p>${glossify(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`).join("") + (reduced ? "" : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>\u25C0 \u4E0A\u4E00\u6B65</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>\u4E0B\u4E00\u6B65 \u25B6</button><button id="bits-play">${this.bitsTimer ? "\u6682\u505C" : "\u64AD\u653E"}</button><button id="bits-replay">\u91CD\u653E</button></div>`);
+    panel.innerHTML = `<div class="bits-head"><b>${escapeHTML(story.title)}</b><span>${escapeHTML(where)}</span>${reduced ? "" : `<span class="bits-progress">${t("focus.bits.step", { bitsStep: this.bitsStep + 1, total: story.steps.length })}</span>`}</div>` + shown.map((st) => `<div class="bits-step"><p>${glossify(st.caption)}</p>${st.rows.map(rowHTML).join("")}</div>`).join("") + (reduced ? "" : `<div class="bits-controls"><button id="bits-prev" ${this.bitsStep ? "" : "disabled"}>${t("focus.bits.prev")}</button><button id="bits-next" ${this.bitsStep < story.steps.length - 1 ? "" : "disabled"}>${t("focus.bits.next")}</button><button id="bits-play">${this.bitsTimer ? t("toolbar.pause") : t("focus.play")}</button><button id="bits-replay">${t("focus.bits.replay")}</button></div>`);
     if (reduced) return;
     const go = (to) => {
       this.bitsStep = Math.max(0, Math.min(story.steps.length - 1, to));
@@ -25449,33 +28761,33 @@ var FocusLens = class {
       );
     }
     const step = order.find((s) => s.index === this.selected), b = this.beat > 0 ? this.current()?.beats[this.beat - 1] : null, routes = [];
-    for (const t2 of b?.tokens || []) {
-      const from = this.anchor(t2.from, t2.from === "code" ? "right" : "left"), to = this.anchor(t2.to, t2.to === "code" ? "right" : "left");
+    for (const t3 of b?.tokens || []) {
+      const from = this.anchor(t3.from, t3.from === "code" ? "right" : "left"), to = this.anchor(t3.to, t3.to === "code" ? "right" : "left");
       if (!from || !to) continue;
-      const rows = [this.anchorElement(t2.from), this.anchorElement(t2.to)];
-      const p = t2.to === "next" && rows[0] && rows[1] ? this.route(
+      const rows = [this.anchorElement(t3.from), this.anchorElement(t3.to)];
+      const p = t3.to === "next" && rows[0] && rows[1] ? this.route(
         rows[0].getBoundingClientRect(),
         rows[1].getBoundingClientRect(),
         document.getElementById("focus-body").getBoundingClientRect()
       ) : this.curve(from, to);
-      routes.push([p, t2]);
+      routes.push([p, t3]);
       out.push(
-        `<path d="${path(p)}" fill="none" stroke="${color[t2.kind]}" stroke-width="1.8" ${step?.predicted ? 'stroke-dasharray="5 5"' : ""} marker-end="url(#farrow-${t2.kind})"/>`
+        `<path d="${path(p)}" fill="none" stroke="${color[t3.kind]}" stroke-width="1.8" ${step?.predicted ? 'stroke-dasharray="5 5"' : ""} marker-end="url(#farrow-${t3.kind})"/>`
       );
     }
     svg2.innerHTML = `<defs>${Object.entries(color).map(
       ([k, c]) => `<marker id="farrow-${k}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="${c}"/></marker>`
     ).join("")}</defs>` + out.join("");
     if (beatToAnimate && !this.motion.matches)
-      routes.forEach(([p, t2], i) => this.fly(p, t2, color[t2.kind], i * 90));
+      routes.forEach(([p, t3], i) => this.fly(p, t3, color[t3.kind], i * 90));
   }
   // The one moving thing on screen (P17): the beat's value along its arrow.
-  fly(p, t2, color, delay) {
+  fly(p, t3, color, delay) {
     const body = document.getElementById("focus-body");
     body.querySelectorAll(".ftoken").forEach((x) => x.remove());
     const el = document.createElement("div");
     el.className = "ftoken";
-    el.textContent = t2.value ? this.number(t2.value, false) : t2.label;
+    el.textContent = t3.value ? this.number(t3.value, false) : t3.label;
     el.style.background = color;
     body.appendChild(el);
     const w = el.offsetWidth / 2, h = el.offsetHeight / 2;
@@ -25538,11 +28850,11 @@ var FocusLens = class {
     });
   }
 };
-function bezier([a, b, c, d], t2) {
-  const u = 1 - t2;
+function bezier([a, b, c, d], t3) {
+  const u = 1 - t3;
   return {
-    x: u * u * u * a.x + 3 * u * u * t2 * b.x + 3 * u * t2 * t2 * c.x + t2 * t2 * t2 * d.x,
-    y: u * u * u * a.y + 3 * u * u * t2 * b.y + 3 * u * t2 * t2 * c.y + t2 * t2 * t2 * d.y
+    x: u * u * u * a.x + 3 * u * u * t3 * b.x + 3 * u * t3 * t3 * c.x + t3 * t3 * t3 * d.x,
+    y: u * u * u * a.y + 3 * u * u * t3 * b.y + 3 * u * t3 * t3 * c.y + t3 * t3 * t3 * d.y
   };
 }
 
@@ -25575,13 +28887,13 @@ function bindings(mac3) {
     ...navigation(mac3)
   ]);
 }
-var retired = {
-  F7: "\u673A\u5668\u5355\u6B65\u5DF2\u6539\u4E3A Alt+F11\uFF08F11 \u4E3A\u6E90\u7801\u5355\u6B65\uFF09",
-  F8: "\u8DE8\u8FC7\u8C03\u7528\u5DF2\u6539\u4E3A F10",
-  F9: "F9 \u73B0\u5728\u5207\u6362\u65AD\u70B9\uFF1B\u8FD0\u884C\uFF0F\u7EE7\u7EED\u6539\u4E3A F5\uFF0C\u6682\u505C\u4E3A F6",
-  "Alt+ArrowLeft": "\u56DE\u9000\u4E00\u6B65\u5DF2\u6539\u4E3A Shift+F9",
-  "Mod+K": "\u547D\u4EE4\u9762\u677F\u5DF2\u6539\u4E3A Cmd/Ctrl+Shift+P \u6216 F1\uFF1BCmd/Ctrl+K \u73B0\u5728\u662F\u7EC4\u5408\u952E\u524D\u7F00\uFF08\u5982 Cmd/Ctrl+K F \u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F\uFF09"
-};
+var retired = localized(() => ({
+  F7: t("keys.retired.F7"),
+  F8: t("keys.retired.F8"),
+  F9: t("keys.retired.F9"),
+  "Alt+ArrowLeft": t("keys.retired.back"),
+  "Mod+K": t("keys.retired.palette")
+}));
 function keyName2(e, mac3) {
   if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return null;
   const mod = mac3 ? e.metaKey : e.ctrlKey;
@@ -25644,13 +28956,13 @@ var Keymap = class {
 // ui/search.js
 function fuzzy(query, text2) {
   if (!query) return 0;
-  const q = query.toLowerCase(), t2 = text2.toLowerCase();
-  if (t2.startsWith(q)) return 1e3 - t2.length;
-  const at = t2.indexOf(q);
-  if (at >= 0) return 800 - at - t2.length;
+  const q = query.toLowerCase(), t3 = text2.toLowerCase();
+  if (t3.startsWith(q)) return 1e3 - t3.length;
+  const at = t3.indexOf(q);
+  if (at >= 0) return 800 - at - t3.length;
   let score3 = 0, j = 0, run3 = 0;
   for (const c of q) {
-    const k = t2.indexOf(c, j);
+    const k = t3.indexOf(c, j);
     if (k < 0) return -1;
     run3 = k === j ? run3 + 1 : 0;
     score3 += 10 + run3 * 5 - (k - j);
@@ -25670,7 +28982,7 @@ function outline(files2, file, symbols = []) {
     out.push({
       kind: "symbol",
       label: m[1],
-      detail: `${s?.data ? "\u6570\u636E" : "\u4EE3\u7801"} \xB7 \u7B2C ${i + 1} \u884C${s ? " \xB7 0x" + (s.address >>> 0).toString(16).padStart(8, "0") : ""}`,
+      detail: t("search.symbolDetail", { kind: s?.data ? t("common.data") : t("common.code"), line: i + 1, address: s ? " \xB7 0x" + (s.address >>> 0).toString(16).padStart(8, "0") : "" }),
       file,
       line: i + 1,
       symbol: s
@@ -25721,7 +29033,7 @@ function quickOpenItems(input, { files: files2 = {}, data: data2 = {}, symbols =
       {
         kind: "address",
         label: "0x" + (address >>> 0).toString(16).padStart(8, "0"),
-        detail: named2 ? named2.name : "\u5730\u5740",
+        detail: named2 ? named2.name : t("common.address"),
         address
       }
     ];
@@ -25729,7 +29041,7 @@ function quickOpenItems(input, { files: files2 = {}, data: data2 = {}, symbols =
   const fileItems = Object.keys(texts).map((f) => ({
     kind: "file",
     label: f,
-    detail: "\u6587\u4EF6",
+    detail: t("common.file"),
     file: f
   }));
   const seen = /* @__PURE__ */ new Set();
@@ -25739,102 +29051,102 @@ function quickOpenItems(input, { files: files2 = {}, data: data2 = {}, symbols =
 }
 
 // ui/instruction-index.js
-var TABLE = [
-  ["add", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0", "add rd, rs, rt", "rd \u2190 rs + rt", "add $t0, $t1, $t2", "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u52A0 plus sum"],
-  ["addu", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u52A0\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "addu rd, rs, rt", "rd \u2190 rs + rt", "addu $t0, $t1, $t2", "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38\uFF0C\u5E38\u7528\u4E8E\u5730\u5740\u548C\u65E0\u7B26\u53F7\u6570", "\u52A0\u6CD5 \u76F8\u52A0 \u6C42\u548C \u65E0\u7B26\u53F7 \u5730\u5740"],
-  ["addi", false, "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570", "addi rt, rs, imm", "rt \u2190 rs + imm", "addi $t0, $t0, 1", "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u52A0\u4E00 \u7ACB\u5373\u6570 \u8BA1\u6570"],
-  ["addiu", false, "\u5BC4\u5B58\u5668\u52A0\u4E00\u4E2A\u5E38\u6570\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "addiu rt, rs, imm", "rt \u2190 rs + imm", "addiu $sp, $sp, -4", "\u7ACB\u5373\u6570\u4E3A 16 \u4F4D\u6709\u7B26\u53F7\u6570\uFF1B\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38", "\u52A0\u6CD5 \u52A0\u5E38\u6570 \u81EA\u589E \u6808 \u7ACB\u5373\u6570 \u8BA1\u6570"],
-  ["sub", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF", "sub rd, rs, rt", "rd \u2190 rs \u2212 rt", "sub $t0, $t1, $t2", "\u6709\u7B26\u53F7\uFF1B\u6EA2\u51FA\u65F6\u89E6\u53D1\u5F02\u5E38", "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u51CF"],
-  ["subu", false, "\u4E24\u4E2A\u5BC4\u5B58\u5668\u76F8\u51CF\uFF0C\u4E0D\u68C0\u67E5\u6EA2\u51FA", "subu rd, rs, rt", "rd \u2190 rs \u2212 rt", "subu $t0, $t1, $t2", "\u6EA2\u51FA\u4E0D\u89E6\u53D1\u5F02\u5E38", "\u51CF\u6CD5 \u76F8\u51CF \u5DEE \u65E0\u7B26\u53F7 \u53D6\u53CD"],
-  ["mult", false, "\u6709\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO", "mult rs, rt", "HI:LO \u2190 rs \xD7 rt", "mult $t0, $t1", "\u9AD8 32 \u4F4D\u5728 HI\uFF0C\u4F4E 32 \u4F4D\u5728 LO\uFF0C\u7528 mfhi/mflo \u53D6\u51FA", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58"],
-  ["multu", false, "\u65E0\u7B26\u53F7\u4E58\u6CD5\uFF0C64 \u4F4D\u7ED3\u679C\u653E\u8FDB HI \u548C LO", "multu rs, rt", "HI:LO \u2190 rs \xD7 rt", "multu $t0, $t1", "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u4E58", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u65E0\u7B26\u53F7"],
-  ["mul", false, "\u4E58\u6CD5\uFF0C\u53EA\u4FDD\u7559\u4F4E 32 \u4F4D", "mul rd, rs, rt", "rd \u2190 (rs \xD7 rt) \u7684\u4F4E 32 \u4F4D", "mul $t0, $t1, $t2", "\u9AD8\u4F4D\u88AB\u4E22\u5F03\uFF0C\u7ED3\u679C\u53EF\u80FD\u6EA2\u51FA\u800C\u4E0D\u62A5\u9519", "\u4E58\u6CD5 \u76F8\u4E58 \u4E58\u79EF \u4E58"],
-  ["div", false, "\u6709\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI", "div rs, rt", "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 rs \u9664\u4EE5 rt \u7684\u4F59\u6570", "div $t0, $t1", "\u9664\u6570\u4E3A 0 \u65F6\u7ED3\u679C\u6CA1\u6709\u89C4\u5B9A", "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u53D6\u4F59 \u53D6\u6A21 \u6574\u9664"],
-  ["divu", false, "\u65E0\u7B26\u53F7\u9664\u6CD5\uFF1A\u5546\u653E\u8FDB LO\uFF0C\u4F59\u6570\u653E\u8FDB HI", "divu rs, rt", "LO \u2190 rs \xF7 rt\uFF0CHI \u2190 \u4F59\u6570", "divu $t0, $t1", "\u6309\u65E0\u7B26\u53F7\u6570\u76F8\u9664", "\u9664\u6CD5 \u76F8\u9664 \u5546 \u4F59\u6570 \u65E0\u7B26\u53F7"],
-  ["mfhi", false, "\u53D6\u51FA HI\uFF08\u4E58\u79EF\u9AD8\u4F4D\u6216\u9664\u6CD5\u4F59\u6570\uFF09", "mfhi rd", "rd \u2190 HI", "mfhi $t0", "", "\u4F59\u6570 \u9AD8\u4F4D \u53D6\u6A21 hi"],
-  ["mflo", false, "\u53D6\u51FA LO\uFF08\u4E58\u79EF\u4F4E\u4F4D\u6216\u9664\u6CD5\u7684\u5546\uFF09", "mflo rd", "rd \u2190 LO", "mflo $t0", "", "\u5546 \u4F4E\u4F4D \u4E58\u79EF lo"],
-  ["and", false, "\u6309\u4F4D\u4E0E", "and rd, rs, rt", "rd \u2190 rs & rt", "and $t0, $t1, $t2", "\u4E24\u4F4D\u90FD\u662F 1 \u624D\u5F97 1", "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u6E05\u96F6"],
-  ["andi", false, "\u548C\u5E38\u6570\u6309\u4F4D\u4E0E", "andi rt, rs, imm", "rt \u2190 rs & imm", "andi $t0, $t0, 0xff", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55\uFF1B\u5E38\u7528\u6765\u53D6\u51FA\u4F4E\u51E0\u4F4D", "\u4E0E \u6309\u4F4D\u4E0E \u63A9\u7801 \u53D6\u4F4E\u4F4D \u53D6\u5B57\u8282 \u6E05\u96F6"],
-  ["or", false, "\u6309\u4F4D\u6216", "or rd, rs, rt", "rd \u2190 rs | rt", "or $t0, $t1, $t2", "\u6709\u4E00\u4F4D\u662F 1 \u5C31\u5F97 1", "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5408\u5E76"],
-  ["ori", false, "\u548C\u5E38\u6570\u6309\u4F4D\u6216", "ori rt, rs, imm", "rt \u2190 rs | imm", "ori $t0, $zero, 5", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55", "\u6216 \u6309\u4F4D\u6216 \u7F6E\u4F4D \u5E38\u6570"],
-  ["xor", false, "\u6309\u4F4D\u5F02\u6216", "xor rd, rs, rt", "rd \u2190 rs ^ rt", "xor $t0, $t1, $t2", "\u4E24\u4F4D\u4E0D\u540C\u5F97 1", "\u5F02\u6216 \u6309\u4F4D\u5F02\u6216 \u7FFB\u8F6C \u6BD4\u8F83\u662F\u5426\u76F8\u540C"],
-  ["xori", false, "\u548C\u5E38\u6570\u6309\u4F4D\u5F02\u6216", "xori rt, rs, imm", "rt \u2190 rs ^ imm", "xori $t0, $t0, 1", "\u7ACB\u5373\u6570\u96F6\u6269\u5C55", "\u5F02\u6216 \u7FFB\u8F6C"],
-  ["nor", false, "\u6309\u4F4D\u6216\u975E", "nor rd, rs, rt", "rd \u2190 ~(rs | rt)", "nor $t0, $t1, $zero", "\u548C $zero \u505A nor \u5C31\u662F\u6309\u4F4D\u53D6\u53CD", "\u6216\u975E \u53D6\u53CD \u975E"],
-  ["not", true, "\u6309\u4F4D\u53D6\u53CD", "not rd, rs", "rd \u2190 ~rs", "not $t0, $t1", "\u4F2A\u6307\u4EE4\uFF1Anor rd, rs, $zero", "\u53D6\u53CD \u975E \u6309\u4F4D\u53D6\u53CD"],
-  ["sll", false, "\u903B\u8F91\u5DE6\u79FB", "sll rd, rt, sa", "rd \u2190 rt << sa", "sll $t0, $t0, 2", "\u53F3\u8FB9\u8865 0\uFF1B\u5DE6\u79FB n \u4F4D\u76F8\u5F53\u4E8E\u4E58\u4EE5 2\u207F", "\u5DE6\u79FB \u79FB\u4F4D \u4E582 \u4E58\u4EE52"],
-  ["srl", false, "\u903B\u8F91\u53F3\u79FB", "srl rd, rt, sa", "rd \u2190 rt >>> sa", "srl $t0, $t0, 4", "\u5DE6\u8FB9\u8865 0\uFF08\u6309\u65E0\u7B26\u53F7\u6570\uFF09", "\u53F3\u79FB \u79FB\u4F4D \u96642 \u65E0\u7B26\u53F7 \u53D6\u9AD8\u4F4D"],
-  ["sra", false, "\u7B97\u672F\u53F3\u79FB", "sra rd, rt, sa", "rd \u2190 rt >> sa", "sra $t0, $t0, 1", "\u5DE6\u8FB9\u8865\u7B26\u53F7\u4F4D\uFF08\u6309\u6709\u7B26\u53F7\u6570\uFF0C\u6B63\u8D1F\u4E0D\u53D8\uFF09", "\u53F3\u79FB \u79FB\u4F4D \u96642 \u6709\u7B26\u53F7"],
-  ["sllv", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u5DE6\u79FB", "sllv rd, rt, rs", "rd \u2190 rt << (rs \u7684\u4F4E 5 \u4F4D)", "sllv $t0, $t1, $t2", "", "\u5DE6\u79FB \u79FB\u4F4D \u53EF\u53D8"],
-  ["srlv", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u903B\u8F91\u53F3\u79FB", "srlv rd, rt, rs", "rd \u2190 rt >>> (rs \u7684\u4F4E 5 \u4F4D)", "srlv $t0, $t1, $t2", "", "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8"],
-  ["srav", false, "\u6309\u5BC4\u5B58\u5668\u7ED9\u7684\u4F4D\u6570\u7B97\u672F\u53F3\u79FB", "srav rd, rt, rs", "rd \u2190 rt >> (rs \u7684\u4F4E 5 \u4F4D)", "srav $t0, $t1, $t2", "", "\u53F3\u79FB \u79FB\u4F4D \u53EF\u53D8 \u6709\u7B26\u53F7"],
-  ["slt", false, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u65F6\u5F97 1\uFF0C\u5426\u5219\u5F97 0", "slt rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "slt $t0, $t1, $t2", "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5224\u65AD \u6761\u4EF6"],
-  ["sltu", false, "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F", "sltu rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "sltu $t0, $t1, $t2", "\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7"],
-  ["slti", false, "\u548C\u5E38\u6570\u6BD4\u8F83\u5927\u5C0F", "slti rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "slti $t0, $t1, 10", "\u6309\u6709\u7B26\u53F7\u6570\u6BD4\u8F83", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5E38\u6570"],
-  ["sltiu", false, "\u548C\u5E38\u6570\u6309\u65E0\u7B26\u53F7\u6570\u6BD4\u8F83\u5927\u5C0F", "sltiu rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "sltiu $t0, $t1, 10", "", "\u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u65E0\u7B26\u53F7"],
-  ["beq", false, "\u76F8\u7B49\u5C31\u8DF3\u8F6C", "beq rs, rt, label", "\u82E5 rs == rt\uFF0C\u8DF3\u5230 label", "beq $t0, $zero, done", "", "\u5206\u652F \u76F8\u7B49 \u7B49\u4E8E \u5224\u65AD if \u8DF3\u8F6C \u6761\u4EF6"],
-  ["bne", false, "\u4E0D\u76F8\u7B49\u5C31\u8DF3\u8F6C", "bne rs, rt, label", "\u82E5 rs \u2260 rt\uFF0C\u8DF3\u5230 label", "bne $t0, $t1, loop", "", "\u5206\u652F \u4E0D\u7B49 \u5224\u65AD if \u5FAA\u73AF \u8DF3\u8F6C \u6761\u4EF6"],
-  ["bgez", false, "\u5927\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "bgez rs, label", "\u82E5 rs \u2265 0\uFF0C\u8DF3\u5230 label", "bgez $t0, positive", "", "\u5206\u652F \u975E\u8D1F \u5224\u65AD \u6B63\u6570"],
-  ["bgtz", false, "\u5927\u4E8E 0 \u5C31\u8DF3\u8F6C", "bgtz rs, label", "\u82E5 rs > 0\uFF0C\u8DF3\u5230 label", "bgtz $t0, positive", "", "\u5206\u652F \u6B63\u6570 \u5224\u65AD"],
-  ["blez", false, "\u5C0F\u4E8E\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "blez rs, label", "\u82E5 rs \u2264 0\uFF0C\u8DF3\u5230 label", "blez $t0, done", "", "\u5206\u652F \u975E\u6B63 \u5224\u65AD"],
-  ["bltz", false, "\u5C0F\u4E8E 0 \u5C31\u8DF3\u8F6C", "bltz rs, label", "\u82E5 rs < 0\uFF0C\u8DF3\u5230 label", "bltz $t0, negative", "", "\u5206\u652F \u8D1F\u6570 \u5224\u65AD"],
-  ["blt", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u5C31\u8DF3\u8F6C", "blt rs, rt, label", "\u82E5 rs < rt\uFF0C\u8DF3\u5230 label", "blt $t0, $t1, loop", "\u4F2A\u6307\u4EE4\uFF1Aslt + bne", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E \u5FAA\u73AF \u5224\u65AD"],
-  ["bgt", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u5C31\u8DF3\u8F6C", "bgt rs, rt, label", "\u82E5 rs > rt\uFF0C\u8DF3\u5230 label", "bgt $t0, 10, over", "\u4F2A\u6307\u4EE4\uFF1Aslt + bne", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E \u5224\u65AD"],
-  ["ble", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5C0F\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C", "ble rs, rt, label", "\u82E5 rs \u2264 rt\uFF0C\u8DF3\u5230 label", "ble $t0, $t1, loop", "\u4F2A\u6307\u4EE4\uFF1Aslt + beq", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5C0F\u4E8E\u7B49\u4E8E \u5224\u65AD"],
-  ["bge", true, "\u6BD4\u8F83\u5927\u5C0F\uFF1A\u5927\u4E8E\u7B49\u4E8E\u5C31\u8DF3\u8F6C", "bge rs, rt, label", "\u82E5 rs \u2265 rt\uFF0C\u8DF3\u5230 label", "bge $t0, $t1, done", "\u4F2A\u6307\u4EE4\uFF1Aslt + beq", "\u5206\u652F \u6BD4\u8F83 \u6BD4\u8F83\u5927\u5C0F \u5927\u4E8E\u7B49\u4E8E \u5224\u65AD"],
-  ["beqz", true, "\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "beqz rs, label", "\u82E5 rs == 0\uFF0C\u8DF3\u5230 label", "beqz $t0, done", "\u4F2A\u6307\u4EE4\uFF1Abeq rs, $zero, label", "\u5206\u652F \u96F6 \u5224\u65AD \u4E3A\u96F6"],
-  ["bnez", true, "\u4E0D\u7B49\u4E8E 0 \u5C31\u8DF3\u8F6C", "bnez rs, label", "\u82E5 rs \u2260 0\uFF0C\u8DF3\u5230 label", "bnez $t0, loop", "\u4F2A\u6307\u4EE4\uFF1Abne rs, $zero, label", "\u5206\u652F \u975E\u96F6 \u5FAA\u73AF \u5224\u65AD"],
-  ["b", true, "\u65E0\u6761\u4EF6\u8DF3\u8F6C\uFF08\u5206\u652F\u5199\u6CD5\uFF09", "b label", "\u8DF3\u5230 label", "b loop", "\u4F2A\u6307\u4EE4\uFF1Abgez $zero, label", "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF"],
-  ["j", false, "\u8DF3\u8F6C\u5230\u6807\u7B7E", "j label", "PC \u2190 label", "j loop", "", "\u8DF3\u8F6C \u65E0\u6761\u4EF6 goto \u5FAA\u73AF"],
-  ["jal", false, "\u8C03\u7528\u51FD\u6570\uFF1A\u628A\u8FD4\u56DE\u5730\u5740\u5B58\u8FDB $ra \u518D\u8DF3\u8F6C", "jal label", "$ra \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 label", "jal print", "", "\u8C03\u7528 \u51FD\u6570 \u5B50\u7A0B\u5E8F call \u8FC7\u7A0B"],
-  ["jr", false, "\u8DF3\u5230\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740\uFF1Bjr $ra \u4ECE\u51FD\u6570\u8FD4\u56DE", "jr rs", "PC \u2190 rs", "jr $ra", "", "\u8FD4\u56DE return \u51FD\u6570 \u8DF3\u8F6C"],
-  ["jalr", false, "\u8C03\u7528\u5BC4\u5B58\u5668\u4E2D\u7684\u5730\u5740", "jalr rd, rs", "rd \u2190 \u8FD4\u56DE\u5730\u5740\uFF1BPC \u2190 rs", "jalr $t9", "", "\u8C03\u7528 \u51FD\u6570 \u6307\u9488"],
-  ["lw", false, "\u4ECE\u5185\u5B58\u8BFB 4 \u5B57\u8282", "lw rt, offset(rs)", "rt \u2190 \u5185\u5B58[rs + offset]", "lw $t0, 0($sp)", "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u52A0\u8F7D load \u6570\u7EC4 \u53D6\u503C \u8BFB\u53D6 \u5B57"],
-  ["sw", false, "\u628A 4 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sw rt, offset(rs)", "\u5185\u5B58[rs + offset] \u2190 rt", "sw $ra, 0($sp)", "\u5730\u5740\u5FC5\u987B\u662F 4 \u7684\u500D\u6570", "\u5199\u5185\u5B58 \u5B58\u50A8 store \u4FDD\u5B58 \u6570\u7EC4 \u5B57"],
-  ["lb", false, "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09", "lb rt, offset(rs)", "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u6309\u7B26\u53F7\u6269\u5C55", "lb $t0, 0($a0)", "\u6700\u9AD8\u4F4D\u662F 1 \u65F6\u8865 1", "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u52A0\u8F7D"],
-  ["lbu", false, "\u4ECE\u5185\u5B58\u8BFB 1 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09", "lbu rt, offset(rs)", "rt \u2190 \u5B57\u8282[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0", "lbu $t0, 0($a0)", "\u8BFB\u5B57\u7B26\u5E38\u7528\u5B83", "\u8BFB\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B57\u7B26\u4E32 \u52A0\u8F7D \u65E0\u7B26\u53F7"],
-  ["sb", false, "\u628A\u6700\u4F4E 1 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sb rt, offset(rs)", "\u5B57\u8282[rs + offset] \u2190 rt \u7684\u4F4E 8 \u4F4D", "sb $t0, 0($a0)", "", "\u5199\u5185\u5B58 \u5B57\u8282 \u5B57\u7B26 \u5B58\u50A8"],
-  ["lh", false, "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u7B26\u53F7\u6269\u5C55\uFF09", "lh rt, offset(rs)", "rt \u2190 \u534A\u5B57[rs + offset]", "lh $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u534A\u5B57 \u52A0\u8F7D"],
-  ["lhu", false, "\u4ECE\u5185\u5B58\u8BFB 2 \u5B57\u8282\uFF08\u96F6\u6269\u5C55\uFF09", "lhu rt, offset(rs)", "rt \u2190 \u534A\u5B57[rs + offset]\uFF0C\u9AD8\u4F4D\u8865 0", "lhu $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u8BFB\u5185\u5B58 \u534A\u5B57 \u65E0\u7B26\u53F7"],
-  ["sh", false, "\u628A\u6700\u4F4E 2 \u5B57\u8282\u5199\u8FDB\u5185\u5B58", "sh rt, offset(rs)", "\u534A\u5B57[rs + offset] \u2190 rt \u7684\u4F4E 16 \u4F4D", "sh $t0, 0($a0)", "\u5730\u5740\u5FC5\u987B\u662F 2 \u7684\u500D\u6570", "\u5199\u5185\u5B58 \u534A\u5B57 \u5B58\u50A8"],
-  ["lui", false, "\u628A\u5E38\u6570\u653E\u8FDB\u9AD8 16 \u4F4D", "lui rt, imm", "rt \u2190 imm << 16", "lui $t0, 0x1001", "\u4F4E 16 \u4F4D\u6E05\u96F6", "\u9AD8\u4F4D \u5E38\u6570 \u5730\u5740 \u7ACB\u5373\u6570"],
-  ["li", true, "\u628A\u5E38\u6570\u653E\u8FDB\u5BC4\u5B58\u5668", "li rd, imm", "rd \u2190 imm", "li $v0, 4", "\u4F2A\u6307\u4EE4\uFF1A\u6309\u5927\u5C0F\u5C55\u5F00\u4E3A addiu/ori\uFF0C\u6216 lui + ori", "\u5E38\u6570 \u8D4B\u503C \u88C5\u5165 \u8BBE\u7F6E \u7ACB\u5373\u6570 \u521D\u59CB\u5316"],
-  ["la", true, "\u628A\u6807\u7B7E\u7684\u5730\u5740\u653E\u8FDB\u5BC4\u5B58\u5668", "la rd, label", "rd \u2190 label \u7684\u5730\u5740", "la $a0, prompt", "\u4F2A\u6307\u4EE4\uFF1Alui + ori\uFF1B\u5F97\u5230\u7684\u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5185\u5BB9", "\u5730\u5740 \u5B57\u7B26\u4E32 \u6570\u7EC4 \u6807\u7B7E \u53D6\u5730\u5740"],
-  ["move", true, "\u590D\u5236\u5BC4\u5B58\u5668\u7684\u503C", "move rd, rs", "rd \u2190 rs", "move $s0, $v0", "\u4F2A\u6307\u4EE4\uFF1Aaddu rd, rs, $zero", "\u590D\u5236 \u8D4B\u503C \u62F7\u8D1D \u4FDD\u5B58"],
-  ["neg", true, "\u53D6\u76F8\u53CD\u6570", "neg rd, rs", "rd \u2190 \u2212rs", "neg $t0, $t1", "\u4F2A\u6307\u4EE4\uFF1Asub rd, $zero, rs", "\u76F8\u53CD\u6570 \u8D1F\u6570 \u53D6\u8D1F"],
-  ["abs", true, "\u53D6\u7EDD\u5BF9\u503C", "abs rd, rs", "rd \u2190 |rs|", "abs $t0, $t1", "\u4F2A\u6307\u4EE4", "\u7EDD\u5BF9\u503C \u6B63\u6570"],
-  ["syscall", false, "\u7CFB\u7EDF\u8C03\u7528\uFF1A\u505A\u8F93\u5165\u3001\u8F93\u51FA\u6216\u9000\u51FA\uFF0C\u505A\u4EC0\u4E48\u7531 $v0 \u7684\u503C\u51B3\u5B9A", "syscall", "\u6309 $v0 \u7684\u503C\u505A\u5BF9\u5E94\u7684\u4E8B", "li $v0, 1\nsyscall", "\u5148\u628A\u5BF9\u5E94\u7684\u6570\u653E\u8FDB $v0\uFF0C\u53C2\u6570\u653E\u8FDB $a0 \u7B49", "\u7CFB\u7EDF\u8C03\u7528 \u6253\u5370 \u8F93\u5165 \u8F93\u51FA \u8BFB\u53D6 \u9000\u51FA"],
-  ["nop", false, "\u4EC0\u4E48\u4E5F\u4E0D\u505A", "nop", "\uFF08\u65E0\u53D8\u5316\uFF09", "nop", "\u5E38\u653E\u5728\u5EF6\u8FDF\u69FD\u91CC", "\u7A7A \u5360\u4F4D \u5EF6\u8FDF\u69FD"]
-];
-var SERVICE_WORDS = {
-  1: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u6574\u6570 \u6570\u5B57 print int printf",
-  2: "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570",
-  3: "\u6253\u5370 \u8F93\u51FA \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
-  4: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26\u4E32 \u6587\u5B57 \u4E00\u53E5\u8BDD print string printf",
-  5: "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u6574\u6570 \u6570\u5B57 read int scanf",
-  6: "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570",
-  7: "\u8BFB\u53D6 \u8F93\u5165 \u6D6E\u70B9 \u5C0F\u6570 \u53CC\u7CBE\u5EA6",
-  8: "\u8BFB\u53D6 \u8F93\u5165 \u952E\u76D8 \u5B57\u7B26\u4E32 \u540D\u5B57 \u4E00\u884C \u6587\u5B57 read string scanf gets",
-  9: "\u5206\u914D \u5185\u5B58 \u5806 malloc",
-  10: "\u9000\u51FA \u7ED3\u675F \u505C\u6B62 exit",
-  11: "\u6253\u5370 \u8F93\u51FA \u663E\u793A \u5B57\u7B26 \u4E00\u4E2A\u5B57\u7B26 print char putchar",
-  12: "\u8BFB\u53D6 \u8F93\u5165 \u5B57\u7B26 read char getchar",
-  13: "\u6253\u5F00 \u6587\u4EF6",
-  14: "\u8BFB\u53D6 \u6587\u4EF6",
-  15: "\u5199\u5165 \u6587\u4EF6",
-  16: "\u5173\u95ED \u6587\u4EF6",
-  17: "\u9000\u51FA \u7ED3\u675F \u8FD4\u56DE\u7801 exit",
-  34: "\u6253\u5370 \u8F93\u51FA \u5341\u516D\u8FDB\u5236 hex",
-  35: "\u6253\u5370 \u8F93\u51FA \u4E8C\u8FDB\u5236 binary",
-  36: "\u6253\u5370 \u8F93\u51FA \u65E0\u7B26\u53F7"
-};
+var TABLE = localized(() => [
+  ["add", false, t("ins.add.purpose"), "add rd, rs, rt", "rd \u2190 rs + rt", "add $t0, $t1, $t2", t("ins.add.note"), t("ins.add.keywords")],
+  ["addu", false, t("ins.addu.purpose"), "addu rd, rs, rt", "rd \u2190 rs + rt", "addu $t0, $t1, $t2", t("ins.addu.note"), t("ins.addu.keywords")],
+  ["addi", false, t("ins.addi.purpose"), "addi rt, rs, imm", "rt \u2190 rs + imm", "addi $t0, $t0, 1", t("ins.addi.note"), t("ins.addi.keywords")],
+  ["addiu", false, t("ins.addiu.purpose"), "addiu rt, rs, imm", "rt \u2190 rs + imm", "addiu $sp, $sp, -4", t("ins.addiu.note"), t("ins.addiu.keywords")],
+  ["sub", false, t("ins.sub.purpose"), "sub rd, rs, rt", "rd \u2190 rs \u2212 rt", "sub $t0, $t1, $t2", t("ins.sub.note"), t("ins.sub.keywords")],
+  ["subu", false, t("ins.subu.purpose"), "subu rd, rs, rt", "rd \u2190 rs \u2212 rt", "subu $t0, $t1, $t2", t("ins.subu.note"), t("ins.subu.keywords")],
+  ["mult", false, t("ins.mult.purpose"), "mult rs, rt", "HI:LO \u2190 rs \xD7 rt", "mult $t0, $t1", t("ins.mult.note"), t("ins.mult.keywords")],
+  ["multu", false, t("ins.multu.purpose"), "multu rs, rt", "HI:LO \u2190 rs \xD7 rt", "multu $t0, $t1", t("ins.multu.note"), t("ins.multu.keywords")],
+  ["mul", false, t("ins.mul.purpose"), "mul rd, rs, rt", t("ins.mul.formula"), "mul $t0, $t1, $t2", t("ins.mul.note"), t("ins.mul.keywords")],
+  ["div", false, t("ins.div.purpose"), "div rs, rt", t("ins.div.formula"), "div $t0, $t1", t("ins.div.note"), t("ins.div.keywords")],
+  ["divu", false, t("ins.divu.purpose"), "divu rs, rt", t("ins.divu.formula"), "divu $t0, $t1", t("ins.divu.note"), t("ins.divu.keywords")],
+  ["mfhi", false, t("ins.mfhi.purpose"), "mfhi rd", "rd \u2190 HI", "mfhi $t0", "", t("ins.mfhi.keywords")],
+  ["mflo", false, t("ins.mflo.purpose"), "mflo rd", "rd \u2190 LO", "mflo $t0", "", t("ins.mflo.keywords")],
+  ["and", false, t("ins.and.purpose"), "and rd, rs, rt", "rd \u2190 rs & rt", "and $t0, $t1, $t2", t("ins.and.note"), t("ins.and.keywords")],
+  ["andi", false, t("ins.andi.purpose"), "andi rt, rs, imm", "rt \u2190 rs & imm", "andi $t0, $t0, 0xff", t("ins.andi.note"), t("ins.andi.keywords")],
+  ["or", false, t("ins.or.purpose"), "or rd, rs, rt", "rd \u2190 rs | rt", "or $t0, $t1, $t2", t("ins.or.note"), t("ins.or.keywords")],
+  ["ori", false, t("ins.ori.purpose"), "ori rt, rs, imm", "rt \u2190 rs | imm", "ori $t0, $zero, 5", t("ins.ori.note"), t("ins.ori.keywords")],
+  ["xor", false, t("ins.xor.purpose"), "xor rd, rs, rt", "rd \u2190 rs ^ rt", "xor $t0, $t1, $t2", t("ins.xor.note"), t("ins.xor.keywords")],
+  ["xori", false, t("ins.xori.purpose"), "xori rt, rs, imm", "rt \u2190 rs ^ imm", "xori $t0, $t0, 1", t("ins.xori.note"), t("ins.xori.keywords")],
+  ["nor", false, t("ins.nor.purpose"), "nor rd, rs, rt", "rd \u2190 ~(rs | rt)", "nor $t0, $t1, $zero", t("ins.nor.note"), t("ins.nor.keywords")],
+  ["not", true, t("ins.not.purpose"), "not rd, rs", "rd \u2190 ~rs", "not $t0, $t1", t("ins.not.note"), t("ins.not.keywords")],
+  ["sll", false, t("ins.sll.purpose"), "sll rd, rt, sa", "rd \u2190 rt << sa", "sll $t0, $t0, 2", t("ins.sll.note"), t("ins.sll.keywords")],
+  ["srl", false, t("ins.srl.purpose"), "srl rd, rt, sa", "rd \u2190 rt >>> sa", "srl $t0, $t0, 4", t("ins.srl.note"), t("ins.srl.keywords")],
+  ["sra", false, t("ins.sra.purpose"), "sra rd, rt, sa", "rd \u2190 rt >> sa", "sra $t0, $t0, 1", t("ins.sra.note"), t("ins.sra.keywords")],
+  ["sllv", false, t("ins.sllv.purpose"), "sllv rd, rt, rs", t("ins.sllv.formula"), "sllv $t0, $t1, $t2", "", t("ins.sllv.keywords")],
+  ["srlv", false, t("ins.srlv.purpose"), "srlv rd, rt, rs", t("ins.srlv.formula"), "srlv $t0, $t1, $t2", "", t("ins.srlv.keywords")],
+  ["srav", false, t("ins.srav.purpose"), "srav rd, rt, rs", t("ins.srav.formula"), "srav $t0, $t1, $t2", "", t("ins.srav.keywords")],
+  ["slt", false, t("ins.slt.purpose"), "slt rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "slt $t0, $t1, $t2", t("ins.slt.note"), t("ins.slt.keywords")],
+  ["sltu", false, t("ins.sltu.purpose"), "sltu rd, rs, rt", "rd \u2190 (rs < rt) ? 1 : 0", "sltu $t0, $t1, $t2", t("ins.sltu.note"), t("ins.sltu.keywords")],
+  ["slti", false, t("ins.slti.purpose"), "slti rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "slti $t0, $t1, 10", t("ins.slti.note"), t("ins.slti.keywords")],
+  ["sltiu", false, t("ins.sltiu.purpose"), "sltiu rt, rs, imm", "rt \u2190 (rs < imm) ? 1 : 0", "sltiu $t0, $t1, 10", "", t("ins.sltiu.keywords")],
+  ["beq", false, t("ins.beq.purpose"), "beq rs, rt, label", t("ins.beq.formula"), "beq $t0, $zero, done", "", t("ins.beq.keywords")],
+  ["bne", false, t("ins.bne.purpose"), "bne rs, rt, label", t("ins.bne.formula"), "bne $t0, $t1, loop", "", t("ins.bne.keywords")],
+  ["bgez", false, t("ins.bgez.purpose"), "bgez rs, label", t("ins.bgez.formula"), "bgez $t0, positive", "", t("ins.bgez.keywords")],
+  ["bgtz", false, t("ins.bgtz.purpose"), "bgtz rs, label", t("ins.bgtz.formula"), "bgtz $t0, positive", "", t("ins.bgtz.keywords")],
+  ["blez", false, t("ins.blez.purpose"), "blez rs, label", t("ins.blez.formula"), "blez $t0, done", "", t("ins.blez.keywords")],
+  ["bltz", false, t("ins.bltz.purpose"), "bltz rs, label", t("ins.bltz.formula"), "bltz $t0, negative", "", t("ins.bltz.keywords")],
+  ["blt", true, t("ins.blt.purpose"), "blt rs, rt, label", t("ins.blt.formula"), "blt $t0, $t1, loop", t("ins.blt.note"), t("ins.blt.keywords")],
+  ["bgt", true, t("ins.bgt.purpose"), "bgt rs, rt, label", t("ins.bgt.formula"), "bgt $t0, 10, over", t("ins.bgt.note"), t("ins.bgt.keywords")],
+  ["ble", true, t("ins.ble.purpose"), "ble rs, rt, label", t("ins.ble.formula"), "ble $t0, $t1, loop", t("ins.ble.note"), t("ins.ble.keywords")],
+  ["bge", true, t("ins.bge.purpose"), "bge rs, rt, label", t("ins.bge.formula"), "bge $t0, $t1, done", t("ins.bge.note"), t("ins.bge.keywords")],
+  ["beqz", true, t("ins.beqz.purpose"), "beqz rs, label", t("ins.beqz.formula"), "beqz $t0, done", t("ins.beqz.note"), t("ins.beqz.keywords")],
+  ["bnez", true, t("ins.bnez.purpose"), "bnez rs, label", t("ins.bnez.formula"), "bnez $t0, loop", t("ins.bnez.note"), t("ins.bnez.keywords")],
+  ["b", true, t("ins.b.purpose"), "b label", t("ins.b.formula"), "b loop", t("ins.b.note"), t("ins.b.keywords")],
+  ["j", false, t("ins.j.purpose"), "j label", "PC \u2190 label", "j loop", "", t("ins.j.keywords")],
+  ["jal", false, t("ins.jal.purpose"), "jal label", t("ins.jal.formula"), "jal print", "", t("ins.jal.keywords")],
+  ["jr", false, t("ins.jr.purpose"), "jr rs", "PC \u2190 rs", "jr $ra", "", t("ins.jr.keywords")],
+  ["jalr", false, t("ins.jalr.purpose"), "jalr rd, rs", t("ins.jalr.formula"), "jalr $t9", "", t("ins.jalr.keywords")],
+  ["lw", false, t("ins.lw.purpose"), "lw rt, offset(rs)", t("ins.lw.formula"), "lw $t0, 0($sp)", t("ins.lw.note"), t("ins.lw.keywords")],
+  ["sw", false, t("ins.sw.purpose"), "sw rt, offset(rs)", t("ins.sw.formula"), "sw $ra, 0($sp)", t("ins.sw.note"), t("ins.sw.keywords")],
+  ["lb", false, t("ins.lb.purpose"), "lb rt, offset(rs)", t("ins.lb.formula"), "lb $t0, 0($a0)", t("ins.lb.note"), t("ins.lb.keywords")],
+  ["lbu", false, t("ins.lbu.purpose"), "lbu rt, offset(rs)", t("ins.lbu.formula"), "lbu $t0, 0($a0)", t("ins.lbu.note"), t("ins.lbu.keywords")],
+  ["sb", false, t("ins.sb.purpose"), "sb rt, offset(rs)", t("ins.sb.formula"), "sb $t0, 0($a0)", "", t("ins.sb.keywords")],
+  ["lh", false, t("ins.lh.purpose"), "lh rt, offset(rs)", t("ins.lh.formula"), "lh $t0, 0($a0)", t("ins.lh.note"), t("ins.lh.keywords")],
+  ["lhu", false, t("ins.lhu.purpose"), "lhu rt, offset(rs)", t("ins.lhu.formula"), "lhu $t0, 0($a0)", t("ins.lhu.note"), t("ins.lhu.keywords")],
+  ["sh", false, t("ins.sh.purpose"), "sh rt, offset(rs)", t("ins.sh.formula"), "sh $t0, 0($a0)", t("ins.sh.note"), t("ins.sh.keywords")],
+  ["lui", false, t("ins.lui.purpose"), "lui rt, imm", "rt \u2190 imm << 16", "lui $t0, 0x1001", t("ins.lui.note"), t("ins.lui.keywords")],
+  ["li", true, t("ins.li.purpose"), "li rd, imm", "rd \u2190 imm", "li $v0, 4", t("ins.li.note"), t("ins.li.keywords")],
+  ["la", true, t("ins.la.purpose"), "la rd, label", t("ins.la.formula"), "la $a0, prompt", t("ins.la.note"), t("ins.la.keywords")],
+  ["move", true, t("ins.move.purpose"), "move rd, rs", "rd \u2190 rs", "move $s0, $v0", t("ins.move.note"), t("ins.move.keywords")],
+  ["neg", true, t("ins.neg.purpose"), "neg rd, rs", "rd \u2190 \u2212rs", "neg $t0, $t1", t("ins.neg.note"), t("ins.neg.keywords")],
+  ["abs", true, t("ins.abs.purpose"), "abs rd, rs", "rd \u2190 |rs|", "abs $t0, $t1", t("ins.abs.note"), t("ins.abs.keywords")],
+  ["syscall", false, t("ins.syscall.purpose"), "syscall", t("ins.syscall.formula"), "li $v0, 1\nsyscall", t("ins.syscall.note"), t("ins.syscall.keywords")],
+  ["nop", false, t("ins.nop.purpose"), "nop", t("ins.nop.formula"), "nop", t("ins.nop.note"), t("ins.nop.keywords")]
+]);
+var SERVICE_WORDS = localized(() => ({
+  1: t("ins.service.1.keywords"),
+  2: t("ins.service.2.keywords"),
+  3: t("ins.service.3.keywords"),
+  4: t("ins.service.4.keywords"),
+  5: t("ins.service.5.keywords"),
+  6: t("ins.service.6.keywords"),
+  7: t("ins.service.7.keywords"),
+  8: t("ins.service.8.keywords"),
+  9: t("ins.service.9.keywords"),
+  10: t("ins.service.10.keywords"),
+  11: t("ins.service.11.keywords"),
+  12: t("ins.service.12.keywords"),
+  13: t("ins.service.13.keywords"),
+  14: t("ins.service.14.keywords"),
+  15: t("ins.service.15.keywords"),
+  16: t("ins.service.16.keywords"),
+  17: t("ins.service.17.keywords"),
+  34: t("ins.service.34.keywords"),
+  35: t("ins.service.35.keywords"),
+  36: t("ins.service.36.keywords")
+}));
 function instructionIndex(docs = {}) {
-  const items = TABLE.map(([op, pseudo, purpose, format, formula, example, note, words]) => ({
+  const items = TABLE.map(([op, pseudo2, purpose, format2, formula, example, note, words]) => ({
     kind: "instruction",
     op,
     label: op,
-    pseudo,
+    pseudo: pseudo2,
     purpose,
-    format,
+    format: format2,
     formula,
     example,
     note,
@@ -25848,14 +29160,14 @@ function instructionIndex(docs = {}) {
       label: `syscall ${n} \xB7 ${name2}`,
       name: name2,
       pseudo: false,
-      purpose: `${name2}\uFF1A${does}`,
+      purpose: `${name2}${t("common.colon")}${does}`,
       format: [`li $v0, ${n}`, ...args.map(([r, m]) => `${r} = ${m}`), "syscall"].join("\n"),
       formula: "",
       example: "",
-      note: `\u5148\u628A ${n} \u653E\u8FDB $v0\uFF0C\u518D\u6267\u884C syscall`,
+      note: t("ins.service.note", { n }),
       words: `${name2} ${SERVICE_WORDS[n] || ""}`
     });
-  const known = new Set(TABLE.map((t2) => t2[0]));
+  const known = new Set(TABLE.map((t3) => t3[0]));
   for (const [op, d] of Object.entries(docs))
     if (!known.has(op))
       items.push({
@@ -25867,14 +29179,14 @@ function instructionIndex(docs = {}) {
         format: d.example || "",
         formula: "",
         example: d.example || "",
-        note: "MARS \u539F\u6587\u8BF4\u660E",
+        note: t("ins.marsOriginal"),
         words: ""
       });
   return items;
 }
 var bigrams = (s) => {
-  const t2 = s.replace(/\s+/g, "");
-  return new Set(Array.from({ length: Math.max(0, t2.length - 1) }, (_, i) => t2.slice(i, i + 2)));
+  const t3 = s.replace(/\s+/g, "");
+  return new Set(Array.from({ length: Math.max(0, t3.length - 1) }, (_, i) => t3.slice(i, i + 2)));
 };
 function score2(item, query) {
   const q = query.trim().toLowerCase();
@@ -25917,23 +29229,23 @@ function partMeaning(name2, x, index, count) {
   const left = x.formula.split("\u2190")[0], named2 = (text2) => new RegExp(`(^|[^a-z])${name2}([^a-z]|$)`).test(text2);
   const branch = /^若/.test(x.formula), memory = /offset/.test(x.format);
   if (name2 === "label") {
-    if (x.op === "la") return "\u8981\u53D6\u5730\u5740\u7684\u6807\u7B7E\uFF08\u6570\u636E\u6216\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09";
-    return `${branch ? "\u6761\u4EF6\u6210\u7ACB\u65F6\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E" : "\u8DF3\u5230\u8FD9\u4E2A\u6807\u7B7E"}\uFF08\u4EE3\u7801\u4E2D\u5199 \u6807\u7B7E\u540D: \u7684\u4F4D\u7F6E\uFF09`;
+    if (x.op === "la") return t("usage.label.address");
+    return t("usage.label.target", { what: branch ? t("usage.label.branch") : t("usage.label.jump") });
   }
-  if (name2 === "offset") return "\u5B57\u8282\u504F\u79FB\uFF1A\u57FA\u5740\u5BC4\u5B58\u5668 + \u504F\u79FB = \u5185\u5B58\u5730\u5740";
-  if (name2 === "imm") return "\u5199\u5728\u6307\u4EE4\u91CC\u7684\u5E38\u6570";
-  if (name2 === "sa") return "\u79FB\u52A8\u7684\u4F4D\u6570\uFF080\u201331\uFF09";
-  if (branch) return count > 2 ? `\u6BD4\u8F83\u7684${index ? "\u53F3\u8FB9" : "\u5DE6\u8FB9"}` : "\u548C 0 \u6BD4\u8F83\u7684\u5BC4\u5B58\u5668";
-  if (memory && name2 === "rs") return "\u57FA\u5740\u5BC4\u5B58\u5668\uFF1A\u5185\u5B58\u5730\u5740\u4ECE\u5B83\u7B97\u8D77";
-  if (memory) return named2(left) ? "\u4ECE\u5185\u5B58\u8BFB\u5230\u7684\u503C\u653E\u8FDB\u8FD9\u4E2A\u5BC4\u5B58\u5668" : "\u8981\u5199\u8FDB\u5185\u5B58\u7684\u503C\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668";
-  if (x.formula.includes(`PC \u2190 ${name2}`)) return "\u8DF3\u8F6C\u76EE\u6807\u5730\u5740\u5728\u8FD9\u4E2A\u5BC4\u5B58\u5668";
-  if (named2(left)) return "\u7ED3\u679C\u5199\u5165\u8FD9\u4E2A\u5BC4\u5B58\u5668";
-  if (/低 5 位/.test(x.formula) && name2 === "rs") return "\u53D6\u4F4E 5 \u4F4D\u4F5C\u4E3A\u79FB\u52A8\u7684\u4F4D\u6570";
-  return "\u53C2\u4E0E\u8FD0\u7B97\u7684\u5BC4\u5B58\u5668";
+  if (name2 === "offset") return t("usage.offset");
+  if (name2 === "imm") return t("usage.immediate");
+  if (name2 === "sa") return t("usage.shiftAmount");
+  if (branch) return count > 2 ? t("usage.compared", { side: index ? t("usage.right") : t("usage.left") }) : t("usage.comparedWithZero");
+  if (memory && name2 === "rs") return t("usage.base");
+  if (memory) return named2(left) ? t("usage.loadTarget") : t("usage.storeSource");
+  if (x.formula.includes(`PC \u2190 ${name2}`)) return t("usage.jumpRegister");
+  if (named2(left)) return t("usage.result");
+  if (/低 5 位/.test(x.formula) && name2 === "rs") return t("usage.shiftRegister");
+  return t("usage.operand");
 }
 function usageOf(x, source = "") {
-  const op = x.format.split(/\s/)[0], format = x.format.slice(op.length).trim();
-  const names = format ? format.split(/,\s*/) : [], written = operandsOf(source), fits = written.length === names.length;
+  const op = x.format.split(/\s/)[0], format2 = x.format.slice(op.length).trim();
+  const names = format2 ? format2.split(/,\s*/) : [], written = operandsOf(source), fits = written.length === names.length;
   const parts = [];
   names.forEach((name2, i) => {
     const address = /^offset\(rs\)$/.test(name2), value = fits ? written[i] : "";
@@ -25944,68 +29256,38 @@ function usageOf(x, source = "") {
   });
   return { format: x.format, formula: x.formula, example: x.example, parts };
 }
-var directiveGuide = {
-  ".data": [".data", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u6570\u636E\u6BB5\uFF1A\u53D8\u91CF\u3001\u6570\u7EC4\u548C\u5B57\u7B26\u4E32\u5199\u5728\u8FD9\u91CC\u3002"],
-  ".text": [".text", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u4EE3\u7801\u6BB5\uFF1A\u6307\u4EE4\u5199\u5728\u8FD9\u91CC\u3002"],
-  ".globl": [".globl \u6807\u7B7E", "\u8BA9\u5176\u4ED6\u6587\u4EF6\u4E5F\u80FD\u4F7F\u7528\u8FD9\u4E2A\u6807\u7B7E\uFF0C\u5E38\u7528\u4E8E main \u548C\u88AB\u5176\u4ED6\u6587\u4EF6\u8C03\u7528\u7684\u51FD\u6570\u3002"],
-  ".word": ["\u6807\u7B7E: .word \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 4 \u5B57\u8282\u7684\u6574\u6570\uFF0C\u5199\u591A\u4E2A\u503C\u5C31\u662F\u6570\u7EC4\u3002"],
-  ".half": ["\u6807\u7B7E: .half \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 2 \u5B57\u8282\u7684\u6574\u6570\u3002"],
-  ".byte": ["\u6807\u7B7E: .byte \u503C, \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E 1 \u5B57\u8282\u7684\u503C\u3002"],
-  ".space": ["\u6807\u7B7E: .space \u5B57\u8282\u6570", "\u5728\u5185\u5B58\u4E2D\u7559\u51FA\u8FD9\u4E48\u591A\u5B57\u8282\uFF0C\u5E38\u7528\u4F5C\u8F93\u5165\u7F13\u51B2\u533A\u3002"],
-  ".ascii": ['\u6807\u7B7E: .ascii "\u6587\u5B57"', "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u4E0D\u52A0 \\0\u3002"],
-  ".asciiz": ['\u6807\u7B7E: .asciiz "\u6587\u5B57"', "\u628A\u6587\u5B57\u6309\u5B57\u8282\u653E\u8FDB\u5185\u5B58\uFF0C\u672B\u5C3E\u81EA\u52A8\u52A0\u4E00\u4E2A \\0\uFF0C\u6253\u5370\u5B57\u7B26\u4E32\u65F6\u9760\u5B83\u505C\u4E0B\u3002"],
-  ".align": [".align n", "\u8BA9\u4E0B\u4E00\u9879\u4ECE 2\u207F \u7684\u500D\u6570\u5730\u5740\u5F00\u59CB\u3002"],
-  ".float": ["\u6807\u7B7E: .float \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E\u5355\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002"],
-  ".double": ["\u6807\u7B7E: .double \u503C, \u2026", "\u5728\u5185\u5B58\u4E2D\u653E\u53CC\u7CBE\u5EA6\u6D6E\u70B9\u6570\u3002"],
-  ".eqv": [".eqv \u540D\u5B57 \u503C", "\u7ED9\u4E00\u4E2A\u503C\u8D77\u540D\u5B57\uFF0C\u6C47\u7F16\u65F6\u76F4\u63A5\u66FF\u6362\u3002"],
-  ".include": ['.include "\u6587\u4EF6\u540D"', "\u628A\u53E6\u4E00\u4E2A\u6587\u4EF6\u7684\u5185\u5BB9\u63D2\u5230\u8FD9\u91CC\u3002"],
-  ".macro": [".macro \u540D\u5B57", "\u5F00\u59CB\u5B9A\u4E49\u5B8F\uFF0C\u5230 .end_macro \u7ED3\u675F\u3002"],
-  ".end_macro": [".end_macro", "\u7ED3\u675F\u5B8F\u5B9A\u4E49\u3002"],
-  ".extern": [".extern \u6807\u7B7E \u5B57\u8282\u6570", "\u58F0\u660E\u4E00\u4E2A\u5168\u5C40\u53D8\u91CF\u3002"],
-  ".kdata": [".kdata", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u6570\u636E\u6BB5\u3002"],
-  ".ktext": [".ktext", "\u4E0B\u9762\u7684\u5185\u5BB9\u653E\u8FDB\u5185\u6838\u4EE3\u7801\u6BB5\u3002"]
-};
+var directiveGuide = localized(() => ({
+  ".data": [".data", t("directive.data")],
+  ".text": [".text", t("directive.text")],
+  ".globl": [t("directive.globl.syntax"), t("directive.globl")],
+  ".word": [t("directive.word.syntax"), t("directive.word")],
+  ".half": [t("directive.half.syntax"), t("directive.half")],
+  ".byte": [t("directive.byte.syntax"), t("directive.byte")],
+  ".space": [t("directive.space.syntax"), t("directive.space")],
+  ".ascii": [`${t("directive.ascii.syntax")} "${t("directive.text.word")}"`, t("directive.ascii")],
+  ".asciiz": [`${t("directive.asciiz.syntax")} "${t("directive.text.word")}"`, t("directive.asciiz")],
+  ".align": [".align n", t("directive.align")],
+  ".float": [t("directive.float.syntax"), t("directive.float")],
+  ".double": [t("directive.double.syntax"), t("directive.double")],
+  ".eqv": [t("directive.eqv.syntax"), t("directive.eqv")],
+  ".include": [`.include "${t("directive.include.file")}"`, t("directive.include")],
+  ".macro": [t("directive.macro.syntax"), t("directive.macro")],
+  ".end_macro": [".end_macro", t("directive.endMacro")],
+  ".extern": [t("directive.extern.syntax"), t("directive.extern")],
+  ".kdata": [".kdata", t("directive.kdata")],
+  ".ktext": [".ktext", t("directive.ktext")]
+}));
 
 // ui/tutorial.js
-var HELLO = `.data
+var HELLO = () => `.data
 greeting: .asciiz "Hello!"
-.text
-.globl main
-main:
-    la $a0, greeting   # \u5B57\u7B26\u4E32\u7B2C\u4E00\u4E2A\u5B57\u8282\u7684\u5730\u5740
-    li $v0, 4          # $v0 = 4\uFF1A\u6253\u5370\u5B57\u7B26\u4E32
-    syscall
-    li $v0, 10         # $v0 = 10\uFF1A\u9000\u51FA
-    syscall`;
-var NAME = `.data
+${t("tutorial.code.hello")}`;
+var NAME = () => `.data
 greeting: .asciiz "Hello, "
 bang:     .asciiz "!"
-name:     .space 32         # \u5B58\u653E\u540D\u5B57\u7684\u7F13\u51B2\u533A\uFF0832 \u5B57\u8282\uFF09
-.text
-.globl main
-main:
-    la $a0, name        # \u7F13\u51B2\u533A\u5730\u5740
-    li $a1, 32          # \u6700\u591A\u5360\u7528 32 \u5B57\u8282
-    li $v0, 8           # $v0 = 8\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32
-    syscall
-    la $a0, greeting
-    li $v0, 4
-    syscall
-    la $a0, name        # \u6253\u5370\u540D\u5B57\uFF1A$a0 \u662F\u5730\u5740
-    li $v0, 4
-    syscall
-    la $a0, bang
-    li $v0, 4
-    syscall
-    li $v0, 10
-    syscall`;
-var OVERFLOW = `    li $t0, 0x7fffffff   # \u6700\u5927\u7684 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570
-    addi $t0, $t0, 1     # \u518D\u52A0 1 \u4F1A\u600E\u6837\uFF1F`;
-var AGE = `    li $v0, 5            # $v0 = 5\uFF1A\u8BFB\u53D6\u6574\u6570\uFF0C\u7ED3\u679C\u5728 $v0
-    syscall
-    addi $a0, $v0, 1     # \u660E\u5E74\u7684\u5E74\u9F84
-    li $v0, 1            # $v0 = 1\uFF1A\u6253\u5370\u6574\u6570
-    syscall`;
+${t("tutorial.code.name")}`;
+var OVERFLOW = () => `    ${t("tutorial.code.overflow")}`;
+var AGE = () => `    ${t("tutorial.code.age")}`;
 var traceOf = (c) => (c.state?.trace || []).filter((e) => e.step <= (c.state?.step ?? 0));
 var ranFrom = (c, file) => !!c.target?.files.includes(file) && !c.dirty;
 var reg = (c, name2) => c.state?.registers?.find((r) => r.name === name2)?.value;
@@ -26013,150 +29295,150 @@ var nextIsSyscall = (c, service) => {
   const p = c.state?.preview?.instruction;
   return p?.op === "syscall" && reg(c, "$v0") === service;
 };
-var STEPS = [
+var STEPS = localized(() => [
   {
-    stage: "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
-    title: "\u65B0\u5EFA hello.s",
-    goal: "\u7B2C\u4E00\u4E2A\u7A0B\u5E8F\u653E\u5728\u54EA\u91CC\uFF1F\u5728\u5DE6\u4FA7\u201C\u6587\u4EF6\u201D\u6807\u7B7E\u91CC\u65B0\u5EFA\u4E00\u4E2A\u6E90\u7801\u6587\u4EF6 hello.s\u3002",
-    checks: [["\u5DE5\u7A0B\u91CC\u6709 hello.s", (c) => Object.hasOwn(c.files, "hello.s")]],
-    hints: ["\u70B9\u5DE6\u4FA7\u201C\u5DE5\u7A0B\u6587\u4EF6\u201D\u65C1\u8FB9\u7684 \uFF0B \u6587\u4EF6\u3002", "\u8DEF\u5F84\u586B hello.s\uFF0C\u6269\u5C55\u540D\u5FC5\u987B\u662F\u5C0F\u5199 .s\u3002"],
-    go: [["\u6253\u5F00\u6587\u4EF6\u6807\u7B7E", "side:files"]]
+    stage: t("tutorial.stage1"),
+    title: t("tutorial.s1.title"),
+    goal: t("tutorial.s1.goal"),
+    checks: [[t("tutorial.s1.check"), (c) => Object.hasOwn(c.files, "hello.s")]],
+    hints: [t("tutorial.s1.hint1"), t("tutorial.s1.hint2")],
+    go: [[t("tutorial.go.files"), "side:files"]]
   },
   {
-    stage: "1 \xB7 \u7F16\u5199\u3001\u6C47\u7F16\u3001\u8FD0\u884C",
-    title: "\u8BA9\u7A0B\u5E8F\u6253\u5370 Hello!",
-    goal: "\u600E\u6837\u8BA9\u7EC8\u7AEF\u663E\u793A Hello!\uFF1F\u5728 hello.s \u91CC\u5199\u7A0B\u5E8F\uFF0C\u7136\u540E\u70B9\u201C\u6C47\u7F16\u201D\uFF0C\u518D\u70B9\u201C\u5B8C\u6574\u8FD0\u884C\u201D\uFF08\u5DE5\u5177\u680F\u91CC\u4E24\u4E2A\u4E09\u89D2\u7684\u56FE\u6807\uFF0CF5 \u4E5F\u53EF\u4EE5\uFF09\u3002",
+    stage: t("tutorial.stage1"),
+    title: t("tutorial.s2.title"),
+    goal: t("tutorial.s2.goal"),
     checks: [
-      ["hello.s \u5DF2\u6C47\u7F16\u5E76\u88C5\u5165", (c) => ranFrom(c, "hello.s")],
-      ["\u8FD0\u884C\u7ED3\u675F", (c) => ranFrom(c, "hello.s") && c.state?.status === "ended"],
-      ["\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello!", (c) => ranFrom(c, "hello.s") && (c.state?.output || "").includes("Hello!")]
+      [t("tutorial.s2.check1"), (c) => ranFrom(c, "hello.s")],
+      [t("tutorial.s2.check2"), (c) => ranFrom(c, "hello.s") && c.state?.status === "ended"],
+      [t("tutorial.s2.check3"), (c) => ranFrom(c, "hello.s") && (c.state?.output || "").includes("Hello!")]
     ],
     hints: [
-      "\u5B57\u7B26\u4E32\u653E\u5728 .data \u6BB5\uFF0C\u7528 .asciiz \u5199\uFF0C\u672B\u5C3E\u4F1A\u81EA\u52A8\u8865\u4E00\u4E2A \\0\u3002",
-      "\u6253\u5370\u5B57\u7B26\u4E32\uFF1A$v0 = 4\uFF0C$a0 = \u5B57\u7B26\u4E32\u7684\u5730\u5740\uFF08\u7528 la \u53D6\u5F97\uFF09\uFF0C\u7136\u540E syscall\u3002\u6700\u540E\u7528 $v0 = 10 \u7684 syscall \u9000\u51FA\u3002"
+      t("tutorial.s2.hint1"),
+      t("tutorial.s2.hint2")
     ],
-    answer: HELLO,
-    go: [["\u67E5\u201C\u6253\u5370\u5B57\u7B26\u4E32\u201D", "find:\u6253\u5370\u5B57\u7B26\u4E32"]]
+    answer: HELLO(),
+    go: [[t("tutorial.go.printString"), t("tutorial.go.printString.query")]]
   },
   {
-    stage: "2 \xB7 \u8F93\u5165\u4E0E\u8F93\u51FA",
-    title: "\u8BFB\u53D6\u540D\u5B57\uFF0C\u8F93\u51FA Hello, \u540D\u5B57!",
-    goal: "\u7A0B\u5E8F\u600E\u6837\u77E5\u9053\u4F60\u7684\u540D\u5B57\uFF1F\u5148\u8BFB\u53D6\u4E00\u884C\u6587\u5B57\uFF0C\u518D\u628A Hello,\u3001\u540D\u5B57\u548C ! \u4F9D\u6B21\u6253\u5370\u51FA\u6765\u3002\u8FD0\u884C\u65F6\u5728\u5E95\u90E8\u7EC8\u7AEF\u8F93\u5165\u540D\u5B57\u3002",
+    stage: t("tutorial.stage2"),
+    title: t("tutorial.s3.title"),
+    goal: t("tutorial.s3.goal"),
     checks: [
-      ["\u7A0B\u5E8F\u8BFB\u53D6\u4E86\u4E00\u6B21\u8F93\u5165", (c) => ranFrom(c, "hello.s") && traceOf(c).some((e) => e.service === 8 && e.instruction.op === "syscall" && e.status !== "waiting-input")],
-      ["\u7EC8\u7AEF\u91CC\u51FA\u73B0 Hello, \u548C\u4F60\u8F93\u5165\u7684\u540D\u5B57", (c) => {
+      [t("tutorial.s3.check1"), (c) => ranFrom(c, "hello.s") && traceOf(c).some((e) => e.service === 8 && e.instruction.op === "syscall" && e.status !== "waiting-input")],
+      [t("tutorial.s3.check2"), (c) => {
         const out = c.state?.output || "", typed = (c.state?.inputEchoes || []).map((e) => e.text ?? e.value ?? "").filter(Boolean);
-        return ranFrom(c, "hello.s") && out.includes("Hello, ") && typed.some((t2) => out.includes(String(t2).trim()));
+        return ranFrom(c, "hello.s") && out.includes("Hello, ") && typed.some((t3) => out.includes(String(t3).trim()));
       }]
     ],
     hints: [
-      "\u540D\u5B57\u8981\u5148\u653E\u8FDB\u5185\u5B58\uFF1A\u5728 .data \u91CC\u7528 .space 32 \u7559\u51FA\u4E00\u5757\u7F13\u51B2\u533A\u3002",
-      "\u8BFB\u53D6\u5B57\u7B26\u4E32\uFF1A$v0 = 8\uFF0C$a0 = \u7F13\u51B2\u533A\u5730\u5740\uFF0C$a1 = \u6700\u591A\u5360\u7528\u7684\u5B57\u8282\u6570\u3002\u6253\u5370\u540D\u5B57\u65F6 $a0 \u4ECD\u7136\u662F\u8FD9\u4E2A\u5730\u5740\u3002",
-      "\u4F60\u4F1A\u53D1\u73B0 ! \u8DD1\u5230\u4E86\u4E0B\u4E00\u884C\uFF1A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\u4E5F\u88AB\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u7528\u8C03\u8BD5\u5668\u770B\u6E05\u695A\u3002"
+      t("tutorial.s3.hint1"),
+      t("tutorial.s3.hint2"),
+      t("tutorial.s3.hint3")
     ],
-    answer: NAME,
-    doneNote: "! \u6362\u5230\u4E86\u4E0B\u4E00\u884C\uFF0C\u662F\u56E0\u4E3A\u8BFB\u53D6\u5B57\u7B26\u4E32\u65F6\u56DE\u8F66\uFF08\\n\uFF09\u4E5F\u5B58\u8FDB\u4E86\u7F13\u51B2\u533A\u3002\u4E0B\u4E00\u9636\u6BB5\u53EF\u4EE5\u5728\u5185\u5B58\u91CC\u770B\u5230\u5B83\u3002",
-    go: [["\u67E5\u201C\u8BFB\u53D6\u5B57\u7B26\u4E32\u201D", "find:\u8BFB\u53D6\u5B57\u7B26\u4E32"]]
+    answer: NAME(),
+    doneNote: t("tutorial.s3.note"),
+    go: [[t("tutorial.go.readString"), t("tutorial.go.readString.query")]]
   },
   {
-    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
-    title: "\u505C\u5728\u6253\u5370\u540D\u5B57\u4E4B\u524D",
-    goal: "\u6253\u5370\u540D\u5B57\u4E4B\u524D\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u51B3\u5B9A\u8F93\u51FA\u4EC0\u4E48\uFF1F\u5728\u6253\u5370\u540D\u5B57\u7684\u90A3\u4E2A syscall \u884C\u8BBE\u65AD\u70B9\uFF0C\u7136\u540E\u8FD0\u884C\u5230\u90A3\u91CC\u3002",
+    stage: t("tutorial.stage3"),
+    title: t("tutorial.s4.title"),
+    goal: t("tutorial.s4.goal"),
     checks: [
-      ["\u8BBE\u7F6E\u4E86\u65AD\u70B9", (c) => c.breakpoints.some((b) => b.address != null)],
-      ["\u505C\u5728\u4E00\u4E2A\u6253\u5370\u5B57\u7B26\u4E32\uFF08$v0 = 4\uFF09\u7684 syscall \u4E4B\u524D", (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)]
+      [t("tutorial.s4.check1"), (c) => c.breakpoints.some((b) => b.address != null)],
+      [t("tutorial.s4.check2"), (c) => /^Breakpoint/.test(c.state?.stopReason || "") && nextIsSyscall(c, 4)]
     ],
-    hints: ["\u70B9\u884C\u53F7\u5DE6\u8FB9\u7684\u7A7A\u767D\u5904\uFF0C\u6216\u628A\u5149\u6807\u653E\u5728\u90A3\u4E00\u884C\u6309 F9\u3002", "\u6253\u5370\u540D\u5B57\u7684 syscall \u524D\u9762\u4E00\u884C\u662F li $v0, 4\uFF0C\u518D\u524D\u9762\u662F la $a0, name\u3002"],
-    go: [["\u6253\u5F00\u65AD\u70B9\u6807\u7B7E", "side:stops"]]
+    hints: [t("tutorial.s4.hint1"), t("tutorial.s4.hint2")],
+    go: [[t("tutorial.go.stops"), "side:stops"]]
   },
   {
-    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
-    title: "\u770B\u61C2\u8FD9\u4E2A syscall",
-    goal: "\u60AC\u505C\u5728 syscall \u4E0A\u770B\u7B80\u77ED\u8BF4\u660E\uFF0C\u518D\u70B9\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\uFF08\u6216 Cmd/Ctrl\uFF0B\u70B9\u51FB\uFF09\u6253\u5F00\u53F3\u4FA7\u7684\u8BE6\u7EC6\u68C0\u67E5\u3002\u5B83\u8981\u7684\u53C2\u6570\u662F\u4EC0\u4E48\uFF1F",
-    checks: [["\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u663E\u793A\u4E86\u8FD9\u4E2A syscall", (c) => c.inspecting === "syscall"]],
-    hints: ["\u8BE6\u7EC6\u68C0\u67E5\u91CC\u6709\u201C\u505A\u4EC0\u4E48 \u2192 \u9700\u8981\u7684\u53C2\u6570 \u2192 \u53D1\u751F\u4EC0\u4E48 \u2192 \u53D8\u5316\u201D\u3002", "\u6253\u5370\u5B57\u7B26\u4E32\u65F6\uFF0C$a0 \u662F\u5730\u5740\uFF0C\u4E0D\u662F\u5B57\u7B26\u4E32\u672C\u8EAB\u3002"],
-    go: [["\u5C55\u5F00\u8BE6\u7EC6\u68C0\u67E5", "panel:context"]]
+    stage: t("tutorial.stage3"),
+    title: t("tutorial.s5.title"),
+    goal: t("tutorial.s5.goal"),
+    checks: [[t("tutorial.s5.check"), (c) => c.inspecting === "syscall"]],
+    hints: [t("tutorial.s5.hint1"), t("tutorial.s5.hint2")],
+    go: [[t("tutorial.go.inspector"), "panel:context"]]
   },
   {
-    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
-    title: "\u987A\u7740\u5730\u5740\u627E\u5230\u540D\u5B57",
-    goal: "$a0 \u7684\u503C\u6307\u5411\u54EA\u91CC\uFF1F\u5728\u5BC4\u5B58\u5668\u9762\u677F\u70B9 $a0\uFF0C\u9009\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\uFF0C\u5728\u5185\u5B58\u91CC\u627E\u5230\u4F60\u8F93\u5165\u7684\u540D\u5B57\u3002",
-    checks: [["\u5185\u5B58\u9762\u677F\u663E\u793A\u7684\u662F $a0 \u6307\u5411\u7684\u5730\u65B9", (c) => {
+    stage: t("tutorial.stage3"),
+    title: t("tutorial.s6.title"),
+    goal: t("tutorial.s6.goal"),
+    checks: [[t("tutorial.s6.check"), (c) => {
       const a = reg(c, "$a0") >>> 0, base2 = (c.state?.memoryBase ?? -1) >>> 0;
       return a >= base2 && a < base2 + (c.state?.memory?.length || 0);
     }]],
-    hints: ["\u5BC4\u5B58\u5668\u9762\u677F\u91CC\u70B9 $a0\uFF0C\u53F3\u4FA7\u8BE6\u7EC6\u68C0\u67E5\u4F1A\u51FA\u73B0\u201C\u4F5C\u4E3A\u5730\u5740\u67E5\u770B\u201D\u3002", "\u540D\u5B57\u540E\u9762\u90A3\u4E2A 0a \u5B57\u8282\u5C31\u662F\u56DE\u8F66\uFF08\\n\uFF09\uFF0C\u6700\u540E\u7684 00 \u662F \\0\u3002"],
-    go: [["\u67E5\u770B $a0", "inspect:$a0"]]
+    hints: [t("tutorial.s6.hint1"), t("tutorial.s6.hint2")],
+    go: [[t("tutorial.go.a0"), "inspect:$a0"]]
   },
   {
-    stage: "3 \xB7 \u65AD\u70B9\u4E0E\u68C0\u67E5",
-    title: "\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u5B83",
-    goal: "\u6267\u884C\u8FD9\u4E2A syscall \u65F6\uFF0C\u54EA\u4E2A\u5BC4\u5B58\u5668\u88AB\u8BFB\u3001\u7EC8\u7AEF\u591A\u4E86\u4EC0\u4E48\uFF1F\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F\uFF08\u5E95\u90E8 \u25CE \u4E13\u6CE8\uFF09\uFF0C\u6309 Shift+\u2193 \u6267\u884C\u4E00\u884C\u3002",
-    checks: [["\u5728\u4E13\u6CE8\u6A21\u5F0F\u91CC\u6267\u884C\u4E86\u4E00\u4E2A syscall", (c, memo) => memo.lensSyscall]],
-    hints: ["\u4E13\u6CE8\u6A21\u5F0F\u91CC \u2190\u2192 \u9010\u6761\u770B\u89E3\u91CA\uFF0C? \u770B\u4E3A\u4EC0\u4E48\u3002", "\u6267\u884C\u540E\u7EC8\u7AEF\u4F1A\u95EA\u4E00\u4E0B\uFF0C\u8868\u793A\u6709\u65B0\u7684\u8F93\u51FA\u3002"],
-    go: [["\u6253\u5F00\u4E13\u6CE8\u6A21\u5F0F", "focus"]]
+    stage: t("tutorial.stage3"),
+    title: t("tutorial.s7.title"),
+    goal: t("tutorial.s7.goal"),
+    checks: [[t("tutorial.s7.check"), (c, memo) => memo.lensSyscall]],
+    hints: [t("tutorial.s7.hint1"), t("tutorial.s7.hint2")],
+    go: [[t("tutorial.go.focus"), "focus"]]
   },
   {
-    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
-    title: "\u8BA9\u8BA1\u7B97\u8D8A\u754C",
-    goal: "\u5728\u6700\u540E\u9000\u51FA\u4E4B\u524D\u52A0\u4E0A\u4E0B\u9762\u4E24\u884C\uFF0C\u518D\u6C47\u7F16\u8FD0\u884C\u3002\u7A0B\u5E8F\u4F1A\u600E\u6837\uFF1F\u8BFB\u4E00\u8BFB\u9519\u8BEF\u4FE1\u606F\u3002",
-    checks: [["\u7A0B\u5E8F\u56E0\u4E3A\u6EA2\u51FA\u505C\u4E0B", (c, memo) => memo.overflowStep != null]],
-    hints: ["\u628A\u4E0A\u9762\u4E24\u884C\u653E\u5728 li $v0, 10 \u4E4B\u524D\u3002", "0x7fffffff \u662F 32 \u4F4D\u6709\u7B26\u53F7\u6574\u6570\u80FD\u8868\u793A\u7684\u6700\u5927\u503C\u3002"],
-    code: OVERFLOW
+    stage: t("tutorial.stage4"),
+    title: t("tutorial.s8.title"),
+    goal: t("tutorial.s8.goal"),
+    checks: [[t("tutorial.s8.check"), (c, memo) => memo.overflowStep != null]],
+    hints: [t("tutorial.s8.hint1"), t("tutorial.s8.hint2")],
+    code: OVERFLOW()
   },
   {
-    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
-    title: "\u770B\u51FA\u9519\u524D\u7684\u6570\u503C",
-    goal: "\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6267\u884C\u524D\uFF0C$t0 \u662F\u591A\u5C11\uFF1F\u6309\u201C\u56DE\u9000\u201D\u9000\u56DE\u53BB\uFF0C\u5728\u51FA\u9519\u7684\u90A3\u4E00\u884C\u6253\u5F00\u8BE6\u7EC6\u68C0\u67E5\u3002",
+    stage: t("tutorial.stage4"),
+    title: t("tutorial.s9.title"),
+    goal: t("tutorial.s9.goal"),
     checks: [
-      ["\u56DE\u9000\u5230\u51FA\u9519\u4E4B\u524D", (c, memo) => memo.overflowStep != null && (c.state?.step ?? Infinity) < memo.overflowStep],
-      ["\u67E5\u770B\u4E86\u90A3\u4E00\u884C\u6307\u4EE4\u7684\u8BE6\u7EC6\u68C0\u67E5", (c) => !!c.inspecting && !c.inspecting.startsWith("$") && c.inspecting !== "syscall"]
+      [t("tutorial.s9.check1"), (c, memo) => memo.overflowStep != null && (c.state?.step ?? Infinity) < memo.overflowStep],
+      [t("tutorial.s9.check2"), (c) => !!c.inspecting && !c.inspecting.startsWith("$") && c.inspecting !== "syscall"]
     ],
-    hints: ["\u5DE5\u5177\u680F\u7684 \u21B6\uFF08Shift+F9\uFF09\u662F\u56DE\u9000\u4E00\u6B65\u3002", "\u8BE6\u7EC6\u68C0\u67E5\u7684\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u5C31\u662F\u7B54\u6848\u3002"]
+    hints: [t("tutorial.s9.hint1"), t("tutorial.s9.hint2")]
   },
   {
-    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
-    title: "\u7528\u89C2\u5BDF\u70B9\u627E\u5230\u5199\u5165",
-    goal: "\u662F\u54EA\u4E00\u884C\u628A\u8FD9\u4E2A\u503C\u5199\u8FDB $t0 \u7684\uFF1F\u5728\u201C\u65AD\u70B9\u201D\u6807\u7B7E\u6DFB\u52A0\u5BF9 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9\uFF0C\u7136\u540E\u91CD\u65B0\u8FD0\u884C\u3002",
+    stage: t("tutorial.stage4"),
+    title: t("tutorial.s10.title"),
+    goal: t("tutorial.s10.goal"),
     checks: [
-      ["\u6709 $t0 \u7684\u5199\u5165\u89C2\u5BDF\u70B9", (c) => c.watches.some((w) => w.register === "$t0" && w.access === "write")],
-      ["\u89C2\u5BDF\u70B9\u8BA9\u7A0B\u5E8F\u505C\u4E0B", (c) => /^Watchpoint/.test(c.state?.stopReason || "")]
+      [t("tutorial.s10.check1"), (c) => c.watches.some((w) => w.register === "$t0" && w.access === "write")],
+      [t("tutorial.s10.check2"), (c) => /^Watchpoint/.test(c.state?.stopReason || "")]
     ],
-    hints: ["\u201C\u89C2\u5BDF\u70B9\u201D\u65C1\u8FB9\u7684 \uFF0B\uFF0C\u76EE\u6807\u586B $t0\uFF0C\u7C7B\u578B\u9009\u5199\u5165\u3002", "\u4E5F\u53EF\u4EE5\u5728\u5BC4\u5B58\u5668 $t0 \u7684\u8BE6\u7EC6\u68C0\u67E5\u91CC\u70B9\u201C\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165\u201D\u3002"],
-    go: [["\u6253\u5F00\u65AD\u70B9\u6807\u7B7E", "side:stops"]]
+    hints: [t("tutorial.s10.hint1"), t("tutorial.s10.hint2")],
+    go: [[t("tutorial.go.stops"), "side:stops"]]
   },
   {
-    stage: "4 \xB7 \u627E\u5230\u5E76\u4FEE\u597D\u4E00\u4E2A\u9519\u8BEF",
-    title: "\u4FEE\u597D\u5B83\uFF0C\u5E76\u9A8C\u8BC1\u7ED3\u679C",
-    goal: "\u628A addi \u6362\u6210 addiu \u53EA\u4F1A\u8BA9\u5B83\u4E0D\u518D\u62A5\u9519\uFF0C\u7ED3\u679C\u5374\u53D8\u6210\u8D1F\u6570\u2014\u2014\u90A3\u4E0D\u662F\u4FEE\u597D\u3002\u628A\u521D\u503C\u6539\u6210\u4E00\u4E2A\u52A0 1 \u4E0D\u4F1A\u8D8A\u754C\u7684\u6570\uFF0C\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u786E\u8BA4 $t0 \u7684\u7ED3\u679C\u6B63\u786E\u3002",
+    stage: t("tutorial.stage4"),
+    title: t("tutorial.s11.title"),
+    goal: t("tutorial.s11.goal"),
     checks: [
-      ["\u8FD0\u884C\u5230\u7ED3\u675F\uFF0C\u6CA1\u6709\u9519\u8BEF", (c) => c.state?.status === "ended" && !c.state?.error],
-      ["$t0 \u7684\u52A0 1 \u6CA1\u6709\u8D8A\u754C\uFF08\u7ED3\u679C\u7B49\u4E8E\u539F\u503C + 1\uFF09", (c, memo) => memo.fixed === true]
+      [t("tutorial.s11.check1"), (c) => c.state?.status === "ended" && !c.state?.error],
+      [t("tutorial.s11.check2"), (c, memo) => memo.fixed === true]
     ],
-    hints: ["\u7528\u8BE6\u7EC6\u68C0\u67E5\u5BF9\u6BD4\u201C\u6267\u884C\u524D\u6570\u503C\u201D\u548C\u201C\u7ED3\u679C\u201D\u3002", "\u4F8B\u5982 li $t0, 41\uFF0C\u518D\u52A0 1 \u5E94\u8BE5\u5F97\u5230 42\u3002"],
-    fail: (c, memo) => memo.fixed === false ? "\u8FD0\u884C\u6CA1\u6709\u62A5\u9519\uFF0C\u4F46\u7ED3\u679C\u548C\u201C\u539F\u503C + 1\u201D\u4E0D\u4E00\u6837\uFF1A\u6EA2\u51FA\u8FD8\u5728\uFF0C\u53EA\u662F\u88AB\u5FFD\u7565\u4E86\u3002" : ""
+    hints: [t("tutorial.s11.hint1"), t("tutorial.s11.hint2")],
+    fail: (c, memo) => memo.fixed === false ? t("tutorial.s11.fail") : ""
   },
   {
-    stage: "5 \xB7 \u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD",
-    title: "\u8BFB\u53D6\u5E74\u9F84\uFF0C\u8F93\u51FA\u660E\u5E74\u7684\u5E74\u9F84",
-    goal: "\u5728\u95EE\u5019\u4E4B\u540E\uFF0C\u518D\u8BFB\u53D6\u4E00\u4E2A\u6574\u6570\u4F5C\u4E3A\u5E74\u9F84\uFF0C\u6253\u5370\u660E\u5E74\u7684\u5E74\u9F84\u3002\u81EA\u5DF1\u6C47\u7F16\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u3002",
-    checks: [["\u8BFB\u53D6\u4E86\u4E00\u4E2A\u6574\u6570\uFF0C\u5E76\u6253\u5370\u51FA\u5B83\u52A0 1 \u7684\u7ED3\u679C", (c) => {
+    stage: t("tutorial.stage5"),
+    title: t("tutorial.s12.title"),
+    goal: t("tutorial.s12.goal"),
+    checks: [[t("tutorial.s12.check"), (c) => {
       const read = traceOf(c).filter((e) => e.service === 5 && e.instruction.op === "syscall").map((e) => e.accesses.find((a) => a.write && a.name === "$v0")?.value).filter((v) => v != null);
       return read.some((n) => (c.state?.output || "").includes(String(n + 1)));
     }]],
-    hints: ["\u8BFB\u53D6\u6574\u6570\uFF1A$v0 = 5\uFF0C\u8BFB\u5230\u7684\u6570\u4F1A\u653E\u5728 $v0\u3002", "\u6253\u5370\u6574\u6570\uFF1A$v0 = 1\uFF0C\u8981\u6253\u5370\u7684\u6570\u653E\u5728 $a0\u3002"],
-    answer: AGE,
-    go: [["\u67E5\u201C\u8BFB\u53D6\u6574\u6570\u201D", "find:\u8BFB\u53D6\u6574\u6570"]]
+    hints: [t("tutorial.s12.hint1"), t("tutorial.s12.hint2")],
+    answer: AGE(),
+    go: [[t("tutorial.go.readInt"), t("tutorial.go.readInt.query")]]
   },
   {
-    stage: "5 \xB7 \u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD",
-    title: "\u5BFC\u51FA\u4F60\u7684\u5DE5\u7A0B",
-    goal: "\u628A\u4F60\u7684\u7A0B\u5E8F\u4FDD\u5B58\u5230\u7535\u8111\uFF1A\u5DE5\u7A0B\u83DC\u5355 \u2192 \u5BFC\u51FA\u5230\u7535\u8111\u2026\uFF0C\u9009 ZIP \u6216 JSON\u3002",
-    checks: [["\u5BFC\u51FA\u4E86\u5DE5\u7A0B", (c, memo) => memo.exported]],
-    hints: ["\u5BFC\u51FA\u7684\u6587\u4EF6\u53EF\u4EE5\u91CD\u65B0\u6253\u5F00\uFF0C\u6216\u4EA4\u7ED9\u8001\u5E08\u3002"],
-    go: [["\u6253\u5F00\u5DE5\u7A0B\u83DC\u5355", "menu:project"]]
+    stage: t("tutorial.stage5"),
+    title: t("tutorial.s13.title"),
+    goal: t("tutorial.s13.goal"),
+    checks: [[t("tutorial.s13.check"), (c, memo) => memo.exported]],
+    hints: [t("tutorial.s13.hint")],
+    go: [[t("tutorial.go.projectMenu"), "menu:project"]]
   }
-];
+]);
 var Tutorial = class {
   constructor(host) {
     this.host = host;
@@ -26166,7 +29448,7 @@ var Tutorial = class {
     this.answer = false;
     document.body.insertAdjacentHTML(
       "beforeend",
-      `<section id="tutorial" class="tutorial" role="complementary" aria-label="\u5165\u95E8\u7EC3\u4E60" hidden></section>`
+      `<section id="tutorial" class="tutorial" role="complementary" aria-label="${t("menu.learn.tutorial")}" data-i18n-aria-label="menu.learn.tutorial" hidden></section>`
     );
     this.el = document.getElementById("tutorial");
     try {
@@ -26228,18 +29510,18 @@ var Tutorial = class {
     this.el.classList.toggle("collapsed", !!this.collapsed);
     const progress = `${this.index + 1}/${STEPS.length}`;
     if (this.collapsed) {
-      this.el.innerHTML = `<button class="tutorial-pill" data-t="expand">\u5165\u95E8\u7EC3\u4E60 ${progress}${done ? " \u2713" : ""}</button>`;
+      this.el.innerHTML = `<button class="tutorial-pill" data-t="expand">${t("tutorial.card.title", { progress, done: done ? " \u2713" : "" })}</button>`;
     } else
-      this.el.innerHTML = `<header><b>\u5165\u95E8\u7EC3\u4E60</b><span>\u9636\u6BB5 ${escapeHTML(step.stage)} \xB7 ${progress}</span><button data-t="collapse" aria-label="\u6536\u8D77">\u2014</button><button data-t="exit" aria-label="\u9000\u51FA\u7EC3\u4E60">\xD7</button></header>
+      this.el.innerHTML = `<header><b>${t("menu.learn.tutorial")}</b><span>${t("tutorial.card.stage", { stage: escapeHTML(step.stage), progress })}</span><button data-t="collapse" aria-label="${t("tutorial.card.collapse")}">\u2014</button><button data-t="exit" aria-label="${t("tutorial.card.exit")}">\xD7</button></header>
       <h4>${escapeHTML(step.title)}</h4><p class="tutorial-goal">${escapeHTML(step.goal)}</p>
       <ul class="tutorial-checks">${results.map(([label2, ok2]) => `<li class="${ok2 ? "ok" : ""}">${ok2 ? "\u2713" : "\u25CB"} ${escapeHTML(label2)}</li>`).join("")}</ul>
       ${fail ? `<p class="tutorial-fail" role="alert">${escapeHTML(fail)}</p>` : ""}
       ${done && step.doneNote ? `<p class="tutorial-hint">${escapeHTML(step.doneNote)}</p>` : ""}
       ${step.code ? `<pre class="tutorial-answer">${escapeHTML(step.code)}</pre>` : ""}
-      ${step.hints.slice(0, this.shown).map((h, i) => `<p class="tutorial-hint">\u63D0\u793A ${i + 1}\uFF1A${escapeHTML(h)}</p>`).join("")}
-      ${this.answer && step.answer ? `<p class="tutorial-hint">\u53C2\u8003\u7B54\u6848\uFF08\u5BF9\u7167\u7740\u81EA\u5DF1\u5199\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u586B\u5165\uFF09\uFF1A</p><pre class="tutorial-answer">${escapeHTML(step.answer)}</pre>` : ""}
+      ${step.hints.slice(0, this.shown).map((h, i) => `<p class="tutorial-hint">${t("tutorial.card.hint", { n: i + 1, hint: escapeHTML(h) })}</p>`).join("")}
+      ${this.answer && step.answer ? `<p class="tutorial-hint">${t("tutorial.card.answer.note")}</p><pre class="tutorial-answer">${escapeHTML(step.answer)}</pre>` : ""}
       <div class="tutorial-go">${(step.go || []).map(([label2, action]) => `<button data-go="${escapeHTML(action)}">${escapeHTML(label2)}</button>`).join("")}</div>
-      <div class="tutorial-actions">${this.shown < step.hints.length ? `<button data-t="hint">${this.shown ? "\u518D\u7ED9\u4E00\u70B9\u63D0\u793A" : "\u63D0\u793A"}</button>` : ""}${step.answer && !this.answer ? `<button data-t="answer">\u53C2\u8003\u7B54\u6848</button>` : ""}<span></span><button data-t="prev" ${this.index ? "" : "disabled"}>\u4E0A\u4E00\u6B65</button>${done ? `<button class="primary" data-t="next">${this.index === STEPS.length - 1 ? "\u5B8C\u6210" : "\u4E0B\u4E00\u6B65"}</button>` : `<button data-t="skip" title="\u4E0D\u68C0\u67E5\uFF0C\u76F4\u63A5\u770B\u4E0B\u4E00\u6B65">\u8DF3\u8FC7</button>`}</div>`;
+      <div class="tutorial-actions">${this.shown < step.hints.length ? `<button data-t="hint">${this.shown ? t("tutorial.card.moreHint") : t("tutorial.card.hintButton")}</button>` : ""}${step.answer && !this.answer ? `<button data-t="answer">${t("tutorial.card.answer")}</button>` : ""}<span></span><button data-t="prev" ${this.index ? "" : "disabled"}>${t("tutorial.card.back")}</button>${done ? `<button class="primary" data-t="next">${this.index === STEPS.length - 1 ? t("tutorial.card.finish") : t("tutorial.card.next")}</button>` : `<button data-t="skip" title="${t("tutorial.card.skip.tip")}">${t("tutorial.card.skip")}</button>`}</div>`;
     this.el.querySelectorAll("[data-t]").forEach((b) => b.onclick = () => this.act(b.dataset.t));
     this.el.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => this.host.go(b.dataset.go));
   }
@@ -26498,16 +29780,16 @@ var inflt = function(dat, st, buf, dict) {
       var type = bits(dat, pos + 1, 3);
       pos += 3;
       if (!type) {
-        var s = shft(pos) + 4, l = dat[s - 4] | dat[s - 3] << 8, t2 = s + l;
-        if (t2 > sl) {
+        var s = shft(pos) + 4, l = dat[s - 4] | dat[s - 3] << 8, t3 = s + l;
+        if (t3 > sl) {
           if (noSt)
             err(0);
           break;
         }
         if (resize)
           cbuf(bt + l);
-        buf.set(dat.subarray(s, t2), bt);
-        st.b = bt += l, st.p = pos = t2 * 8, st.f = final;
+        buf.set(dat.subarray(s, t3), bt);
+        st.b = bt += l, st.p = pos = t3 * 8, st.f = final;
         continue;
       } else if (type == 1)
         lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
@@ -26628,30 +29910,30 @@ var wbits16 = function(d, p, v) {
   d[o + 2] |= v >> 16;
 };
 var hTree = function(d, mb) {
-  var t2 = [];
+  var t3 = [];
   for (var i = 0; i < d.length; ++i) {
     if (d[i])
-      t2.push({ s: i, f: d[i] });
+      t3.push({ s: i, f: d[i] });
   }
-  var s = t2.length;
-  var t22 = t2.slice();
+  var s = t3.length;
+  var t22 = t3.slice();
   if (!s)
     return { t: et, l: 0 };
   if (s == 1) {
-    var v = new u8(t2[0].s + 1);
-    v[t2[0].s] = 1;
+    var v = new u8(t3[0].s + 1);
+    v[t3[0].s] = 1;
     return { t: v, l: 1 };
   }
-  t2.sort(function(a, b) {
+  t3.sort(function(a, b) {
     return a.f - b.f;
   });
-  t2.push({ s: -1, f: 25001 });
-  var l = t2[0], r = t2[1], i0 = 0, i1 = 1, i2 = 2;
-  t2[0] = { s: -1, f: l.f + r.f, l, r };
+  t3.push({ s: -1, f: 25001 });
+  var l = t3[0], r = t3[1], i0 = 0, i1 = 1, i2 = 2;
+  t3[0] = { s: -1, f: l.f + r.f, l, r };
   while (i1 != s - 1) {
-    l = t2[t2[i0].f < t2[i2].f ? i0++ : i2++];
-    r = t2[i0 != i1 && t2[i0].f < t2[i2].f ? i0++ : i2++];
-    t2[i1++] = { s: -1, f: l.f + r.f, l, r };
+    l = t3[t3[i0].f < t3[i2].f ? i0++ : i2++];
+    r = t3[i0 != i1 && t3[i0].f < t3[i2].f ? i0++ : i2++];
+    t3[i1++] = { s: -1, f: l.f + r.f, l, r };
   }
   var maxSym = t22[0].s;
   for (var i = 1; i < s; ++i) {
@@ -26659,7 +29941,7 @@ var hTree = function(d, mb) {
       maxSym = t22[i].s;
   }
   var tr = new u16(maxSym + 1);
-  var mbt = ln(t2[i1 - 1], tr, 0);
+  var mbt = ln(t3[i1 - 1], tr, 0);
   if (mbt > mb) {
     var i = 0, dt = 0;
     var lft = mbt - mb, cst = 1 << lft;
@@ -26916,14 +30198,14 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
   return slc(o, 0, pre + shft(pos) + post);
 };
 var crct = /* @__PURE__ */ (function() {
-  var t2 = new Int32Array(256);
+  var t3 = new Int32Array(256);
   for (var i = 0; i < 256; ++i) {
     var c = i, k = 9;
     while (--k)
       c = (c & 1 && -306674912) ^ c >>> 1;
-    t2[i] = c;
+    t3[i] = c;
   }
-  return t2;
+  return t3;
 })();
 var crc = function() {
   var c = -1;
@@ -26980,16 +30262,16 @@ function deflateSync(data2, opts) {
 function inflateSync(data2, opts) {
   return inflt(data2, { i: 2 }, opts && opts.out, opts && opts.dictionary);
 }
-var fltn = function(d, p, t2, o) {
+var fltn = function(d, p, t3, o) {
   for (var k in d) {
     var val = d[k], n = p + k, op = o;
     if (Array.isArray(val))
       op = mrg(o, val[1]), val = val[0];
     if (val instanceof u8)
-      t2[n] = [val, op];
+      t3[n] = [val, op];
     else {
-      t2[n += "/"] = [new u8(0), op];
-      fltn(val, n, t2, o);
+      t3[n += "/"] = [new u8(0), op];
+      fltn(val, n, t3, o);
     }
   }
 };
@@ -27224,50 +30506,50 @@ function unzipSync(data2, opts) {
 // ui/workspace.js
 var MAX_BYTES = 4e6;
 var MAX_FILES = 500;
-var LIMIT = `${MAX_FILES} \u4E2A\u6587\u4EF6\u3001${MAX_BYTES / 1e6} MB`;
+var LIMIT = () => t("workspace.limit", { files: MAX_FILES, mb: MAX_BYTES / 1e6 });
 var isSource = (name2) => /\.(s|asm)$/.test(name2);
 function pathName(value) {
-  if (typeof value !== "string") throw Error("\u6587\u4EF6\u8DEF\u5F84\u5FC5\u987B\u662F\u6587\u5B57\u3002");
+  if (typeof value !== "string") throw Error(t("workspace.path.notText"));
   const name2 = value.trim().replaceAll("\\", "/");
   const parts = name2.split("/");
   if (!name2 || name2.startsWith("/") || /^[a-z]:/i.test(name2) || /[\x00-\x1f\x7f]/.test(name2) || parts.some((p) => !p || p === "." || p === ".." || ["__proto__", "constructor", "prototype"].includes(p)))
-    throw Error("\u8BF7\u4F7F\u7528\u5DE5\u7A0B\u5185\u7684\u76F8\u5BF9\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\uFF1B\u8DEF\u5F84\u4E0D\u80FD\u542B\u7A7A\u5C42\u7EA7\u3001.. \u6216\u4FDD\u7559\u540D\u79F0\u3002");
-  if (name2.length > 240) throw Error("\u6587\u4EF6\u8DEF\u5F84\u4E0D\u80FD\u8D85\u8FC7 240 \u4E2A\u5B57\u7B26\u3002");
-  if (/(?:^|\/)\.mars-project\.json$/.test(name2)) throw Error(".mars-project.json \u662F\u5DE5\u7A0B\u5143\u6570\u636E\u4FDD\u7559\u540D\u79F0\u3002");
+    throw Error(t("workspace.path.invalid"));
+  if (name2.length > 240) throw Error(t("workspace.path.tooLong"));
+  if (/(?:^|\/)\.mars-project\.json$/.test(name2)) throw Error(t("workspace.path.reserved"));
   return name2;
 }
 function normalizeProject(input) {
-  if (!input || typeof input !== "object" || !input.files || Array.isArray(input.files)) throw Error("\u4E0D\u662F\u6709\u6548\u7684 MARS \u5DE5\u7A0B\u6587\u4EF6\u3002");
+  if (!input || typeof input !== "object" || !input.files || Array.isArray(input.files)) throw Error(t("workspace.notProject"));
   const files2 = {}, data2 = {}, folders = /* @__PURE__ */ new Set();
   let size = 0, count = 0;
   for (const [kind, target2] of [["files", files2], ["data", data2]]) {
     const values = input[kind] || {};
-    if (typeof values !== "object" || Array.isArray(values)) throw Error("\u5DE5\u7A0B\u6587\u4EF6\u5217\u8868\u65E0\u6548\u3002");
+    if (typeof values !== "object" || Array.isArray(values)) throw Error(t("workspace.badFiles"));
     for (const [key, text2] of Object.entries(values)) {
       const name2 = pathName(key);
-      if (typeof text2 !== "string") throw Error("\u76EE\u524D\u53EA\u652F\u6301 UTF-8 \u6587\u672C\u6587\u4EF6\u3002");
-      if (kind === "files" && !isSource(name2)) throw Error(`\u6E90\u7801\u6587\u4EF6 ${name2} \u9700\u8981\u4F7F\u7528\u5C0F\u5199 .s \u6216 .asm \u6269\u5C55\u540D\u3002`);
-      if (kind === "data" && isSource(name2)) throw Error(`${name2} \u5E94\u653E\u5728\u6E90\u7801\u6587\u4EF6\u4E2D\u3002`);
-      if (Object.hasOwn(files2, name2) || Object.hasOwn(data2, name2)) throw Error(`\u6587\u4EF6\u91CD\u590D\uFF1A${name2}`);
+      if (typeof text2 !== "string") throw Error(t("workspace.textOnly"));
+      if (kind === "files" && !isSource(name2)) throw Error(t("workspace.sourceExtension", { name: name2 }));
+      if (kind === "data" && isSource(name2)) throw Error(t("workspace.belongsInSource", { name: name2 }));
+      if (Object.hasOwn(files2, name2) || Object.hasOwn(data2, name2)) throw Error(t("workspace.duplicate", { name: name2 }));
       size += strToU8(text2).length;
-      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(`\u5DE5\u7A0B\u6700\u591A ${LIMIT} \u6587\u672C\u5185\u5BB9\u3002`);
+      if (++count > MAX_FILES || size > MAX_BYTES) throw Error(t("workspace.tooLarge", { limit: LIMIT() }));
       target2[name2] = text2;
     }
   }
-  if (input.folders != null && !Array.isArray(input.folders)) throw Error("\u6587\u4EF6\u5939\u5217\u8868\u65E0\u6548\u3002");
+  if (input.folders != null && !Array.isArray(input.folders)) throw Error(t("workspace.badFolders"));
   for (const f of input.folders || []) folders.add(pathName(f));
   const names = [...Object.keys(files2), ...Object.keys(data2)];
   for (const name2 of [...names, ...folders]) {
     const parts = name2.split("/");
     for (let i = 1; i < parts.length; i++) folders.add(parts.slice(0, i).join("/"));
   }
-  if (folders.size > MAX_FILES) throw Error(`\u5DE5\u7A0B\u6700\u591A ${MAX_FILES} \u4E2A\u6587\u4EF6\u5939\u3002`);
-  for (const name2 of names) if (folders.has(name2)) throw Error(`${name2} \u4E0D\u80FD\u540C\u65F6\u4F5C\u4E3A\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u3002`);
+  if (folders.size > MAX_FILES) throw Error(t("workspace.tooManyFolders", { max: MAX_FILES }));
+  for (const name2 of names) if (folders.has(name2)) throw Error(t("workspace.fileAndFolder", { name: name2 }));
   const entry = Object.hasOwn(files2, input.entry) ? input.entry : Object.hasOwn(files2, "main.s") ? "main.s" : Object.keys(files2)[0] || "";
   const activeFile2 = input.activeFile === "" ? "" : Object.hasOwn(files2, input.activeFile) || Object.hasOwn(data2, input.activeFile) ? input.activeFile : entry;
   const openTabs = Array.isArray(input.openTabs) ? input.openTabs.filter((n, i, a) => (Object.hasOwn(files2, n) || Object.hasOwn(data2, n)) && a.indexOf(n) === i) : [];
   if (activeFile2 && !openTabs.includes(activeFile2)) openTabs.push(activeFile2);
-  return { version: 3, name: String(input.name || "\u6211\u7684\u5DE5\u7A0B").slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files2) };
+  return { version: 3, name: String(input.name || t("project.defaultName")).slice(0, 80), files: files2, data: data2, folders: [...folders].sort(), entry, activeFile: activeFile2, openTabs, delay: Boolean(input.delay), assembly: normalizeAssembly(input.assembly, files2) };
 }
 var MODES = { auto: "auto", single: "single", manual: "manual", current: "single", joint: "manual" };
 function normalizeAssembly(input, files2) {
@@ -27279,10 +30561,10 @@ function assemblyScope(p, activeFile2) {
   const mode = p.assembly?.mode || "auto";
   if (mode === "manual") {
     const files2 = p.assembly.files.filter((n) => Object.hasOwn(p.files, n));
-    if (!files2.length) return { mode, files: files2, entry: "", error: "\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u8FD8\u6CA1\u6709\u52FE\u9009\u6E90\u7801\u6587\u4EF6\u3002" };
+    if (!files2.length) return { mode, files: files2, entry: "", error: t("scope.manualEmpty") };
     return { mode, files: files2, entry: files2.includes(p.entry) ? p.entry : files2.includes("main.s") ? "main.s" : files2[0] };
   }
-  if (!activeFile2 || !Object.hasOwn(p.files, activeFile2)) return { mode, files: [], entry: "", error: "\u8BF7\u5148\u6253\u5F00\u8981\u6C47\u7F16\u7684 .s / .asm \u6E90\u7801\u6587\u4EF6\u3002" };
+  if (!activeFile2 || !Object.hasOwn(p.files, activeFile2)) return { mode, files: [], entry: "", error: t("scope.openSource") };
   if (mode === "single") return { mode, files: [activeFile2], entry: activeFile2 };
   return autoScope(p.files, activeFile2);
 }
@@ -27293,13 +30575,13 @@ function scanned(name2, text2) {
   return scan;
 }
 function autoScope(sources, activeFile2) {
-  const info = new Map(Object.entries(sources).map(([n, t2]) => [n, scanned(n, t2)]));
+  const info = new Map(Object.entries(sources).map(([n, t3]) => [n, scanned(n, t3)]));
   const hasMain = (n) => info.get(n).defined.has("main");
   const fail = (error) => ({ mode: "auto", files: [], entry: "", error });
   let entry = activeFile2;
   if (!hasMain(activeFile2)) {
     const mains = Object.keys(sources).filter((n) => n !== activeFile2 && dirOf(n) === dirOf(activeFile2) && hasMain(n));
-    if (mains.length > 1) return fail(`${activeFile2} \u6CA1\u6709 main\uFF0C\u6240\u5728\u76EE\u5F55\u91CC\u6709\u591A\u4E2A\u6587\u4EF6\u5B9A\u4E49\u4E86 main\uFF08${mains.join("\u3001")}\uFF09\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u8FD0\u884C\u54EA\u4E00\u4E2A\u3002\u8BF7\u6253\u5F00\u8981\u8FD0\u884C\u7684\u90A3\u4E2A\u6587\u4EF6\u518D\u6C47\u7F16\uFF0C\u6216\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u5355\u6587\u4EF6\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`);
+    if (mains.length > 1) return fail(t("scope.manyMains", { file: activeFile2, mains: mains.join(t("common.listSep")) }));
     if (mains.length) entry = mains[0];
   }
   const files2 = entry === activeFile2 ? [entry] : [entry, activeFile2];
@@ -27309,27 +30591,28 @@ function autoScope(sources, activeFile2) {
     for (const sym of own.refs) {
       if (own.defined.has(sym) || files2.some((n) => provides(n, sym))) continue;
       const providers = Object.keys(sources).filter((n) => !files2.includes(n) && !hasMain(n) && provides(n, sym));
-      const near = providers.filter((n) => dirOf(n) === dirOf(entry)), pick = near.length ? near : providers;
-      if (pick.length > 1) return fail(`${files2[i]} \u7528\u5230\u7684 ${sym} \u540C\u65F6\u5B9A\u4E49\u5728 ${pick.join("\u3001")}\uFF0C\u65E0\u6CD5\u81EA\u52A8\u51B3\u5B9A\u94FE\u63A5\u54EA\u4E00\u4E2A\u3002\u8BF7\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`);
-      if (pick.length) files2.push(pick[0]);
+      const near = providers.filter((n) => dirOf(n) === dirOf(entry)), pick2 = near.length ? near : providers;
+      if (pick2.length > 1) return fail(t("scope.ambiguousSymbol", { file: files2[i], sym, files: pick2.join(t("common.listSep")) }));
+      if (pick2.length) files2.push(pick2[0]);
     }
   }
   return { mode: "auto", files: files2, entry };
 }
-var blankProject = (name2 = "\u6211\u7684\u5DE5\u7A0B") => normalizeProject({ name: name2, files: { "main.s": "# \u5728\u8FD9\u91CC\u7F16\u5199 MIPS \u6C47\u7F16\u7A0B\u5E8F\n.text\n" }, data: {}, entry: "main.s" });
+var blankProject = (name2 = t("project.defaultName")) => normalizeProject({ name: name2, files: { "main.s": `${t("workspace.newSource")}
+` }, data: {}, entry: "main.s" });
 function renamePath(input, from, to) {
   const p = normalizeProject(input);
   from = pathName(from);
   to = pathName(to);
   if (from === to) return p;
   const folder = p.folders.includes(from);
-  if (folder && to.startsWith(from + "/")) throw Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u79FB\u52A8\u5230\u5B83\u81EA\u5DF1\u91CC\u9762\u3002");
-  if (!folder && !Object.hasOwn(p.files, from) && !Object.hasOwn(p.data, from)) throw Error("\u6587\u4EF6\u4E0D\u5B58\u5728\u3002");
-  const match = (n) => n === from || folder && n.startsWith(from + "/");
-  const move = (n) => match(n) ? to + n.slice(from.length) : n;
+  if (folder && to.startsWith(from + "/")) throw Error(t("workspace.moveIntoItself"));
+  if (!folder && !Object.hasOwn(p.files, from) && !Object.hasOwn(p.data, from)) throw Error(t("workspace.missing"));
+  const match2 = (n) => n === from || folder && n.startsWith(from + "/");
+  const move = (n) => match2(n) ? to + n.slice(from.length) : n;
   const all = [...Object.keys(p.files), ...Object.keys(p.data), ...p.folders];
-  for (const n of all.filter(match)) if (all.some((other) => !match(other) && other === move(n))) throw Error(`\u76EE\u6807\u5DF2\u5B58\u5728\uFF1A${move(n)}`);
-  if (!folder && isSource(from) !== isSource(to)) throw Error("\u91CD\u547D\u540D\u65F6\u8BF7\u4FDD\u6301\u6E90\u7801\u6216\u8F93\u5165\u6587\u4EF6\u7684\u7C7B\u578B\u3002");
+  for (const n of all.filter(match2)) if (all.some((other) => !match2(other) && other === move(n))) throw Error(t("workspace.targetExists", { path: move(n) }));
+  if (!folder && isSource(from) !== isSource(to)) throw Error(t("workspace.keepKind"));
   const remap = (obj) => Object.fromEntries(Object.entries(obj).map(([n, text2]) => [move(n), text2]));
   return normalizeProject({ ...p, files: remap(p.files), data: remap(p.data), folders: p.folders.map(move), entry: move(p.entry), activeFile: move(p.activeFile), openTabs: p.openTabs.map(move), assembly: { ...p.assembly, files: p.assembly.files.map(move) } });
 }
@@ -27339,11 +30622,11 @@ function removePath(input, path) {
   const keep = (obj) => Object.fromEntries(Object.entries(obj).filter(([n]) => !matches(n)));
   return normalizeProject({ ...p, files: keep(p.files), data: keep(p.data), folders: p.folders.filter((n) => !matches(n)) });
 }
-function mergeProject(current, incoming, overwrite = false) {
-  const a = normalizeProject(current), b = normalizeProject(incoming);
+function mergeProject(current2, incoming, overwrite = false) {
+  const a = normalizeProject(current2), b = normalizeProject(incoming);
   const names = /* @__PURE__ */ new Set([...Object.keys(a.files), ...Object.keys(a.data)]);
   const conflicts = [...Object.keys(b.files), ...Object.keys(b.data)].filter((n) => names.has(n));
-  if (conflicts.length && !overwrite) throw Error("\u540C\u540D\u6587\u4EF6\uFF1A" + conflicts.join("\u3001"));
+  if (conflicts.length && !overwrite) throw Error(t("workspace.sameName", { files: conflicts.join(t("common.listSep")) }));
   return normalizeProject({ ...a, files: { ...a.files, ...b.files }, data: { ...a.data, ...b.data }, folders: [...a.folders, ...b.folders] });
 }
 function underFolder(input, folder) {
@@ -27363,7 +30646,7 @@ function textFile(bytes, name2) {
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    throw Error(`${name2} \u4E0D\u662F UTF-8 \u6587\u672C\uFF0C\u8BF7\u5148\u8F6C\u6362\u7F16\u7801\u3002`);
+    throw Error(t("workspace.notUtf8", { name: name2 }));
   }
 }
 var ignoredName = (name2) => name2.split("/").some((n) => ["__MACOSX", ".DS_Store", ".git"].includes(n) || n.startsWith("._"));
@@ -27378,18 +30661,18 @@ async function readImports(selected, info = {}) {
       folders.push(name2);
       return;
     }
-    if (seen.has(name2)) throw Error(`\u5BFC\u5165\u4E2D\u5B58\u5728\u540C\u540D\u6587\u4EF6\uFF1A${name2}`);
+    if (seen.has(name2)) throw Error(t("workspace.import.duplicate", { name: name2 }));
     let text2;
     try {
       text2 = textFile(bytes, name2);
     } catch (error) {
       if (!lenient) throw error;
-      info.skipped.push(`${name2}\uFF08\u4E0D\u662F UTF-8 \u6587\u672C\uFF09`);
+      info.skipped.push(t("workspace.import.skipNotText", { name: name2 }));
       return;
     }
     seen.add(name2);
     total += bytes.length;
-    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(`\u5BFC\u5165\u6700\u591A ${LIMIT} \u89E3\u538B\u540E\u6587\u672C\u5185\u5BB9\u3002`);
+    if (total > MAX_BYTES || seen.size > MAX_FILES) throw Error(t("workspace.import.tooLarge", { limit: LIMIT() }));
     (isSource(name2) ? files2 : data2)[name2] = text2;
   };
   for (const f of selected) {
@@ -27397,14 +30680,14 @@ async function readImports(selected, info = {}) {
     if (ignoredName(name2)) continue;
     if (inFolder) info.kind = "folder";
     if (f.size > 2 * MAX_BYTES) {
-      if (!inFolder) throw Error(`\u5355\u4E2A\u5BFC\u5165\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 ${2 * MAX_BYTES / 1e6} MB\u3002`);
-      info.skipped.push(`${name2}\uFF08\u6587\u4EF6\u592A\u5927\uFF09`);
+      if (!inFolder) throw Error(t("workspace.import.fileTooLarge", { mb: 2 * MAX_BYTES / 1e6 }));
+      info.skipped.push(t("workspace.import.skipTooLarge", { name: name2 }));
       continue;
     }
     const bytes = new Uint8Array(await f.arrayBuffer());
     if (name2.endsWith("/.mars-project.json")) {
       const m = JSON.parse(textFile(bytes, name2)), prefix = name2.slice(0, -".mars-project.json".length);
-      if (m.folders != null && !Array.isArray(m.folders)) throw Error("\u6587\u4EF6\u5939\u5DE5\u7A0B\u4FE1\u606F\u65E0\u6548\u3002");
+      if (m.folders != null && !Array.isArray(m.folders)) throw Error(t("workspace.import.badFolderMeta"));
       metadata = { ...m, entry: m.entry ? prefix + m.entry : "", folders: (m.folders || []).map((n) => prefix + n), assembly: m.assembly && { ...m.assembly, files: Array.isArray(m.assembly.files) ? m.assembly.files.map((n) => prefix + n) : [] } };
       continue;
     }
@@ -27414,15 +30697,15 @@ async function readImports(selected, info = {}) {
       const zipNames = /* @__PURE__ */ new Set();
       const archive = unzipSync(bytes, { filter: (e) => {
         if (ignoredName(e.name)) return false;
-        if (!e.name.endsWith("/") && zipNames.has(e.name)) throw Error("ZIP \u5185\u5B58\u5728\u91CD\u590D\u6587\u4EF6\uFF1A" + e.name);
+        if (!e.name.endsWith("/") && zipNames.has(e.name)) throw Error(t("workspace.import.zipDuplicate", { name: e.name }));
         zipNames.add(e.name);
         expanded += e.originalSize;
-        if (expanded > MAX_BYTES + 16e3 || ++entries > 2 * MAX_FILES + 10) throw Error("ZIP \u8D85\u8FC7\u89E3\u538B\u5927\u5C0F\u6216\u6587\u4EF6\u6570\u91CF\u9650\u5236\u3002");
+        if (expanded > MAX_BYTES + 16e3 || ++entries > 2 * MAX_FILES + 10) throw Error(t("workspace.import.zipTooLarge"));
         return true;
       } });
       if (archive[".mars-project.json"]) {
         metadata = JSON.parse(textFile(archive[".mars-project.json"], ".mars-project.json"));
-        if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error("ZIP \u6587\u4EF6\u5939\u4FE1\u606F\u65E0\u6548\u3002");
+        if (metadata.folders != null && !Array.isArray(metadata.folders)) throw Error(t("workspace.import.zipBadFolders"));
         delete archive[".mars-project.json"];
       }
       for (const [n, value] of Object.entries(archive)) add2(n, value, true);
@@ -27439,7 +30722,7 @@ async function readImports(selected, info = {}) {
       add2(name2, bytes);
     } else add2(name2, bytes, inFolder);
   }
-  if (!seen.size && !folders.length) throw Error("\u6CA1\u6709\u53EF\u5BFC\u5165\u7684\u6587\u4EF6\u3002");
+  if (!seen.size && !folders.length) throw Error(t("workspace.import.nothing"));
   return normalizeProject({ ...metadata, files: files2, data: data2, folders: [...folders, ...metadata.folders || []] });
 }
 var stripped = (raw) => raw.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""').replace(/#.*/, "");
@@ -27466,23 +30749,23 @@ function referencesIn(text2) {
   return refs;
 }
 function scopeHints(diagnostics, project, scope) {
-  const labels = new Map(Object.entries(project.files).map(([n, t2]) => [n, labelsIn(t2)]));
-  const list = (names) => names.join("\u3001");
+  const labels = new Map(Object.entries(project.files).map(([n, t3]) => [n, labelsIn(t3)]));
+  const list = (names) => names.join(t("common.listSep"));
   return (diagnostics || []).map((d) => {
     let m = /^"(.+)" already defined as global in a different file/.exec(d.message || "");
     if (m) {
       const owners = scope.files.filter((n) => labels.get(n)?.globals.has(m[1]) && labels.get(n).defined.has(m[1]));
-      return `\u53C2\u4E0E\u8FD9\u6B21\u6C47\u7F16\u7684 ${list(owners.length > 1 ? owners : scope.files)} \u90FD\u5B9A\u4E49\u4E86\u5168\u5C40\u6807\u7B7E ${m[1]}\u3002` + (scope.mode === "manual" ? "\u5982\u679C\u5B83\u4EEC\u662F\u5404\u81EA\u72EC\u7ACB\u7684\u7EC3\u4E60\uFF0C\u8BF7\u53D6\u6D88\u52FE\u9009\u5176\u4E2D\u4E00\u4E2A\uFF0C\u6216\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u3002" : "\u540C\u4E00\u4E2A\u5168\u5C40\u6807\u7B7E\u53EA\u80FD\u5B9A\u4E49\u4E00\u6B21\uFF0C\u8BF7\u6539\u540D\u6216\u5220\u53BB\u5176\u4E2D\u4E00\u4E2A\u3002");
+      return t("diag.duplicateGlobal", { files: list(owners.length > 1 ? owners : scope.files), label: m[1] }) + (scope.mode === "manual" ? t("diag.duplicateGlobal.manual") : t("diag.duplicateGlobal.other"));
     }
     m = /^Symbol "(.+)" not found in symbol table/.exec(d.message || "");
     if (m) {
       const sym = m[1], owners = [...labels].filter(([n, l]) => !scope.files.includes(n) && l.defined.has(sym)).map(([n]) => n);
       if (!owners.length) return "";
       const local = owners.filter((n) => !labels.get(n).globals.has(sym));
-      if (local.length === owners.length) return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u4F46\u6CA1\u6709\u7528 .globl ${sym} \u58F0\u660E\u4E3A\u5168\u5C40\u6807\u7B7E\uFF0C\u5176\u4ED6\u6587\u4EF6\u770B\u4E0D\u5230\u5B83\u3002`;
-      if (scope.mode === "manual") return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u5B83\u6CA1\u6709\u52FE\u9009\u8FDB\u624B\u52A8\u9009\u62E9\u7684\u6C47\u7F16\u8303\u56F4\u3002\u9700\u8981\u65F6\u8BF7\u52FE\u9009\u5B83\u3002`;
-      if (scope.mode === "single") return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u5355\u6587\u4EF6\u6C47\u7F16\u4E0D\u4F1A\u52A0\u5165\u5B83\u3002\u8BF7\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u6216\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`;
-      return `${sym} \u5B9A\u4E49\u5728 ${list(owners)}\uFF0C\u4F46\u90A3\u91CC\u4E5F\u5B9A\u4E49\u4E86 main\uFF08\u662F\u53E6\u4E00\u4E2A\u7A0B\u5E8F\uFF09\uFF0C\u81EA\u52A8\u6C47\u7F16\u4E0D\u4F1A\u628A\u5B83\u94FE\u63A5\u8FDB\u6765\u3002\u9700\u8981\u4E00\u8D77\u6C47\u7F16\u65F6\u8BF7\u6539\u7528\u201C\u624B\u52A8\u9009\u62E9\u8303\u56F4\u201D\u3002`;
+      if (local.length === owners.length) return t("diag.notGlobal", { sym, files: list(owners), sym });
+      if (scope.mode === "manual") return t("diag.notTicked", { sym, files: list(owners) });
+      if (scope.mode === "single") return t("diag.singleFile", { sym, files: list(owners) });
+      return t("diag.otherProgram", { sym, files: list(owners) });
     }
     return "";
   });
@@ -27567,12 +30850,12 @@ function projectManager(hooks) {
   function save() {
     clearTimeout(timer);
     if (draftLocked) {
-      message("\u65E7\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6 \xB7 \u672A\u8986\u76D6");
+      message(t("project.status.unreadable"));
       return false;
     }
     const done = (ok2) => {
       failed = !ok2;
-      message(ok2 ? "\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668" : "\u672A\u80FD\u4FDD\u5B58 \xB7 \u8BF7\u5BFC\u51FA\u5DE5\u7A0B");
+      message(ok2 ? t("project.status.saved") : t("project.status.failed"));
     };
     try {
       saving = put(DRAFT_KEY, snapshot()).then(() => done(true), () => done(false));
@@ -27583,12 +30866,12 @@ function projectManager(hooks) {
   }
   function changed() {
     if (replacing) return;
-    message("\u6B63\u5728\u4FDD\u5B58\u2026");
+    message(t("project.status.saving"));
     clearTimeout(timer);
     timer = setTimeout(save, 350);
   }
   async function apply(input, backup = true) {
-    if (hooks.busy()) throw Error("\u8BF7\u5148\u6682\u505C\u6267\u884C\uFF0C\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
+    if (hooks.busy()) throw Error(t("project.busy"));
     const p = normalizeProject(input);
     draftLocked = false;
     clearTimeout(timer);
@@ -27610,19 +30893,19 @@ function projectManager(hooks) {
   }
   function setAssembly(patch, entry = meta2.entry) {
     if (hooks.busy()) {
-      hooks.notify("\u8BF7\u5148\u6682\u505C\u6267\u884C\uFF0C\u518D\u4FEE\u6539\u6C47\u7F16\u8303\u56F4\u3002");
+      hooks.notify(t("project.busyScope"));
       render2();
       return;
     }
-    const current = hooks.sourceFile?.() || hooks.snapshot().activeFile, assembly = { ...meta2.assembly, ...patch };
+    const current2 = hooks.sourceFile?.() || hooks.snapshot().activeFile, assembly = { ...meta2.assembly, ...patch };
     if (patch.mode === "manual" && !assembly.files.length) {
-      const auto = assemblyScope({ ...snapshot(), assembly: { mode: "auto", files: [] } }, current);
+      const auto = assemblyScope({ ...snapshot(), assembly: { mode: "auto", files: [] } }, current2);
       if (!auto.error) {
         assembly.files = auto.files;
         entry = auto.entry;
-      } else if (current && isSource(current)) {
-        assembly.files = [current];
-        entry = current;
+      } else if (current2 && isSource(current2)) {
+        assembly.files = [current2];
+        entry = current2;
       }
     }
     meta2 = normalizeProject({ ...snapshot(), assembly, entry });
@@ -27631,7 +30914,7 @@ function projectManager(hooks) {
     hooks.scopeChanged();
   }
   function form(title, label2, value, action, hint = "") {
-    hooks.modal(title, `<form id="project-form"><label>${escapeHTML(label2)}<input id="project-value" value="${escapeHTML(value)}" required autocomplete="off"></label>${hint ? `<p class="muted">${escapeHTML(hint)}</p>` : ""}<p id="project-error" role="alert"></p><div class="project-actions"><button type="button" id="project-cancel">\u53D6\u6D88</button><button class="primary">\u786E\u5B9A</button></div></form>`);
+    hooks.modal(title, `<form id="project-form"><label>${escapeHTML(label2)}<input id="project-value" value="${escapeHTML(value)}" required autocomplete="off"></label>${hint ? `<p class="muted">${escapeHTML(hint)}</p>` : ""}<p id="project-error" role="alert"></p><div class="project-actions"><button type="button" id="project-cancel">${t("common.cancel")}</button><button class="primary">${t("common.ok")}</button></div></form>`);
     $("project-cancel").onclick = () => $("modal").close();
     $("project-form").onsubmit = async (e) => {
       e.preventDefault();
@@ -27650,7 +30933,7 @@ function projectManager(hooks) {
     $("project-value").select();
   }
   function confirm(title, explanation, label2, action) {
-    hooks.modal(title, `<p class="project-explanation">${escapeHTML(explanation)}</p><p class="muted">\u5F53\u524D\u5DE5\u7A0B\u4F1A\u4FDD\u7559\u4E00\u4EFD\u5907\u4EFD\uFF0C\u53EF\u4ECE\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\uFF1B\u91CD\u8981\u4EE3\u7801\u8BF7\u5148\u5BFC\u51FA\u3002</p><p id="project-error" role="alert"></p><div class="project-actions"><button id="project-cancel">\u53D6\u6D88</button><button class="primary" id="project-confirm">${escapeHTML(label2)}</button></div>`);
+    hooks.modal(title, `<p class="project-explanation">${escapeHTML(explanation)}</p><p class="muted">${t("project.backupNote")}</p><p id="project-error" role="alert"></p><div class="project-actions"><button id="project-cancel">${t("common.cancel")}</button><button class="primary" id="project-confirm">${escapeHTML(label2)}</button></div>`);
     $("project-cancel").onclick = () => $("modal").close();
     $("project-confirm").onclick = async (e) => {
       e.target.disabled = true;
@@ -27665,9 +30948,9 @@ function projectManager(hooks) {
   }
   function create(folder = "", directory = false) {
     const prefix = folder ? folder + "/" : "";
-    form(directory ? "\u65B0\u5EFA\u6587\u4EF6\u5939" : "\u65B0\u5EFA\u6587\u4EF6", "\u5DE5\u7A0B\u5185\u8DEF\u5F84", prefix + (directory ? "\u65B0\u6587\u4EF6\u5939" : "new.s"), async (value) => {
+    form(directory ? t("files.newFolder") : t("files.newFile"), t("files.path"), prefix + (directory ? t("files.newFolder.default") : "new.s"), async (value) => {
       const name2 = pathName(value), p = snapshot();
-      if (Object.hasOwn(p.files, name2) || Object.hasOwn(p.data, name2) || p.folders.includes(name2)) throw Error("\u8FD9\u4E2A\u540D\u79F0\u5DF2\u7ECF\u5B58\u5728\u3002");
+      if (Object.hasOwn(p.files, name2) || Object.hasOwn(p.data, name2) || p.folders.includes(name2)) throw Error(t("files.exists"));
       if (directory) p.folders.push(name2);
       else if (isSource(name2)) {
         p.files[name2] = "";
@@ -27681,7 +30964,7 @@ function projectManager(hooks) {
       }
       await apply(p);
       if (!directory && !isSource(name2)) setTimeout(() => hooks.editData(name2));
-    }, directory ? "\u6587\u4EF6\u5939\u53EF\u4EE5\u5D4C\u5957\uFF1B\u5C55\u5F00\u6587\u4EF6\u5939\u53F3\u4FA7\u7684 \u22EF \u53EF\u5728\u5176\u4E2D\u65B0\u5EFA\u3002" : "\u5C0F\u5199 .s / .asm \u662F MIPS \u6E90\u7801\uFF0C\u4F1A\u53C2\u4E0E\u6C47\u7F16\uFF1B.c / .h \u548C .txt \u7B49\u662F\u666E\u901A\u6587\u672C\uFF0C\u53EF\u4EE5\u9605\u8BFB\u548C\u7F16\u8F91\uFF0C\u4E5F\u80FD\u4F5C\u4E3A\u7A0B\u5E8F\u7684\u865A\u62DF\u8F93\u5165\u3002");
+    }, directory ? t("files.newFolder.hint") : t("files.newFile.hint"));
   }
   function download(bytes, name2, type) {
     const url = URL.createObjectURL(new Blob([bytes], { type }));
@@ -27697,7 +30980,7 @@ function projectManager(hooks) {
   }
   function menu(path, folder) {
     const p = snapshot();
-    hooks.modal(folder ? "\u6587\u4EF6\u5939 \xB7 " + path : "\u6587\u4EF6 \xB7 " + path, `<div class="file-actions">${folder ? '<button id="node-new-file">\u65B0\u5EFA\u6587\u4EF6</button><button id="node-new-folder">\u65B0\u5EFA\u5B50\u6587\u4EF6\u5939</button>' : '<button id="node-download">\u4E0B\u8F7D\u6B64\u6587\u4EF6</button>'}${isSource(path) && !folder && p.assembly.mode === "manual" ? `<button id="node-entry" ${p.entry === path && p.assembly.files.includes(path) ? "disabled" : ""}>${p.entry === path && p.assembly.files.includes(path) ? "\u5F53\u524D\u6C47\u7F16\u5165\u53E3" : "\u8BBE\u4E3A\u6C47\u7F16\u5165\u53E3"}</button>` : ""}<button id="node-rename">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8</button><button class="danger" id="node-delete">${folder ? "\u5220\u9664\u6587\u4EF6\u5939\u53CA\u5176\u5185\u5BB9" : "\u5220\u9664\u6587\u4EF6"}</button></div><p class="muted">\u91CD\u547D\u540D\uFF0F\u79FB\u52A8\u65F6\u586B\u5199\u5B8C\u6574\u5DE5\u7A0B\u8DEF\u5F84\uFF0C\u4F8B\u5982 src/main.s\u3002</p>`);
+    hooks.modal(folder ? t("files.node.folder", { path }) : t("files.node.file", { path }), `<div class="file-actions">${folder ? `<button id="node-new-file">${t("files.newFile")}</button><button id="node-new-folder">${t("files.newSubfolder")}</button>` : `<button id="node-download">${t("files.download")}</button>`}${isSource(path) && !folder && p.assembly.mode === "manual" ? `<button id="node-entry" ${p.entry === path && p.assembly.files.includes(path) ? "disabled" : ""}>${p.entry === path && p.assembly.files.includes(path) ? t("files.isEntry") : t("files.setEntry")}</button>` : ""}<button id="node-rename">${t("files.rename")}</button><button class="danger" id="node-delete">${folder ? t("files.deleteFolder") : t("files.delete")}</button></div><p class="muted">${t("files.rename.hint")}</p>`);
     if (folder) {
       $("node-new-file").onclick = () => create(path);
       $("node-new-folder").onclick = () => create(path, true);
@@ -27706,17 +30989,17 @@ function projectManager(hooks) {
       setAssembly({ files: [.../* @__PURE__ */ new Set([...meta2.assembly.files, path])] }, path);
       $("modal").close();
     };
-    $("node-rename").onclick = () => form("\u91CD\u547D\u540D\uFF0F\u79FB\u52A8", "\u65B0\u8DEF\u5F84", path, (value) => apply(renamePath(snapshot(), path, value)));
+    $("node-rename").onclick = () => form(t("files.rename"), t("files.newPath"), path, (value) => apply(renamePath(snapshot(), path, value)));
     $("node-delete").onclick = () => {
       const count = [...Object.keys(p.files), ...Object.keys(p.data)].filter((n) => n === path || n.startsWith(path + "/")).length;
-      confirm("\u786E\u8BA4\u5220\u9664", `\u5220\u9664 ${path}${folder ? ` \u53CA\u5176\u4E2D ${count} \u4E2A\u6587\u4EF6` : ""}\uFF1F`, "\u5220\u9664", () => apply(removePath(snapshot(), path)));
+      confirm(t("files.confirmDelete"), t("files.confirmDelete.text", { path, contents: folder ? ` ${t("files.confirmDelete.contents", { count })}` : "" }), t("common.delete"), () => apply(removePath(snapshot(), path)));
     };
   }
   const collapsed = /* @__PURE__ */ new Set();
   function render2() {
     const p = snapshot();
     $("project-title").textContent = p.name;
-    $("project-title").title = "\u4FEE\u6539\u5DE5\u7A0B\u540D\u79F0";
+    $("project-title").title = t("project.rename.title");
     const joint = p.assembly.mode === "manual", chosen = p.assembly.files;
     const scopeEntry = chosen.includes(p.entry) ? p.entry : chosen.includes("main.s") ? "main.s" : chosen[0];
     const rows = (parent) => {
@@ -27724,9 +31007,9 @@ function projectManager(hooks) {
       const immediate = (name2) => name2.startsWith(base2) && !name2.slice(base2.length).includes("/");
       const directories = p.folders.filter(immediate);
       const paths = [...Object.keys(p.files), ...Object.keys(p.data)].filter(immediate).sort();
-      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary>${icon("folder")}${icon("open")}<span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="\u7BA1\u7406\u6587\u4EF6\u5939" aria-label="\u7BA1\u7406\u6587\u4EF6\u5939 ${escapeHTML(path)}">\u22EF</button></summary><ul>${rows(path) || '<li class="tree-empty">\u7A7A\u6587\u4EF6\u5939</li>'}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${escapeHTML(path)} \u53C2\u4E0E\u6C47\u7F16" title="\u53C2\u4E0E\u6C47\u7F16">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}">${icon(fileKind(path))}<span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? '<small class="entry-badge">\u5165\u53E3</small>' : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="\u7BA1\u7406\u6587\u4EF6" aria-label="\u7BA1\u7406\u6587\u4EF6 ${escapeHTML(path)}">\u22EF</button></li>`).join("");
+      return directories.map((path) => `<li><details data-folder="${escapeHTML(path)}" ${collapsed.has(path) ? "" : "open"}><summary>${icon("folder")}${icon("open")}<span class="folder-name">${escapeHTML(path.slice(base2.length))}</span><button class="tree-menu" data-node="${escapeHTML(path)}" data-directory="true" title="${t("files.manageFolder")}" aria-label="${t("files.manageFolder.label", { path: escapeHTML(path) })}">\u22EF</button></summary><ul>${rows(path) || `<li class="tree-empty">${t("files.emptyFolder")}</li>`}</ul></details></li>`).join("") + paths.map((path) => `<li class="tree-row ${path === p.activeFile ? "active" : ""} ${hooks.hasError(path) ? "has-error" : ""} ${joint && chosen.includes(path) ? "joined" : ""}">${joint && isSource(path) ? `<input type="checkbox" class="joint-pick" data-joint="${escapeHTML(path)}" ${chosen.includes(path) ? "checked" : ""} aria-label="${t("files.joint.label", { path: escapeHTML(path) })}" title="${t("files.joint")}">` : ""}<button class="tree-open" ${isSource(path) ? "data-file" : "data-data"}="${escapeHTML(path)}" title="${escapeHTML(path)}">${icon(fileKind(path))}<span class="tree-name">${escapeHTML(path.slice(base2.length))}</span>${joint && path === scopeEntry ? `<small class="entry-badge" title="${t("assembly.entry")}" aria-label="${t("assembly.entry")}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8M7 4.5 10.5 8 7 11.5"/><path d="M13.5 3v10"/></svg></small>` : ""}</button><button class="tree-menu" data-node="${escapeHTML(path)}" title="${t("files.manageFile")}" aria-label="${t("files.manageFile.label", { path: escapeHTML(path) })}">\u22EF</button></li>`).join("");
     };
-    $("files").innerHTML = `<ul class="file-tree" aria-label="\u5DE5\u7A0B\u6587\u4EF6\u6811">${rows("") || '<li class="tree-empty">\u5DE5\u7A0B\u4E3A\u7A7A\uFF0C\u70B9\u51FB \uFF0B \u65B0\u5EFA\u6587\u4EF6\uFF0C\u6216\u4ECE\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u3002</li>'}</ul>`;
+    $("files").innerHTML = `<ul class="file-tree" aria-label="${t("files.tree")}">${rows("") || `<li class="tree-empty">${t("files.empty")}</li>`}</ul>`;
     $("files").querySelectorAll("[data-file]").forEach((b) => b.onclick = () => hooks.openFile(b.dataset.file));
     $("files").querySelectorAll("[data-data]").forEach((b) => b.onclick = () => hooks.editData(b.dataset.data));
     $("files").querySelectorAll("[data-node]").forEach((b) => b.onclick = (e) => {
@@ -27741,16 +31024,16 @@ function projectManager(hooks) {
     $("files").querySelectorAll("[data-joint]").forEach((c) => c.onchange = () => setAssembly({ files: c.checked ? [...chosen, c.dataset.joint] : chosen.filter((n) => n !== c.dataset.joint) }));
     $("joint-settings").hidden = !joint;
     const scope = assemblyScope(p, hooks.sourceFile?.() || p.activeFile);
-    $("assembly-mode-name").textContent = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u9009\u62E9\u8303\u56F4" }[p.assembly.mode];
-    $("assembly-hint").textContent = scope.error ? scope.error : joint ? `\u52FE\u9009\u7684 ${chosen.length} \u4E2A\u6E90\u7801\u4E00\u8D77\u6C47\u7F16\uFF0C\u4ECE\u5165\u53E3\u5F00\u59CB\u6267\u884C\uFF1B\u672A\u52FE\u9009\u7684\u4E0D\u53C2\u4E0E\u3002` : p.assembly.mode === "single" ? `\u53EA\u6C47\u7F16 ${scope.entry}\u3002` : `\u4ECE ${scope.entry} \u7684 main \u5F00\u59CB${scope.files.length > 1 ? `\uFF0C\u94FE\u63A5 ${scope.files.filter((n) => n !== scope.entry).join("\u3001")}` : ""}\uFF1B\u5176\u4ED6\u6587\u4EF6\u4E0D\u53C2\u4E0E\u3002`;
-    $("entry-file").innerHTML = chosen.map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === scopeEntry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || '<option value="">\u5148\u52FE\u9009\u6E90\u7801</option>';
+    $("assembly-mode-name").textContent = { auto: t("assembly.mode.auto"), single: t("assembly.mode.single"), manual: t("assembly.mode.manualName") }[p.assembly.mode];
+    $("assembly-hint").textContent = scope.error ? scope.error : joint ? t("assembly.hint.manual", { count: chosen.length }) : p.assembly.mode === "single" ? t("assembly.hint.single", { entry: scope.entry }) : t("assembly.hint.auto", { entry: scope.entry, linked: scope.files.length > 1 ? t("assembly.hint.linked", { files: scope.files.filter((n) => n !== scope.entry).join(t("common.listSep")) }) : "" });
+    $("entry-file").innerHTML = chosen.map((name2) => `<option value="${escapeHTML(name2)}" ${name2 === scopeEntry ? "selected" : ""}>${escapeHTML(name2)}</option>`).join("") || `<option value="">${t("assembly.hint.tick")}</option>`;
     $("entry-file").disabled = !chosen.length;
     $("export-file").disabled = !p.activeFile;
     $("restore-project").disabled = !previous && !hasBackup;
   }
   function importDialog() {
     const folders = "webkitdirectory" in $("folder-upload") && !/Android|iPhone|iPad/i.test(navigator.userAgent) && !(/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
-    hooks.modal("\u5BFC\u5165", `<button id="choose-files" class="drop-zone"><b>\u628A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u6216 ZIP \u62D6\u5230\u8FD9\u91CC\uFF0C\u6216\u70B9\u51FB\u9009\u62E9</b><small>\u652F\u6301 .s / .asm\u3001UTF-8 \u6587\u672C\u3001ZIP \u548C MARS \u5DE5\u7A0B JSON\uFF1B\u6700\u591A ${MAX_FILES} \u4E2A\u6587\u4EF6\u3001${MAX_BYTES / 1e6} MB \u6587\u672C\u3002</small></button><p class="muted import-folder">${folders ? '<button id="choose-folder" class="link-button">\u9009\u62E9\u6587\u4EF6\u5939\u2026</button>' : "\u8FD9\u4E2A\u6D4F\u89C8\u5668\u4E0D\u80FD\u9009\u62E9\u6587\u4EF6\u5939\u3002\u8BF7\u628A\u6587\u4EF6\u5939\u538B\u7F29\u6210 ZIP \u518D\u5BFC\u5165\u3002"}</p>`);
+    hooks.modal(t("import.title"), `<button id="choose-files" class="drop-zone"><b>${t("import.drop")}</b><small>${t("import.supported", { files: MAX_FILES, mb: MAX_BYTES / 1e6 })}</small></button><p class="muted import-folder">${folders ? `<button id="choose-folder" class="link-button">${t("import.chooseFolder")}</button>` : t("import.noFolder")}</p>`);
     const zone = $("choose-files");
     zone.onclick = () => {
       $("upload").value = "";
@@ -27794,7 +31077,7 @@ function projectManager(hooks) {
       if (info.kind) preview(incoming, info);
       else await add2(incoming);
     } catch (error) {
-      hooks.modal("\u5BFC\u5165\u672A\u5B8C\u6210", `<p role="alert">${escapeHTML(error.message)}</p><p>\u5F53\u524D\u5DE5\u7A0B\u672A\u6539\u53D8\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u540E\u91CD\u8BD5\u3002</p>`);
+      hooks.modal(t("import.failed"), `<p role="alert">${escapeHTML(error.message)}</p><p>${t("import.failed.note")}</p>`);
     }
   }
   async function add2(incoming, folder = "") {
@@ -27804,18 +31087,18 @@ function projectManager(hooks) {
       return apply({ ...m, activeFile: m.activeFile || Object.keys(b.files)[0] || "" });
     };
     const conflicts = names.filter((n) => Object.hasOwn(p.files, n) || Object.hasOwn(p.data, n));
-    if (conflicts.length) return confirm("\u5B58\u5728\u540C\u540D\u6587\u4EF6", "\u4EE5\u4E0B\u6587\u4EF6\u4F1A\u88AB\u8986\u76D6\uFF1A" + conflicts.join("\u3001"), "\u8986\u76D6\u540C\u540D\u5E76\u6DFB\u52A0", () => merge(true));
+    if (conflicts.length) return confirm(t("import.conflict"), t("import.conflict.note", { files: conflicts.join(t("common.listSep")) }), t("import.conflict.overwrite"), () => merge(true));
     await merge(false);
     $("modal").close();
-    hooks.notify(`\u5DF2\u6DFB\u52A0 ${names.length} \u4E2A\u6587\u4EF6\u3002`, { transient: true });
+    hooks.notify(t("import.added", { count: names.length }), { transient: true });
   }
   function preview(incoming, { kind, skipped }) {
     const sources = Object.keys(incoming.files), inputs = Object.keys(incoming.data), row2 = (n, tag) => `<li><span>${escapeHTML(n)}</span><small>${tag}</small></li>`;
-    hooks.modal("\u5BFC\u5165\u5DE5\u7A0B", `<p class="project-explanation"><b>${{ zip: "ZIP \u5DE5\u7A0B\u5305", json: "MARS \u5DE5\u7A0B", folder: "\u6587\u4EF6\u5939" }[kind]}</b>\uFF1A${sources.length} \u4E2A\u6E90\u7801\u3001${inputs.length} \u4E2A\u8F93\u5165\u6587\u4EF6${skipped.length ? `\uFF0C\u8DF3\u8FC7 ${skipped.length} \u4E2A` : ""}\u3002</p><ul class="import-preview" aria-label="\u5C06\u5BFC\u5165\u7684\u6587\u4EF6">${sources.map((n) => row2(n, "\u6E90\u7801")).join("")}${inputs.map((n) => row2(n, "\u8F93\u5165")).join("")}${skipped.map((n) => `<li class="skipped"><span>${escapeHTML(n)}</span><small>\u8DF3\u8FC7</small></li>`).join("")}</ul><fieldset class="import-target"><label><input type="radio" name="import-target" value="replace" checked> \u4F5C\u4E3A\u65B0\u5DE5\u7A0B\u6253\u5F00\uFF08\u66FF\u6362\u5F53\u524D\u5185\u5BB9\uFF09</label><label><input type="radio" name="import-target" value="add"> \u6DFB\u52A0\u5230\u5F53\u524D\u5DE5\u7A0B</label><label class="import-where">\u6DFB\u52A0\u5230 <select id="import-folder" disabled><option value="">\u6839\u76EE\u5F55</option>${snapshot().folders.map((f) => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join("")}</select></label></fieldset><p class="muted">\u5F53\u524D\u5DE5\u7A0B\u4F1A\u4FDD\u7559\u4E00\u4EFD\u5907\u4EFD\uFF0C\u53EF\u4ECE\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u3002</p><p id="project-error" role="alert"></p><div class="project-actions"><button id="project-cancel">\u53D6\u6D88</button><button id="project-confirm" class="primary">\u66FF\u6362\u5DE5\u7A0B</button></div>`);
+    hooks.modal(t("import.project"), `<p class="project-explanation"><b>${{ zip: t("import.kind.zip"), json: t("import.kind.json"), folder: t("import.kind.folder") }[kind]}</b>${t("import.preview.summary", { sources: sources.length, inputs: inputs.length, skipped: skipped.length ? t("import.preview.skipped", { count: skipped.length }) : "" })}</p><ul class="import-preview" aria-label="${t("import.preview.files")}">${sources.map((n) => row2(n, t("import.preview.source"))).join("")}${inputs.map((n) => row2(n, t("import.preview.input"))).join("")}${skipped.map((n) => `<li class="skipped"><span>${escapeHTML(n)}</span><small>${t("import.preview.skip")}</small></li>`).join("")}</ul><fieldset class="import-target"><label><input type="radio" name="import-target" value="replace" checked> ${t("import.asNew")}</label><label><input type="radio" name="import-target" value="add"> ${t("import.addToCurrent")}</label><label class="import-where">${t("import.addInto")} <select id="import-folder" disabled><option value="">${t("import.root")}</option>${snapshot().folders.map((f) => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join("")}</select></label></fieldset><p class="muted">${t("import.backupNote")}</p><p id="project-error" role="alert"></p><div class="project-actions"><button id="project-cancel">${t("common.cancel")}</button><button id="project-confirm" class="primary">${t("import.replace")}</button></div>`);
     const adding = () => document.querySelector("[name=import-target]:checked").value === "add";
     document.querySelectorAll("[name=import-target]").forEach((r) => r.onchange = () => {
       $("import-folder").disabled = !adding();
-      $("project-confirm").textContent = adding() ? "\u6DFB\u52A0\u5230\u5DE5\u7A0B" : "\u66FF\u6362\u5DE5\u7A0B";
+      $("project-confirm").textContent = adding() ? t("import.add") : t("import.replace");
     });
     $("project-cancel").onclick = () => $("modal").close();
     $("project-confirm").onclick = async (e) => {
@@ -27832,9 +31115,9 @@ function projectManager(hooks) {
       }
     };
   }
-  $("new-project").onclick = () => confirm("\u65B0\u5EFA\u7A7A\u767D\u5DE5\u7A0B", "\u6E05\u7A7A\u5F53\u524D\u5DE5\u4F5C\u533A\uFF0C\u521B\u5EFA\u4E00\u4E2A\u4E0D\u5E26\u6F14\u793A\u4EE3\u7801\u7684 main.s\u3002", "\u65B0\u5EFA\u5DE5\u7A0B", () => apply(blankProject()));
-  $("project-title").onclick = () => form("\u5DE5\u7A0B\u540D\u79F0", "\u540D\u79F0", snapshot().name, (value) => {
-    if (!value.trim()) throw Error("\u8BF7\u8F93\u5165\u540D\u79F0\u3002");
+  $("new-project").onclick = () => confirm(t("commands.newProject"), t("project.new.note"), t("menu.project.new"), () => apply(blankProject()));
+  $("project-title").onclick = () => form(t("project.name"), t("project.name.label"), snapshot().name, (value) => {
+    if (!value.trim()) throw Error(t("project.name.required"));
     return apply({ ...snapshot(), name: value.trim() });
   });
   $("new-file").onclick = () => create();
@@ -27848,11 +31131,11 @@ function projectManager(hooks) {
   $("save-local").onclick = async () => {
     save();
     await saving;
-    hooks.notify(failed ? "\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u4FDD\u5B58\u3002" : "\u6E90\u7801\u5DF2\u4FDD\u5B58\u5230\u6B64\u6D4F\u89C8\u5668\uFF1B\u6362\u8BBE\u5907\u524D\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u3002", { transient: true });
+    hooks.notify(failed ? t("project.saveUnavailable") : t("project.savedNote"), { transient: true });
   };
   $("save").onclick = () => {
     const p = snapshot();
-    hooks.modal("\u5BFC\u51FA\u5DE5\u7A0B", '<p>\u4FDD\u5B58\u5230\u7535\u8111\u540E\u53EF\u91CD\u65B0\u5BFC\u5165\uFF0C\u6216\u53D1\u7ED9\u8001\u5E08\u3002\u6E90\u7801\u3001\u8F93\u5165\u6587\u4EF6\u3001\u76EE\u5F55\u3001\u6C47\u7F16\u65B9\u5F0F\u548C\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u90FD\u4F1A\u4FDD\u7559\u3002</p><div class="file-actions"><button id="download-zip">\u4E0B\u8F7D ZIP\uFF08\u5305\u542B\u539F\u59CB\u6587\u4EF6\uFF09</button><button id="download-json">\u4E0B\u8F7D MARS \u5DE5\u7A0B JSON</button></div>');
+    hooks.modal(t("export.title"), `<p>${t("export.note")}</p><div class="file-actions"><button id="download-zip">${t("export.zip")}</button><button id="download-json">${t("export.json")}</button></div>`);
     const basename = p.name.replace(/[\\/:*?"<>|]/g, "-") || "mars-project";
     $("download-zip").onclick = () => {
       download(projectZip(p), basename + ".zip", "application/zip");
@@ -27868,7 +31151,7 @@ function projectManager(hooks) {
   $("restore-project").onclick = async () => {
     try {
       const restore = previous || normalizeProject(await get(BACKUP_KEY));
-      confirm("\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u524D\u7684\u5DE5\u7A0B", `\u6062\u590D\u201C${restore.name}\u201D\u7684\u6587\u4EF6\u3002\u5F53\u524D\u5185\u5BB9\u4F1A\u6210\u4E3A\u4E0B\u4E00\u4EFD\u5907\u4EFD\u3002`, "\u6062\u590D", () => apply(restore));
+      confirm(t("restore.title"), t("restore.note", { name: restore.name }), t("restore.button"), () => apply(restore));
     } catch (error) {
       hooks.notify(error.message);
     }
@@ -27911,7 +31194,7 @@ function projectManager(hooks) {
       render2();
       save();
     },
-    example: (p, name2) => confirm("\u6253\u5F00\u793A\u4F8B", "\u793A\u4F8B\u4F1A\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B\u3002\u53EF\u4EE5\u901A\u8FC7\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u5F53\u524D\u5185\u5BB9\u3002", "\u6253\u5F00\u793A\u4F8B", async () => {
+    example: (p, name2) => confirm(t("examples.open"), t("examples.open.note"), t("examples.open"), async () => {
       await apply({ ...p, name: name2 });
       await hooks.assemble();
     }),
@@ -27924,19 +31207,19 @@ function projectManager(hooks) {
         draftLocked = true;
         render2();
         hooks.selectActive("");
-        hooks.notify("\u4E4B\u524D\u7684\u6D4F\u89C8\u5668\u8349\u7A3F\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u672A\u8986\u76D6\u65E7\u8349\u7A3F\u3002\u53EF\u5BFC\u5165\u5DE5\u7A0B\u6062\u590D\uFF0C\u6216\u65B0\u5EFA\u5DE5\u7A0B\u91CD\u65B0\u5F00\u59CB\u3002");
+        hooks.notify(t("project.draftUnreadable"));
         return;
       }
       hasBackup = await get(BACKUP_KEY).then(Boolean, () => false);
       await apply(p || blankProject(), false);
-      hooks.notify(p ? "\u5DF2\u6062\u590D\u6B64\u6D4F\u89C8\u5668\u4E2D\u7684\u5DE5\u7A0B\uFF1B\u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002" : "\u7A7A\u767D\u5DE5\u7A0B\u5DF2\u5C31\u7EEA\uFF1A\u53EF\u76F4\u63A5\u5199\u4EE3\u7801\uFF0C\u6216\u5728\u201C\u5DE5\u7A0B\u201D\u83DC\u5355\u5BFC\u5165\u81EA\u5DF1\u7684\u6587\u4EF6\u3002");
+      hooks.notify(p ? t("project.restored") : t("project.blankReady"));
     }
   };
 }
 
 // ui/live-check.js
 var MAX_LINES = 200;
-function liveCheck({ post, current, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
+function liveCheck({ post, current: current2, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
   let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
   const flying = {}, waiting = {};
   async function send(kind, body, accept, asked = version) {
@@ -27970,7 +31253,7 @@ function liveCheck({ post, current, scope, ready, held, showLines, showScope, li
       lineTimer = setTimeout(checkLines, retryDelay);
       return;
     }
-    const { file, doc: doc2 } = current();
+    const { file, doc: doc2 } = current2();
     if (!changed || !file) return;
     const first = doc2.lineAt(Math.min(changed.from, doc2.length)).number, last2 = Math.min(doc2.lineAt(Math.min(changed.to, doc2.length)).number, first + MAX_LINES);
     const lines = Array.from({ length: last2 - first + 1 }, (_, i) => first + i);
@@ -28041,6 +31324,9 @@ function liveCheck({ post, current, scope, ready, held, showLines, showScope, li
 
 // ui/main.js
 var $2 = (id2) => document.getElementById(id2);
+var LIST_SEP = () => t("common.listSep");
+var COLON = () => t("common.colon");
+var chordNote = "";
 var CONTROL_OPS = /^(?:j|jal|jr|jalr|b|beq|bne|bgez|bgtz|blez|bltz|bgezal|bltzal|blt|bgt|ble|bge|bltu|bgtu|bleu|bgeu|beqz|bnez)$/;
 var CURATED = new Map(
   instructionIndex({}).filter((x) => x.kind === "instruction").map((x) => [x.op, x])
@@ -28048,7 +31334,7 @@ var CURATED = new Map(
 function zhDoc(op) {
   if (explanations[op]) return explanations[op];
   const c = CURATED.get(op);
-  return c ? `${c.purpose}${c.note ? "\uFF1B" + c.note : ""}\u3002` : "";
+  return c ? `${c.purpose}${c.note ? t("common.semicolon") + c.note : ""}${t("common.period")}` : "";
 }
 function usage(op, source = "") {
   const c = CURATED.get(op);
@@ -28103,7 +31389,7 @@ var Dot = class extends GutterMarker {
     e.className = "break-dot" + (this.breakpoint && !this.breakpoint.enabled ? " off" : "") + (this.breakpoint && this.breakpoint.address == null ? " stale" : "");
     e.textContent = breakpointGlyph(this.breakpoint);
     if (this.breakpoint && this.breakpoint.address == null)
-      e.title = "\u8FD9\u4E2A\u6587\u4EF6\u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF0C\u65AD\u70B9\u6682\u4E0D\u751F\u6548";
+      e.title = t("breakpoint.outsideScope");
     return e;
   }
 };
@@ -28122,7 +31408,7 @@ function breakableAddress(line) {
 }
 var INLINE_LINES = 12;
 var inlineCache = { key: null, map: /* @__PURE__ */ new Map() };
-var DELAY_NOP = "\u5EF6\u8FDF\u69FD\u5360\u4F4D\uFF1A\u5F00\u542F\u201C\u5EF6\u8FDF\u5206\u652F\u201D\u65F6\uFF0C\u8DF3\u8F6C\u6216\u5206\u652F\u540E\u9762\u7D27\u8DDF\u7684\u8FD9\u4E00\u6761\u603B\u4F1A\u5148\u6267\u884C\uFF0C\u653E nop \u53EF\u4EE5\u4FDD\u8BC1\u7A0B\u5E8F\u5728\u4E24\u79CD\u8BBE\u7F6E\u4E0B\u90FD\u6B63\u786E\u3002\u5173\u95ED\u65F6\u5B83\u4EC0\u4E48\u4E5F\u4E0D\u505A\u3002";
+var DELAY_NOP = () => t("editor.delaySlot");
 var delayCache = { program: null, lines: /* @__PURE__ */ new Set() };
 function delaySlots() {
   if (delayCache.program === program.instructions) return delayCache.lines;
@@ -28235,7 +31521,7 @@ var decorations2 = ViewPlugin.fromClass(
             ranges.push(
               Decoration.line({
                 class: cls.join(" "),
-                attributes: slot ? { title: DELAY_NOP } : {}
+                attributes: slot ? { title: DELAY_NOP() } : {}
               }).range(l.from)
             );
           const inline = currentExecution && inlineValues().get(activeFile + ":" + l.number);
@@ -28308,9 +31594,9 @@ var PeekWidget = class extends WidgetType {
   toDOM() {
     const { token, refs } = this.peek, box = document.createElement("div");
     box.className = "cm-peek";
-    box.innerHTML = `<div class="cm-peek-head"><b>${escapeHTML(token)}</b> \xB7 ${refs.length} \u5904\u5F15\u7528<button data-peek-close aria-label="\u5173\u95ED">\xD7</button></div>` + (refs.length ? refs.map(
+    box.innerHTML = `<div class="cm-peek-head"><b>${escapeHTML(token)}</b> ${t("peek.count", { count: refs.length })}<button data-peek-close aria-label="${t("common.close")}">\xD7</button></div>` + (refs.length ? refs.map(
       (r, i) => `<button class="cm-peek-row" data-peek="${i}"><span>${escapeHTML(r.file)}:${r.line}</span><small>${escapeHTML(r.type)}</small><code>${escapeHTML(r.text.trim())}</code></button>`
-    ).join("") : '<p class="muted">\u65E0\u9759\u6001\u5F15\u7528\u3002</p>');
+    ).join("") : `<p class="muted">${t("peek.none")}</p>`);
     box.querySelector("[data-peek-close]").onclick = () => closePeek();
     box.addEventListener("keydown", (e) => {
       const rows = [...box.querySelectorAll("[data-peek]")], i = rows.indexOf(document.activeElement);
@@ -28376,14 +31662,14 @@ function editorMenu(x, y, pos) {
   editor.dispatch({ selection: { anchor: pos } });
   const items = [
     [
-      "\u8FD0\u884C\u5230\u6B64\u884C",
+      t("editor.menu.runToLine"),
       canRun && address != null,
       () => run2("run", { breakpoints: [...activeBreakpoints(), { address }] })
     ],
-    ["\u5207\u6362\u65AD\u70B9", address != null, () => toggleBreakpoint(line), "breakpoint"],
-    ["\u7F16\u8F91\u65AD\u70B9\u2026", address != null, () => editBreakpoint(address)],
-    ["\u8F6C\u5230\u5B9A\u4E49\uFF0F\u8BF4\u660E", true, () => openDetail(pos)],
-    ["\u67E5\u770B\u5F15\u7528", !!token, () => peekReferences()]
+    [t("editor.menu.toggleBreakpoint"), address != null, () => toggleBreakpoint(line), "breakpoint"],
+    [t("editor.menu.editBreakpoint"), address != null, () => editBreakpoint(address)],
+    [t("editor.menu.definition"), true, () => openDetail(pos)],
+    [t("editor.menu.references"), !!token, () => peekReferences()]
   ];
   const menu = document.createElement("div");
   menu.id = "context-menu";
@@ -28470,7 +31756,7 @@ function drawErrors() {
       const r = errorRange(editor.state.doc, d);
       if (r)
         marks2.push(
-          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: d.message, warning: d.warning }).range(r.from, r.to)
+          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: marsText(d.message), warning: d.warning }).range(r.from, r.to)
         );
     }
   editor.dispatch({ effects: setErrorMarks.of(Decoration.set(marks2, true)) });
@@ -28483,7 +31769,7 @@ function showLineProblems(lines, list) {
   for (const d of list) {
     const r = errorRange(doc2, d);
     if (r && !kept.some((k) => k.from === r.from))
-      kept.push(Decoration.mark({ class: "cm-error-mark", message: d.message, warning: false, live: true }).range(r.from, r.to));
+      kept.push(Decoration.mark({ class: "cm-error-mark", message: marsText(d.message), warning: false, live: true }).range(r.from, r.to));
   }
   editor.dispatch({ effects: setErrorMarks.of(Decoration.set(kept, true)) });
 }
@@ -28617,7 +31903,7 @@ var editor = new EditorView({
           renderTabs();
           if (!source || !target || target.files.includes(activeFile)) {
             dirty = true;
-            $2("banner").textContent = source ? "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C" : "\u8F93\u5165\u6587\u4EF6\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u4F7F\u7528\u65B0\u5185\u5BB9";
+            $2("banner").textContent = source ? t("banner.sourceChanged") : t("banner.inputChanged");
             $2("banner").className = "visible";
           }
           updateControls();
@@ -28714,7 +32000,7 @@ function regValue(name2) {
 }
 function valueHTML(n) {
   let v = n | 0, c = v & 255;
-  return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII\u4F4E\u5B57\u8282</span><span>${c >= 32 && c < 127 ? escapeHTML(String.fromCharCode(c)) : c === 0 ? "NUL" : "\u4E0D\u53EF\u6253\u5370"} (${c})</span></div>`;
+  return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>${t("tip.asciiLow")}</span><span>${c >= 32 && c < 127 ? escapeHTML(String.fromCharCode(c)) : c === 0 ? "NUL" : t("tip.notPrintable")} (${c})</span></div>`;
 }
 function syscallAt(place) {
   const p = state?.preview?.instruction;
@@ -28752,40 +32038,40 @@ function syscallAt(place) {
 }
 var tipUsage = (op) => {
   const u = usage(op);
-  return u ? `<p class="tip-formula">\u5199\u6CD5\uFF1A<code>${escapeHTML(u.format)}</code></p>` : "";
+  return u ? `<p class="tip-formula">${t("tip.syntax")}<code>${escapeHTML(u.format)}</code></p>` : "";
 };
 var isNumber = (token) => /^-?(?:0x[\da-f]+|\d+)$/i.test(token);
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u503C</small>`;
+    return `<b>${escapeHTML(token)}</b> ${escapeHTML(fmt(regValue(token), 4, regKind(token)).text)}<p>${escapeHTML(role(token))}</p><small>${t("tip.valueAfter", { step: state?.step ?? 0 })}</small>`;
   if (token === "syscall") {
     const at = syscallAt(place), g = serviceGuide[at.n];
-    return `<b>${escapeHTML(at.n == null ? "syscall\uFF08$v0 \u672A\u77E5\uFF09" : `syscall\uFF1A${g ? g[0] : "\u4E0D\u652F\u6301"}\uFF08$v0 = ${at.n}\uFF09`)}</b><p>${escapeHTML(g ? g[1] : "syscall \u505A\u4EC0\u4E48\u7531 $v0 \u91CC\u7684\u6570\u51B3\u5B9A\uFF1B\u8981\u6267\u884C\u5230\u8FD9\u4E00\u884C\u624D\u77E5\u9053\u3002")}</p>${at.setter ? `<small>\u7B2C ${at.setter.line} \u884C ${escapeHTML(at.setter.text)} \u653E\u5165</small>` : ""}`;
+    return `<b>${escapeHTML(at.n == null ? t("tip.syscallUnknown") : `syscall${COLON()}${g ? g[0] : t("tip.unsupported")}${t("common.inParens", { text: `$v0 = ${at.n}` })}`)}</b><p>${escapeHTML(g ? g[1] : t("tip.syscallLater"))}</p>${at.setter ? `<small>${t("tip.syscallSetter", { line: at.setter.line, code: escapeHTML(at.setter.text) })}</small>` : ""}`;
   }
   if (zhDoc(token)) {
     const text2 = zhDoc(token);
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${tipUsage(token)}${lineFormula(place)}<small>\u6307\u4EE4\uFF0F\u6C47\u7F16\u5668\u8BF4\u660E</small>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(text2)}</p>${tipUsage(token)}${lineFormula(place)}<small>${t("tip.instructionDoc")}</small>`;
   }
   if (directiveGuide[token])
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(directiveGuide[token][1])}</p><p class="tip-formula">\u5199\u6CD5\uFF1A<code>${escapeHTML(directiveGuide[token][0])}</code></p><small>\u6C47\u7F16\u5668\u6307\u793A\uFF0C\u4E0D\u662F\u673A\u5668\u6307\u4EE4</small>`;
-  if (isNumber(token)) return `<b>${escapeHTML(token)}</b><p>\u5199\u5728\u4EE3\u7801\u91CC\u7684\u5E38\u6570</p>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(directiveGuide[token][1])}</p><p class="tip-formula">${t("tip.syntax")}<code>${escapeHTML(directiveGuide[token][0])}</code></p><small>${t("tip.directive")}</small>`;
+  if (isNumber(token)) return `<b>${escapeHTML(token)}</b><p>${t("tip.constant")}</p>`;
   if (program.instructionDocs[token]) {
     const doc2 = program.instructionDocs[token], mars = withOperands(doc2.description, doc2.example, line);
-    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p>${lineFormula(place)}<small>MARS \u539F\u6587${mars.substituted ? "\uFF08\u5DF2\u4EE3\u5165\u672C\u884C\u7684\u64CD\u4F5C\u6570\uFF09" : `\uFF08\u793A\u4F8B\uFF1A${escapeHTML(doc2.example)}\uFF09`}</small>`;
+    return `<b>${escapeHTML(token)}</b><p>${escapeHTML(mars.text)}</p>${lineFormula(place)}<small>${t("tip.marsOriginal", { example: mars.substituted ? t("tip.marsSubstituted") : t("tip.marsExample", { example: escapeHTML(doc2.example) }) })}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
-    return `<b>${escapeHTML(token)}</b><p>\u7B26\u53F7\u5730\u5740 ${hex(symbol.address)}</p><small>${DETAIL_KEYS}\u8DF3\u8F6C\u5B9A\u4E49</small>`;
-  return `<b>${escapeHTML(token)}</b><p>\u6807\u7B7E\u6216\u540D\u79F0\uFF1B\u6C47\u7F16\u540E\u53EF\u67E5\u770B\u5730\u5740</p>`;
+    return `<b>${escapeHTML(token)}</b><p>${t("tip.symbolAddress", { address: hex(symbol.address) })}</p><small>${t("tip.symbolJump", { keys: DETAIL_KEYS() })}</small>`;
+  return `<b>${escapeHTML(token)}</b><p>${t("tip.label")}</p>`;
 }
 function definitions(text2) {
   const terms = termsIn(text2);
-  return terms.length ? `<dl class="defs">${terms.map(([t2, d]) => `<dt>${escapeHTML(t2)}</dt><dd>${escapeHTML(d)}</dd>`).join("")}</dl>` : "";
+  return terms.length ? `<dl class="defs">${terms.map(([t3, d]) => `<dt>${escapeHTML(t3)}</dt><dd>${escapeHTML(d)}</dd>`).join("")}</dl>` : "";
 }
 var IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
-var DETAIL_KEYS = IS_MAC ? "\u2318 \u6216 Ctrl\uFF0B\u70B9\u51FB" : "Ctrl\uFF0B\u70B9\u51FB";
-var DETAIL_HINT = `${DETAIL_KEYS}\uFF1A\u8BE6\u60C5\u5728\u53F3\u4FA7\u201C\u8BE6\u7EC6\u68C0\u67E5\u201D`;
+var DETAIL_KEYS = () => IS_MAC ? t("keys.detailMac") : t("keys.detail");
+var DETAIL_HINT = () => t("tip.detailHint", { keys: DETAIL_KEYS() });
 var tipFor = "";
 var tipHide = null;
 function cancelTooltipHide() {
@@ -28842,7 +32128,7 @@ function hover(e) {
   if (key === tipFor && !$2("tooltip").hidden) return;
   tipFor = key;
   const report = problem ? `<div class="tip-error" role="alert">${escapeHTML(problem)}</div>` : "";
-  $2("tooltip").innerHTML = token ? `${report}<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">\u5728\u53F3\u4FA7\u67E5\u770B\u8BE6\u7EC6 \u2192</button>` : report;
+  $2("tooltip").innerHTML = token ? `${report}<div class="tip-hint">${DETAIL_HINT()}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">${t("tip.detailButton")}</button>` : report;
   if (token)
     $2("tooltip").querySelector(".tip-detail").onclick = () => {
       inspectToken(token, place);
@@ -28853,7 +32139,7 @@ function hover(e) {
     const go = document.createElement("button");
     go.className = "tip-detail";
     go.type = "button";
-    go.textContent = "\u4F5C\u4E3A\u5730\u5740\u67E5\u770B";
+    go.textContent = t("inspector.asAddress");
     go.onclick = () => {
       memoryAt(regValue(reg2));
       hideTooltip2(0);
@@ -28869,7 +32155,7 @@ function openDetail(pos, past = false) {
   const line = editor.state.doc.lineAt(pos), place = { file: activeFile, line: line.number };
   const word = line.text.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim().split(/\s+/)[0];
   const token = (past ? "" : tokenAt(pos)) || word;
-  if (!token) return notify("\u8FD9\u4E00\u884C\u6CA1\u6709\u6307\u4EE4\u53EF\u4EE5\u67E5\u770B\u3002", { transient: true });
+  if (!token) return notify(t("inspector.noInstruction"), { transient: true });
   inspectToken(token, place);
 }
 function openDetailAt(e) {
@@ -28888,11 +32174,11 @@ function revealContext() {
 }
 $2("tooltip").addEventListener("mouseenter", cancelTooltipHide);
 $2("tooltip").addEventListener("mouseleave", () => hideTooltip2());
-var CONTEXT_HINT = `<p class="muted">\u8FD8\u6CA1\u6709\u56FA\u5B9A\u68C0\u67E5\u5BF9\u8C61\u3002\u60AC\u505C\u4EE3\u7801\u770B\u7B80\u77ED\u8BF4\u660E\uFF1B${DETAIL_KEYS}\u3001\u70B9\u6D6E\u7A97\u91CC\u7684\u201C\u67E5\u770B\u8BE6\u7EC6\u201D\u6216\u6309 F12\uFF0C\u5728\u8FD9\u91CC\u67E5\u770B\u5B8C\u6574\u8BF4\u660E\u3002</p>`;
+var CONTEXT_HINT = () => `<p class="muted">${t("inspector.empty", { keys: DETAIL_KEYS() })}</p>`;
 function followInspector() {
   if (!following || !state || dirty || running) return;
   const e = state.last?.instruction ? state.last : state.preview, ins = e?.instruction;
-  if (!ins) return showContext(CONTEXT_HINT);
+  if (!ins) return showContext(CONTEXT_HINT());
   const word = ((files[ins.file] || "").split("\n")[ins.line - 1] || "").replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "").trim().split(/\s+/)[0];
   const token = ins.op === "syscall" ? "syscall" : isInstruction(word) ? word : ins.op;
   inspectToken(token, { file: ins.file, line: ins.line }, { refresh: true });
@@ -28902,13 +32188,13 @@ function modeBar() {
   const at = (e) => e?.instruction && `${e.instruction.file}:${e.instruction.line}`;
   if (following) {
     const e = state.last?.instruction ? state.last : state.preview;
-    return e?.instruction ? `<div class="inspect-mode">\u8DDF\u968F\u6267\u884C \xB7 ${state.last?.instruction ? "\u521A\u6267\u884C" : "\u5373\u5C06\u6267\u884C"}\u7684\u7B2C ${e.instruction.line} \u884C</div>` : "";
+    return e?.instruction ? `<div class="inspect-mode">${t("inspector.following", { when: state.last?.instruction ? t("inspector.following.done") : t("inspector.following.next"), line: e.instruction.line })}</div>` : "";
   }
   if (!inspecting) return "";
   const pinned2 = inspectingPlace ? `${inspectingPlace.file}:${inspectingPlace.line}` : "";
   const here2 = program.instructions.find((i) => i.address === executionPC());
   const away = pinned2 && here2 && ![at(state.last), at(state.preview)].includes(pinned2);
-  return `<div class="inspect-mode pinned">\u5DF2\u56FA\u5B9A \xB7 ${escapeHTML(inspecting)}${inspectingPlace ? ` \xB7 \u7B2C ${inspectingPlace.line} \u884C` : ""}${away ? ` \xB7 \u6267\u884C\u5DF2\u5230\u7B2C ${here2.line} \u884C` : ""}<button id="follow-again">\u56DE\u5230\u8DDF\u968F\u6267\u884C</button></div>`;
+  return `<div class="inspect-mode pinned">${t("inspector.pinned", { item: escapeHTML(inspecting), line: inspectingPlace ? ` ${t("inspector.pinned.line", { line: inspectingPlace.line })}` : "", away: away ? ` ${t("inspector.pinned.away", { line: here2.line })}` : "" })}<button id="follow-again">${t("inspector.followAgain")}</button></div>`;
 }
 var CONTEXT_ICONS = {
   // The same mark as the return-to-execution button: go to a line.
@@ -28949,7 +32235,7 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
   if (address) {
     let base2 = regValue(address[2]), offset = Number(address[1] || 0), effective = base2 + offset | 0;
     showContext(
-      `<h3>${escapeHTML(token)}</h3><p>\u6309\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u5BC4\u5B58\u5668\u503C\u7B97\u51FA\u7684\u5730\u5740</p><div class="values"><span>\u57FA\u5740</span><span>${escapeHTML(address[2])} = ${hex(base2)}</span><span>\u504F\u79FB</span><span>${offset} \u5B57\u8282</span><span>\u5730\u5740</span><span>${hex(effective)}</span></div><button id="inspect-memory">\u67E5\u770B\u5185\u5B58 \u2192</button>`
+      `<h3>${escapeHTML(token)}</h3><p>${t("inspector.addressAfter", { step: state?.step ?? 0 })}</p><div class="values"><span>${t("inspector.address.base")}</span><span>${escapeHTML(address[2])} = ${hex(base2)}</span><span>${t("inspector.address.offset")}</span><span>${t("inspector.address.bytes", { offset })}</span><span>${t("common.address")}</span><span>${hex(effective)}</span></div><button id="inspect-memory">${t("inspector.viewMemory")}</button>`
     );
     $2("inspect-memory").onclick = () => memoryAt(effective);
     return;
@@ -28960,7 +32246,7 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
     pinned.add(token);
     let value = regValue(token), last2 = state?.lastWriters?.[token];
     showContext(
-      `<h3>${escapeHTML(token)} <small class="muted">\u5BC4\u5B58\u5668</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value)}<p class="muted">\u6267\u884C ${state?.step ?? 0} \u6B65\u540E\u7684\u503C \xB7 ${last2 ? `\u6700\u540E\u4E00\u6B21\u5199\u5165\u5728\u7B2C ${last2} \u6B65` : "\u8FD8\u6CA1\u6709\u88AB\u5199\u5165\u8FC7\uFF08\u521D\u59CB\u503C\uFF09"}</p><div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button><button id="pin">${pinned.has(token) ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A"}</button><button id="point">\u4F5C\u4E3A\u5730\u5740\u67E5\u770B</button><button id="last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165</button><button id="next-write">\u8FD0\u884C\u5230\u4E0B\u6B21\u5199\u5165</button></div>`
+      `<h3>${escapeHTML(token)} <small class="muted">${t("inspector.register")}</small></h3><p>${escapeHTML(role(token))}</p>${valueHTML(value)}<p class="muted">${t("inspector.register.value", { step: state?.step ?? 0, lastWrite: last2 ? t("inspector.lastWriteAt", { last: last2 }) : t("inspector.neverWritten") })}</p><div class="context-actions"><button id="refs">${t("inspector.references")}</button><button id="pin">${pinned.has(token) ? t("inspector.unpin") : t("inspector.pin")}</button><button id="point">${t("inspector.asAddress")}</button><button id="last-write" ${last2 ? "" : "disabled"}>${t("inspector.lastWrite")}</button><button id="next-write">${t("inspector.runToWrite")}</button></div>`
     );
     $2("refs").onclick = () => showReferences(token);
     $2("pin").onclick = () => {
@@ -28975,15 +32261,15 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
     return;
   }
   if (token === "syscall") {
-    const at = syscallAt(place), detail = syscallDetail({ ...at, regTitle: (r) => r + "\uFF1A" + role(r) }), words = (serviceGuide[at.n] || []).flat(2).join(" ") + " \u5BC4\u5B58\u5668 syscall";
+    const at = syscallAt(place), detail = syscallDetail({ ...at, regTitle: (r) => r + COLON() + role(r) }), words = t("inspector.syscall.terms", { words: (serviceGuide[at.n] || []).flat(2).join(" ") });
     showContext(
-      `<h3>${escapeHTML(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? '<button id="char-table">\u67E5\u770B\u5B57\u7B26\u7F16\u7801\u8868</button>' : ""}<button id="service-list">$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48</button></div>`
+      `<h3>${escapeHTML(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>${t("common.terms")}</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? `<button id="char-table">${t("inspector.charTable")}</button>` : ""}<button id="service-list">${t("inspector.syscall.services")}</button></div>`
     );
     if ($2("char-table")) $2("char-table").onclick = () => $2("radix-help").click();
     $2("service-list").onclick = () => modal(
-      "syscall\uFF1A$v0 \u9009\u5B9A\u505A\u4EC0\u4E48",
+      t("inspector.syscall.title"),
       Object.entries(services).map(
-        ([id2, s]) => `<p><b>$v0 = ${id2}</b> ${serviceGuide[id2]?.[0] || s[0]} \xB7 ${serviceGuide[id2]?.[1] || ""} <small class="muted">\u53C2\u6570 ${s[1].join(", ") || "\u65E0"} \u2192 ${s[2].join(", ") || "\u65E0\u8FD4\u56DE\u503C"}</small></p>`
+        ([id2, s]) => `<p><b>$v0 = ${id2}</b> ${serviceGuide[id2]?.[0] || s[0]} \xB7 ${serviceGuide[id2]?.[1] || ""} <small class="muted">${t("inspector.syscall.args", { args: s[1].join(", ") || t("common.none"), result: s[2].join(", ") || t("inspector.syscall.noResult") })}</small></p>`
       ).join("")
     );
     return;
@@ -28991,7 +32277,7 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol) {
     showContext(
-      `<h3>${escapeHTML(token)}</h3><p>\u7B26\u53F7\u5730\u5740 <code>${hex(symbol.address)}</code></p><div class="context-actions"><button id="definition">\u5B9A\u4E49</button><button id="symbol-memory">\u67E5\u770B\u5185\u5B58</button><button id="refs">\u5F15\u7528</button></div>`
+      `<h3>${escapeHTML(token)}</h3><p>${t("inspector.symbol.address")} <code>${hex(symbol.address)}</code></p><div class="context-actions"><button id="definition">${t("inspector.symbol.definition")}</button><button id="symbol-memory">${t("inspector.symbol.memory")}</button><button id="refs">${t("inspector.symbol.references")}</button></div>`
     );
     $2("definition").onclick = () => gotoSymbol(symbol);
     $2("symbol-memory").onclick = () => memoryAt(symbol.address);
@@ -29003,17 +32289,17 @@ function inspectToken(token, place = null, { refresh: refresh2 = false } = {}) {
   if (directiveGuide[token]) {
     const [written, does] = directiveGuide[token];
     showContext(
-      `<h3>${escapeHTML(token)} <small class="muted">\u6C47\u7F16\u5668\u6307\u793A</small></h3><p>${escapeHTML(does)}</p><dl class="detail-steps"><dt>\u5199\u6CD5</dt><dd><code>${escapeHTML(written)}</code></dd></dl><p class="muted">\u5B83\u544A\u8BC9\u6C47\u7F16\u5668\u600E\u4E48\u5B89\u6392\u5185\u5BB9\uFF0C\u672C\u8EAB\u4E0D\u662F\u4E00\u6761\u673A\u5668\u6307\u4EE4\uFF0C\u4E0D\u4F1A\u5355\u72EC\u6267\u884C\u3002</p>`
+      `<h3>${escapeHTML(token)} <small class="muted">${t("inspector.directive")}</small></h3><p>${escapeHTML(does)}</p><dl class="detail-steps"><dt>${t("common.syntax")}</dt><dd><code>${escapeHTML(written)}</code></dd></dl><p class="muted">${t("inspector.directive.note")}</p>`
     );
     return;
   }
   if (isNumber(token)) {
-    showContext(`<h3>${escapeHTML(token)} <small class="muted">\u5E38\u6570</small></h3><p>\u5199\u5728\u4EE3\u7801\u91CC\u7684\u6570\uFF0C\u540C\u4E00\u4E2A\u503C\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A</p>${valueHTML(Number(token))}`);
+    showContext(`<h3>${escapeHTML(token)} <small class="muted">${t("inspector.constant")}</small></h3><p>${t("inspector.constant.note")}</p>${valueHTML(Number(token))}`);
     return;
   }
   const known = zhDoc(token) || program.instructionDocs[token]?.description, u = isInstruction(token) ? usage(token) : null;
   showContext(
-    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(known || "\u6807\u7B7E\u6216\u540D\u79F0\u3002\u6C47\u7F16\u540E\u53EF\u4EE5\u67E5\u770B\u5B83\u7684\u5730\u5740\uFF1B\u4E5F\u53EF\u4EE5\u67E5\u627E\u4EE3\u7801\u91CC\u54EA\u4E9B\u5730\u65B9\u7528\u5230\u5B83\u3002")}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">\u67E5\u627E\u5F15\u7528</button></div>`
+    `<h3>${escapeHTML(token)}</h3><p>${escapeHTML(known || t("inspector.label"))}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">${t("inspector.references")}</button></div>`
   );
   $2("refs").onclick = () => showReferences(token);
 }
@@ -29024,10 +32310,10 @@ function labelLine(name2) {
 function usageRows(u) {
   const part = (p) => {
     const line = p.name === "label" && p.value ? labelLine(p.value) : null;
-    return `<li><code>${escapeHTML(p.name)}</code>${p.value ? ` = <code>${escapeHTML(p.value)}</code>` : ""} ${escapeHTML(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>\uFF08\u7B2C ${line} \u884C\uFF09</small>` : ""}</li>`;
+    return `<li><code>${escapeHTML(p.name)}</code>${p.value ? ` = <code>${escapeHTML(p.value)}</code>` : ""} ${escapeHTML(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>${t("inspector.lineRef", { line })}</small>` : ""}</li>`;
   };
   const written = u.parts.some((p) => p.value);
-  return `<dl class="detail-steps"><dt>\u5199\u6CD5</dt><dd><code>${escapeHTML(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>\u901A\u7528\u89C4\u5219</dt><dd><code>${escapeHTML(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>\u4F8B\u5B50</dt><dd><code>${escapeHTML(u.example)}</code></dd>` : ""}</dl>`;
+  return `<dl class="detail-steps"><dt>${t("common.syntax")}</dt><dd><code>${escapeHTML(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>${t("inspector.rule")}</dt><dd><code>${escapeHTML(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>${t("common.example")}</dt><dd><code>${escapeHTML(u.example)}</code></dd>` : ""}</dl>`;
 }
 var isInstruction = (token) => !!(zhDoc(token) || program.instructionDocs[token]);
 function lineRun(place) {
@@ -29089,48 +32375,48 @@ var plainEq = (parts = []) => parts.map(
   (p) => typeof p === "string" ? p : p.num ? fmt(p.v, p.w, p.k).text : p.t
 ).join("");
 function lineFormula(place) {
-  const t2 = lineTemplate(place);
-  return t2 ? `<p class="tip-formula">\u672C\u884C\uFF1A<code>${escapeHTML(plainEq(t2))}</code></p>` : "";
+  const formula = lineTemplate(place);
+  return formula ? `<p class="tip-formula">${t("inspector.thisLine")}<code>${escapeHTML(plainEq(formula))}</code></p>` : "";
 }
 function instructionDetail(token, place) {
   const source = ((files[place.file] || "").split("\n")[place.line - 1] || "").trim(), doc2 = zhDoc(token) || withOperands(program.instructionDocs[token].description, program.instructionDocs[token].example, source).text, run3 = lineRun(place), model = run3 ? lineModel(place, run3.events) : null, template = model?.template || lineTemplate(place);
   const where = `${place.file}:${place.line}`;
-  const status = dirty ? "\u4EE3\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u624D\u6709\u6570\u503C" : !state ? "\u5C1A\u672A\u6C47\u7F16" : !run3 ? "\u8FD9\u6B21\u8FD0\u884C\u4E2D\u8FD8\u6CA1\u6709\u6267\u884C\u5230\u8FD9\u4E00\u884C" : run3.kind === "last" ? `\u521A\u6267\u884C\uFF08\u7B2C ${run3.step} \u6B65\uFF09` : run3.kind === "next" ? "\u5373\u5C06\u6267\u884C \xB7 \u4E0B\u9762\u662F\u9884\u89C8\uFF0C\u5C1A\u672A\u6267\u884C" : `\u7B2C ${run3.step} \u6B65\u6267\u884C\u8FC7\uFF08\u4E0D\u662F\u6700\u8FD1\u4E00\u6B65\uFF09`;
+  const status = dirty ? t("inspector.stale") : !state ? t("status.notAssembledYet") : !run3 ? t("inspector.notReached") : run3.kind === "last" ? t("inspector.justRun", { step: run3.step }) : run3.kind === "next" ? t("inspector.preview") : t("inspector.ranAt", { step: run3.step });
   const value = (o, v) => fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
-  const label2 = (o) => o.kind === "memory" ? `\u5185\u5B58[${hex(o.address)}]` : o.name;
-  const labelHTML = (o) => o.kind === "memory" ? escapeHTML(label2(o)) : `<abbr class="reg-term" title="${escapeHTML(o.name + "\uFF1A" + role(o.name))}">${escapeHTML(o.name)}</abbr>`;
+  const label2 = (o) => o.kind === "memory" ? t("inspector.memoryCell", { address: hex(o.address) }) : o.name;
+  const labelHTML = (o) => o.kind === "memory" ? escapeHTML(label2(o)) : `<abbr class="reg-term" title="${escapeHTML(o.name + COLON() + role(o.name))}">${escapeHTML(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read), writes = (model?.objects || []).filter((o) => o.write);
   const single = template && !(run3?.events?.length > 1) && !run3?.pseudo;
   const written = usage(token, source);
   const bitsEvent = (run3?.events || []).find(supportsBits);
   const rows = [];
   if (template && single && !written?.formula)
-    rows.push(["\u901A\u7528\u89C4\u5219", `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
+    rows.push([t("inspector.rule"), `<code>${escapeHTML(genericTemplate(template, source))}</code>`]);
   if (template)
-    rows.push(["\u672C\u884C\u4EE3\u5165", `<code>${escapeHTML(plainEq(template))}</code>`]);
+    rows.push([t("inspector.substituted"), `<code>${escapeHTML(plainEq(template))}</code>`]);
   if (model) {
     const both = writes.filter((w) => w.kind === "register" && reads.some((r) => r.name === w.name));
     rows.push([
-      run3.kind === "next" ? "\u5F53\u524D\u6267\u884C\u524D\u6570\u503C" : "\u6267\u884C\u524D\u6570\u503C",
-      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${escapeHTML(value(o, o.before))}</b>`).join("\uFF0C") : "\u4E0D\u8BFB\u53D6\u5BC4\u5B58\u5668\u6216\u5185\u5B58") + both.map((o) => `<small class="detail-when">\u53F3\u8FB9\u7684 ${escapeHTML(o.name)} \u7528\u7684\u662F\u6267\u884C\u524D\u7684 ${escapeHTML(value(o, o.before))}\uFF0C\u7ED3\u679C ${escapeHTML(value(o, o.after))} \u5199\u56DE\u540E ${escapeHTML(o.name)} \u624D\u53D8\u3002</small>`).join("")
+      run3.kind === "next" ? t("inspector.valuesBeforeNow") : t("inspector.valuesBefore"),
+      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${escapeHTML(value(o, o.before))}</b>`).join(t("common.comma")) : t("inspector.noReads")) + both.map((o) => `<small class="detail-when">${t("inspector.sameRegister", { reg: escapeHTML(o.name), before: escapeHTML(value(o, o.before)), after: escapeHTML(value(o, o.after)), reg: escapeHTML(o.name) })}</small>`).join("")
     ]);
     rows.push([
-      "\u8BA1\u7B97\u8FC7\u7A0B",
+      t("inspector.computation"),
       `<ol>${model.beats.map((b) => `<li><code>${escapeHTML(plainEq(b.eq))}</code>${b.caption ? ` <small>${escapeHTML(b.caption)}</small>` : ""}</li>`).join("")}</ol>`
     ]);
     rows.push([
-      "\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C",
-      (writes.length ? writes.map((o) => `${labelHTML(o)}\uFF1A${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || "\u6CA1\u6709\u5199\u5165\u5BC4\u5B58\u5668\u6216\u5185\u5B58")) + `<small class="detail-when">${run3.kind === "next" ? "\u9884\u89C8\uFF1A\u5C1A\u672A\u6267\u884C" : "\u6267\u884C\u540E\u7684\u5B9E\u9645\u7ED3\u679C"}</small>`
+      t("inspector.valuesAfter"),
+      (writes.length ? writes.map((o) => `${labelHTML(o)}${COLON()}${escapeHTML(value(o, o.before))} \u2192 <b>${escapeHTML(value(o, o.after))}</b>`).join("<br>") : escapeHTML(model.summary || t("inspector.noWrites"))) + `<small class="detail-when">${run3.kind === "next" ? t("inspector.previewOnly") : t("inspector.actualResult")}</small>`
     ]);
     const related = [
-      reads.length && "\u8BFB " + reads.map(labelHTML).join("\u3001"),
-      writes.length && "\u5199 " + writes.map(labelHTML).join("\u3001")
+      reads.length && t("inspector.reads", { items: reads.map(labelHTML).join(LIST_SEP()) }),
+      writes.length && t("inspector.writes", { items: writes.map(labelHTML).join(LIST_SEP()) })
     ].filter(Boolean);
-    if (related.length) rows.push(["\u5173\u8054\u8BFB\u5199", related.join(" \xB7 ")]);
+    if (related.length) rows.push([t("inspector.accesses"), related.join(" \xB7 ")]);
   } else if (run3?.pseudo)
-    rows.push(["\u5B8C\u6210\u6267\u884C\u540E\u6570\u503C", "\u8FD9\u4E00\u884C\u662F\u4F2A\u6307\u4EE4\uFF0C\u6267\u884C\u540E\u53EF\u4EE5\u770B\u5230\u6574\u884C\u7684\u7ED3\u679C\uFF1B\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u53EF\u9010\u6761\u67E5\u770B\u5C55\u5F00\u7684\u673A\u5668\u6307\u4EE4\u3002"]);
+    rows.push([t("inspector.valuesAfter"), t("inspector.pseudo")]);
   showContext(
-    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>\u672F\u8BED</summary>${definitions(doc2)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">\u5B9A\u4F4D\u5230\u8FD9\u4E00\u884C</button><button id="refs">\u67E5\u627E\u5F15\u7528</button>${bitsEvent ? `<button id="detail-bits">${run3.kind === "past" ? "\u9010\u4F4D\u67E5\u770B\uFF08\u56DE\u9000\u5230\u90A3\u4E00\u6B65\u540E\u53EF\u7528\uFF09" : "\u5728\u4E13\u6CE8\u6A21\u5F0F\u4E2D\u9010\u4F4D\u67E5\u770B"}</button>` : ""}</div>`
+    `<div class="inspect-head"><h3>${escapeHTML(token)}</h3><span>${escapeHTML(where)} \xB7 ${escapeHTML(status)}</span></div><p>${escapeHTML(doc2)}</p>${termsIn(doc2).length ? `<details class="detail-terms"><summary>${t("common.terms")}</summary>${definitions(doc2)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t3, d]) => `<dt>${t3}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">${t("inspector.locate")}</button><button id="refs">${t("inspector.references")}</button>${bitsEvent ? `<button id="detail-bits">${run3.kind === "past" ? t("inspector.bitsPast") : t("inspector.bits")}</button>` : ""}</div>`
   );
   $2("detail-source").onclick = () => gotoSource(place.file, place.line);
   $2("refs").onclick = () => showReferences(token);
@@ -29145,10 +32431,10 @@ function instructionDetail(token, place) {
 function showReferences(token) {
   let refs = references(files, token);
   modal(
-    "\u5F15\u7528 \xB7 " + token,
+    t("references.title", { token }),
     refs.length ? refs.map(
       (r, i) => `<button class="command-item" data-ref="${i}"><b>${escapeHTML(r.file)}:${r.line}</b> <small>${r.type}</small><p class="mono">${escapeHTML(r.text)}</p></button>`
-    ).join("") : "\u65E0\u9759\u6001\u5F15\u7528\u3002"
+    ).join("") : t("peek.none")
   );
   document.querySelectorAll("[data-ref]").forEach(
     (b) => b.onclick = () => {
@@ -29195,8 +32481,8 @@ async function api(body) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
-  }), s = r.status === 413 ? { error: "\u5DE5\u7A0B\u7684\u8F93\u5165\u6587\u4EF6\u592A\u5927\uFF0C\u6267\u884C\u670D\u52A1\u65E0\u6CD5\u63A5\u6536\u3002\u8BF7\u79FB\u8D70\u4E0D\u9700\u8981\u7684\u8F93\u5165\u6587\u4EF6\u518D\u6C47\u7F16\u3002" } : await r.json();
-  if (!r.ok || !s.protocol) throw Error(s.error || "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001");
+  }), s = r.status === 413 ? { error: t("api.tooLarge") } : await r.json();
+  if (!r.ok || !s.protocol) throw Error(s.error || t("api.noState"));
   return named(s);
 }
 var EXECUTING = /* @__PURE__ */ new Set([
@@ -29249,7 +32535,7 @@ async function assemble() {
   updateControls();
   try {
     savedEditor();
-    if (!Object.keys(files).length) throw Error("\u8BF7\u5148\u65B0\u5EFA\u6216\u5BFC\u5165\u4E00\u4E2A .s / .asm \u6E90\u7801\u6587\u4EF6\u3002");
+    if (!Object.keys(files).length) throw Error(t("assemble.noSource"));
     const scope = nextScope();
     if (scope.error) throw Error(scope.error);
     runtimeFiles = {};
@@ -29351,8 +32637,8 @@ function navigate(direction) {
   const [from, to] = direction < 0 ? [navBack, navForward] : [navForward, navBack];
   const place = from.pop();
   if (!place) return;
-  const current = here();
-  if (current) to.push(current);
+  const current2 = here();
+  if (current2) to.push(current2);
   restorePlace(place);
 }
 function gotoSource(file, line, record = true) {
@@ -29458,7 +32744,7 @@ function movePC() {
       (s) => program.instructions.find((i) => i.address === s.address)?.file === ins.file
     ).sort((a, b) => b.address - a.address)[0];
     gotoSource(ins.file, ins.line, false);
-    notify(`\u6267\u884C\u8FDB\u5165 ${ins.file}${label2 ? " \xB7 " + label2.name : ""}`, {
+    notify(t("follow.entered", { file: ins.file, label: label2 ? " \xB7 " + label2.name : "" }), {
       transient: true
     });
     keepNotice = true;
@@ -29524,69 +32810,69 @@ function setBottom(v) {
 function statusInfo() {
   const where = (address) => {
     const i = program.instructions.find((x) => x.address === address);
-    return i ? { file: i.file, line: i.line, text: `${i.file} \u7B2C ${i.line} \u884C` } : null;
+    return i ? { file: i.file, line: i.line, text: t("common.fileLine", { file: i.file, line: i.line }) } : null;
   };
   if (!target || !state || state.status === "empty")
-    return { kind: "idle", text: "\u5C1A\u672A\u6C47\u7F16 \xB7 \u70B9\u201C\u6C47\u7F16\u201D\u5F00\u59CB" };
-  if (dirty) return { kind: "dirty", text: "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED" };
+    return { kind: "idle", text: t("status.start") };
+  if (dirty) return { kind: "dirty", text: t("status.dirty") };
   if (running)
     return {
       kind: "running",
-      text: stopRequested ? "\u6B63\u5728\u6682\u505C\u2026" : `\u8FD0\u884C\u4E2D \xB7 \u7B2C ${state.step} \u6B65`
+      text: stopRequested ? t("status.pausing") : t("status.running", { step: state.step })
     };
   const next = where(state.pc), last2 = state.last ? where(state.last.pc) : null, reason = state.stopReason || "";
   if (state.status === "waiting")
     return {
       kind: "waiting",
-      text: "\u7B49\u5F85\u8F93\u5165 \xB7 \u5728\u63A7\u5236\u53F0\u8F93\u5165\u540E\u6309 Enter",
+      text: t("status.waiting"),
       at: next
     };
   if (state.status === "ended")
-    return { kind: "ended", text: `\u5DF2\u7ED3\u675F \xB7 \u9000\u51FA\u7801 ${state.exitCode}`, at: last2 };
+    return { kind: "ended", text: t("status.ended", { exitCode: state.exitCode }), at: last2 };
   if (state.status === "error")
     return {
       kind: "error",
-      text: "\u51FA\u9519 \xB7 " + (state.error || "").split("\n")[0].slice(0, 80),
+      text: t("status.error", { message: marsText(state.error).split("\n")[0].slice(0, 80) }),
       at: last2
     };
   if (reason.startsWith("Breakpoint") && next)
     return {
       kind: "breakpoint",
-      text: `\u505C\u5728\u65AD\u70B9\u524D \xB7 ${next.text}\uFF08\u8FD9\u4E00\u884C\u8FD8\u6CA1\u6267\u884C\uFF09\xB7 \u5373\u5C06\u7B2C ${state.pcVisits} \u6B21\u6267\u884C`,
+      text: t("status.breakpoint", { where: next.text, visits: state.pcVisits }),
       at: next
     };
   if (reason.startsWith("Watchpoint") && last2)
     return {
       kind: "breakpoint",
-      text: `\u89C2\u5BDF\u70B9\u89E6\u53D1 \xB7 \u521A\u6267\u884C\u7684 ${last2.text}${reason.endsWith("read") ? "\u8BFB\u53D6" : "\u5199\u5165"}\u4E86\u88AB\u89C2\u5BDF\u7684\u5BF9\u8C61`,
+      text: t("status.watchpoint", { where: last2.text, access: reason.endsWith("read") ? t("status.watchpoint.read") : t("status.watchpoint.write") }),
       at: last2
     };
   if (reason.startsWith("History limit"))
-    return { kind: "error", text: "\u5DF2\u8FBE\u5230\u5386\u53F2\u4E0A\u9650 100000 \u6B65 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED" };
+    return { kind: "error", text: t("status.historyLimit") };
   if (reason.startsWith("History"))
     return {
       kind: "paused",
-      text: `\u56DE\u653E\u5386\u53F2 \xB7 \u5DF2\u6267\u884C ${state.step} / ${state.historyLength} \u6B65`,
+      text: t("status.replay", { step: state.step, total: state.historyLength }),
       at: next
     };
   if (!state.step && next)
-    return { kind: "paused", text: `\u5C31\u7EEA \xB7 \u4ECE ${next.text} \u5F00\u59CB`, at: next };
+    return { kind: "paused", text: t("status.ready", { where: next.text }), at: next };
   return {
     kind: "paused",
-    text: last2 ? `\u5DF2\u6682\u505C \xB7 \u521A\u6267\u884C ${last2.text}` : "\u5DF2\u6682\u505C",
+    text: last2 ? t("status.paused.after", { where: last2.text }) : t("status.paused"),
     at: next
   };
 }
 function executionBlock() {
-  if (busy) return "\u6B63\u5728\u5904\u7406\u4E0A\u4E00\u4E2A\u64CD\u4F5C";
-  if (running) return "\u7A0B\u5E8F\u6B63\u5728\u8FD0\u884C";
-  if (!state || state.status === "empty" || !target) return "\u8FD8\u6CA1\u6709\u6C47\u7F16\uFF1A\u5148\u70B9\u201C\u6C47\u7F16\u201D";
-  if (dirty) return "\u4EE3\u7801\u5DF2\u4FEE\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16";
+  if (busy) return t("block.busy");
+  if (running) return t("block.running");
+  if (!state || state.status === "empty" || !target) return t("block.notAssembled");
+  if (dirty) return t("block.dirty");
   const reason = scopeReason();
-  if (reason?.kind === "outside") return `\u6B63\u5728\u67E5\u770B ${activeFile}\uFF0C\u5B83\u4E0D\u5728\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u91CC`;
-  if (reason) return "\u6C47\u7F16\u65B9\u5F0F\u6216\u8303\u56F4\u5DF2\u66F4\u6539\uFF1A\u5148\u91CD\u65B0\u6C47\u7F16";
-  if (state.status === "ended") return "\u7A0B\u5E8F\u5DF2\u7ED3\u675F";
-  if (state.status === "error") return "\u7A0B\u5E8F\u51FA\u9519\u505C\u4E0B\u4E86\uFF1A\u4FEE\u6539\u540E\u91CD\u65B0\u6C47\u7F16";
+  if (reason?.kind === "outside") return t("block.outside", { file: activeFile });
+  if (reason) return t("block.scopeChanged");
+  if (state.status === "ended") return t("block.ended");
+  if (state.status === "error") return t("block.error");
   return "";
 }
 var canRestart = () => state?.status === "ended" && !busy && !running && !dirty && !blocked();
@@ -29625,15 +32911,15 @@ function updateControls() {
   const back = started(), pausing = running && !stopRequested, resume = !running && !!state?.step && !!runMode && ["paused", "waiting"].includes(state?.status);
   if (back) $2("run").disabled = busy && !running || !!gate || !target;
   if (pausing) $2("demo").disabled = false;
-  face($2("run"), back ? "back" : "full", back ? "\u56DE\u5230\u5F00\u5934" : "\u5B8C\u6574\u8FD0\u884C");
-  $2("run").setAttribute("aria-label", back ? "\u56DE\u5230\u5F00\u5934" : "\u5B8C\u6574\u8FD0\u884C\uFF08F5\uFF09");
-  face($2("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? "\u6682\u505C" : resume ? "\u7EE7\u7EED" : "\u9010\u6B65\u8FD0\u884C");
-  $2("demo").setAttribute("aria-label", pausing ? "\u6682\u505C\uFF08F6\uFF09" : resume ? "\u7EE7\u7EED" : "\u9010\u6B65\u8FD0\u884C");
+  face($2("run"), back ? "back" : "full", back ? t("toolbar.backToStart") : t("toolbar.run"));
+  $2("run").setAttribute("aria-label", back ? t("toolbar.backToStart") : t("toolbar.run.label"));
+  face($2("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? t("toolbar.pause") : resume ? t("toolbar.continue") : t("toolbar.steps"));
+  $2("demo").setAttribute("aria-label", pausing ? t("toolbar.pause.label") : resume ? t("toolbar.continue") : t("toolbar.steps"));
   $2("demo-speed-control").hidden = !(running && demoing || !running && runMode === "demo" && !!state?.step && ["paused", "waiting"].includes(state?.status));
   for (const name2 of ["back", "step", "source", "over", "out", "run", "demo", "prev-bp", "next-bp"]) {
     const b = $2(name2);
     b.dataset.tipBase ??= b.dataset.tip || "";
-    b.dataset.tip = name2 === "demo" && pausing ? "\u6682\u505C \xB7 F6" : name2 === "demo" && resume && !b.disabled ? runMode === "demo" ? "\u7EE7\u7EED\u9010\u6B65\u8FD0\u884C\uFF1A\u4ECE\u5F53\u524D\u4F4D\u7F6E\u63A5\u7740\u4E00\u6B65\u4E00\u6B65\u6267\u884C" : "\u7EE7\u7EED\u5B8C\u6574\u8FD0\u884C\uFF1A\u5168\u901F\u8FD0\u884C\u5230\u65AD\u70B9\u3001\u7B49\u5F85\u8F93\u5165\u6216\u7ED3\u675F \xB7 F5" : name2 === "run" && back && !b.disabled ? "\u56DE\u5230\u5F00\u5934\uFF1A\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF0C\u505C\u5728\u7B2C\u4E00\u6761\u6307\u4EE4\u524D" : b.disabled && !why && name2 === "out" && outside ? `${b.dataset.tipBase}\uFF08\u73B0\u5728\u4E0D\u5728\u51FD\u6570\u91CC\uFF0C\u6CA1\u6709\u53EF\u4EE5\u8FD4\u56DE\u7684\u8C03\u7528\uFF09` : b.disabled && !why && (name2 === "prev-bp" || name2 === "next-bp") && noStops ? `${b.dataset.tipBase}\uFF08\u8FD8\u6CA1\u6709\u8BBE\u7F6E\u65AD\u70B9\uFF09` : b.disabled && why ? `${b.dataset.tipBase}\uFF08${why}\uFF09` : b.dataset.tipBase;
+    b.dataset.tip = name2 === "demo" && pausing ? t("toolbar.pause.tip") : name2 === "demo" && resume && !b.disabled ? runMode === "demo" ? t("toolbar.continue.steps") : t("toolbar.continue.run") : name2 === "run" && back && !b.disabled ? t("toolbar.backToStart.tip") : b.disabled && !why && name2 === "out" && outside ? t("toolbar.out.outside", { tip: b.dataset.tipBase }) : b.disabled && !why && (name2 === "prev-bp" || name2 === "next-bp") && noStops ? t("toolbar.bp.none", { tip: b.dataset.tipBase }) : b.disabled && why ? `${b.dataset.tipBase}${t("common.inParens", { text: why })}` : b.dataset.tipBase;
   }
   $2("assemble").disabled = busy && !running;
   renderScope();
@@ -29642,7 +32928,8 @@ function updateControls() {
   $2("status").textContent = info.text;
   $2("status").dataset.state = info.kind;
   $2("status").onclick = info.at ? () => gotoSource(info.at.file, info.at.line) : null;
-  $2("status").title = info.text + (info.at ? "\n\u70B9\u51FB\u8DF3\u5230\u8FD9\u4E00\u884C" : "");
+  $2("status").title = info.text + (info.at ? `
+${t("status.goToLine")}` : "");
 }
 function nextScope() {
   return assemblyScope(
@@ -29654,10 +32941,10 @@ function nextScope() {
     Object.hasOwn(files, activeFile) ? activeFile : lastSourceFile || target?.entry || workspace?.entry()
   );
 }
-var MODE_NAMES = { auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u8303\u56F4" };
-var describeScope = (s) => s.error ? "\uFF08\u5C1A\u672A\u9009\u597D\u6E90\u7801\uFF09" : s.files.length > 1 ? `${MODE_NAMES[s.mode]} ${s.files.length} \u4E2A\u6587\u4EF6\uFF08\u5165\u53E3 ${s.entry}\uFF09` : `${MODE_NAMES[s.mode]} ${s.entry}`;
+var MODE_NAMES = () => ({ auto: t("assembly.mode.auto"), single: t("assembly.mode.single"), manual: t("assembly.mode.manualShort") });
+var describeScope = (s) => s.error ? t("scope.noSource") : s.files.length > 1 ? t("scope.describe.many", { mode: MODE_NAMES()[s.mode], count: s.files.length, entry: s.entry }) : `${MODE_NAMES()[s.mode]} ${s.entry}`;
 var sameFiles = (a, b) => [...a].sort().join("\n") === [...b].sort().join("\n");
-var runnable = (t2) => t2.files.length > 1 ? `${t2.entry} \u548C\u53E6\u5916 ${t2.files.length - 1} \u4E2A\u6587\u4EF6` : t2.entry;
+var runnable = (program2) => program2.files.length > 1 ? t("scope.runnable.many", { entry: program2.entry, count: program2.files.length - 1 }) : program2.entry;
 function scopeReason() {
   if (!state || !target || !workspace) return null;
   const back = target.files.includes(lastInTarget) ? lastInTarget : target.entry;
@@ -29665,13 +32952,13 @@ function scopeReason() {
     return {
       kind: "outside",
       back,
-      text: target.mode === "manual" ? `${activeFile} \u4E0D\u5728\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u91CC\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F ${runnable(target)}\u3002` : `\u4F60\u5728\u770B ${activeFile}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u662F ${runnable(target)}\u3002\u8981\u8FD0\u884C ${activeFile}\uFF0C\u5148\u70B9\uFF3B${assembleLabel()}\uFF3D\uFF1B\u4E5F\u53EF\u4EE5\uFF3B\u56DE\u5230 ${back}\uFF3D\u7EE7\u7EED\u8C03\u8BD5\u3002`
+      text: target.mode === "manual" ? t("scope.outsideManual", { file: activeFile, program: runnable(target) }) : t("scope.otherFile", { file: activeFile, program: runnable(target), file: activeFile, assemble: assembleLabel(), back })
     };
   const scope = nextScope();
   if (scope.mode !== target.mode || scope.mode === "manual" && (scope.entry !== target.entry || !sameFiles(scope.files, target.files)))
     return {
       kind: "changed",
-      text: `${scope.mode !== target.mode ? `\u6C47\u7F16\u65B9\u5F0F\u6539\u6210\u4E86${{ auto: "\u81EA\u52A8\u6C47\u7F16", single: "\u5355\u6587\u4EF6\u6C47\u7F16", manual: "\u624B\u52A8\u9009\u62E9\u8303\u56F4" }[scope.mode]}` : "\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u6539\u4E86"}\uFF0C\u4F46\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u8FD8\u662F\u4E4B\u524D\u88C5\u5165\u7684\u7A0B\u5E8F\uFF08${runnable(target)}\uFF09\u3002\u70B9\uFF3B\u91CD\u65B0\u6C47\u7F16\uFF3D\u6309\u65B0\u65B9\u5F0F\u88C5\u5165\u3002`
+      text: t("scope.modeChanged", { change: scope.mode !== target.mode ? t("scope.modeChangedTo", { mode: { auto: t("assembly.mode.auto"), single: t("assembly.mode.single"), manual: t("assembly.mode.manualLong") }[scope.mode] }) : t("scope.manualChanged"), program: runnable(target) })
     };
   return null;
 }
@@ -29680,15 +32967,16 @@ function blocked() {
 }
 function assembleLabel() {
   const scope = nextScope();
-  return !scope.error && scope.entry !== activeFile ? `\u6C47\u7F16\uFF08\u5165\u53E3 ${scope.entry}\uFF09` : `\u6C47\u7F16 ${activeFile}`;
+  return !scope.error && scope.entry !== activeFile ? t("scope.assembleEntry", { entry: scope.entry }) : t("scope.assembleFile", { file: activeFile });
 }
 function renderScope() {
   const scope = nextScope(), reason = scopeReason();
-  $2("target").textContent = !target ? "\u7A0B\u5E8F\uFF1A\u672A\u6C47\u7F16" : target.files.length > 1 ? `\u7A0B\u5E8F\uFF1A${target.entry} \uFF0B${target.files.length - 1} \u4E2A\u6587\u4EF6` : `\u7A0B\u5E8F\uFF1A${target.entry}`;
-  $2("target").title = target ? `${MODE_NAMES[target.mode]}\uFF0C\u73B0\u5728\u80FD\u8FD0\u884C\u7684\u7A0B\u5E8F\u7531\u8FD9\u4E9B\u6E90\u7801\u6C47\u7F16\uFF1A
-` + target.files.join("\n") + "\n\u70B9\u201C\u6C47\u7F16\u201D\u540E\u4F1A\u6362\u6210\u65B0\u7684\u7A0B\u5E8F" : "\u8FD8\u6CA1\u6709\u6C47\u7F16";
+  $2("target").textContent = !target ? t("editor.target.none") : target.files.length > 1 ? t("editor.target.many", { entry: target.entry, count: target.files.length - 1 }) : t("editor.target.one", { entry: target.entry });
+  $2("target").title = target ? `${t("editor.target.files", { mode: MODE_NAMES()[target.mode] })}
+` + target.files.join("\n") + `
+${t("editor.target.willChange")}` : t("editor.target.notYet");
   $2("target").classList.toggle("stale", !!reason);
-  $2("assemble").title = (scope.error || describeScope(scope)) + " \xB7 Cmd/Ctrl+Enter\uFF1B\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F \xB7 Cmd/Ctrl+Shift+F5";
+  $2("assemble").title = t("toolbar.assemble.tipScope", { scope: scope.error || describeScope(scope) });
   document.querySelectorAll("[data-assembly-mode]").forEach(
     (b) => b.setAttribute(
       "aria-checked",
@@ -29698,12 +32986,12 @@ function renderScope() {
   const banner = $2("scope-banner");
   banner.hidden = !reason;
   if (!reason) return banner.replaceChildren();
-  const actions2 = reason.kind === "changed" ? [["assemble", "\u91CD\u65B0\u6C47\u7F16"]] : target.mode === "manual" ? [
-    ["back", `\u56DE\u5230 ${reason.back}`],
-    ["join", `\u628A ${activeFile} \u52A0\u5165\u8303\u56F4`]
+  const actions2 = reason.kind === "changed" ? [["assemble", t("scope.assembleAgain")]] : target.mode === "manual" ? [
+    ["back", t("scope.backTo", { back: reason.back })],
+    ["join", t("scope.addFile", { file: activeFile })]
   ] : [
     ["assemble", assembleLabel()],
-    ["back", `\u56DE\u5230 ${reason.back}`]
+    ["back", t("scope.backTo", { back: reason.back })]
   ];
   banner.innerHTML = `<span>${escapeHTML(reason.text)}</span>${actions2.map(
     ([a, label2]) => `<button data-scope-action="${a}">${escapeHTML(label2)}</button>`
@@ -29766,7 +33054,7 @@ function setupMenu(buttonId, menuId) {
 }
 setupMenu("engine", "engine-menu");
 $2("engine").addEventListener("click", () => {
-  $2("engine-delay").textContent = `\u5EF6\u8FDF\u5206\u652F\uFF1A${$2("delay").checked ? "\u5F00\u542F" : "\u5173\u95ED"} \xB7 \u7A0B\u5E8F\uFF1A${target ? describeScope(target) : "\u672A\u6C47\u7F16"}`;
+  $2("engine-delay").textContent = t("engine.state", { delay: $2("delay").checked ? t("common.on") : t("common.off"), program: target ? describeScope(target) : t("status.notAssembled") });
 });
 var MENUS = [
   ["project-menu-button", "project-menu"],
@@ -29844,9 +33132,10 @@ $2("reset-layout").onclick = () => {
   for (const split of Object.values(panelSplits)) setSplit(split, null);
   for (const n of PANELS) setPanel(n, false);
   setSideTab("files");
-  notify("\u5DF2\u6062\u590D\u9ED8\u8BA4\u5E03\u5C40\u3002", { transient: true });
+  notify(t("layout.reset"), { transient: true });
 };
-document.querySelector(".overlay-settings summary").textContent = "\u4E3B\u754C\u9762\u8FDE\u7EBF";
+var labelOverlaySettings = () => document.querySelector(".overlay-settings summary").textContent = t("focus.mainLines");
+labelOverlaySettings();
 $2("focus-keys").before(document.querySelector(".overlay-settings"));
 function closeAssembleMenu() {
   $2("assemble-menu").hidden = true;
@@ -29912,8 +33201,8 @@ function renderTabs() {
   const tabs = workspace?.tabs() || Object.keys(files);
   $2("editor").classList.toggle("no-file", !activeFile);
   $2("tabs").innerHTML = tabs.map(
-    (f) => `<span class="file-tab ${f === activeFile ? "active" : ""}"><button data-tab="${escapeHTML(f)}" title="${escapeHTML(f)}">${escapeHTML(f)}</button><button class="close-tab" data-close-tab="${escapeHTML(f)}" aria-label="\u5173\u95ED\u6807\u7B7E ${escapeHTML(f)}" title="\u5173\u95ED\u6807\u7B7E\uFF0C\u6587\u4EF6\u4ECD\u5728\u5DE5\u7A0B\u4E2D">\xD7</button></span>`
-  ).join("") || '<span class="empty-tab">\u4ECE\u5DE6\u4FA7\u9009\u62E9\u6587\u4EF6\uFF0C\u6216\u65B0\u5EFA\u6587\u4EF6</span>';
+    (f) => `<span class="file-tab ${f === activeFile ? "active" : ""}"><button data-tab="${escapeHTML(f)}" title="${escapeHTML(f)}">${escapeHTML(f)}</button><button class="close-tab" data-close-tab="${escapeHTML(f)}" aria-label="${t("tabs.close", { file: escapeHTML(f) })}" title="${t("tabs.close.tip")}">\xD7</button></span>`
+  ).join("") || `<span class="empty-tab">${t("tabs.empty")}</span>`;
   $2("tabs").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
     setView("source");
     switchFile(b.dataset.tab);
@@ -29965,22 +33254,20 @@ function renderRegisters() {
   const replaced = new Map(
     (bin ? [] : state.last?.accesses || []).filter((a) => a.kind === "register" && a.write && a.before != null).map((a) => [a.name, a.before])
   );
-  const shown = (r) => replaced.has(r.name) ? `<s class="old" aria-label="\u539F\u503C">${text2(replaced.get(r.name), r.name)}</s><span class="new">${text2(r.value, r.name)}</span>` : text2(r.value, r.name);
+  const shown = (r) => replaced.has(r.name) ? `<s class="old" aria-label="${t("registers.oldValue")}">${text2(replaced.get(r.name), r.name)}</s><span class="new">${text2(r.value, r.name)}</span>` : text2(r.value, r.name);
   $2("reg-legend").textContent = {
-    auto: "0d \u5341\u8FDB\u5236 \xB7 0x \u5341\u516D\u8FDB\u5236",
-    hex: "0x \u5341\u516D\u8FDB\u5236",
-    dec: "0d \u5341\u8FDB\u5236",
-    bin: "0b \u4E8C\u8FDB\u5236",
-    ascii: "'\u2026' \u5B57\u7B26 \xB7 0d \u5341\u8FDB\u5236"
+    auto: t("registers.legend.auto"),
+    hex: t("registers.legend.hex"),
+    dec: t("registers.legend.dec"),
+    bin: t("registers.legend.bin"),
+    ascii: t("registers.legend.ascii")
   }[radix];
   const signNote = (r) => bin && r.value < 0 && regKind(r.name) === "value" ? `
-\u6700\u9AD8\u4F4D\u662F 1\uFF1A\u6309\u6709\u7B26\u53F7\u6570\u8BFB\u662F ${r.value | 0}\uFF08\u8865\u7801\uFF09` : "";
+${t("registers.signNote", { value: r.value | 0 })}` : "";
   $2("registers").innerHTML = state.registers.filter(
     (r) => filter === "all" || filter === "pinned" ? filter === "all" || pinned.has(r.name) : related.has(r.name) || pinned.has(r.name)
   ).map(
-    (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} \xB7 ${escapeHTML(role(r.name))}
-${escapeHTML(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : ""}${escapeHTML(signNote(r))}
-\u524D\u7F00\uFF1A${escapeHTML($2("reg-legend").textContent)} \xB7 \u70B9\u51FB\u67E5\u770B"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`
+    (r) => `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${t("registers.tip", { name: r.name, role: escapeHTML(role(r.name)), full: escapeHTML(fmt(r.value, 4, regKind(r.name)).full), note: fmt(r.value, 4, regKind(r.name)).note ? " \xB7 " + escapeHTML(fmt(r.value, 4, regKind(r.name)).note) : "", sign: escapeHTML(signNote(r)), legend: escapeHTML($2("reg-legend").textContent) })}"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`
   ).join("");
   $2("registers").querySelectorAll(".reg").forEach((e) => {
     e.onclick = () => inspectToken(e.dataset.register);
@@ -30003,11 +33290,11 @@ function renderMemory() {
   $2("memory").innerHTML = rows.join("");
   $2("memory").dataset.radix = radix;
   $2("mem-radix").textContent = {
-    auto: "\u5355\u5143 0x",
-    hex: "\u5355\u5143 0x",
-    dec: "\u5355\u5143 0d",
-    bin: "\u5355\u5143 0b",
-    ascii: "\u5355\u5143 \u5B57\u7B26"
+    auto: t("memory.cells.hex"),
+    hex: t("memory.cells.hex"),
+    dec: t("memory.cells.dec"),
+    bin: t("memory.cells.bin"),
+    ascii: t("memory.cells.ascii")
   }[radix];
   $2("memory").querySelectorAll("[data-byte]").forEach((e) => {
     e.onclick = () => inspectByte(Number(e.dataset.byte));
@@ -30029,7 +33316,7 @@ function inspectByte(address) {
   let value = state.memory.find((b) => b.address === address)?.value, last2 = state.lastWriters["mem:" + address];
   inspecting = null;
   showContext(
-    `<h3>\u5185\u5B58 ${hex(address)}</h3><p>\u5730\u5740\u5BF9\u5E94\u7684\u5185\u5BB9 \xB7 1 \u5B57\u8282</p>${value == null ? "<p>\u4E0D\u53EF\u8BBF\u95EE</p>" : valueHTML(value)}<button id="watch-memory">\u5728\u6B64\u5730\u5740\u8BBE\u7F6E\u5199\u5165\u89C2\u5BDF\u70B9</button><button id="memory-last-write" ${last2 ? "" : "disabled"}>\u6700\u540E\u5199\u5165 ${last2 ? "#" + last2 : ""}</button>`
+    `<h3>${t("memory.byte.title", { address: hex(address) })}</h3><p>${t("memory.byte.what")}</p>${value == null ? `<p>${t("memory.byte.inaccessible")}</p>` : valueHTML(value)}<button id="watch-memory">${t("memory.byte.watch")}</button><button id="memory-last-write" ${last2 ? "" : "disabled"}>${t("memory.byte.lastWrite", { step: last2 ? "#" + last2 : "" })}</button>`
   );
   $2("memory-last-write").onclick = () => command2("seek", { step: last2 });
   $2("watch-memory").onclick = () => {
@@ -30061,10 +33348,10 @@ function renderMachine() {
 }
 function renderCFG() {
   let blocks = buildCFG(program.instructions, state?.delay);
-  $2("cfg").innerHTML = `<p class="muted">\u9759\u6001\u57FA\u672C\u5757 \xB7 \u95F4\u63A5\u76EE\u6807\u8FD0\u884C\u65F6\u786E\u5B9A \xB7 \u7D2B\u8272\u8FB9\u663E\u793A\u53BB\u5411\uFF1B\u8BA1\u6570\u6765\u81EA\u672C\u6B21\u8F68\u8FF9</p>` + blocks.map((b) => {
+  $2("cfg").innerHTML = `<p class="muted">${t("cfg.legend")}</p>` + blocks.map((b) => {
     let loop = (state?.loops || []).find((l) => l.header === b.start);
     let count = Object.entries(state?.edges || {}).filter(([k]) => Number(k.split(":")[1]) === b.start).reduce((n, [, v]) => n + v, 0) + (b.start === program.instructions[0]?.address && state?.step > 0 ? 1 : 0);
-    return `<article class="block ${b.instructions.some((i) => i.address === state?.pc) ? "current" : ""}" id="block-${b.id}"><div class="block-title"><button data-jump="${b.start}">${hex(b.start)} \xB7 ${escapeHTML(program.symbols.find((s) => s.address === b.start)?.name || "block")}</button><span>\u8FDB\u5165 ${count} \u6B21${loop ? ` \xB7 \u56DE\u8DF3 ${loop.backJumps} \u6B21` : ""}</span></div>${b.instructions.map((i) => `<code>${escapeHTML(i.basic)}</code>`).join("")}<div class="edges">${b.edges.map((e) => `<button data-block-target="${e.target ?? ""}">${e.label} \u2192 ${e.target == null ? "\u672A\u77E5" : hex(e.target)}</button>`).join("")}</div></article>`;
+    return `<article class="block ${b.instructions.some((i) => i.address === state?.pc) ? "current" : ""}" id="block-${b.id}"><div class="block-title"><button data-jump="${b.start}">${hex(b.start)} \xB7 ${escapeHTML(program.symbols.find((s) => s.address === b.start)?.name || "block")}</button><span>${t("cfg.entered", { count, backJumps: loop ? ` ${t("cfg.backJumps", { backJumps: loop.backJumps })}` : "" })}</span></div>${b.instructions.map((i) => `<code>${escapeHTML(i.basic)}</code>`).join("")}<div class="edges">${b.edges.map((e) => `<button data-block-target="${e.target ?? ""}">${e.label} \u2192 ${e.target == null ? t("common.unknown") : hex(e.target)}</button>`).join("")}</div></article>`;
   }).join("");
   $2("cfg").querySelectorAll("[data-jump]").forEach((b) => b.onclick = () => gotoAddress(Number(b.dataset.jump)));
   $2("cfg").querySelectorAll("[data-block-target]").forEach(
@@ -30084,13 +33371,13 @@ function renderTrace() {
       groups.push(group);
     }
   }
-  const row2 = (e) => `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${escapeHTML(e.instruction?.basic)}</span><small>${escapeHTML(e.instruction?.file)}:${e.instruction?.line}${e.output ? " \xB7 \u8F93\u51FA" : ""}</small></button>`;
-  $2("trace").innerHTML = `<div><input id="seek-number" type="number" min="0" max="${state?.historyLength || 0}" value="${state?.step || 0}" aria-label="\u5386\u53F2\u6B65\u9AA4"><button id="seek-go">\u8F6C\u5230\u6B65\u9AA4</button><span class="muted">\u663E\u793A\u9644\u8FD1 170 \u6B65\uFF1B\u53EF\u8DF3\u8F6C\u5168\u90E8\u5386\u53F2</span></div>` + (state?.loops || []).filter((loop) => loop.entries > 0).map(
-    (loop) => `<details class="loop-history"><summary>\u5FAA\u73AF ${hex(loop.header)} \xB7 \u8FDB\u5165 ${loop.entries} \u6B21 \xB7 \u56DE\u8DF3 ${loop.backJumps} \u6B21</summary>${loop.iterations.slice(-200).map(
-      (step, index) => `<button class="trace-row" data-seek="${step - 1}">\u7B2C ${Math.max(0, loop.iterations.length - 200) + index + 1} \u6B21 \xB7 \u4ECE #${step} \u5F00\u59CB</button>`
+  const row2 = (e) => `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${escapeHTML(e.instruction?.basic)}</span><small>${escapeHTML(e.instruction?.file)}:${e.instruction?.line}${e.output ? ` ${t("trace.output")}` : ""}</small></button>`;
+  $2("trace").innerHTML = `<div><input id="seek-number" type="number" min="0" max="${state?.historyLength || 0}" value="${state?.step || 0}" aria-label="${t("trace.historyStep")}"><button id="seek-go">${t("trace.goToStep")}</button><span class="muted">${t("trace.window")}</span></div>` + (state?.loops || []).filter((loop) => loop.entries > 0).map(
+    (loop) => `<details class="loop-history"><summary>${t("trace.loop", { header: hex(loop.header), entries: loop.entries, backJumps: loop.backJumps })}</summary>${loop.iterations.slice(-200).map(
+      (step, index) => `<button class="trace-row" data-seek="${step - 1}">${t("trace.iteration", { n: Math.max(0, loop.iterations.length - 200) + index + 1, step })}</button>`
     ).join("")}</details>`
   ).join("") + groups.map(
-    (g) => g.events.length > 1 ? `<details><summary>${escapeHTML(g.key)} \xB7 ${g.events.length} \u6761\u5B9E\u9645\u6307\u4EE4</summary>${g.events.map(row2).join("")}</details>` : row2(g.events[0])
+    (g) => g.events.length > 1 ? `<details><summary>${t("trace.lineGroup", { key: escapeHTML(g.key), count: g.events.length })}</summary>${g.events.map(row2).join("")}</details>` : row2(g.events[0])
   ).join("");
   $2("trace").querySelectorAll("[data-seek]").forEach(
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.seek) })
@@ -30102,7 +33389,7 @@ function render() {
   noteStop();
   const waiting = state.status === "waiting" && !dirty;
   $2("console").classList.toggle("waiting", waiting);
-  $2("stdin").placeholder = waiting ? "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter" : "\u8F93\u5165\u503C\uFF0C\u6309 Enter \u63D0\u4EA4";
+  $2("stdin").placeholder = waiting ? t("console.input.waiting") : t("console.input.placeholder");
   renderFiles();
   renderTabs();
   renderSymbols();
@@ -30114,17 +33401,17 @@ function render() {
   renderOutput();
   $2("pc").textContent = "PC " + hex(state.pc);
   requestAnimationFrame(updateReturn);
-  $2("history-info").textContent = `${state.step} / ${state.historyLength} \u6B65`;
-  $2("calls").innerHTML = state.calls.map(
-    (c) => `<button class="trace-row" data-call="${c.step}">#${c.step} ${escapeHTML(c.instruction.basic)} \u2192 \u8FD4\u56DE ${hex(c.return)}</button>`
-  ).join("") + '<p class="muted">\u6309 jal / jalr / jr $ra \u8DDF\u8E2A\u7684\u8C03\u7528\u7EA6\u5B9A\u89C6\u56FE\u3002</p>';
+  $2("history-info").textContent = t("history.position", { step: state.step, total: state.historyLength });
+  $2("calls").innerHTML = `${state.calls.map(
+    (c) => `<button class="trace-row" data-call="${c.step}">${t("calls.row", { step: c.step, call: escapeHTML(c.instruction.basic), address: hex(c.return) })}</button>`
+  ).join("")}<p class="muted">${t("calls.legend")}</p>`;
   $2("calls").querySelectorAll("[data-call]").forEach(
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.call) })
   );
   const hints = target ? scopeHints(state.diagnostics, { files }, target) : [];
   $2("problems").innerHTML = state.diagnostics.map(
-    (d, i) => `<button class="command-item" data-diagnostic="${i}">${escapeHTML(d.file)}:${d.line} \xB7 ${escapeHTML(d.message)}${hints[i] ? `<small class="scope-hint">${escapeHTML(hints[i])}</small>` : ""}</button>`
-  ).join("") + (state.error ? `<pre>${escapeHTML(state.error)}</pre>` : "");
+    (d, i) => `<button class="command-item" data-diagnostic="${i}">${escapeHTML(d.file)}:${d.line} \xB7 ${escapeHTML(marsText(d.message))}${hints[i] ? `<small class="scope-hint">${escapeHTML(hints[i])}</small>` : ""}</button>`
+  ).join("") + (state.error ? `<pre>${escapeHTML(marsText(state.error))}</pre>` : "");
   $2("problems").querySelectorAll("[data-diagnostic]").forEach(
     (b) => b.onclick = () => {
       let d = state.diagnostics[Number(b.dataset.diagnostic)];
@@ -30190,14 +33477,14 @@ function editBreakpoint(address) {
     log: ""
   };
   modal(
-    `\u65AD\u70B9 \xB7 ${ins.file}:${ins.line}`,
+    t("breakpoint.edit.title", { file: ins.file, line: ins.line }),
     `<form id="bp-form" class="bp-form">
-      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> \u542F\u7528</label>
-      <label>\u6761\u4EF6<input id="bp-condition" value="${escapeHTML(b.condition)}" placeholder="$t0 == 3\uFF08$\u5BC4\u5B58\u5668 \u4E0E\u6574\u6570\u6BD4\u8F83\uFF09"></label>
-      <label>\u547D\u4E2D\u6B21\u6570<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="\u7B2C N \u6B21\u6267\u884C\u524D\u6682\u505C\uFF1B\u7559\u7A7A\u8868\u793A\u6BCF\u6B21"></label>
-      <label>\u65E5\u5FD7\u6D88\u606F<input id="bp-log" value="${escapeHTML(b.log)}" placeholder="t0 = {$t0}\uFF0C\u5341\u516D\u8FDB\u5236 {$t0:x}\uFF1B\u586B\u5199\u540E\u53EA\u8BB0\u5F55\u4E0D\u6682\u505C"></label>
-      <p class="muted">\u547D\u4E2D\u6B21\u6570\u6309\u4ECE S0 \u8D77\u8FD9\u6761\u6307\u4EE4\u7684\u6267\u884C\u6B21\u6570\u8BA1\u7B97\uFF1B\u56DE\u9000\u540E\u968F\u5386\u53F2\u53D8\u5316\u3002\u65E5\u5FD7\u65AD\u70B9\u7684\u8F93\u51FA\u5728\u5E95\u90E8\u201C\u65E5\u5FD7\u201D\u3002</p>
-      <p><button class="primary">\u4FDD\u5B58</button> <button type="button" id="bp-remove">\u5220\u9664\u65AD\u70B9</button></p>
+      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> ${t("breakpoint.enabled")}</label>
+      <label>${t("breakpoint.condition")}<input id="bp-condition" value="${escapeHTML(b.condition)}" placeholder="${t("breakpoint.condition.placeholder")}"></label>
+      <label>${t("breakpoint.hit")}<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="${t("breakpoint.hit.placeholder")}"></label>
+      <label>${t("breakpoint.log")}<input id="bp-log" value="${escapeHTML(b.log)}" placeholder="${t("breakpoint.log.placeholder")}"></label>
+      <p class="muted">${t("breakpoint.edit.note")}</p>
+      <p><button class="primary">${t("common.save")}</button> <button type="button" id="bp-remove">${t("breakpoint.delete")}</button></p>
     </form>`
   );
   $2("bp-form").onsubmit = (e) => {
@@ -30230,7 +33517,7 @@ function toggleBreakpoint(line, conditional = false) {
     return;
   }
   if (target && !target.files.includes(activeFile)) {
-    notify(`${activeFile} \u6CA1\u6709\u53C2\u4E0E\u5F53\u524D\u6C47\u7F16\uFF1B\u6C47\u7F16\u5B83\u4E4B\u540E\u624D\u80FD\u5728\u8FD9\u91CC\u8BBE\u65AD\u70B9\u3002`, {
+    notify(t("breakpoint.notAssembled", { file: activeFile }), {
       transient: true
     });
     return;
@@ -30238,13 +33525,13 @@ function toggleBreakpoint(line, conditional = false) {
   const at = breakableAddress(line);
   if (!at) {
     notify(
-      dirty ? "\u4EE3\u7801\u6539\u8FC7\u4E86\uFF0C\u5148\u6C47\u7F16\u518D\u8BBE\u65AD\u70B9\u3002" : "\u8FD9\u4E00\u884C\u6CA1\u6709\u53EF\u6267\u884C\u7684\u6307\u4EE4\uFF08\u7A7A\u884C\u3001\u6CE8\u91CA\u6216\u6570\u636E\uFF09\uFF0C\u65AD\u70B9\u8981\u8BBE\u5728\u6709\u6307\u4EE4\u7684\u884C\u3002",
+      dirty ? t("breakpoint.dirty") : t("breakpoint.noInstruction"),
       { transient: true }
     );
     return;
   }
   if (at.label)
-    notify(`\u65AD\u70B9\u8BBE\u5728\u8FD9\u4E2A\u6807\u7B7E\u4E0B\u9762\u7684\u7B2C\u4E00\u6761\u6307\u4EE4\uFF08\u7B2C ${at.line} \u884C\uFF09\u3002`, {
+    notify(t("breakpoint.onLabel", { line: at.line }), {
       transient: true
     });
   toggleAddressBreakpoint(at.address, conditional);
@@ -30258,7 +33545,7 @@ function appendLogs(logs = []) {
 function renderLogs() {
   $2("logs").innerHTML = debugLog.length ? debugLog.map(
     (l) => `<button class="trace-row" data-log-step="${l.step}"><small>#${l.step} \xB7 ${hex(l.address)}</small> ${escapeHTML(l.text)}</button>`
-  ).join("") : '<p class="muted">\u65E5\u5FD7\u65AD\u70B9\uFF08\u65AD\u70B9 \u270E \u4E2D\u586B\u5199\u201C\u65E5\u5FD7\u6D88\u606F\u201D\uFF09\u547D\u4E2D\u65F6\u5728\u8FD9\u91CC\u8BB0\u5F55\uFF0C\u4E0D\u6682\u505C\u7A0B\u5E8F\u3002</p>';
+  ).join("") : `<p class="muted">${t("logs.empty")}</p>`;
   $2("logs").querySelectorAll("[data-log-step]").forEach(
     (b) => b.onclick = () => command2("seek", { step: Number(b.dataset.logStep) }).then(followPC)
   );
@@ -30266,7 +33553,7 @@ function renderLogs() {
 function renderOutput() {
   let html = "", from = 0;
   for (const e of state.inputEchoes || []) {
-    html += escapeHTML(state.output.slice(from, e.at)) + `<span class="echo" title="\u4F60\u8F93\u5165\u7684\u5185\u5BB9">${escapeHTML(e.text)}</span>
+    html += escapeHTML(state.output.slice(from, e.at)) + `<span class="echo" title="${t("console.echo")}">${escapeHTML(e.text)}</span>
 `;
     from = e.at;
   }
@@ -30276,14 +33563,14 @@ function renderOutput() {
 function renderStops() {
   $2("breakpoints").innerHTML = breakpoints.map((b, i) => {
     const details = [
-      b.condition && "\u6761\u4EF6 " + b.condition,
-      b.hit && `\u7B2C ${b.hit} \u6B21`,
-      b.log && "\u65E5\u5FD7 " + b.log
+      b.condition && t("breakpoint.row.condition", { condition: b.condition }),
+      b.hit && t("breakpoint.row.hit", { hit: b.hit }),
+      b.log && t("breakpoint.row.log", { log: b.log })
     ].filter(Boolean);
     return `<div class="bp-row ${b.enabled ? "" : "off"}">
-        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="\u542F\u7528 ${escapeHTML(b.file)}:${b.line}">
-        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${escapeHTML(b.file)}:${b.line}<br><small>${escapeHTML(b.address == null ? "\u672A\u53C2\u4E0E\u6C47\u7F16 \xB7 \u6682\u4E0D\u751F\u6548" : details.join(" \xB7 ") || hex(b.address))}</small></button>
-        <button data-bp-edit="${i}" aria-label="\u7F16\u8F91\u65AD\u70B9" title="\u7F16\u8F91\u65AD\u70B9">\u270E</button><button data-bp-remove="${i}" aria-label="\u5220\u9664\u65AD\u70B9" title="\u5220\u9664\u65AD\u70B9">\xD7</button>
+        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="${t("breakpoint.row.enable", { file: escapeHTML(b.file), line: b.line })}">
+        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${escapeHTML(b.file)}:${b.line}<br><small>${escapeHTML(b.address == null ? t("breakpoint.row.inactive") : details.join(" \xB7 ") || hex(b.address))}</small></button>
+        <button data-bp-edit="${i}" aria-label="${t("breakpoint.row.edit")}" title="${t("breakpoint.row.edit")}">\u270E</button><button data-bp-remove="${i}" aria-label="${t("breakpoint.delete")}" title="${t("breakpoint.delete")}">\xD7</button>
       </div>`;
   }).join("");
   $2("breakpoints").querySelectorAll("[data-bp]").forEach(
@@ -30357,10 +33644,10 @@ async function run2(mode = "run", extra = {}) {
 var DEMO_RATES = [0.5, 1, 2, 4, 8, 16];
 var demoRate = () => DEMO_RATES[Number($2("demo-speed").value) - 1];
 function updateDemoSpeed() {
-  const text2 = `${demoRate()} \u6B65/\u79D2`;
+  const text2 = t("toolbar.speed.rate", { rate: demoRate() });
   $2("demo-speed-label").textContent = text2;
-  $2("demo-speed").setAttribute("aria-valuetext", `\u6BCF\u79D2 ${demoRate()} \u6B65`);
-  $2("demo-speed").title = `\u9010\u6B65\u8FD0\u884C\u901F\u5EA6\uFF1A${text2}`;
+  $2("demo-speed").setAttribute("aria-valuetext", t("toolbar.speed.value", { rate: demoRate() }));
+  $2("demo-speed").title = t("toolbar.speed.tip", { rate: text2 });
 }
 $2("demo-speed").addEventListener("input", updateDemoSpeed);
 updateDemoSpeed();
@@ -30412,30 +33699,30 @@ function editData(name2) {
 }
 function commandList() {
   const commands = [
-    ["\u6C47\u7F16\u5DE5\u7A0B", assemble, "assemble"],
-    ["\u65B0\u5EFA\u7A7A\u767D\u5DE5\u7A0B", () => $2("new-project").click()],
-    ["\u5BFC\u5165\u6587\u4EF6\u6216\u5DE5\u7A0B", () => $2("import").click()],
-    ["\u4FDD\u5B58\u5DE5\u7A0B\u5230\u6D4F\u89C8\u5668", () => $2("save-local").click()],
-    ["\u5BFC\u51FA\u5DE5\u7A0B ZIP\uFF0FJSON", () => $2("save").click()],
-    ["\u5FEB\u901F\u6253\u5F00\u6587\u4EF6\uFF0F\u6807\u7B7E\uFF0F\u5730\u5740", () => openPicker(""), "quickOpen"],
-    ["\u8F6C\u5230\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u7B26\u53F7", () => openPicker("@"), "outline"],
-    ["\u4E13\u6CE8\u6A21\u5F0F", () => openFocus(), "focus"],
-    ["\u673A\u5668\u5355\u6B65", () => command2("step").then(followPC), "step"],
-    ["\u6E90\u7801\u5355\u6B65", () => run2("source"), "source"],
-    ["\u8DE8\u8FC7\u8C03\u7528", () => run2("over"), "over"],
-    ["\u8DF3\u51FA\u51FD\u6570", () => run2("out"), "out"],
-    ["\u56DE\u9000\u4E00\u6B65", () => command2("back").then(followPC), "back"],
-    ["\u8DF3\u5230\u4E0B\u4E00\u4E2A\u65AD\u70B9", () => $2("next-bp").click()],
-    ["\u8DF3\u56DE\u4E0A\u4E00\u4E2A\u65AD\u70B9", () => $2("prev-bp").click()],
-    ["\u5B8C\u6574\u8FD0\u884C\uFF0F\u5168\u901F\u7EE7\u7EED", () => actions.run(), "run"],
-    ["\u9010\u6B65\u8FD0\u884C\uFF08\u4E00\u6B65\u4E00\u6B65\u6267\u884C\u5E76\u8DDF\u968F\uFF09", () => run2("demo")],
-    ["\u56DE\u5230\u5F00\u5934\uFF08\u91CD\u65B0\u6C47\u7F16\u5F53\u524D\u7A0B\u5E8F\uFF09", () => backToStart()],
-    ["\u91CD\u65B0\u6C47\u7F16\u5E76\u91CD\u542F", () => assemble(), "restart"],
-    ["\u6682\u505C", () => requestStop(), "pause"],
-    ["\u505C\u6B62\u5E76\u56DE\u5230\u8D77\u70B9", () => actions.stop(), "stop"],
-    ["\u5207\u6362\u65AD\u70B9\uFF08\u5149\u6807\u884C\uFF09", () => actions.breakpoint(), "breakpoint"],
+    [t("commands.assemble"), assemble, "assemble"],
+    [t("commands.newProject"), () => $2("new-project").click()],
+    [t("commands.import"), () => $2("import").click()],
+    [t("commands.saveLocal"), () => $2("save-local").click()],
+    [t("commands.export"), () => $2("save").click()],
+    [t("commands.quickOpen"), () => openPicker(""), "quickOpen"],
+    [t("commands.outline"), () => openPicker("@"), "outline"],
+    [t("focus.open"), () => openFocus(), "focus"],
+    [t("toolbar.step"), () => command2("step").then(followPC), "step"],
+    [t("toolbar.source"), () => run2("source"), "source"],
+    [t("toolbar.over"), () => run2("over"), "over"],
+    [t("toolbar.out"), () => run2("out"), "out"],
+    [t("toolbar.back"), () => command2("back").then(followPC), "back"],
+    [t("toolbar.nextBp"), () => $2("next-bp").click()],
+    [t("toolbar.prevBp"), () => $2("prev-bp").click()],
+    [t("commands.run"), () => actions.run(), "run"],
+    [t("commands.steps"), () => run2("demo")],
+    [t("commands.backToStart"), () => backToStart()],
+    [t("commands.restart"), () => assemble(), "restart"],
+    [t("toolbar.pause"), () => requestStop(), "pause"],
+    [t("commands.stop"), () => actions.stop(), "stop"],
+    [t("commands.toggleBreakpoint"), () => actions.breakpoint(), "breakpoint"],
     [
-      "\u8FD0\u884C\u5230\u5149\u6807",
+      t("commands.runToCursor"),
       () => {
         let address = lineAddress(
           editor.state.doc.lineAt(editor.state.selection.main.head).number
@@ -30446,32 +33733,32 @@ function commandList() {
           });
       }
     ],
-    ["\u67E5\u770B\u5B9E\u9645\u6307\u4EE4", () => setView("machine")],
-    ["\u67E5\u770B\u63A7\u5236\u6D41", () => setView("cfg")],
+    [t("commands.machine"), () => setView("machine")],
+    [t("commands.cfg"), () => setView("cfg")],
     [
-      "\u663E\u793A\u5168\u90E8\u5BC4\u5B58\u5668",
+      t("commands.allRegisters"),
       () => {
         $2("reg-filter").value = "all";
         renderRegisters();
       }
     ],
-    ["\u8F93\u5165\u5730\u5740\uFF0F\u7B26\u53F7", () => $2("address").focus()],
+    [t("commands.memoryAddress"), () => $2("address").focus()],
     [
-      "\u5207\u6362\u5B9E\u7EBF\u53E0\u52A0",
+      t("commands.toggleSolid"),
       () => {
         $2("solid").checked = !$2("solid").checked;
         overlay.schedule();
       }
     ],
     [
-      "\u5207\u6362\u865A\u7EBF\u53E0\u52A0",
+      t("commands.toggleDashed"),
       () => {
         $2("dashed").checked = !$2("dashed").checked;
         overlay.schedule();
       }
     ],
-    ["syscall \u4E00\u89C8\uFF08$v0 \u7684\u503C\u5BF9\u5E94\u505A\u4EC0\u4E48\uFF09", () => inspectToken("syscall")],
-    ["\u67E5\u6307\u4EE4\u4E0E\u7528\u9014\uFF08\u6309\u540D\u79F0\u6216\u60F3\u505A\u7684\u4E8B\u641C\u7D22\uFF09", () => findInstruction()]
+    [t("commands.syscalls"), () => inspectToken("syscall")],
+    [t("commands.findInstruction"), () => findInstruction()]
   ];
   return commands.map(([label2, run3, action]) => ({
     label: label2,
@@ -30485,22 +33772,22 @@ function openCommands() {
 function findInstruction(query = "") {
   const items = instructionIndex(program.instructionDocs);
   modal(
-    "\u67E5\u6307\u4EE4\u4E0E\u7528\u9014",
-    `<input id="find-input" aria-label="\u641C\u7D22\u6307\u4EE4\u6216\u7528\u9014" autocomplete="off" placeholder="\u4F8B\u5982\uFF1Aadd\u3001\u52A0\u6CD5\u3001\u6BD4\u8F83\u5927\u5C0F\u3001\u6253\u5370\u5B57\u7B26\u3001\u8BFB\u53D6\u6574\u6570\u3001\u53F3\u79FB" style="width:100%"><div id="find-list" role="listbox" aria-label="\u641C\u7D22\u7ED3\u679C"></div><div id="find-detail" aria-live="polite"></div>`
+    t("find.title"),
+    `<input id="find-input" aria-label="${t("find.label")}" autocomplete="off" placeholder="${t("find.placeholder")}" style="width:100%"><div id="find-list" role="listbox" aria-label="${t("find.results")}"></div><div id="find-detail" aria-live="polite"></div>`
   );
   const input = $2("find-input");
   input.value = query;
   let results = [], selected = 0;
-  const kindOf = (x) => x.kind === "service" ? "syscall" : x.pseudo ? "\u4F2A\u6307\u4EE4" : "\u6307\u4EE4";
+  const kindOf = (x) => x.kind === "service" ? "syscall" : x.pseudo ? t("find.kind.pseudo") : t("find.kind.instruction");
   const uses = (x) => {
     const out = [];
     for (const [file, text2] of Object.entries(files)) {
       const lines = text2.split("\n");
-      lines.forEach((t2, i) => {
-        const code = t2.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "");
+      lines.forEach((t3, i) => {
+        const code = t3.replace(/#.*/, "").replace(/^\s*(?:[\w.$]+:\s*)*/, "");
         const op = code.trim().split(/\s+/)[0];
         if (x.kind === "service" ? op === "syscall" && serviceAt({ lines, line: i + 1 }).n === x.service : op === x.op)
-          out.push({ file, line: i + 1, text: t2.trim() });
+          out.push({ file, line: i + 1, text: t3.trim() });
       });
     }
     return out.slice(0, 6);
@@ -30508,18 +33795,18 @@ function findInstruction(query = "") {
   const detail = () => {
     const x = results[selected];
     if (!x) {
-      $2("find-detail").innerHTML = input.value.trim() ? '<p class="muted">\u6CA1\u6709\u627E\u5230\u5339\u914D\u7684\u6307\u4EE4\u6216 syscall\u3002\u8BD5\u8BD5\u201C\u52A0\u6CD5\u201D\u201C\u6BD4\u8F83\u5927\u5C0F\u201D\u201C\u6253\u5370\u5B57\u7B26\u201D\u201C\u8BFB\u53D6\u6574\u6570\u201D\u201C\u53F3\u79FB\u201D\uFF0C\u6216\u8F93\u5165\u6307\u4EE4\u540D\u3002</p>' : '<p class="muted">\u8F93\u5165\u6307\u4EE4\u540D\uFF0C\u6216\u7528\u4E2D\u6587\u5199\u60F3\u505A\u7684\u4E8B\u3002</p>';
+      $2("find-detail").innerHTML = input.value.trim() ? `<p class="muted">${t("find.none")}</p>` : `<p class="muted">${t("find.empty")}</p>`;
       return;
     }
     const used = uses(x);
     const rows = [
-      ["\u7528\u9014", escapeHTML(x.purpose)],
-      ["\u683C\u5F0F", `<code class="find-code">${escapeHTML(x.format)}</code>`],
-      x.formula && ["\u901A\u7528\u516C\u5F0F", `<code>${escapeHTML(x.formula)}</code>`],
-      x.example && x.example !== x.format && ["\u4F8B\u5B50", `<code class="find-code">${escapeHTML(x.example)}</code>`],
-      x.note && ["\u8BF4\u660E", escapeHTML(x.note)]
+      [t("find.use"), escapeHTML(x.purpose)],
+      [t("find.format"), `<code class="find-code">${escapeHTML(x.format)}</code>`],
+      x.formula && [t("find.formula"), `<code>${escapeHTML(x.formula)}</code>`],
+      x.example && x.example !== x.format && [t("common.example"), `<code class="find-code">${escapeHTML(x.example)}</code>`],
+      x.note && [t("find.note"), escapeHTML(x.note)]
     ].filter(Boolean);
-    $2("find-detail").innerHTML = `<div class="inspect-head"><h3>${escapeHTML(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t2, d]) => `<dt>${t2}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">\u672C\u5DE5\u7A0B\u4E2D\u7528\u5230\u7684\u5730\u65B9\uFF08\u70B9\u51FB\u67E5\u770B\u8FD9\u4E00\u884C\u7684\u8BE6\u7EC6\u68C0\u67E5\uFF09\uFF1A</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${escapeHTML(u.file)}:${u.line} <small class="mono">${escapeHTML(u.text)}</small></button>`).join("")}` : '<p class="muted">\u672C\u5DE5\u7A0B\u91CC\u8FD8\u6CA1\u6709\u7528\u5230\u5B83\u3002</p>'}`;
+    $2("find-detail").innerHTML = `<div class="inspect-head"><h3>${escapeHTML(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t3, d]) => `<dt>${t3}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">${t("find.used")}</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${escapeHTML(u.file)}:${u.line} <small class="mono">${escapeHTML(u.text)}</small></button>`).join("")}` : `<p class="muted">${t("find.unused")}</p>`}`;
     $2("find-detail").querySelectorAll("[data-use]").forEach(
       (b) => b.onclick = () => {
         const u = used[Number(b.dataset.use)];
@@ -30536,7 +33823,7 @@ function findInstruction(query = "") {
     const visible = folded ? strong : results.length;
     selected = Math.max(0, Math.min(selected, visible - 1));
     const row2 = (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-find="${i}"><b>${escapeHTML(x.label)}</b> <small>${kindOf(x)}</small> <span class="muted">${escapeHTML(x.purpose)}</span></button>`;
-    $2("find-list").innerHTML = strong > 0 && strong < results.length ? results.slice(0, strong).map(row2).join("") + `<details class="find-more" ${moreOpen ? "open" : ""}><summary>\u5176\u4ED6\u53EF\u80FD\u76F8\u5173\uFF08${results.length - strong} \u4E2A\uFF09</summary>${results.slice(strong).map((x, k) => row2(x, strong + k)).join("")}</details>` : results.map(row2).join("");
+    $2("find-list").innerHTML = strong > 0 && strong < results.length ? results.slice(0, strong).map(row2).join("") + `<details class="find-more" ${moreOpen ? "open" : ""}><summary>${t("find.related", { count: results.length - strong })}</summary>${results.slice(strong).map((x, k) => row2(x, strong + k)).join("")}</details>` : results.map(row2).join("");
     const more = $2("find-list").querySelector(".find-more");
     if (more)
       more.ontoggle = () => {
@@ -30602,8 +33889,8 @@ tutorial = new Tutorial({
   finish: async (completed) => {
     const saved = await get(TUTORIAL_BACKUP).catch(() => null);
     modal(
-      completed ? "\u5165\u95E8\u7EC3\u4E60\u5B8C\u6210" : "\u9000\u51FA\u5165\u95E8\u7EC3\u4E60",
-      `<p>${completed ? "\u505A\u5F97\u597D\uFF01" : ""}\u7EC3\u4E60\u5DE5\u7A0B\u4F1A\u7559\u5728\u5DE5\u4F5C\u533A\uFF0C\u53EF\u4EE5\u7EE7\u7EED\u4FEE\u6539\u6216\u5BFC\u51FA\u3002${saved ? `\u4E5F\u53EF\u4EE5\u56DE\u5230\u7EC3\u4E60\u524D\u7684\u5DE5\u7A0B\u201C${escapeHTML(saved.name || "\u6211\u7684\u5DE5\u7A0B")}\u201D\u3002` : ""}</p><div class="project-actions"><button id="tutorial-continue">\u7EE7\u7EED\u7EC3\u4E60</button>${saved ? '<button id="tutorial-restore">\u56DE\u5230\u4E4B\u524D\u7684\u5DE5\u7A0B</button>' : ""}<button class="primary" id="tutorial-keep">\u4FDD\u7559\u7EC3\u4E60\u5DE5\u7A0B</button></div>`
+      completed ? t("tutorial.finished") : t("tutorial.exit"),
+      `<p>${t("tutorial.exit.note", { praise: completed ? t("tutorial.wellDone") : "", back: saved ? t("tutorial.backTo", { name: escapeHTML(saved.name || t("project.defaultName")) }) : "" })}</p><div class="project-actions"><button id="tutorial-continue">${t("tutorial.keepGoing")}</button>${saved ? `<button id="tutorial-restore">${t("tutorial.restore")}</button>` : ""}<button class="primary" id="tutorial-keep">${t("tutorial.keepProject")}</button></div>`
     );
     $2("tutorial-continue").onclick = () => $2("modal").close();
     $2("tutorial-keep").onclick = () => {
@@ -30629,8 +33916,8 @@ $2("start-tutorial").onclick = () => {
     return tutorial.update();
   }
   modal(
-    "\u5165\u95E8\u7EC3\u4E60\uFF1AHello World",
-    `<p class="project-explanation">\u8FB9\u5199\u8FB9\u5B66\uFF1A\u4ECE\u6253\u5370 Hello! \u5F00\u59CB\uFF0C\u8BFB\u53D6\u4F60\u7684\u540D\u5B57\uFF0C\u7528\u65AD\u70B9\u3001\u8BE6\u7EC6\u68C0\u67E5\u548C\u4E13\u6CE8\u6A21\u5F0F\u770B\u6E05\u5B83\uFF0C\u627E\u5230\u4E00\u4E2A\u6EA2\u51FA\u9519\u8BEF\u5E76\u4FEE\u597D\uFF0C\u6700\u540E\u81EA\u5DF1\u52A0\u4E00\u4E2A\u529F\u80FD\u5E76\u5BFC\u51FA\u3002</p><p class="muted">\u7EC3\u4E60\u4F1A\u6253\u5F00\u4E00\u4E2A\u5355\u72EC\u7684\u7EC3\u4E60\u5DE5\u7A0B\u3002\u5F53\u524D\u5DE5\u7A0B\u4F1A\u5148\u4FDD\u5B58\u4E00\u4EFD\uFF0C\u7ED3\u675F\u65F6\u53EF\u4EE5\u56DE\u5230\u5B83\uFF1B\u4F60\u7684\u4EE3\u7801\u4E0D\u4F1A\u88AB\u8986\u76D6\u3002</p><div class="project-actions"><button id="tutorial-cancel">\u53D6\u6D88</button><button class="primary" id="tutorial-begin">\u5F00\u59CB\u7EC3\u4E60</button></div>`
+    t("tutorial.start.title"),
+    `<p class="project-explanation">${t("tutorial.start.about")}</p><p class="muted">${t("tutorial.start.safe")}</p><div class="project-actions"><button id="tutorial-cancel">${t("common.cancel")}</button><button class="primary" id="tutorial-begin">${t("tutorial.start.begin")}</button></div>`
   );
   $2("tutorial-cancel").onclick = () => $2("modal").close();
   $2("tutorial-begin").onclick = async () => {
@@ -30638,10 +33925,10 @@ $2("start-tutorial").onclick = () => {
       await put(TUTORIAL_BACKUP, workspace.snapshot());
     } catch {
       $2("modal").close();
-      return notify("\u6D4F\u89C8\u5668\u5B58\u50A8\u4E0D\u53EF\u7528\uFF0C\u65E0\u6CD5\u5148\u4FDD\u5B58\u5F53\u524D\u5DE5\u7A0B\u3002\u8BF7\u5BFC\u51FA\u5DE5\u7A0B\u540E\u518D\u5F00\u59CB\u7EC3\u4E60\u3002");
+      return notify(t("tutorial.start.noStorage"));
     }
     try {
-      await workspace.apply({ name: "\u5165\u95E8\u7EC3\u4E60", files: {}, data: {}, folders: [] });
+      await workspace.apply({ name: t("menu.learn.tutorial"), files: {}, data: {}, folders: [] });
       $2("modal").close();
       setSideTab("files");
       tutorial.start();
@@ -30659,8 +33946,8 @@ document.addEventListener("click", (e) => {
 function openPicker(prefix = "") {
   const commands = commandList();
   modal(
-    prefix === ">" ? "\u547D\u4EE4\u9762\u677F" : "\u5FEB\u901F\u6253\u5F00",
-    `<input id="picker-input" aria-label="\u641C\u7D22" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">\u6587\u4EF6\u6216\u6807\u7B7E\u540D \xB7 @ \u5F53\u524D\u6587\u4EF6\u7B26\u53F7 \xB7 :\u884C\u53F7 \xB7 \u6587\u4EF6:\u884C\u53F7 \xB7 0x \u5730\u5740 \xB7 > \u547D\u4EE4 \xB7 ? \u67E5\u6307\u4EE4\u4E0E\u7528\u9014</p>`
+    prefix === ">" ? t("commands.palette") : t("picker.quickOpen"),
+    `<input id="picker-input" aria-label="${t("picker.search")}" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">${t("picker.hint")} > ${t("picker.hint.commands")}</p>`
   );
   const input = $2("picker-input");
   input.value = prefix;
@@ -30690,7 +33977,7 @@ function openPicker(prefix = "") {
     selected = Math.max(0, Math.min(selected, items.length - 1));
     $2("picker-list").innerHTML = items.map(
       (x, i) => `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-pick="${i}">${escapeHTML(x.label)}${x.detail ? `<kbd>${escapeHTML(x.detail)}</kbd>` : ""}</button>`
-    ).join("") || '<p class="muted">\u6CA1\u6709\u5339\u914D\u9879</p>';
+    ).join("") || `<p class="muted">${t("picker.none")}</p>`;
     $2("picker-list").querySelectorAll("[data-pick]").forEach(
       (b) => b.onclick = () => choose(items[Number(b.dataset.pick)])
     );
@@ -30732,18 +34019,19 @@ $2("next-bp").onclick = () => run2("run", { keepMode: true });
 $2("prev-bp").onclick = async () => {
   await command2("previousBreakpoint", { breakpoints: activeBreakpoints() });
   if (state?.stopReason === "No earlier breakpoint")
-    notify("\u524D\u9762\u7684\u6267\u884C\u91CC\u6CA1\u6709\u505C\u5728\u65AD\u70B9\u524D\u7684\u4F4D\u7F6E", { transient: true });
+    notify(t("toolbar.prevBp.none"), { transient: true });
   followPC();
   arrive(true);
 };
 for (let mode of ["source", "over", "out"]) $2(mode).onclick = () => run2(mode);
 $2("commands").onclick = openCommands;
 $2("commands-key").textContent = IS_MAC ? "\u21E7\u2318P" : "Ctrl+Shift+P";
-$2("radix").innerHTML = RADIXES.map(
+var renderRadixOptions = () => $2("radix").innerHTML = RADIXES.map(
   ([value, label2]) => `<option value="${value}" title="${escapeHTML(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label2}</option>`
 ).join("");
+renderRadixOptions();
 $2("radix-help").onclick = () => {
-  const cell = (b) => `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${escapeHTML(escapeByte(b) === " " ? "\u7A7A\u683C" : escapeByte(b))}</b></td>`;
+  const cell = (b) => `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${escapeHTML(escapeByte(b) === " " ? t("radix.table.space") : escapeByte(b))}</b></td>`;
   const codes = [0, 9, 10, ...Array.from({ length: 95 }, (_, i) => 32 + i)];
   const rows = [];
   for (let i = 0; i < codes.length; i += 4)
@@ -30751,11 +34039,11 @@ $2("radix-help").onclick = () => {
       `<tr>${codes.slice(i, i + 4).map(cell).join("")}</tr>`
     );
   modal(
-    "\u6570\u503C\u663E\u793A",
-    `<div class="radix-help"><p class="radix-example">\u540C\u4E00\u4E2A\u6570\u7684\u51E0\u79CD\u5199\u6CD5\uFF1A${["dec", "hex", "bin", "ascii"].map((m) => `<code>${escapeHTML(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ")}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${escapeHTML(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
-     <p class="muted">\u53EA\u6539\u53D8\u53EA\u8BFB\u533A\u57DF\uFF08\u5BC4\u5B58\u5668\u3001\u5185\u5B58\u3001\u5730\u5740\u3001\u6267\u884C\u7ED3\u679C\u3001\u4E13\u6CE8\u6A21\u5F0F\uFF09\u7684\u663E\u793A\uFF0C\u4EE3\u7801\u4E0D\u4F1A\u53D8\u3002</p>
-     <h4>\u5B57\u7B26\u7F16\u7801\u8868\uFF08ASCII\uFF09</h4>
-     <p class="muted">\u5185\u5B58\u91CC\u5B58\u7684\u90FD\u662F\u6570\u5B57\uFF1B\u6309\u8FD9\u5F20\u8868\uFF0C\u6BCF\u4E2A 0\u2013127 \u7684\u6570\u53EF\u4EE5\u8BFB\u6210\u4E00\u4E2A\u5B57\u7B26\u3002\u8868\u4E2D\u5217\u51FA\u5341\u8FDB\u5236\u3001\u5341\u516D\u8FDB\u5236\u548C\u5BF9\u5E94\u7684\u5B57\u7B26\u3002</p>
+    t("radix.help.heading"),
+    `<div class="radix-help"><p class="radix-example">${t("radix.help.same", { forms: ["dec", "hex", "bin", "ascii"].map((m) => `<code>${escapeHTML(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ") })}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${escapeHTML(RADIX_HELP[v].replace(/^[^：:]+[：:]\s*/, ""))}</p>`).join("")}
+     <p class="muted">${t("radix.help.scope")}</p>
+     <h4>${t("radix.help.table")}</h4>
+     <p class="muted">${t("radix.help.tableNote")}</p>
      <table class="ascii-table"><tbody>${rows.join("")}</tbody></table></div>`
   );
 };
@@ -30770,7 +34058,7 @@ $2("radix").onchange = () => {
 };
 function openFocus() {
   if (dirty || !state || state.status === "empty")
-    return notify("\u8BF7\u5148\u6C47\u7F16\uFF0C\u518D\u8FDB\u5165\u4E13\u6CE8\u6A21\u5F0F");
+    return notify(t("focus.needsAssembly"));
   lens.open();
   tutorial?.update();
 }
@@ -30782,8 +34070,8 @@ $2("theme").onclick = () => {
 function setFontSize(size) {
   fontSize = Math.max(11, Math.min(22, size));
   document.documentElement.style.setProperty("--code", fontSize + "px");
-  $2("zoom").title = `\u653E\u5927\u4EE3\u7801\u5B57\u53F7\uFF08\u5F53\u524D ${fontSize}\uFF09`;
-  $2("zoom-out").title = `\u7F29\u5C0F\u4EE3\u7801\u5B57\u53F7\uFF08\u5F53\u524D ${fontSize}\uFF09`;
+  $2("zoom").title = t("menu.view.codeSize.largerNow", { size: fontSize });
+  $2("zoom-out").title = t("menu.view.codeSize.smallerNow", { size: fontSize });
   $2("zoom").disabled = fontSize >= 22;
   $2("zoom-out").disabled = fontSize <= 11;
   try {
@@ -30794,18 +34082,18 @@ function setFontSize(size) {
   overlay.schedule();
 }
 $2("zoom").onclick = () => setFontSize(fontSize + 1);
-var OS_NAME = /Mac|iPhone|iPad/.test(navigator.platform) ? "macOS\uFF1ASF Mono" : /Win/.test(navigator.platform) ? "Windows\uFF1AConsolas" : "Linux\uFF1ADejaVu \u7B49";
-var CODE_FONTS = [
+var osName = () => /Mac|iPhone|iPad/.test(navigator.platform) ? t("fonts.system.mac") : /Win/.test(navigator.platform) ? t("fonts.system.windows") : t("fonts.system.linux");
+var codeFonts = () => [
   ["jetbrains", "JetBrains Mono", '"JetBrains Mono Web"'],
   ["fira", "Fira Code", '"Fira Code Web"'],
   ["cascadia", "Cascadia Code", '"Cascadia Code Web"'],
   ["source", "Source Code Pro", '"Source Code Pro Web"'],
   ["plex", "IBM Plex Mono", '"IBM Plex Mono Web"'],
-  ["system", "\u7CFB\u7EDF\u9ED8\u8BA4", ""]
+  ["system", t("fonts.system"), ""]
 ];
 var codeFont = "jetbrains";
 function setCodeFont(id2) {
-  const font = CODE_FONTS.find(([key]) => key === id2) || CODE_FONTS[0];
+  const fonts = codeFonts(), font = fonts.find(([key]) => key === id2) || fonts[0];
   codeFont = font[0];
   document.documentElement.style.setProperty(
     "--mono",
@@ -30823,9 +34111,13 @@ function setCodeFont(id2) {
     overlay.schedule();
   });
 }
-$2("font-list").innerHTML = CODE_FONTS.map(
-  ([key, name2, family]) => `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${escapeHTML(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${escapeHTML(name2)}</span><span class="sample">${key === "system" ? escapeHTML(OS_NAME) : "0O 1lI $t0"}</span></button>`
-).join("");
+function renderFontList() {
+  $2("font-list").innerHTML = codeFonts().map(
+    ([key, name2, family]) => `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${escapeHTML(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${escapeHTML(name2)}</span><span class="sample">${key === "system" ? escapeHTML(osName()) : "0O 1lI $t0"}</span></button>`
+  ).join("");
+  $2("font-list").querySelectorAll("[data-font]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.font === codeFont)));
+}
+renderFontList();
 $2("font-list").onclick = (e) => {
   const b = e.target.closest("[data-font]");
   if (b) setCodeFont(b.dataset.font);
@@ -30939,7 +34231,7 @@ $2("clear-focus").onclick = () => {
   inspecting = null;
   inspectingPlace = null;
   following = true;
-  showContext(CONTEXT_HINT);
+  showContext(CONTEXT_HINT());
   followInspector();
   renderRegisters();
   overlay.schedule();
@@ -30952,7 +34244,7 @@ $2("symbol-search").oninput = renderSymbols;
 $2("delay").onchange = () => {
   workspace?.changed();
   dirty = true;
-  notify("\u8FD0\u884C\u914D\u7F6E\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u6C47\u7F16");
+  notify(t("banner.configChanged"));
   updateControls();
 };
 for (let id2 of ["solid", "dashed", "reads", "writes", "flows"])
@@ -30974,14 +34266,14 @@ $2("memory-form").onsubmit = (e) => {
   e.preventDefault();
   let text2 = $2("address").value, s = program.symbols.find((s2) => s2.name === text2), value = s ? s.address : Number(text2);
   if (Number.isFinite(value)) memoryAt(value);
-  else notify("\u8BF7\u8F93\u5165\u6709\u6548\u5730\u5740\u6216\u6807\u7B7E");
+  else notify(t("memory.invalidAddress"));
 };
 $2("stack").onclick = () => memoryAt(regValue("$sp") - 16);
 $2("data").onclick = () => memoryAt(268500992);
 $2("add-watch").onclick = () => {
   modal(
-    "\u6DFB\u52A0\u8BFB\u5199\u89C2\u5BDF\u70B9",
-    `<form id="watch-form"><input id="watch-target" value="$t0" aria-label="\u89C2\u5BDF\u5BF9\u8C61"><select id="watch-access"><option value="write">\u5199\u5165</option><option value="read">\u8BFB\u53D6</option><option value="both">\u8BFB\uFF0F\u5199</option></select><button class="primary">\u6DFB\u52A0</button></form>`
+    t("watch.add.title"),
+    `<form id="watch-form"><input id="watch-target" value="$t0" aria-label="${t("watch.add.target")}"><select id="watch-access"><option value="write">${t("watch.access.write")}</option><option value="read">${t("watch.access.read")}</option><option value="both">${t("watch.add.access")}</option></select><button class="primary">${t("watch.add.button")}</button></form>`
   );
   $2("watch-form").onsubmit = (e) => {
     e.preventDefault();
@@ -31041,18 +34333,19 @@ document.addEventListener("keydown", (e) => {
   const r = keys2.handle(e);
   if (r.pending) {
     e.preventDefault();
-    notify(`\u5DF2\u6309\u4E0B ${label("Mod+K", mac2)}\uFF0C\u7B49\u5F85\u7B2C\u4E8C\u4E2A\u952E\u2026`);
+    chordNote = t("keys.chordPending", { key: label("Mod+K", mac2) });
+    notify(chordNote);
     setTimeout(() => {
-      const t2 = keys2.expire();
-      if (t2.hint) hintOnce(t2.retiredKey, t2.hint);
-      else if ($2("banner").textContent.startsWith("\u5DF2\u6309\u4E0B")) notify("");
+      const t3 = keys2.expire();
+      if (t3.hint) hintOnce(t3.retiredKey, t3.hint);
+      else if ($2("banner").textContent === chordNote) notify("");
     }, 1600);
     return;
   }
   const typing = e.target.closest?.("input, textarea, .cm-editor");
   if (r.hint && !(typing && r.retiredKey === "Alt+ArrowLeft"))
     hintOnce(r.retiredKey, r.hint);
-  else if ($2("banner").textContent.startsWith("\u5DF2\u6309\u4E0B")) notify("");
+  else if ($2("banner").textContent === chordNote) notify("");
   if (!r.action) return;
   if (typing && ["navBack", "navForward"].includes(r.action) && e.target.closest("input, textarea"))
     return;
@@ -31101,7 +34394,7 @@ workspace = projectManager({
   scopeChanged: () => updateControls(),
   replace: async (p) => {
     await requestStop();
-    if (busy) throw Error("\u8BF7\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
+    if (busy) throw Error(t("block.wait"));
     lens.close();
     lens.update(null);
     activeFile = "";
@@ -31122,7 +34415,7 @@ workspace = projectManager({
     lastInTarget = "";
     inspectingPlace = null;
     following = true;
-    showContext(CONTEXT_HINT);
+    showContext(CONTEXT_HINT());
     inspecting = null;
     focus = null;
     inlineCache.key = null;
@@ -31135,14 +34428,14 @@ workspace = projectManager({
     for (const id2 of ["output", "trace", "calls", "problems", "logs", "symbols", "registers", "memory", "machine", "cfg"]) {
       if ($2(id2)) $2(id2).replaceChildren();
     }
-    $2("history-info").textContent = "0 / 0 \u6B65";
+    $2("history-info").textContent = t("history.empty");
     $2("pc").textContent = "PC \u2014";
     selectActiveFile(p.activeFile);
     renderFiles();
     renderTabs();
     renderStops();
     updateControls();
-    notify("\u5DE5\u7A0B\u5DF2\u66F4\u65B0 \xB7 \u70B9\u51FB\u201C\u6C47\u7F16\u201D\u5F00\u59CB\u6267\u884C\u3002");
+    notify(t("project.updated"));
   }
 });
 await workspace.start();
@@ -31171,12 +34464,56 @@ window.marsIDE = {
 (async () => {
   try {
     const response = await fetch("/examples");
-    if (!response.ok) throw Error("\u793A\u4F8B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528");
+    if (!response.ok) throw Error(t("examples.unavailableNow"));
     exampleList = await response.json();
-    $2("example-list").innerHTML = exampleList.map(
-      (e, i) => `<button role="menuitem" data-example="${i}">${escapeHTML(e.name === "hexout" ? "Hexadecimal \xB7 \u4F4D\u4E0E\u5B57\u7B26" : e.name === "task1" ? "Task 1 \xB7 \u6587\u4EF6\u4E0E\u8C03\u7528" : e.name)}</button>`
-    ).join("") || '<button role="menuitem" disabled>\u6CA1\u6709\u793A\u4F8B</button>';
+    renderExamples();
   } catch (e) {
-    $2("example-list").innerHTML = '<button role="menuitem" disabled>\u793A\u4F8B\u6682\u4E0D\u53EF\u7528</button>';
+    exampleList = null;
+    renderExamples();
   }
 })();
+function renderExamples() {
+  if (!exampleList) {
+    $2("example-list").innerHTML = `<button role="menuitem" disabled>${t("examples.unavailable")}</button>`;
+    return;
+  }
+  $2("example-list").innerHTML = exampleList.map(
+    (e, i) => `<button role="menuitem" data-example="${i}">${escapeHTML(e.name === "hexout" ? t("examples.hexout") : e.name === "task1" ? t("examples.task1") : e.name)}</button>`
+  ).join("") || `<button role="menuitem" disabled>${t("examples.none")}</button>`;
+}
+function renderLanguages() {
+  $2("language-list").innerHTML = LANGUAGES.map(
+    (l) => `<button role="menuitemradio" class="font-choice" data-language="${l.code}" lang="${l.code}" aria-checked="${l.code === language()}">${escapeHTML(l.name)}</button>`
+  ).join("");
+}
+renderLanguages();
+$2("language-list").onclick = (e) => {
+  const b = e.target.closest("[data-language]");
+  if (b) setLanguage(b.dataset.language);
+};
+applyDom();
+document.addEventListener("mouseover", (e) => {
+  const el = e.target.closest?.("*");
+  if (!el || el.hasAttribute("title") || el.dataset.tip || el.closest(".cm-editor")) return;
+  if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).textOverflow === "ellipsis") el.title = el.textContent.trim();
+});
+onLanguageChange(() => {
+  renderLanguages();
+  renderFontList();
+  renderRadixOptions();
+  renderExamples();
+  labelOverlaySettings();
+  updateDemoSpeed();
+  setFontSize(fontSize);
+  hideTooltip2(0);
+  workspace?.render();
+  renderTabs();
+  renderStops();
+  if (state) render();
+  updateControls();
+  if (inspecting) inspectToken(inspecting, inspectingPlace, { refresh: true });
+  else followInspector();
+  if (lens.isOpen) lens.update(dirty ? null : state);
+  tutorial?.update();
+  overlay.schedule();
+});

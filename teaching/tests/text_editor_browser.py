@@ -10,7 +10,7 @@ project={'name':'Text editor check','files':{'main.s':source},'data':{'input.txt
 with sync_playwright() as p:
  b=launch(p)
  try:
-  page=b.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+  page=b.new_page(locale="zh-CN");errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.add_init_script('if(!localStorage.getItem("mars-trace:project:v2"))localStorage.setItem("mars-trace:project:v2",'+json.dumps(json.dumps(project))+')')
   page.goto(URL);page.wait_for_function('()=>Boolean(window.marsIDE)')
   page.locator('[data-data="input.txt"]').click()

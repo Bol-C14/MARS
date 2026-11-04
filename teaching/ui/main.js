@@ -1,3 +1,5 @@
+import { t, LANGUAGES, language, setLanguage, onLanguageChange, applyDom } from "./i18n/index.js";
+import { marsText } from "./i18n/mars.js";
 import {
   EditorView,
   Decoration,
@@ -53,6 +55,10 @@ import { assemblyScope, scopeHints, pathName } from "./workspace.js";
 import { put, get, drop } from "./store.js";
 import { liveCheck } from "./live-check.js";
 const $ = (id) => document.getElementById(id);
+// Joining words: 、 and ： in Chinese, ", " and ": " in English.
+const LIST_SEP = () => t("common.listSep");
+const COLON = () => t("common.colon");
+let chordNote = "";
 // Jumps and branches take VS Code's control-keyword colour, the same purple
 // as control-flow arrows.
 const CONTROL_OPS =
@@ -69,7 +75,7 @@ const CURATED = new Map(
 function zhDoc(op) {
   if (explanations[op]) return explanations[op];
   const c = CURATED.get(op);
-  return c ? `${c.purpose}${c.note ? "；" + c.note : ""}。` : "";
+  return c ? `${c.purpose}${c.note ? t("common.semicolon") + c.note : ""}${t("common.period")}` : "";
 }
 // How an instruction is written, for the hover note and the inspector.
 function usage(op, source = "") {
@@ -134,7 +140,7 @@ class Dot extends GutterMarker {
       (this.breakpoint && this.breakpoint.address == null ? " stale" : "");
     e.textContent = breakpointGlyph(this.breakpoint);
     if (this.breakpoint && this.breakpoint.address == null)
-      e.title = "这个文件没有参与当前汇编，断点暂不生效";
+      e.title = t("breakpoint.outsideScope");
     return e;
   }
 }
@@ -165,8 +171,8 @@ const INLINE_LINES = 12;
 let inlineCache = { key: null, map: new Map() };
 // A nop right after a branch or jump keeps the program correct when delayed
 // branching is on; otherwise it does nothing. Shown dimmed with its reason (C5).
-const DELAY_NOP =
-  "延迟槽占位：开启“延迟分支”时，跳转或分支后面紧跟的这一条总会先执行，放 nop 可以保证程序在两种设置下都正确。关闭时它什么也不做。";
+const DELAY_NOP = () =>
+  t("editor.delaySlot");
 let delayCache = { program: null, lines: new Set() };
 function delaySlots() {
   if (delayCache.program === program.instructions) return delayCache.lines;
@@ -315,7 +321,7 @@ const decorations = ViewPlugin.fromClass(
             ranges.push(
               Decoration.line({
                 class: cls.join(" "),
-                attributes: slot ? { title: DELAY_NOP } : {},
+                attributes: slot ? { title: DELAY_NOP() } : {},
               }).range(l.from),
             );
           const inline = currentExecution && inlineValues().get(activeFile + ":" + l.number);
@@ -406,7 +412,7 @@ class PeekWidget extends WidgetType {
       box = document.createElement("div");
     box.className = "cm-peek";
     box.innerHTML =
-      `<div class="cm-peek-head"><b>${esc(token)}</b> · ${refs.length} 处引用<button data-peek-close aria-label="关闭">×</button></div>` +
+      `<div class="cm-peek-head"><b>${esc(token)}</b> ${t("peek.count", { count: refs.length })}<button data-peek-close aria-label="${t("common.close")}">×</button></div>` +
       (refs.length
         ? refs
             .map(
@@ -414,7 +420,7 @@ class PeekWidget extends WidgetType {
                 `<button class="cm-peek-row" data-peek="${i}"><span>${esc(r.file)}:${r.line}</span><small>${esc(r.type)}</small><code>${esc(r.text.trim())}</code></button>`,
             )
             .join("")
-        : '<p class="muted">无静态引用。</p>');
+        : `<p class="muted">${t("peek.none")}</p>`);
     box.querySelector("[data-peek-close]").onclick = () => closePeek();
     // Keyboard: ↑/↓ move through the list (it scrolls), Enter opens, Esc returns.
     box.addEventListener("keydown", (e) => {
@@ -493,14 +499,14 @@ function editorMenu(x, y, pos) {
   editor.dispatch({ selection: { anchor: pos } });
   const items = [
     [
-      "运行到此行",
+      t("editor.menu.runToLine"),
       canRun && address != null,
       () => run("run", { breakpoints: [...activeBreakpoints(), { address }] }),
     ],
-    ["切换断点", address != null, () => toggleBreakpoint(line), "breakpoint"],
-    ["编辑断点…", address != null, () => editBreakpoint(address)],
-    ["转到定义／说明", true, () => openDetail(pos)],
-    ["查看引用", !!token, () => peekReferences()],
+    [t("editor.menu.toggleBreakpoint"), address != null, () => toggleBreakpoint(line), "breakpoint"],
+    [t("editor.menu.editBreakpoint"), address != null, () => editBreakpoint(address)],
+    [t("editor.menu.definition"), true, () => openDetail(pos)],
+    [t("editor.menu.references"), !!token, () => peekReferences()],
   ];
   const menu = document.createElement("div");
   menu.id = "context-menu";
@@ -601,7 +607,7 @@ function drawErrors() {
       const r = errorRange(editor.state.doc, d);
       if (r)
         marks.push(
-          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: d.message, warning: d.warning }).range(r.from, r.to),
+          Decoration.mark({ class: d.warning ? "cm-warning-mark" : "cm-error-mark", message: marsText(d.message), warning: d.warning }).range(r.from, r.to),
         );
     }
   editor.dispatch({ effects: setErrorMarks.of(Decoration.set(marks, true)) });
@@ -617,7 +623,7 @@ function showLineProblems(lines, list) {
   for (const d of list) {
     const r = errorRange(doc, d);
     if (r && !kept.some((k) => k.from === r.from))
-      kept.push(Decoration.mark({ class: "cm-error-mark", message: d.message, warning: false, live: true }).range(r.from, r.to));
+      kept.push(Decoration.mark({ class: "cm-error-mark", message: marsText(d.message), warning: false, live: true }).range(r.from, r.to));
   }
   editor.dispatch({ effects: setErrorMarks.of(Decoration.set(kept, true)) });
 }
@@ -755,8 +761,8 @@ const editor = new EditorView({
           if (!source || !target || target.files.includes(activeFile)) {
             dirty = true;
             $("banner").textContent = source
-              ? "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本"
-              : "输入文件已修改 · 重新汇编后使用新内容";
+              ? t("banner.sourceChanged")
+              : t("banner.inputChanged");
             $("banner").className = "visible";
           }
           updateControls();
@@ -865,7 +871,7 @@ function regValue(name) {
 function valueHTML(n) {
   let v = n | 0,
     c = v & 255;
-  return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>ASCII低字节</span><span>${c >= 32 && c < 127 ? esc(String.fromCharCode(c)) : c === 0 ? "NUL" : "不可打印"} (${c})</span></div>`;
+  return `<div class="values"><span>hex</span><span>${hex(v)}</span><span>signed</span><span>${v}</span><span>unsigned</span><span>${v >>> 0}</span><span>bits</span><span class="bits">${(v >>> 0).toString(2).padStart(32, "0").match(/.{4}/g).join(" ")}</span><span>${t("tip.asciiLow")}</span><span>${c >= 32 && c < 127 ? esc(String.fromCharCode(c)) : c === 0 ? "NUL" : t("tip.notPrintable")} (${c})</span></div>`;
 }
 // The syscall on a source line: which service (from before the call, never
 // the $v0 a read has overwritten), where that number came from, and the
@@ -930,34 +936,34 @@ function syscallAt(place) {
 }
 const tipUsage = (op) => {
   const u = usage(op);
-  return u ? `<p class="tip-formula">写法：<code>${esc(u.format)}</code></p>` : "";
+  return u ? `<p class="tip-formula">${t("tip.syntax")}<code>${esc(u.format)}</code></p>` : "";
 };
 const isNumber = (token) => /^-?(?:0x[\da-f]+|\d+)$/i.test(token);
 function summary(token, line = "", place = null) {
   token = canonicalReg(token);
   if (token.startsWith("$"))
-    return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>执行 ${state?.step ?? 0} 步后的值</small>`;
+    return `<b>${esc(token)}</b> ${esc(fmt(regValue(token), 4, regKind(token)).text)}<p>${esc(role(token))}</p><small>${t("tip.valueAfter", { step: state?.step ?? 0 })}</small>`;
   if (token === "syscall") {
     const at = syscallAt(place),
       g = serviceGuide[at.n];
-    return `<b>${esc(at.n == null ? "syscall（$v0 未知）" : `syscall：${g ? g[0] : "不支持"}（$v0 = ${at.n}）`)}</b><p>${esc(g ? g[1] : "syscall 做什么由 $v0 里的数决定；要执行到这一行才知道。")}</p>${at.setter ? `<small>第 ${at.setter.line} 行 ${esc(at.setter.text)} 放入</small>` : ""}`;
+    return `<b>${esc(at.n == null ? t("tip.syscallUnknown") : `syscall${COLON()}${g ? g[0] : t("tip.unsupported")}${t("common.inParens", { text: `$v0 = ${at.n}` })}`)}</b><p>${esc(g ? g[1] : t("tip.syscallLater"))}</p>${at.setter ? `<small>${t("tip.syscallSetter", { line: at.setter.line, code: esc(at.setter.text) })}</small>` : ""}`;
   }
   if (zhDoc(token)) {
     const text = zhDoc(token);
-    return `<b>${esc(token)}</b><p>${esc(text)}</p>${tipUsage(token)}${lineFormula(place)}<small>指令／汇编器说明</small>`;
+    return `<b>${esc(token)}</b><p>${esc(text)}</p>${tipUsage(token)}${lineFormula(place)}<small>${t("tip.instructionDoc")}</small>`;
   }
   if (directiveGuide[token])
-    return `<b>${esc(token)}</b><p>${esc(directiveGuide[token][1])}</p><p class="tip-formula">写法：<code>${esc(directiveGuide[token][0])}</code></p><small>汇编器指示，不是机器指令</small>`;
-  if (isNumber(token)) return `<b>${esc(token)}</b><p>写在代码里的常数</p>`;
+    return `<b>${esc(token)}</b><p>${esc(directiveGuide[token][1])}</p><p class="tip-formula">${t("tip.syntax")}<code>${esc(directiveGuide[token][0])}</code></p><small>${t("tip.directive")}</small>`;
+  if (isNumber(token)) return `<b>${esc(token)}</b><p>${t("tip.constant")}</p>`;
   if (program.instructionDocs[token]) {
     const doc = program.instructionDocs[token],
       mars = withOperands(doc.description, doc.example, line);
-    return `<b>${esc(token)}</b><p>${esc(mars.text)}</p>${lineFormula(place)}<small>MARS 原文${mars.substituted ? "（已代入本行的操作数）" : `（示例：${esc(doc.example)}）`}</small>`;
+    return `<b>${esc(token)}</b><p>${esc(mars.text)}</p>${lineFormula(place)}<small>${t("tip.marsOriginal", { example: mars.substituted ? t("tip.marsSubstituted") : t("tip.marsExample", { example: esc(doc.example) }) })}</small>`;
   }
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol)
-    return `<b>${esc(token)}</b><p>符号地址 ${hex(symbol.address)}</p><small>${DETAIL_KEYS}跳转定义</small>`;
-  return `<b>${esc(token)}</b><p>标签或名称；汇编后可查看地址</p>`;
+    return `<b>${esc(token)}</b><p>${t("tip.symbolAddress", { address: hex(symbol.address) })}</p><small>${t("tip.symbolJump", { keys: DETAIL_KEYS() })}</small>`;
+  return `<b>${esc(token)}</b><p>${t("tip.label")}</p>`;
 }
 // Term definitions under a tooltip (it moves with the pointer, so its words
 // cannot be hovered themselves).
@@ -972,8 +978,8 @@ function definitions(text) {
 // The note stays put while the pointer is on the same word and can be
 // entered, so its “查看详细” is clickable without knowing the shortcut.
 const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
-const DETAIL_KEYS = IS_MAC ? "⌘ 或 Ctrl＋点击" : "Ctrl＋点击";
-const DETAIL_HINT = `${DETAIL_KEYS}：详情在右侧“详细检查”`;
+const DETAIL_KEYS = () => IS_MAC ? t("keys.detailMac") : t("keys.detail");
+const DETAIL_HINT = () => t("tip.detailHint", { keys: DETAIL_KEYS() });
 let tipFor = "",
   tipHide = null;
 function cancelTooltipHide() {
@@ -1040,7 +1046,7 @@ function hover(e) {
   tipFor = key;
   const report = problem ? `<div class="tip-error" role="alert">${esc(problem)}</div>` : "";
   $("tooltip").innerHTML = token
-    ? `${report}<div class="tip-hint">${DETAIL_HINT}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">在右侧查看详细 →</button>`
+    ? `${report}<div class="tip-hint">${DETAIL_HINT()}</div>${summary(token, line.text, place)}<button class="tip-detail" type="button">${t("tip.detailButton")}</button>`
     : report;
   if (token)
     $("tooltip").querySelector(".tip-detail").onclick = () => {
@@ -1053,7 +1059,7 @@ function hover(e) {
     const go = document.createElement("button");
     go.className = "tip-detail";
     go.type = "button";
-    go.textContent = "作为地址查看";
+    go.textContent = t("inspector.asAddress");
     go.onclick = () => {
       memoryAt(regValue(reg));
       hideTooltip(0);
@@ -1077,7 +1083,7 @@ function openDetail(pos, past = false) {
     .trim()
     .split(/\s+/)[0];
   const token = (past ? "" : tokenAt(pos)) || word;
-  if (!token) return notify("这一行没有指令可以查看。", { transient: true });
+  if (!token) return notify(t("inspector.noInstruction"), { transient: true });
   inspectToken(token, place);
 }
 function openDetailAt(e) {
@@ -1098,7 +1104,7 @@ function revealContext() {
 }
 $("tooltip").addEventListener("mouseenter", cancelTooltipHide);
 $("tooltip").addEventListener("mouseleave", () => hideTooltip());
-const CONTEXT_HINT = `<p class="muted">还没有固定检查对象。悬停代码看简短说明；${DETAIL_KEYS}、点浮窗里的“查看详细”或按 F12，在这里查看完整说明。</p>`;
+const CONTEXT_HINT = () => `<p class="muted">${t("inspector.empty", { keys: DETAIL_KEYS() })}</p>`;
 // The inspector follows execution by default, showing the line that just
 // ran (or, before anything ran, the next one as a preview); opening an object
 // pins it until "回到跟随执行" or "取消固定" (round-4 trial: a pinned syscall
@@ -1107,7 +1113,7 @@ function followInspector() {
   if (!following || !state || dirty || running) return;
   const e = state.last?.instruction ? state.last : state.preview,
     ins = e?.instruction;
-  if (!ins) return showContext(CONTEXT_HINT);
+  if (!ins) return showContext(CONTEXT_HINT());
   const word = ((files[ins.file] || "").split("\n")[ins.line - 1] || "")
     .replace(/#.*/, "")
     .replace(/^\s*(?:[\w.$]+:\s*)*/, "")
@@ -1123,7 +1129,7 @@ function modeBar() {
   if (following) {
     const e = state.last?.instruction ? state.last : state.preview;
     return e?.instruction
-      ? `<div class="inspect-mode">跟随执行 · ${state.last?.instruction ? "刚执行" : "即将执行"}的第 ${e.instruction.line} 行</div>`
+      ? `<div class="inspect-mode">${t("inspector.following", { when: state.last?.instruction ? t("inspector.following.done") : t("inspector.following.next"), line: e.instruction.line })}</div>`
       : "";
   }
   if (!inspecting) return "";
@@ -1131,7 +1137,7 @@ function modeBar() {
   const here = program.instructions.find((i) => i.address === executionPC());
   const away =
     pinned && here && ![at(state.last), at(state.preview)].includes(pinned);
-  return `<div class="inspect-mode pinned">已固定 · ${esc(inspecting)}${inspectingPlace ? ` · 第 ${inspectingPlace.line} 行` : ""}${away ? ` · 执行已到第 ${here.line} 行` : ""}<button id="follow-again">回到跟随执行</button></div>`;
+  return `<div class="inspect-mode pinned">${t("inspector.pinned", { item: esc(inspecting), line: inspectingPlace ? ` ${t("inspector.pinned.line", { line: inspectingPlace.line })}` : "", away: away ? ` ${t("inspector.pinned.away", { line: here.line })}` : "" })}<button id="follow-again">${t("inspector.followAgain")}</button></div>`;
 }
 // Actions people miss at the bottom of a long detail sit as icons in the
 // panel's title row, beside 取消固定 (classroom 2026-11-03).
@@ -1177,7 +1183,7 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
       offset = Number(address[1] || 0),
       effective = (base + offset) | 0;
     showContext(
-      `<h3>${esc(token)}</h3><p>按执行 ${state?.step ?? 0} 步后的寄存器值算出的地址</p><div class="values"><span>基址</span><span>${esc(address[2])} = ${hex(base)}</span><span>偏移</span><span>${offset} 字节</span><span>地址</span><span>${hex(effective)}</span></div><button id="inspect-memory">查看内存 →</button>`,
+      `<h3>${esc(token)}</h3><p>${t("inspector.addressAfter", { step: state?.step ?? 0 })}</p><div class="values"><span>${t("inspector.address.base")}</span><span>${esc(address[2])} = ${hex(base)}</span><span>${t("inspector.address.offset")}</span><span>${t("inspector.address.bytes", { offset })}</span><span>${t("common.address")}</span><span>${hex(effective)}</span></div><button id="inspect-memory">${t("inspector.viewMemory")}</button>`,
     );
     $("inspect-memory").onclick = () => memoryAt(effective);
     return;
@@ -1189,7 +1195,7 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
     let value = regValue(token),
       last = state?.lastWriters?.[token];
     showContext(
-      `<h3>${esc(token)} <small class="muted">寄存器</small></h3><p>${esc(role(token))}</p>${valueHTML(value)}<p class="muted">执行 ${state?.step ?? 0} 步后的值 · ${last ? `最后一次写入在第 ${last} 步` : "还没有被写入过（初始值）"}</p><div class="context-actions"><button id="refs">查找引用</button><button id="pin">${pinned.has(token) ? "取消固定" : "固定"}</button><button id="point">作为地址查看</button><button id="last-write" ${last ? "" : "disabled"}>最后写入</button><button id="next-write">运行到下次写入</button></div>`,
+      `<h3>${esc(token)} <small class="muted">${t("inspector.register")}</small></h3><p>${esc(role(token))}</p>${valueHTML(value)}<p class="muted">${t("inspector.register.value", { step: state?.step ?? 0, lastWrite: last ? t("inspector.lastWriteAt", { last }) : t("inspector.neverWritten") })}</p><div class="context-actions"><button id="refs">${t("inspector.references")}</button><button id="pin">${pinned.has(token) ? t("inspector.unpin") : t("inspector.pin")}</button><button id="point">${t("inspector.asAddress")}</button><button id="last-write" ${last ? "" : "disabled"}>${t("inspector.lastWrite")}</button><button id="next-write">${t("inspector.runToWrite")}</button></div>`,
     );
     $("refs").onclick = () => showReferences(token);
     $("pin").onclick = () => {
@@ -1205,19 +1211,19 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
   }
   if (token === "syscall") {
     const at = syscallAt(place),
-      detail = syscallDetail({ ...at, regTitle: (r) => r + "：" + role(r) }),
-      words = (serviceGuide[at.n] || []).flat(2).join(" ") + " 寄存器 syscall";
+      detail = syscallDetail({ ...at, regTitle: (r) => r + COLON() + role(r) }),
+      words = t("inspector.syscall.terms", { words: (serviceGuide[at.n] || []).flat(2).join(" ") });
     showContext(
-      `<h3>${esc(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? '<button id="char-table">查看字符编码表</button>' : ""}<button id="service-list">$v0 的值对应做什么</button></div>`,
+      `<h3>${esc(detail.title)}</h3>${detail.html}${termsIn(words).length ? `<details class="detail-terms"><summary>${t("common.terms")}</summary>${definitions(words)}</details>` : ""}<div class="context-actions">${at.n === 11 || at.n === 12 ? `<button id="char-table">${t("inspector.charTable")}</button>` : ""}<button id="service-list">${t("inspector.syscall.services")}</button></div>`,
     );
     if ($("char-table")) $("char-table").onclick = () => $("radix-help").click();
     $("service-list").onclick = () =>
       modal(
-        "syscall：$v0 选定做什么",
+        t("inspector.syscall.title"),
         Object.entries(services)
           .map(
             ([id, s]) =>
-              `<p><b>$v0 = ${id}</b> ${serviceGuide[id]?.[0] || s[0]} · ${serviceGuide[id]?.[1] || ""} <small class="muted">参数 ${s[1].join(", ") || "无"} → ${s[2].join(", ") || "无返回值"}</small></p>`,
+              `<p><b>$v0 = ${id}</b> ${serviceGuide[id]?.[0] || s[0]} · ${serviceGuide[id]?.[1] || ""} <small class="muted">${t("inspector.syscall.args", { args: s[1].join(", ") || t("common.none"), result: s[2].join(", ") || t("inspector.syscall.noResult") })}</small></p>`,
           )
           .join(""),
       );
@@ -1226,7 +1232,7 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
   let symbol = program.symbols.find((s) => s.name === token);
   if (symbol) {
     showContext(
-      `<h3>${esc(token)}</h3><p>符号地址 <code>${hex(symbol.address)}</code></p><div class="context-actions"><button id="definition">定义</button><button id="symbol-memory">查看内存</button><button id="refs">引用</button></div>`,
+      `<h3>${esc(token)}</h3><p>${t("inspector.symbol.address")} <code>${hex(symbol.address)}</code></p><div class="context-actions"><button id="definition">${t("inspector.symbol.definition")}</button><button id="symbol-memory">${t("inspector.symbol.memory")}</button><button id="refs">${t("inspector.symbol.references")}</button></div>`,
     );
     $("definition").onclick = () => gotoSymbol(symbol);
     $("symbol-memory").onclick = () => memoryAt(symbol.address);
@@ -1238,18 +1244,18 @@ function inspectToken(token, place = null, { refresh = false } = {}) {
   if (directiveGuide[token]) {
     const [written, does] = directiveGuide[token];
     showContext(
-      `<h3>${esc(token)} <small class="muted">汇编器指示</small></h3><p>${esc(does)}</p><dl class="detail-steps"><dt>写法</dt><dd><code>${esc(written)}</code></dd></dl><p class="muted">它告诉汇编器怎么安排内容，本身不是一条机器指令，不会单独执行。</p>`,
+      `<h3>${esc(token)} <small class="muted">${t("inspector.directive")}</small></h3><p>${esc(does)}</p><dl class="detail-steps"><dt>${t("common.syntax")}</dt><dd><code>${esc(written)}</code></dd></dl><p class="muted">${t("inspector.directive.note")}</p>`,
     );
     return;
   }
   if (isNumber(token)) {
-    showContext(`<h3>${esc(token)} <small class="muted">常数</small></h3><p>写在代码里的数，同一个值的几种写法：</p>${valueHTML(Number(token))}`);
+    showContext(`<h3>${esc(token)} <small class="muted">${t("inspector.constant")}</small></h3><p>${t("inspector.constant.note")}</p>${valueHTML(Number(token))}`);
     return;
   }
   const known = zhDoc(token) || program.instructionDocs[token]?.description,
     u = isInstruction(token) ? usage(token) : null;
   showContext(
-    `<h3>${esc(token)}</h3><p>${esc(known || "标签或名称。汇编后可以查看它的地址；也可以查找代码里哪些地方用到它。")}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">查找引用</button></div>`,
+    `<h3>${esc(token)}</h3><p>${esc(known || t("inspector.label"))}</p>${u ? usageRows(u) : ""}<div class="context-actions"><button id="refs">${t("inspector.references")}</button></div>`,
   );
   $("refs").onclick = () => showReferences(token);
 }
@@ -1263,10 +1269,10 @@ function labelLine(name) {
 function usageRows(u) {
   const part = (p) => {
     const line = p.name === "label" && p.value ? labelLine(p.value) : null;
-    return `<li><code>${esc(p.name)}</code>${p.value ? ` = <code>${esc(p.value)}</code>` : ""} ${esc(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>（第 ${line} 行）</small>` : ""}</li>`;
+    return `<li><code>${esc(p.name)}</code>${p.value ? ` = <code>${esc(p.value)}</code>` : ""} ${esc(line ? p.meaning.replace(/（.*）$/, "") : p.meaning)}${line ? `<small>${t("inspector.lineRef", { line })}</small>` : ""}</li>`;
   };
   const written = u.parts.some((p) => p.value);
-  return `<dl class="detail-steps"><dt>写法</dt><dd><code>${esc(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>通用规则</dt><dd><code>${esc(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>例子</dt><dd><code>${esc(u.example)}</code></dd>` : ""}</dl>`;
+  return `<dl class="detail-steps"><dt>${t("common.syntax")}</dt><dd><code>${esc(u.format)}</code>${u.parts.length ? `<ul class="usage-parts">${u.parts.map(part).join("")}</ul>` : ""}</dd>${u.formula ? `<dt>${t("inspector.rule")}</dt><dd><code>${esc(u.formula)}</code></dd>` : ""}${!written && u.example && u.example !== u.format ? `<dt>${t("common.example")}</dt><dd><code>${esc(u.example)}</code></dd>` : ""}</dl>`;
 }
 const isInstruction = (token) =>
   !!(zhDoc(token) || program.instructionDocs[token]);
@@ -1341,8 +1347,8 @@ const plainEq = (parts = []) =>
     )
     .join("");
 function lineFormula(place) {
-  const t = lineTemplate(place);
-  return t ? `<p class="tip-formula">本行：<code>${esc(plainEq(t))}</code></p>` : "";
+  const formula = lineTemplate(place);
+  return formula ? `<p class="tip-formula">${t("inspector.thisLine")}<code>${esc(plainEq(formula))}</code></p>` : "";
 }
 // The detailed inspector for an instruction on a line (classroom
 // 2026-10-24): the rule in general, this line substituted, the values before
@@ -1356,24 +1362,24 @@ function instructionDetail(token, place) {
     template = model?.template || lineTemplate(place);
   const where = `${place.file}:${place.line}`;
   const status = dirty
-    ? "代码已修改 · 重新汇编后才有数值"
+    ? t("inspector.stale")
     : !state
-      ? "尚未汇编"
+      ? t("status.notAssembledYet")
       : !run
-        ? "这次运行中还没有执行到这一行"
+        ? t("inspector.notReached")
         : run.kind === "last"
-          ? `刚执行（第 ${run.step} 步）`
+          ? t("inspector.justRun", { step: run.step })
           : run.kind === "next"
-            ? "即将执行 · 下面是预览，尚未执行"
-            : `第 ${run.step} 步执行过（不是最近一步）`;
+            ? t("inspector.preview")
+            : t("inspector.ranAt", { step: run.step });
   const value = (o, v) =>
     fmt(v, o.width || 4, o.kind === "memory" ? "bits" : regKind(o.name)).text;
-  const label = (o) => (o.kind === "memory" ? `内存[${hex(o.address)}]` : o.name);
+  const label = (o) => (o.kind === "memory" ? t("inspector.memoryCell", { address: hex(o.address) }) : o.name);
   // Register names can be hovered for their conventional use.
   const labelHTML = (o) =>
     o.kind === "memory"
       ? esc(label(o))
-      : `<abbr class="reg-term" title="${esc(o.name + "：" + role(o.name))}">${esc(o.name)}</abbr>`;
+      : `<abbr class="reg-term" title="${esc(o.name + COLON() + role(o.name))}">${esc(o.name)}</abbr>`;
   const reads = (model?.objects || []).filter((o) => o.read),
     writes = (model?.objects || []).filter((o) => o.write);
   const single = (template && !(run?.events?.length > 1) && !run?.pseudo);
@@ -1381,38 +1387,38 @@ function instructionDetail(token, place) {
   const bitsEvent = (run?.events || []).find(supportsBits);
   const rows = [];
   if (template && single && !written?.formula)
-    rows.push(["通用规则", `<code>${esc(genericTemplate(template, source))}</code>`]);
+    rows.push([t("inspector.rule"), `<code>${esc(genericTemplate(template, source))}</code>`]);
   if (template)
-    rows.push(["本行代入", `<code>${esc(plainEq(template))}</code>`]);
+    rows.push([t("inspector.substituted"), `<code>${esc(plainEq(template))}</code>`]);
   if (model) {
     // A register both read and written: the right-hand side uses the value
     // from before the write (round-4 trial: students had to infer this).
     const both = writes.filter((w) => w.kind === "register" && reads.some((r) => r.name === w.name));
     rows.push([
-      run.kind === "next" ? "当前执行前数值" : "执行前数值",
-      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${esc(value(o, o.before))}</b>`).join("，") : "不读取寄存器或内存") +
-        both.map((o) => `<small class="detail-when">右边的 ${esc(o.name)} 用的是执行前的 ${esc(value(o, o.before))}，结果 ${esc(value(o, o.after))} 写回后 ${esc(o.name)} 才变。</small>`).join(""),
+      run.kind === "next" ? t("inspector.valuesBeforeNow") : t("inspector.valuesBefore"),
+      (reads.length ? reads.map((o) => `${labelHTML(o)} = <b>${esc(value(o, o.before))}</b>`).join(t("common.comma")) : t("inspector.noReads")) +
+        both.map((o) => `<small class="detail-when">${t("inspector.sameRegister", { reg: esc(o.name), before: esc(value(o, o.before)), after: esc(value(o, o.after)), reg: esc(o.name) })}</small>`).join(""),
     ]);
     rows.push([
-      "计算过程",
+      t("inspector.computation"),
       `<ol>${model.beats.map((b) => `<li><code>${esc(plainEq(b.eq))}</code>${b.caption ? ` <small>${esc(b.caption)}</small>` : ""}</li>`).join("")}</ol>`,
     ]);
     rows.push([
-      "完成执行后数值",
+      t("inspector.valuesAfter"),
       (writes.length
-        ? writes.map((o) => `${labelHTML(o)}：${esc(value(o, o.before))} → <b>${esc(value(o, o.after))}</b>`).join("<br>")
-        : esc(model.summary || "没有写入寄存器或内存")) +
-        `<small class="detail-when">${run.kind === "next" ? "预览：尚未执行" : "执行后的实际结果"}</small>`,
+        ? writes.map((o) => `${labelHTML(o)}${COLON()}${esc(value(o, o.before))} → <b>${esc(value(o, o.after))}</b>`).join("<br>")
+        : esc(model.summary || t("inspector.noWrites"))) +
+        `<small class="detail-when">${run.kind === "next" ? t("inspector.previewOnly") : t("inspector.actualResult")}</small>`,
     ]);
     const related = [
-      reads.length && "读 " + reads.map(labelHTML).join("、"),
-      writes.length && "写 " + writes.map(labelHTML).join("、"),
+      reads.length && t("inspector.reads", { items: reads.map(labelHTML).join(LIST_SEP()) }),
+      writes.length && t("inspector.writes", { items: writes.map(labelHTML).join(LIST_SEP()) }),
     ].filter(Boolean);
-    if (related.length) rows.push(["关联读写", related.join(" · ")]);
+    if (related.length) rows.push([t("inspector.accesses"), related.join(" · ")]);
   } else if (run?.pseudo)
-    rows.push(["完成执行后数值", "这一行是伪指令，执行后可以看到整行的结果；在专注模式中可逐条查看展开的机器指令。"]);
+    rows.push([t("inspector.valuesAfter"), t("inspector.pseudo")]);
   showContext(
-    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>术语</summary>${definitions(doc)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">定位到这一行</button><button id="refs">查找引用</button>${bitsEvent ? `<button id="detail-bits">${run.kind === "past" ? "逐位查看（回退到那一步后可用）" : "在专注模式中逐位查看"}</button>` : ""}</div>`,
+    `<div class="inspect-head"><h3>${esc(token)}</h3><span>${esc(where)} · ${esc(status)}</span></div><p>${esc(doc)}</p>${termsIn(doc).length ? `<details class="detail-terms"><summary>${t("common.terms")}</summary>${definitions(doc)}</details>` : ""}${written ? usageRows(written) : ""}${rows.length ? `<dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>` : ""}<div class="context-actions"><button id="detail-source">${t("inspector.locate")}</button><button id="refs">${t("inspector.references")}</button>${bitsEvent ? `<button id="detail-bits">${run.kind === "past" ? t("inspector.bitsPast") : t("inspector.bits")}</button>` : ""}</div>`,
   );
   $("detail-source").onclick = () => gotoSource(place.file, place.line);
   $("refs").onclick = () => showReferences(token);
@@ -1429,7 +1435,7 @@ function instructionDetail(token, place) {
 function showReferences(token) {
   let refs = references(files, token);
   modal(
-    "引用 · " + token,
+    t("references.title", { token }),
     refs.length
       ? refs
           .map(
@@ -1437,7 +1443,7 @@ function showReferences(token) {
               `<button class="command-item" data-ref="${i}"><b>${esc(r.file)}:${r.line}</b> <small>${r.type}</small><p class="mono">${esc(r.text)}</p></button>`,
           )
           .join("")
-      : "无静态引用。",
+      : t("peek.none"),
   );
   document.querySelectorAll("[data-ref]").forEach(
     (b) =>
@@ -1504,8 +1510,8 @@ async function api(body) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
-    s = r.status === 413 ? { error: "工程的输入文件太大，执行服务无法接收。请移走不需要的输入文件再汇编。" } : await r.json();
-  if (!r.ok || !s.protocol) throw Error(s.error || "执行服务未返回状态");
+    s = r.status === 413 ? { error: t("api.tooLarge") } : await r.json();
+  if (!r.ok || !s.protocol) throw Error(s.error || t("api.noState"));
   return named(s);
 }
 // Commands that execute or move through the loaded program's history. They
@@ -1560,7 +1566,7 @@ async function assemble() {
   updateControls();
   try {
     savedEditor();
-    if (!Object.keys(files).length) throw Error("请先新建或导入一个 .s / .asm 源码文件。");
+    if (!Object.keys(files).length) throw Error(t("assemble.noSource"));
     // Only the scope goes to the assembler: auto (main plus the files it
     // uses), the single open file, or the manual selection. Other exercises
     // stay in the tree (P0).
@@ -1816,7 +1822,7 @@ function movePC() {
     gotoSource(ins.file, ins.line, false);
     // A moment's notice, not a lasting state (round-3 trial: after a run
     // ended in another file it stayed and read as "still running there").
-    notify(`执行进入 ${ins.file}${label ? " · " + label.name : ""}`, {
+    notify(t("follow.entered", { file: ins.file, label: label ? " · " + label.name : "" }), {
       transient: true,
     });
     keepNotice = true;
@@ -1904,18 +1910,18 @@ function statusInfo() {
   const where = (address) => {
     const i = program.instructions.find((x) => x.address === address);
     return i
-      ? { file: i.file, line: i.line, text: `${i.file} 第 ${i.line} 行` }
+      ? { file: i.file, line: i.line, text: t("common.fileLine", { file: i.file, line: i.line }) }
       : null;
   };
   // "Modified" only makes sense once a program was loaded (round-4 trial:
   // a fresh project already said its source had been modified).
   if (!target || !state || state.status === "empty")
-    return { kind: "idle", text: "尚未汇编 · 点“汇编”开始" };
-  if (dirty) return { kind: "dirty", text: "源码已修改 · 重新汇编后继续" };
+    return { kind: "idle", text: t("status.start") };
+  if (dirty) return { kind: "dirty", text: t("status.dirty") };
   if (running)
     return {
       kind: "running",
-      text: stopRequested ? "正在暂停…" : `运行中 · 第 ${state.step} 步`,
+      text: stopRequested ? t("status.pausing") : t("status.running", { step: state.step }),
     };
   const next = where(state.pc),
     last = state.last ? where(state.last.pc) : null,
@@ -1923,42 +1929,42 @@ function statusInfo() {
   if (state.status === "waiting")
     return {
       kind: "waiting",
-      text: "等待输入 · 在控制台输入后按 Enter",
+      text: t("status.waiting"),
       at: next,
     };
   if (state.status === "ended")
-    return { kind: "ended", text: `已结束 · 退出码 ${state.exitCode}`, at: last };
+    return { kind: "ended", text: t("status.ended", { exitCode: state.exitCode }), at: last };
   if (state.status === "error")
     return {
       kind: "error",
-      text: "出错 · " + (state.error || "").split("\n")[0].slice(0, 80),
+      text: t("status.error", { message: marsText(state.error).split("\n")[0].slice(0, 80) }),
       at: last,
     };
   if (reason.startsWith("Breakpoint") && next)
     return {
       kind: "breakpoint",
-      text: `停在断点前 · ${next.text}（这一行还没执行）· 即将第 ${state.pcVisits} 次执行`,
+      text: t("status.breakpoint", { where: next.text, visits: state.pcVisits }),
       at: next,
     };
   if (reason.startsWith("Watchpoint") && last)
     return {
       kind: "breakpoint",
-      text: `观察点触发 · 刚执行的 ${last.text}${reason.endsWith("read") ? "读取" : "写入"}了被观察的对象`,
+      text: t("status.watchpoint", { where: last.text, access: reason.endsWith("read") ? t("status.watchpoint.read") : t("status.watchpoint.write") }),
       at: last,
     };
   if (reason.startsWith("History limit"))
-    return { kind: "error", text: "已达到历史上限 100000 步 · 重新汇编后继续" };
+    return { kind: "error", text: t("status.historyLimit") };
   if (reason.startsWith("History"))
     return {
       kind: "paused",
-      text: `回放历史 · 已执行 ${state.step} / ${state.historyLength} 步`,
+      text: t("status.replay", { step: state.step, total: state.historyLength }),
       at: next,
     };
   if (!state.step && next)
-    return { kind: "paused", text: `就绪 · 从 ${next.text} 开始`, at: next };
+    return { kind: "paused", text: t("status.ready", { where: next.text }), at: next };
   return {
     kind: "paused",
-    text: last ? `已暂停 · 刚执行 ${last.text}` : "已暂停",
+    text: last ? t("status.paused.after", { where: last.text }) : t("status.paused"),
     at: next,
   };
 }
@@ -1966,15 +1972,15 @@ function statusInfo() {
 // trial: a grey run button did not say whether the program had ended or the
 // open file was not the loaded one).
 function executionBlock() {
-  if (busy) return "正在处理上一个操作";
-  if (running) return "程序正在运行";
-  if (!state || state.status === "empty" || !target) return "还没有汇编：先点“汇编”";
-  if (dirty) return "代码已修改：先重新汇编";
+  if (busy) return t("block.busy");
+  if (running) return t("block.running");
+  if (!state || state.status === "empty" || !target) return t("block.notAssembled");
+  if (dirty) return t("block.dirty");
   const reason = scopeReason();
-  if (reason?.kind === "outside") return `正在查看 ${activeFile}，它不在现在能运行的程序里`;
-  if (reason) return "汇编方式或范围已更改：先重新汇编";
-  if (state.status === "ended") return "程序已结束";
-  if (state.status === "error") return "程序出错停下了：修改后重新汇编";
+  if (reason?.kind === "outside") return t("block.outside", { file: activeFile });
+  if (reason) return t("block.scopeChanged");
+  if (state.status === "ended") return t("block.ended");
+  if (state.status === "error") return t("block.error");
   return "";
 }
 // After the program ends, F5 starts it again from the beginning: the
@@ -2036,10 +2042,10 @@ function updateControls() {
   if (back) $("run").disabled = (busy && !running) || !!gate || !target;
   if (pausing) $("demo").disabled = false;
   // Icons like the step tools, named on hover (classroom 2026-11-03).
-  face($("run"), back ? "back" : "full", back ? "回到开头" : "完整运行");
-  $("run").setAttribute("aria-label", back ? "回到开头" : "完整运行（F5）");
-  face($("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? "暂停" : resume ? "继续" : "逐步运行");
-  $("demo").setAttribute("aria-label", pausing ? "暂停（F6）" : resume ? "继续" : "逐步运行");
+  face($("run"), back ? "back" : "full", back ? t("toolbar.backToStart") : t("toolbar.run"));
+  $("run").setAttribute("aria-label", back ? t("toolbar.backToStart") : t("toolbar.run.label"));
+  face($("demo"), pausing ? "pause" : resume ? "resume" : "steps", pausing ? t("toolbar.pause") : resume ? t("toolbar.continue") : t("toolbar.steps"));
+  $("demo").setAttribute("aria-label", pausing ? t("toolbar.pause.label") : resume ? t("toolbar.continue") : t("toolbar.steps"));
   // The speed only matters while stepping through, or paused in it.
   $("demo-speed-control").hidden = !(
     (running && demoing) ||
@@ -2050,17 +2056,17 @@ function updateControls() {
     b.dataset.tipBase ??= b.dataset.tip || "";
     b.dataset.tip =
       name === "demo" && pausing
-        ? "暂停 · F6"
+        ? t("toolbar.pause.tip")
         : name === "demo" && resume && !b.disabled
-          ? runMode === "demo" ? "继续逐步运行：从当前位置接着一步一步执行" : "继续完整运行：全速运行到断点、等待输入或结束 · F5"
+          ? runMode === "demo" ? t("toolbar.continue.steps") : t("toolbar.continue.run")
           : name === "run" && back && !b.disabled
-            ? "回到开头：重新汇编当前程序，停在第一条指令前"
+            ? t("toolbar.backToStart.tip")
             : b.disabled && !why && name === "out" && outside
-              ? `${b.dataset.tipBase}（现在不在函数里，没有可以返回的调用）`
+              ? t("toolbar.out.outside", { tip: b.dataset.tipBase })
               : b.disabled && !why && (name === "prev-bp" || name === "next-bp") && noStops
-                ? `${b.dataset.tipBase}（还没有设置断点）`
+                ? t("toolbar.bp.none", { tip: b.dataset.tipBase })
                 : b.disabled && why
-              ? `${b.dataset.tipBase}（${why}）`
+              ? `${b.dataset.tipBase}${t("common.inParens", { text: why })}`
               : b.dataset.tipBase;
   }
   // Assembling first stops a run, so it stays available through one; tying
@@ -2074,7 +2080,8 @@ function updateControls() {
   $("status").onclick = info.at
     ? () => gotoSource(info.at.file, info.at.line)
     : null;
-  $("status").title = info.text + (info.at ? "\n点击跳到这一行" : "");
+  $("status").title = info.text + (info.at ? `
+${t("status.goToLine")}` : "");
 }
 function nextScope() {
   return assemblyScope(
@@ -2086,13 +2093,13 @@ function nextScope() {
     Object.hasOwn(files,activeFile) ? activeFile : lastSourceFile || target?.entry || workspace?.entry(),
   );
 }
-const MODE_NAMES = { auto: "自动汇编", single: "单文件汇编", manual: "手动范围" };
+const MODE_NAMES = () => ({ auto: t("assembly.mode.auto"), single: t("assembly.mode.single"), manual: t("assembly.mode.manualShort") });
 const describeScope = (s) =>
   s.error
-    ? "（尚未选好源码）"
+    ? t("scope.noSource")
     : s.files.length > 1
-      ? `${MODE_NAMES[s.mode]} ${s.files.length} 个文件（入口 ${s.entry}）`
-      : `${MODE_NAMES[s.mode]} ${s.entry}`;
+      ? t("scope.describe.many", { mode: MODE_NAMES()[s.mode], count: s.files.length, entry: s.entry })
+      : `${MODE_NAMES()[s.mode]} ${s.entry}`;
 const sameFiles = (a, b) =>
   [...a].sort().join("\n") === [...b].sort().join("\n");
 // Why the loaded program must not run right now, if it must not: the student
@@ -2100,8 +2107,8 @@ const sameFiles = (a, b) =>
 // Following execution into another file never causes this, because execution
 // only reaches files inside the target.
 // The loaded program in words: "hello.s", or "lab/main.s 和另外 1 个文件".
-const runnable = (t) =>
-  t.files.length > 1 ? `${t.entry} 和另外 ${t.files.length - 1} 个文件` : t.entry;
+const runnable = (program) =>
+  program.files.length > 1 ? t("scope.runnable.many", { entry: program.entry, count: program.files.length - 1 }) : program.entry;
 // The banner says what can run now and what to click next (round-4 trial:
 // "已装入" needed thought, and "不会运行旧程序" read as "running is off").
 function scopeReason() {
@@ -2117,8 +2124,8 @@ function scopeReason() {
       back,
       text:
         target.mode === "manual"
-          ? `${activeFile} 不在手动选择的范围里，现在能运行的是 ${runnable(target)}。`
-          : `你在看 ${activeFile}，现在能运行的是 ${runnable(target)}。要运行 ${activeFile}，先点［${assembleLabel()}］；也可以［回到 ${back}］继续调试。`,
+          ? t("scope.outsideManual", { file: activeFile, program: runnable(target) })
+          : t("scope.otherFile", { file: activeFile, program: runnable(target), file: activeFile, assemble: assembleLabel(), back }),
     };
   const scope = nextScope();
   if (
@@ -2128,7 +2135,7 @@ function scopeReason() {
   )
     return {
       kind: "changed",
-      text: `${scope.mode !== target.mode ? `汇编方式改成了${{ auto: "自动汇编", single: "单文件汇编", manual: "手动选择范围" }[scope.mode]}` : "手动选择的范围改了"}，但现在能运行的还是之前装入的程序（${runnable(target)}）。点［重新汇编］按新方式装入。`,
+      text: t("scope.modeChanged", { change: scope.mode !== target.mode ? t("scope.modeChangedTo", { mode: { auto: t("assembly.mode.auto"), single: t("assembly.mode.single"), manual: t("assembly.mode.manualLong") }[scope.mode] }) : t("scope.manualChanged"), program: runnable(target) }),
     };
   return null;
 }
@@ -2139,26 +2146,27 @@ function blocked() {
 function assembleLabel() {
   const scope = nextScope();
   return !scope.error && scope.entry !== activeFile
-    ? `汇编（入口 ${scope.entry}）`
-    : `汇编 ${activeFile}`;
+    ? t("scope.assembleEntry", { entry: scope.entry })
+    : t("scope.assembleFile", { file: activeFile });
 }
 function renderScope() {
   const scope = nextScope(),
     reason = scopeReason();
   $("target").textContent = !target
-    ? "程序：未汇编"
+    ? t("editor.target.none")
     : target.files.length > 1
-      ? `程序：${target.entry} ＋${target.files.length - 1} 个文件`
-      : `程序：${target.entry}`;
+      ? t("editor.target.many", { entry: target.entry, count: target.files.length - 1 })
+      : t("editor.target.one", { entry: target.entry });
   $("target").title = target
-    ? `${MODE_NAMES[target.mode]}，现在能运行的程序由这些源码汇编：\n` +
+    ? `${t("editor.target.files", { mode: MODE_NAMES()[target.mode] })}
+` +
       target.files.join("\n") +
-      "\n点“汇编”后会换成新的程序"
-    : "还没有汇编";
+      `
+${t("editor.target.willChange")}`
+    : t("editor.target.notYet");
   $("target").classList.toggle("stale", !!reason);
   $("assemble").title =
-    (scope.error || describeScope(scope)) +
-    " · Cmd/Ctrl+Enter；重新汇编并重启 · Cmd/Ctrl+Shift+F5";
+    t("toolbar.assemble.tipScope", { scope: scope.error || describeScope(scope) });
   document
     .querySelectorAll("[data-assembly-mode]")
     .forEach((b) =>
@@ -2172,15 +2180,15 @@ function renderScope() {
   if (!reason) return banner.replaceChildren();
   const actions =
     reason.kind === "changed"
-      ? [["assemble", "重新汇编"]]
+      ? [["assemble", t("scope.assembleAgain")]]
       : target.mode === "manual"
         ? [
-            ["back", `回到 ${reason.back}`],
-            ["join", `把 ${activeFile} 加入范围`],
+            ["back", t("scope.backTo", { back: reason.back })],
+            ["join", t("scope.addFile", { file: activeFile })],
           ]
         : [
             ["assemble", assembleLabel()],
-            ["back", `回到 ${reason.back}`],
+            ["back", t("scope.backTo", { back: reason.back })],
           ];
   banner.innerHTML = `<span>${esc(reason.text)}</span>${actions
     .map(
@@ -2253,7 +2261,7 @@ function setupMenu(buttonId, menuId) {
 }
 setupMenu("engine", "engine-menu");
 $("engine").addEventListener("click", () => {
-  $("engine-delay").textContent = `延迟分支：${$("delay").checked ? "开启" : "关闭"} · 程序：${target ? describeScope(target) : "未汇编"}`;
+  $("engine-delay").textContent = t("engine.state", { delay: $("delay").checked ? t("common.on") : t("common.off"), program: target ? describeScope(target) : t("status.notAssembled") });
 });
 const MENUS = [
   ["project-menu-button", "project-menu"],
@@ -2341,12 +2349,15 @@ $("reset-layout").onclick = () => {
   for (const split of Object.values(panelSplits)) setSplit(split, null);
   for (const n of PANELS) setPanel(n, false);
   setSideTab("files");
-  notify("已恢复默认布局。", { transient: true });
+  notify(t("layout.reset"), { transient: true });
 };
 // The main editor's relation lines are configured where those relations are
 // studied: in focus mode (classroom 2026-10-24). The settings move there
 // whole, so every option stays available.
-document.querySelector(".overlay-settings summary").textContent = "主界面连线";
+// Moved into focus mode, the line settings there read as the main view's.
+const labelOverlaySettings = () =>
+  (document.querySelector(".overlay-settings summary").textContent = t("focus.mainLines"));
+labelOverlaySettings();
 $("focus-keys").before(document.querySelector(".overlay-settings"));
 // The way of assembling sits beside the assemble button (2026-10-24): auto by
 // default, single file, or a manual scope checked in the file tree.
@@ -2416,8 +2427,8 @@ function renderTabs() {
   const tabs = workspace?.tabs() || Object.keys(files);
   $("editor").classList.toggle("no-file", !activeFile);
   $("tabs").innerHTML = tabs.map(f =>
-    `<span class="file-tab ${f === activeFile ? 'active' : ''}"><button data-tab="${esc(f)}" title="${esc(f)}">${esc(f)}</button><button class="close-tab" data-close-tab="${esc(f)}" aria-label="关闭标签 ${esc(f)}" title="关闭标签，文件仍在工程中">×</button></span>`
-  ).join('') || '<span class="empty-tab">从左侧选择文件，或新建文件</span>';
+    `<span class="file-tab ${f === activeFile ? 'active' : ''}"><button data-tab="${esc(f)}" title="${esc(f)}">${esc(f)}</button><button class="close-tab" data-close-tab="${esc(f)}" aria-label="${t("tabs.close", { file: esc(f) })}" title="${t("tabs.close.tip")}">×</button></span>`
+  ).join('') || `<span class="empty-tab">${t("tabs.empty")}</span>`;
   $("tabs").querySelectorAll('[data-tab]').forEach(b => b.onclick=()=>{setView("source");switchFile(b.dataset.tab);});
   $("tabs").querySelectorAll('[data-close-tab]').forEach(b => b.onclick=()=>workspace.closeTab(b.dataset.closeTab));
 }
@@ -2497,21 +2508,22 @@ function renderRegisters() {
   );
   const shown = (r) =>
     replaced.has(r.name)
-      ? `<s class="old" aria-label="原值">${text(replaced.get(r.name), r.name)}</s><span class="new">${text(r.value, r.name)}</span>`
+      ? `<s class="old" aria-label="${t("registers.oldValue")}">${text(replaced.get(r.name), r.name)}</s><span class="new">${text(r.value, r.name)}</span>`
       : text(r.value, r.name);
   // What the prefixes mean, right where the values are (round-4 trial: the
   // footer legend went unnoticed).
   $("reg-legend").textContent = {
-    auto: "0d 十进制 · 0x 十六进制",
-    hex: "0x 十六进制",
-    dec: "0d 十进制",
-    bin: "0b 二进制",
-    ascii: "'…' 字符 · 0d 十进制",
+    auto: t("registers.legend.auto"),
+    hex: t("registers.legend.hex"),
+    dec: t("registers.legend.dec"),
+    bin: t("registers.legend.bin"),
+    ascii: t("registers.legend.ascii"),
   }[radix];
   // A negative value in BIN: the top bit says so (two's complement).
   const signNote = (r) =>
     bin && r.value < 0 && regKind(r.name) === "value"
-      ? `\n最高位是 1：按有符号数读是 ${r.value | 0}（补码）`
+      ? `
+${t("registers.signNote", { value: r.value | 0 })}`
       : "";
   $("registers").innerHTML = state.registers
     .filter((r) =>
@@ -2521,7 +2533,7 @@ function renderRegisters() {
     )
     .map(
       (r) =>
-        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${r.name} · ${esc(role(r.name))}\n${esc(fmt(r.value, 4, regKind(r.name)).full)}${fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : ""}${esc(signNote(r))}\n前缀：${esc($("reg-legend").textContent)} · 点击查看"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`,
+        `<div tabindex="0" class="reg ${all.some((a) => a.name === r.name && !a.write) ? "read" : ""} ${all.some((a) => a.name === r.name && a.write) ? "write" : ""} ${pinned.has(r.name) ? "pinned" : ""} ${focus === r.name ? "focus" : ""}" data-register="${r.name}" title="${t("registers.tip", { name: r.name, role: esc(role(r.name)), full: esc(fmt(r.value, 4, regKind(r.name)).full), note: fmt(r.value, 4, regKind(r.name)).note ? " · " + esc(fmt(r.value, 4, regKind(r.name)).note) : "", sign: esc(signNote(r)), legend: esc($("reg-legend").textContent) })}"><span class="name">${r.name}</span><span class="value${replaced.has(r.name) ? " replaced" : ""}">${shown(r)}</span></div>`,
     )
     .join("");
   $("registers")
@@ -2547,11 +2559,11 @@ function renderMemory() {
   $("memory").innerHTML = rows.join("");
   $("memory").dataset.radix = radix;
   $("mem-radix").textContent = {
-    auto: "单元 0x",
-    hex: "单元 0x",
-    dec: "单元 0d",
-    bin: "单元 0b",
-    ascii: "单元 字符",
+    auto: t("memory.cells.hex"),
+    hex: t("memory.cells.hex"),
+    dec: t("memory.cells.dec"),
+    bin: t("memory.cells.bin"),
+    ascii: t("memory.cells.ascii"),
   }[radix];
   $("memory")
     .querySelectorAll("[data-byte]")
@@ -2579,7 +2591,7 @@ function inspectByte(address) {
     last = state.lastWriters["mem:" + address];
   inspecting = null;
   showContext(
-    `<h3>内存 ${hex(address)}</h3><p>地址对应的内容 · 1 字节</p>${value == null ? "<p>不可访问</p>" : valueHTML(value)}<button id="watch-memory">在此地址设置写入观察点</button><button id="memory-last-write" ${last ? "" : "disabled"}>最后写入 ${last ? "#" + last : ""}</button>`,
+    `<h3>${t("memory.byte.title", { address: hex(address) })}</h3><p>${t("memory.byte.what")}</p>${value == null ? `<p>${t("memory.byte.inaccessible")}</p>` : valueHTML(value)}<button id="watch-memory">${t("memory.byte.watch")}</button><button id="memory-last-write" ${last ? "" : "disabled"}>${t("memory.byte.lastWrite", { step: last ? "#" + last : "" })}</button>`,
   );
   $("memory-last-write").onclick = () => command("seek", { step: last });
   $("watch-memory").onclick = () => {
@@ -2618,7 +2630,7 @@ function renderMachine() {
 function renderCFG() {
   let blocks = buildCFG(program.instructions, state?.delay);
   $("cfg").innerHTML =
-    `<p class="muted">静态基本块 · 间接目标运行时确定 · 紫色边显示去向；计数来自本次轨迹</p>` +
+    `<p class="muted">${t("cfg.legend")}</p>` +
     blocks
       .map((b) => {
         let loop = (state?.loops || []).find((l) => l.header === b.start);
@@ -2629,7 +2641,7 @@ function renderCFG() {
           (b.start === program.instructions[0]?.address && state?.step > 0
             ? 1
             : 0);
-        return `<article class="block ${b.instructions.some((i) => i.address === state?.pc) ? "current" : ""}" id="block-${b.id}"><div class="block-title"><button data-jump="${b.start}">${hex(b.start)} · ${esc(program.symbols.find((s) => s.address === b.start)?.name || "block")}</button><span>进入 ${count} 次${loop ? ` · 回跳 ${loop.backJumps} 次` : ""}</span></div>${b.instructions.map((i) => `<code>${esc(i.basic)}</code>`).join("")}<div class="edges">${b.edges.map((e) => `<button data-block-target="${e.target ?? ""}">${e.label} → ${e.target == null ? "未知" : hex(e.target)}</button>`).join("")}</div></article>`;
+        return `<article class="block ${b.instructions.some((i) => i.address === state?.pc) ? "current" : ""}" id="block-${b.id}"><div class="block-title"><button data-jump="${b.start}">${hex(b.start)} · ${esc(program.symbols.find((s) => s.address === b.start)?.name || "block")}</button><span>${t("cfg.entered", { count, backJumps: loop ? ` ${t("cfg.backJumps", { backJumps: loop.backJumps })}` : "" })}</span></div>${b.instructions.map((i) => `<code>${esc(i.basic)}</code>`).join("")}<div class="edges">${b.edges.map((e) => `<button data-block-target="${e.target ?? ""}">${e.label} → ${e.target == null ? t("common.unknown") : hex(e.target)}</button>`).join("")}</div></article>`;
       })
       .join("");
   $("cfg")
@@ -2660,18 +2672,18 @@ function renderTrace() {
     }
   }
   const row = (e) =>
-    `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${esc(e.instruction?.basic)}</span><small>${esc(e.instruction?.file)}:${e.instruction?.line}${e.output ? " · 输出" : ""}</small></button>`;
+    `<button class="trace-row ${e.step === state.step ? "selected" : ""}" data-seek="${e.step}"><span>#${e.step}</span><span>${esc(e.instruction?.basic)}</span><small>${esc(e.instruction?.file)}:${e.instruction?.line}${e.output ? ` ${t("trace.output")}` : ""}</small></button>`;
   $("trace").innerHTML =
-    `<div><input id="seek-number" type="number" min="0" max="${state?.historyLength || 0}" value="${state?.step || 0}" aria-label="历史步骤"><button id="seek-go">转到步骤</button><span class="muted">显示附近 170 步；可跳转全部历史</span></div>` +
+    `<div><input id="seek-number" type="number" min="0" max="${state?.historyLength || 0}" value="${state?.step || 0}" aria-label="${t("trace.historyStep")}"><button id="seek-go">${t("trace.goToStep")}</button><span class="muted">${t("trace.window")}</span></div>` +
     (state?.loops || [])
       .filter((loop) => loop.entries > 0)
       .map(
         (loop) =>
-          `<details class="loop-history"><summary>循环 ${hex(loop.header)} · 进入 ${loop.entries} 次 · 回跳 ${loop.backJumps} 次</summary>${loop.iterations
+          `<details class="loop-history"><summary>${t("trace.loop", { header: hex(loop.header), entries: loop.entries, backJumps: loop.backJumps })}</summary>${loop.iterations
             .slice(-200)
             .map(
               (step, index) =>
-                `<button class="trace-row" data-seek="${step - 1}">第 ${Math.max(0, loop.iterations.length - 200) + index + 1} 次 · 从 #${step} 开始</button>`,
+                `<button class="trace-row" data-seek="${step - 1}">${t("trace.iteration", { n: Math.max(0, loop.iterations.length - 200) + index + 1, step })}</button>`,
             )
             .join("")}</details>`,
       )
@@ -2679,7 +2691,7 @@ function renderTrace() {
     groups
       .map((g) =>
         g.events.length > 1
-          ? `<details><summary>${esc(g.key)} · ${g.events.length} 条实际指令</summary>${g.events.map(row).join("")}</details>`
+          ? `<details><summary>${t("trace.lineGroup", { key: esc(g.key), count: g.events.length })}</summary>${g.events.map(row).join("")}</details>`
           : row(g.events[0]),
       )
       .join("");
@@ -2698,8 +2710,8 @@ function render() {
   const waiting = state.status === "waiting" && !dirty;
   $("console").classList.toggle("waiting", waiting);
   $("stdin").placeholder = waiting
-    ? "程序在等待输入：在这里输入后按 Enter"
-    : "输入值，按 Enter 提交";
+    ? t("console.input.waiting")
+    : t("console.input.placeholder");
   renderFiles();
   renderTabs();
   renderSymbols();
@@ -2711,15 +2723,14 @@ function render() {
   renderOutput();
   $("pc").textContent = "PC " + hex(state.pc);
   requestAnimationFrame(updateReturn);
-  $("history-info").textContent = `${state.step} / ${state.historyLength} 步`;
+  $("history-info").textContent = t("history.position", { step: state.step, total: state.historyLength });
   $("calls").innerHTML =
-    state.calls
+    `${state.calls
       .map(
         (c) =>
-          `<button class="trace-row" data-call="${c.step}">#${c.step} ${esc(c.instruction.basic)} → 返回 ${hex(c.return)}</button>`,
+          `<button class="trace-row" data-call="${c.step}">${t("calls.row", { step: c.step, call: esc(c.instruction.basic), address: hex(c.return) })}</button>`,
       )
-      .join("") +
-    '<p class="muted">按 jal / jalr / jr $ra 跟踪的调用约定视图。</p>';
+      .join("")}<p class="muted">${t("calls.legend")}</p>`;
   $("calls")
     .querySelectorAll("[data-call]")
     .forEach(
@@ -2732,9 +2743,9 @@ function render() {
     state.diagnostics
       .map(
         (d, i) =>
-          `<button class="command-item" data-diagnostic="${i}">${esc(d.file)}:${d.line} · ${esc(d.message)}${hints[i] ? `<small class="scope-hint">${esc(hints[i])}</small>` : ""}</button>`,
+          `<button class="command-item" data-diagnostic="${i}">${esc(d.file)}:${d.line} · ${esc(marsText(d.message))}${hints[i] ? `<small class="scope-hint">${esc(hints[i])}</small>` : ""}</button>`,
       )
-      .join("") + (state.error ? `<pre>${esc(state.error)}</pre>` : "");
+      .join("") + (state.error ? `<pre>${esc(marsText(state.error))}</pre>` : "");
   $("problems")
     .querySelectorAll("[data-diagnostic]")
     .forEach(
@@ -2817,14 +2828,14 @@ function editBreakpoint(address) {
     log: "",
   };
   modal(
-    `断点 · ${ins.file}:${ins.line}`,
+    t("breakpoint.edit.title", { file: ins.file, line: ins.line }),
     `<form id="bp-form" class="bp-form">
-      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> 启用</label>
-      <label>条件<input id="bp-condition" value="${esc(b.condition)}" placeholder="$t0 == 3（$寄存器 与整数比较）"></label>
-      <label>命中次数<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="第 N 次执行前暂停；留空表示每次"></label>
-      <label>日志消息<input id="bp-log" value="${esc(b.log)}" placeholder="t0 = {$t0}，十六进制 {$t0:x}；填写后只记录不暂停"></label>
-      <p class="muted">命中次数按从 S0 起这条指令的执行次数计算；回退后随历史变化。日志断点的输出在底部“日志”。</p>
-      <p><button class="primary">保存</button> <button type="button" id="bp-remove">删除断点</button></p>
+      <label><input type="checkbox" id="bp-enabled" ${b.enabled ? "checked" : ""}> ${t("breakpoint.enabled")}</label>
+      <label>${t("breakpoint.condition")}<input id="bp-condition" value="${esc(b.condition)}" placeholder="${t("breakpoint.condition.placeholder")}"></label>
+      <label>${t("breakpoint.hit")}<input id="bp-hit" type="number" min="0" value="${b.hit || ""}" placeholder="${t("breakpoint.hit.placeholder")}"></label>
+      <label>${t("breakpoint.log")}<input id="bp-log" value="${esc(b.log)}" placeholder="${t("breakpoint.log.placeholder")}"></label>
+      <p class="muted">${t("breakpoint.edit.note")}</p>
+      <p><button class="primary">${t("common.save")}</button> <button type="button" id="bp-remove">${t("breakpoint.delete")}</button></p>
     </form>`,
   );
   $("bp-form").onsubmit = (e) => {
@@ -2857,7 +2868,7 @@ function toggleBreakpoint(line, conditional = false) {
     return;
   }
   if (target && !target.files.includes(activeFile)) {
-    notify(`${activeFile} 没有参与当前汇编；汇编它之后才能在这里设断点。`, {
+    notify(t("breakpoint.notAssembled", { file: activeFile }), {
       transient: true,
     });
     return;
@@ -2866,14 +2877,14 @@ function toggleBreakpoint(line, conditional = false) {
   if (!at) {
     notify(
       dirty
-        ? "代码改过了，先汇编再设断点。"
-        : "这一行没有可执行的指令（空行、注释或数据），断点要设在有指令的行。",
+        ? t("breakpoint.dirty")
+        : t("breakpoint.noInstruction"),
       { transient: true },
     );
     return;
   }
   if (at.label)
-    notify(`断点设在这个标签下面的第一条指令（第 ${at.line} 行）。`, {
+    notify(t("breakpoint.onLabel", { line: at.line }), {
       transient: true,
     });
   toggleAddressBreakpoint(at.address, conditional);
@@ -2892,7 +2903,7 @@ function renderLogs() {
             `<button class="trace-row" data-log-step="${l.step}"><small>#${l.step} · ${hex(l.address)}</small> ${esc(l.text)}</button>`,
         )
         .join("")
-    : '<p class="muted">日志断点（断点 ✎ 中填写“日志消息”）命中时在这里记录，不暂停程序。</p>';
+    : `<p class="muted">${t("logs.empty")}</p>`;
   $("logs")
     .querySelectorAll("[data-log-step]")
     .forEach(
@@ -2908,7 +2919,8 @@ function renderOutput() {
   for (const e of state.inputEchoes || []) {
     html +=
       esc(state.output.slice(from, e.at)) +
-      `<span class="echo" title="你输入的内容">${esc(e.text)}</span>\n`;
+      `<span class="echo" title="${t("console.echo")}">${esc(e.text)}</span>
+`;
     from = e.at;
   }
   $("output").innerHTML = html + esc(state.output.slice(from));
@@ -2918,14 +2930,14 @@ function renderStops() {
   $("breakpoints").innerHTML = breakpoints
     .map((b, i) => {
       const details = [
-        b.condition && "条件 " + b.condition,
-        b.hit && `第 ${b.hit} 次`,
-        b.log && "日志 " + b.log,
+        b.condition && t("breakpoint.row.condition", { condition: b.condition }),
+        b.hit && t("breakpoint.row.hit", { hit: b.hit }),
+        b.log && t("breakpoint.row.log", { log: b.log }),
       ].filter(Boolean);
       return `<div class="bp-row ${b.enabled ? "" : "off"}">
-        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="启用 ${esc(b.file)}:${b.line}">
-        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${esc(b.file)}:${b.line}<br><small>${esc(b.address == null ? "未参与汇编 · 暂不生效" : details.join(" · ") || hex(b.address))}</small></button>
-        <button data-bp-edit="${i}" aria-label="编辑断点" title="编辑断点">✎</button><button data-bp-remove="${i}" aria-label="删除断点" title="删除断点">×</button>
+        <input type="checkbox" data-bp-enable="${i}" ${b.enabled ? "checked" : ""} aria-label="${t("breakpoint.row.enable", { file: esc(b.file), line: b.line })}">
+        <button class="bp ${b.address == null ? "stale" : ""}" data-bp="${i}">${breakpointGlyph(b)} ${esc(b.file)}:${b.line}<br><small>${esc(b.address == null ? t("breakpoint.row.inactive") : details.join(" · ") || hex(b.address))}</small></button>
+        <button data-bp-edit="${i}" aria-label="${t("breakpoint.row.edit")}" title="${t("breakpoint.row.edit")}">✎</button><button data-bp-remove="${i}" aria-label="${t("breakpoint.delete")}" title="${t("breakpoint.delete")}">×</button>
       </div>`;
     })
     .join("");
@@ -3025,10 +3037,10 @@ async function run(mode = "run", extra = {}) {
 const DEMO_RATES = [0.5, 1, 2, 4, 8, 16];
 const demoRate = () => DEMO_RATES[Number($("demo-speed").value) - 1];
 function updateDemoSpeed() {
-  const text = `${demoRate()} 步/秒`;
+  const text = t("toolbar.speed.rate", { rate: demoRate() });
   $("demo-speed-label").textContent = text;
-  $("demo-speed").setAttribute("aria-valuetext", `每秒 ${demoRate()} 步`);
-  $("demo-speed").title = `逐步运行速度：${text}`;
+  $("demo-speed").setAttribute("aria-valuetext", t("toolbar.speed.value", { rate: demoRate() }));
+  $("demo-speed").title = t("toolbar.speed.tip", { rate: text });
 }
 $("demo-speed").addEventListener("input", updateDemoSpeed);
 updateDemoSpeed();
@@ -3095,7 +3107,7 @@ async function runUntilWrite(register) {
 function ask(title, value, callback) {
   modal(
     title,
-    `<form id="ask-form"><input id="ask-value" style="width:100%" value="${esc(value)}" autofocus><p><button class="primary">确定</button></p></form>`,
+    `<form id="ask-form"><input id="ask-value" style="width:100%" value="${esc(value)}" autofocus><p><button class="primary">${t("common.ok")}</button></p></form>`,
   );
   $("ask-form").onsubmit = (e) => {
     e.preventDefault();
@@ -3110,30 +3122,30 @@ function editData(name) {
 }
 function commandList() {
   const commands = [
-    ["汇编工程", assemble, "assemble"],
-    ["新建空白工程", () => $("new-project").click()],
-    ["导入文件或工程", () => $("import").click()],
-    ["保存工程到浏览器", () => $("save-local").click()],
-    ["导出工程 ZIP／JSON", () => $("save").click()],
-    ["快速打开文件／标签／地址", () => openPicker(""), "quickOpen"],
-    ["转到当前文件中的符号", () => openPicker("@"), "outline"],
-    ["专注模式", () => openFocus(), "focus"],
-    ["机器单步", () => command("step").then(followPC), "step"],
-    ["源码单步", () => run("source"), "source"],
-    ["跨过调用", () => run("over"), "over"],
-    ["跳出函数", () => run("out"), "out"],
-    ["回退一步", () => command("back").then(followPC), "back"],
-    ["跳到下一个断点", () => $("next-bp").click()],
-    ["跳回上一个断点", () => $("prev-bp").click()],
-    ["完整运行／全速继续", () => actions.run(), "run"],
-    ["逐步运行（一步一步执行并跟随）", () => run("demo")],
-    ["回到开头（重新汇编当前程序）", () => backToStart()],
-    ["重新汇编并重启", () => assemble(), "restart"],
-    ["暂停", () => requestStop(), "pause"],
-    ["停止并回到起点", () => actions.stop(), "stop"],
-    ["切换断点（光标行）", () => actions.breakpoint(), "breakpoint"],
+    [t("commands.assemble"), assemble, "assemble"],
+    [t("commands.newProject"), () => $("new-project").click()],
+    [t("commands.import"), () => $("import").click()],
+    [t("commands.saveLocal"), () => $("save-local").click()],
+    [t("commands.export"), () => $("save").click()],
+    [t("commands.quickOpen"), () => openPicker(""), "quickOpen"],
+    [t("commands.outline"), () => openPicker("@"), "outline"],
+    [t("focus.open"), () => openFocus(), "focus"],
+    [t("toolbar.step"), () => command("step").then(followPC), "step"],
+    [t("toolbar.source"), () => run("source"), "source"],
+    [t("toolbar.over"), () => run("over"), "over"],
+    [t("toolbar.out"), () => run("out"), "out"],
+    [t("toolbar.back"), () => command("back").then(followPC), "back"],
+    [t("toolbar.nextBp"), () => $("next-bp").click()],
+    [t("toolbar.prevBp"), () => $("prev-bp").click()],
+    [t("commands.run"), () => actions.run(), "run"],
+    [t("commands.steps"), () => run("demo")],
+    [t("commands.backToStart"), () => backToStart()],
+    [t("commands.restart"), () => assemble(), "restart"],
+    [t("toolbar.pause"), () => requestStop(), "pause"],
+    [t("commands.stop"), () => actions.stop(), "stop"],
+    [t("commands.toggleBreakpoint"), () => actions.breakpoint(), "breakpoint"],
     [
-      "运行到光标",
+      t("commands.runToCursor"),
       () => {
         let address = lineAddress(
           editor.state.doc.lineAt(editor.state.selection.main.head).number,
@@ -3144,32 +3156,32 @@ function commandList() {
           });
       },
     ],
-    ["查看实际指令", () => setView("machine")],
-    ["查看控制流", () => setView("cfg")],
+    [t("commands.machine"), () => setView("machine")],
+    [t("commands.cfg"), () => setView("cfg")],
     [
-      "显示全部寄存器",
+      t("commands.allRegisters"),
       () => {
         $("reg-filter").value = "all";
         renderRegisters();
       },
     ],
-    ["输入地址／符号", () => $("address").focus()],
+    [t("commands.memoryAddress"), () => $("address").focus()],
     [
-      "切换实线叠加",
+      t("commands.toggleSolid"),
       () => {
         $("solid").checked = !$("solid").checked;
         overlay.schedule();
       },
     ],
     [
-      "切换虚线叠加",
+      t("commands.toggleDashed"),
       () => {
         $("dashed").checked = !$("dashed").checked;
         overlay.schedule();
       },
     ],
-    ["syscall 一览（$v0 的值对应做什么）", () => inspectToken("syscall")],
-    ["查指令与用途（按名称或想做的事搜索）", () => findInstruction()],
+    [t("commands.syscalls"), () => inspectToken("syscall")],
+    [t("commands.findInstruction"), () => findInstruction()],
   ];
   return commands.map(([label, run, action]) => ({
     label,
@@ -3189,14 +3201,14 @@ function openCommands() {
 function findInstruction(query = "") {
   const items = instructionIndex(program.instructionDocs);
   modal(
-    "查指令与用途",
-    `<input id="find-input" aria-label="搜索指令或用途" autocomplete="off" placeholder="例如：add、加法、比较大小、打印字符、读取整数、右移" style="width:100%"><div id="find-list" role="listbox" aria-label="搜索结果"></div><div id="find-detail" aria-live="polite"></div>`,
+    t("find.title"),
+    `<input id="find-input" aria-label="${t("find.label")}" autocomplete="off" placeholder="${t("find.placeholder")}" style="width:100%"><div id="find-list" role="listbox" aria-label="${t("find.results")}"></div><div id="find-detail" aria-live="polite"></div>`,
   );
   const input = $("find-input");
   input.value = query;
   let results = [],
     selected = 0;
-  const kindOf = (x) => (x.kind === "service" ? "syscall" : x.pseudo ? "伪指令" : "指令");
+  const kindOf = (x) => (x.kind === "service" ? "syscall" : x.pseudo ? t("find.kind.pseudo") : t("find.kind.instruction"));
   // Where this project uses it: lines with the instruction, or syscalls
   // whose service number (from the li $v0 above) is this one.
   const uses = (x) => {
@@ -3218,19 +3230,19 @@ function findInstruction(query = "") {
     const x = results[selected];
     if (!x) {
       $("find-detail").innerHTML = input.value.trim()
-        ? '<p class="muted">没有找到匹配的指令或 syscall。试试“加法”“比较大小”“打印字符”“读取整数”“右移”，或输入指令名。</p>'
-        : '<p class="muted">输入指令名，或用中文写想做的事。</p>';
+        ? `<p class="muted">${t("find.none")}</p>`
+        : `<p class="muted">${t("find.empty")}</p>`;
       return;
     }
     const used = uses(x);
     const rows = [
-      ["用途", esc(x.purpose)],
-      ["格式", `<code class="find-code">${esc(x.format)}</code>`],
-      x.formula && ["通用公式", `<code>${esc(x.formula)}</code>`],
-      x.example && x.example !== x.format && ["例子", `<code class="find-code">${esc(x.example)}</code>`],
-      x.note && ["说明", esc(x.note)],
+      [t("find.use"), esc(x.purpose)],
+      [t("find.format"), `<code class="find-code">${esc(x.format)}</code>`],
+      x.formula && [t("find.formula"), `<code>${esc(x.formula)}</code>`],
+      x.example && x.example !== x.format && [t("common.example"), `<code class="find-code">${esc(x.example)}</code>`],
+      x.note && [t("find.note"), esc(x.note)],
     ].filter(Boolean);
-    $("find-detail").innerHTML = `<div class="inspect-head"><h3>${esc(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">本工程中用到的地方（点击查看这一行的详细检查）：</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${esc(u.file)}:${u.line} <small class="mono">${esc(u.text)}</small></button>`).join("")}` : '<p class="muted">本工程里还没有用到它。</p>'}`;
+    $("find-detail").innerHTML = `<div class="inspect-head"><h3>${esc(x.label)}</h3><span>${kindOf(x)}</span></div><dl class="detail-steps">${rows.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>${used.length ? `<p class="muted">${t("find.used")}</p>${used.map((u, i) => `<button class="command-item" data-use="${i}">${esc(u.file)}:${u.line} <small class="mono">${esc(u.text)}</small></button>`).join("")}` : `<p class="muted">${t("find.unused")}</p>`}`;
     $("find-detail")
       .querySelectorAll("[data-use]")
       .forEach(
@@ -3256,7 +3268,7 @@ function findInstruction(query = "") {
     $("find-list").innerHTML =
       strong > 0 && strong < results.length
         ? results.slice(0, strong).map(row).join("") +
-          `<details class="find-more" ${moreOpen ? "open" : ""}><summary>其他可能相关（${results.length - strong} 个）</summary>${results.slice(strong).map((x, k) => row(x, strong + k)).join("")}</details>`
+          `<details class="find-more" ${moreOpen ? "open" : ""}><summary>${t("find.related", { count: results.length - strong })}</summary>${results.slice(strong).map((x, k) => row(x, strong + k)).join("")}</details>`
         : results.map(row).join("");
     const more = $("find-list").querySelector(".find-more");
     if (more)
@@ -3330,8 +3342,8 @@ tutorial = new Tutorial({
   finish: async (completed) => {
     const saved = await get(TUTORIAL_BACKUP).catch(() => null);
     modal(
-      completed ? "入门练习完成" : "退出入门练习",
-      `<p>${completed ? "做得好！" : ""}练习工程会留在工作区，可以继续修改或导出。${saved ? `也可以回到练习前的工程“${esc(saved.name || "我的工程")}”。` : ""}</p><div class="project-actions"><button id="tutorial-continue">继续练习</button>${saved ? '<button id="tutorial-restore">回到之前的工程</button>' : ""}<button class="primary" id="tutorial-keep">保留练习工程</button></div>`,
+      completed ? t("tutorial.finished") : t("tutorial.exit"),
+      `<p>${t("tutorial.exit.note", { praise: completed ? t("tutorial.wellDone") : "", back: saved ? t("tutorial.backTo", { name: esc(saved.name || t("project.defaultName")) }) : "" })}</p><div class="project-actions"><button id="tutorial-continue">${t("tutorial.keepGoing")}</button>${saved ? `<button id="tutorial-restore">${t("tutorial.restore")}</button>` : ""}<button class="primary" id="tutorial-keep">${t("tutorial.keepProject")}</button></div>`,
     );
     $("tutorial-continue").onclick = () => $("modal").close();
     $("tutorial-keep").onclick = () => {
@@ -3357,8 +3369,8 @@ $("start-tutorial").onclick = () => {
     return tutorial.update();
   }
   modal(
-    "入门练习：Hello World",
-    `<p class="project-explanation">边写边学：从打印 Hello! 开始，读取你的名字，用断点、详细检查和专注模式看清它，找到一个溢出错误并修好，最后自己加一个功能并导出。</p><p class="muted">练习会打开一个单独的练习工程。当前工程会先保存一份，结束时可以回到它；你的代码不会被覆盖。</p><div class="project-actions"><button id="tutorial-cancel">取消</button><button class="primary" id="tutorial-begin">开始练习</button></div>`,
+    t("tutorial.start.title"),
+    `<p class="project-explanation">${t("tutorial.start.about")}</p><p class="muted">${t("tutorial.start.safe")}</p><div class="project-actions"><button id="tutorial-cancel">${t("common.cancel")}</button><button class="primary" id="tutorial-begin">${t("tutorial.start.begin")}</button></div>`,
   );
   $("tutorial-cancel").onclick = () => $("modal").close();
   $("tutorial-begin").onclick = async () => {
@@ -3366,10 +3378,10 @@ $("start-tutorial").onclick = () => {
       await put(TUTORIAL_BACKUP, workspace.snapshot());
     } catch {
       $("modal").close();
-      return notify("浏览器存储不可用，无法先保存当前工程。请导出工程后再开始练习。");
+      return notify(t("tutorial.start.noStorage"));
     }
     try {
-      await workspace.apply({ name: "入门练习", files: {}, data: {}, folders: [] });
+      await workspace.apply({ name: t("menu.learn.tutorial"), files: {}, data: {}, folders: [] });
       $("modal").close();
       setSideTab("files");
       tutorial.start();
@@ -3387,8 +3399,8 @@ document.addEventListener("click", (e) => {
 function openPicker(prefix = "") {
   const commands = commandList();
   modal(
-    prefix === ">" ? "命令面板" : "快速打开",
-    `<input id="picker-input" aria-label="搜索" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">文件或标签名 · @ 当前文件符号 · :行号 · 文件:行号 · 0x 地址 · > 命令 · ? 查指令与用途</p>`,
+    prefix === ">" ? t("commands.palette") : t("picker.quickOpen"),
+    `<input id="picker-input" aria-label="${t("picker.search")}" autocomplete="off" style="width:100%"><div id="picker-list" role="listbox"></div><p class="muted picker-help">${t("picker.hint")} > ${t("picker.hint.commands")}</p>`,
   );
   const input = $("picker-input");
   input.value = prefix;
@@ -3422,7 +3434,7 @@ function openPicker(prefix = "") {
           (x, i) =>
             `<button class="command-item ${i === selected ? "selected" : ""}" role="option" aria-selected="${i === selected}" data-pick="${i}">${esc(x.label)}${x.detail ? `<kbd>${esc(x.detail)}</kbd>` : ""}</button>`,
         )
-        .join("") || '<p class="muted">没有匹配项</p>';
+        .join("") || `<p class="muted">${t("picker.none")}</p>`;
     $("picker-list")
       .querySelectorAll("[data-pick]")
       .forEach(
@@ -3434,7 +3446,7 @@ function openPicker(prefix = "") {
   };
   input.oninput = () => {
     // "?" switches to the instruction and purpose search.
-    if (input.value.startsWith("?") || input.value.startsWith("？"))
+    if (input.value.startsWith("?") || input.value.startsWith("\uff1f"))
       return findInstruction(input.value.slice(1));
     selected = 0;
     render();
@@ -3474,21 +3486,23 @@ $("next-bp").onclick = () => run("run", { keepMode: true });
 $("prev-bp").onclick = async () => {
   await command("previousBreakpoint", { breakpoints: activeBreakpoints() });
   if (state?.stopReason === "No earlier breakpoint")
-    notify("前面的执行里没有停在断点前的位置", { transient: true });
+    notify(t("toolbar.prevBp.none"), { transient: true });
   followPC();
   arrive(true);
 };
 for (let mode of ["source", "over", "out"]) $(mode).onclick = () => run(mode);
 $("commands").onclick = openCommands;
 $("commands-key").textContent = IS_MAC ? "⇧⌘P" : "Ctrl+Shift+P";
-$("radix").innerHTML = RADIXES.map(
-  ([value, label]) =>
-    `<option value="${value}" title="${esc(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label}</option>`,
-).join("");
+const renderRadixOptions = () =>
+  ($("radix").innerHTML = RADIXES.map(
+    ([value, label]) =>
+      `<option value="${value}" title="${esc(RADIX_HELP[value])}" ${value === radix ? "selected" : ""}>${label}</option>`,
+  ).join(""));
+renderRadixOptions();
 // What the notations mean, plus a character table to look 104 → h up in.
 $("radix-help").onclick = () => {
   const cell = (b) =>
-    `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${esc(escapeByte(b) === " " ? "空格" : escapeByte(b))}</b></td>`;
+    `<td><code>${b}</code></td><td><code>0x${b.toString(16).padStart(2, "0")}</code></td><td><b>${esc(escapeByte(b) === " " ? t("radix.table.space") : escapeByte(b))}</b></td>`;
   const codes = [0, 9, 10, ...Array.from({ length: 95 }, (_, i) => 32 + i)];
   const rows = [];
   for (let i = 0; i < codes.length; i += 4)
@@ -3499,11 +3513,11 @@ $("radix-help").onclick = () => {
         .join("")}</tr>`,
     );
   modal(
-    "数值显示",
-    `<div class="radix-help"><p class="radix-example">同一个数的几种写法：${["dec", "hex", "bin", "ascii"].map((m) => `<code>${esc(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ")}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${esc(RADIX_HELP[v].replace(/^[^：]+：/, ""))}</p>`).join("")}
-     <p class="muted">只改变只读区域（寄存器、内存、地址、执行结果、专注模式）的显示，代码不会变。</p>
-     <h4>字符编码表（ASCII）</h4>
-     <p class="muted">内存里存的都是数字；按这张表，每个 0–127 的数可以读成一个字符。表中列出十进制、十六进制和对应的字符。</p>
+    t("radix.help.heading"),
+    `<div class="radix-help"><p class="radix-example">${t("radix.help.same", { forms: ["dec", "hex", "bin", "ascii"].map((m) => `<code>${esc(formatValue(104, { radix: m, width: 1, kind: "bits" }).text)}</code>`).join(" = ") })}</p>${RADIXES.map(([v, l]) => `<p><b>${l}</b> ${esc(RADIX_HELP[v].replace(/^[^：:]+[：:]\s*/, ""))}</p>`).join("")}
+     <p class="muted">${t("radix.help.scope")}</p>
+     <h4>${t("radix.help.table")}</h4>
+     <p class="muted">${t("radix.help.tableNote")}</p>
      <table class="ascii-table"><tbody>${rows.join("")}</tbody></table></div>`,
   );
 };
@@ -3517,7 +3531,7 @@ $("radix").onchange = () => {
 };
 function openFocus() {
   if (dirty || !state || state.status === "empty")
-    return notify("请先汇编，再进入专注模式");
+    return notify(t("focus.needsAssembly"));
   lens.open();
   tutorial?.update();
 }
@@ -3531,8 +3545,8 @@ $("theme").onclick = () => {
 function setFontSize(size) {
   fontSize = Math.max(11, Math.min(22, size));
   document.documentElement.style.setProperty("--code", fontSize + "px");
-  $("zoom").title = `放大代码字号（当前 ${fontSize}）`;
-  $("zoom-out").title = `缩小代码字号（当前 ${fontSize}）`;
+  $("zoom").title = t("menu.view.codeSize.largerNow", { size: fontSize });
+  $("zoom-out").title = t("menu.view.codeSize.smallerNow", { size: fontSize });
   $("zoom").disabled = fontSize >= 22;
   $("zoom-out").disabled = fontSize <= 11;
   try {
@@ -3544,22 +3558,23 @@ function setFontSize(size) {
 $("zoom").onclick = () => setFontSize(fontSize + 1);
 // Code font (classroom 2026-11-03): five bundled fonts, or the operating
 // system's own, which differs between macOS, Windows and Linux.
-const OS_NAME = /Mac|iPhone|iPad/.test(navigator.platform)
-  ? "macOS：SF Mono"
+const osName = () => /Mac|iPhone|iPad/.test(navigator.platform)
+  ? t("fonts.system.mac")
   : /Win/.test(navigator.platform)
-    ? "Windows：Consolas"
-    : "Linux：DejaVu 等";
-const CODE_FONTS = [
+    ? t("fonts.system.windows")
+    : t("fonts.system.linux");
+const codeFonts = () => [
   ["jetbrains", "JetBrains Mono", '"JetBrains Mono Web"'],
   ["fira", "Fira Code", '"Fira Code Web"'],
   ["cascadia", "Cascadia Code", '"Cascadia Code Web"'],
   ["source", "Source Code Pro", '"Source Code Pro Web"'],
   ["plex", "IBM Plex Mono", '"IBM Plex Mono Web"'],
-  ["system", "系统默认", ""],
+  ["system", t("fonts.system"), ""],
 ];
 let codeFont = "jetbrains";
 function setCodeFont(id) {
-  const font = CODE_FONTS.find(([key]) => key === id) || CODE_FONTS[0];
+  const fonts = codeFonts(),
+    font = fonts.find(([key]) => key === id) || fonts[0];
   codeFont = font[0];
   document.documentElement.style.setProperty(
     "--mono",
@@ -3578,10 +3593,15 @@ function setCodeFont(id) {
     overlay.schedule();
   });
 }
-$("font-list").innerHTML = CODE_FONTS.map(
+function renderFontList() {
+$("font-list").innerHTML = codeFonts().map(
   ([key, name, family]) =>
-    `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${esc(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${esc(name)}</span><span class="sample">${key === "system" ? esc(OS_NAME) : "0O 1lI $t0"}</span></button>`,
+    `<button role="menuitemradio" class="font-choice" data-font="${key}" aria-checked="false" style="font-family:${esc(family ? family + ", var(--mono-system)" : "var(--mono-system)")}"><span>${esc(name)}</span><span class="sample">${key === "system" ? esc(osName()) : "0O 1lI $t0"}</span></button>`,
 ).join("");
+  // Keep the tick on the chosen font after a re-render.
+  $("font-list").querySelectorAll("[data-font]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.font === codeFont)));
+}
+renderFontList();
 $("font-list").onclick = (e) => {
   const b = e.target.closest("[data-font]");
   if (b) setCodeFont(b.dataset.font);
@@ -3717,7 +3737,7 @@ $("clear-focus").onclick = () => {
   inspecting = null;
   inspectingPlace = null;
   following = true;
-  showContext(CONTEXT_HINT);
+  showContext(CONTEXT_HINT());
   followInspector();
   renderRegisters();
   overlay.schedule();
@@ -3730,7 +3750,7 @@ $("symbol-search").oninput = renderSymbols;
 $("delay").onchange = () => {
   workspace?.changed();
   dirty = true;
-  notify("运行配置已修改，请重新汇编");
+  notify(t("banner.configChanged"));
   updateControls();
 };
 for (let id of ["solid", "dashed", "reads", "writes", "flows"])
@@ -3757,14 +3777,14 @@ $("memory-form").onsubmit = (e) => {
     s = program.symbols.find((s) => s.name === text),
     value = s ? s.address : Number(text);
   if (Number.isFinite(value)) memoryAt(value);
-  else notify("请输入有效地址或标签");
+  else notify(t("memory.invalidAddress"));
 };
 $("stack").onclick = () => memoryAt(regValue("$sp") - 16);
 $("data").onclick = () => memoryAt(0x10010000);
 $("add-watch").onclick = () => {
   modal(
-    "添加读写观察点",
-    `<form id="watch-form"><input id="watch-target" value="$t0" aria-label="观察对象"><select id="watch-access"><option value="write">写入</option><option value="read">读取</option><option value="both">读／写</option></select><button class="primary">添加</button></form>`,
+    t("watch.add.title"),
+    `<form id="watch-form"><input id="watch-target" value="$t0" aria-label="${t("watch.add.target")}"><select id="watch-access"><option value="write">${t("watch.access.write")}</option><option value="read">${t("watch.access.read")}</option><option value="both">${t("watch.add.access")}</option></select><button class="primary">${t("watch.add.button")}</button></form>`,
   );
   $("watch-form").onsubmit = (e) => {
     e.preventDefault();
@@ -3825,11 +3845,12 @@ document.addEventListener("keydown", (e) => {
   const r = keys.handle(e);
   if (r.pending) {
     e.preventDefault();
-    notify(`已按下 ${keyLabel("Mod+K", mac)}，等待第二个键…`);
+    chordNote = t("keys.chordPending", { key: keyLabel("Mod+K", mac) });
+    notify(chordNote);
     setTimeout(() => {
       const t = keys.expire();
       if (t.hint) hintOnce(t.retiredKey, t.hint);
-      else if ($("banner").textContent.startsWith("已按下")) notify("");
+      else if ($("banner").textContent === chordNote) notify("");
     }, 1600);
     return;
   }
@@ -3837,7 +3858,7 @@ document.addEventListener("keydown", (e) => {
   // Alt+Left still moves by word inside text on macOS; only explain it elsewhere.
   if (r.hint && !(typing && r.retiredKey === "Alt+ArrowLeft"))
     hintOnce(r.retiredKey, r.hint);
-  else if ($("banner").textContent.startsWith("已按下")) notify("");
+  else if ($("banner").textContent === chordNote) notify("");
   if (!r.action) return;
   // Inside text fields only global, non-character commands apply.
   if (
@@ -3875,7 +3896,7 @@ workspace = projectManager({
   scopeChanged: () => updateControls(),
   replace: async p => {
     await requestStop();
-    if (busy) throw Error("请等待当前操作完成。");
+    if (busy) throw Error(t("block.wait"));
     lens.close();
     lens.update(null);
     activeFile = "";
@@ -3888,7 +3909,7 @@ workspace = projectManager({
     breakpoints = []; watches = []; debugLog = [];
     state = null; program = {instructions:[], symbols:[], instructionDocs:{}};
     target = null; lastInTarget = ""; inspectingPlace = null; following = true;
-    showContext(CONTEXT_HINT);
+    showContext(CONTEXT_HINT());
     inspecting = null; focus = null; inlineCache.key = null;
     dirty = true; pendingResume = null; runMode = "";
     $("delay").checked = p.delay;
@@ -3896,11 +3917,11 @@ workspace = projectManager({
     for (const id of ["output","trace","calls","problems","logs","symbols","registers","memory","machine","cfg"]) {
       if ($(id)) $(id).replaceChildren();
     }
-    $("history-info").textContent="0 / 0 步";
+    $("history-info").textContent=t("history.empty");
     $("pc").textContent="PC —";
     selectActiveFile(p.activeFile);
     renderFiles(); renderTabs(); renderStops(); updateControls();
-    notify("工程已更新 · 点击“汇编”开始执行。");
+    notify(t("project.updated"));
   },
 });
 await workspace.start();
@@ -3931,12 +3952,61 @@ window.marsIDE = {
 (async () => {
 try {
   const response = await fetch("/examples");
-  if (!response.ok) throw Error("示例服务暂时不可用");
+  if (!response.ok) throw Error(t("examples.unavailableNow"));
   exampleList = await response.json();
-  $("example-list").innerHTML = exampleList.map((e,i) =>
-    `<button role="menuitem" data-example="${i}">${esc(e.name === "hexout" ? "Hexadecimal · 位与字符" : e.name === "task1" ? "Task 1 · 文件与调用" : e.name)}</button>`
-  ).join('') || '<button role="menuitem" disabled>没有示例</button>';
+  renderExamples();
 } catch (e) {
-  $("example-list").innerHTML='<button role="menuitem" disabled>示例暂不可用</button>';
+  exampleList = null;
+  renderExamples();
 }
 })();
+// The example menu, again after a language change.
+function renderExamples() {
+  if (!exampleList) {
+    $("example-list").innerHTML=`<button role="menuitem" disabled>${t("examples.unavailable")}</button>`;
+    return;
+  }
+  $("example-list").innerHTML = exampleList.map((e,i) =>
+    `<button role="menuitem" data-example="${i}">${esc(e.name === "hexout" ? t("examples.hexout") : e.name === "task1" ? t("examples.task1") : e.name)}</button>`
+  ).join('') || `<button role="menuitem" disabled>${t("examples.none")}</button>`;
+}
+// Interface language (classroom 2026-11-03): applies at once; the program,
+// its history and the project stay as they are, everything visible redraws.
+function renderLanguages() {
+  $("language-list").innerHTML = LANGUAGES.map(
+    (l) => `<button role="menuitemradio" class="font-choice" data-language="${l.code}" lang="${l.code}" aria-checked="${l.code === language()}">${esc(l.name)}</button>`,
+  ).join("");
+}
+renderLanguages();
+$("language-list").onclick = (e) => {
+  const b = e.target.closest("[data-language]");
+  if (b) setLanguage(b.dataset.language);
+};
+applyDom();
+// Text cut off with "…" (longer languages make this common) shows in full
+// on hover, unless the element already has its own tooltip.
+document.addEventListener("mouseover", (e) => {
+  const el = e.target.closest?.("*");
+  if (!el || el.hasAttribute("title") || el.dataset.tip || el.closest(".cm-editor")) return;
+  if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).textOverflow === "ellipsis") el.title = el.textContent.trim();
+});
+onLanguageChange(() => {
+  renderLanguages();
+  renderFontList();
+  renderRadixOptions();
+  renderExamples();
+  labelOverlaySettings();
+  updateDemoSpeed();
+  setFontSize(fontSize);
+  hideTooltip(0);
+  workspace?.render();
+  renderTabs();
+  renderStops();
+  if (state) render();
+  updateControls();
+  if (inspecting) inspectToken(inspecting, inspectingPlace, { refresh: true });
+  else followInspector();
+  if (lens.isOpen) lens.update(dirty ? null : state);
+  tutorial?.update();
+  overlay.schedule();
+});
