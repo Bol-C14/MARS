@@ -21,7 +21,7 @@
   "assembly.mode.single.hint": "Assembles only the file being edited",
   "assembly.mode.where": "Change it with ▾ beside the Assemble button",
   "banner.configChanged": "Run settings changed; assemble again",
-  "banner.inputChanged": "Input file changed · assemble again to use the new content",
+  "banner.inputChanged": "Text file changed · the current run still uses the contents from when it was assembled; assemble again to use the new contents",
   "banner.sourceChanged": "Source changed · assemble again to continue; the old trace belongs to the previous version",
   "beat.address": "Address = base register + 16-bit signed offset ({imm}).",
   "beat.address.done": "The address.",

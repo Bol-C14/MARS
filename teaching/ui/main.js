@@ -758,11 +758,15 @@ const editor = new EditorView({
           if (source) live.edited(u.changes);
           workspace?.changed();
           renderTabs();
-          if (!source || !target || target.files.includes(activeFile)) {
+          // A text file is read only when assembling: the paused program keeps
+          // the contents it was assembled with, so debugging goes on
+          // (classroom 2026-11-04: editing an output file locked the controls).
+          if (!source) {
+            $("banner").textContent = t("banner.inputChanged");
+            $("banner").className = "visible";
+          } else if (!target || target.files.includes(activeFile)) {
             dirty = true;
-            $("banner").textContent = source
-              ? t("banner.sourceChanged")
-              : t("banner.inputChanged");
+            $("banner").textContent = t("banner.sourceChanged");
             $("banner").className = "visible";
           }
           updateControls();
@@ -1539,6 +1543,8 @@ async function command(name, extra = {}) {
     let s = await api({
       command: name,
       programVersion: state?.programVersion,
+      // The generated files already here: unchanged ones come back without contents.
+      generatedKnown: runtimeFiles,
       ...lookahead(),
       ...extra,
     });
@@ -2405,7 +2411,7 @@ function syncRuntimeFiles(next) {
   const changed = next.generatedFiles || {};
   let updated = false;
   for (const [name, file] of Object.entries(changed)) {
-    if (runtimeFiles[name] === file.base64) continue;
+    if (runtimeFiles[name] === file.hash || file.base64 == null) continue;
     try { if (pathName(name) !== name) continue; } catch { continue; }
     if (Object.hasOwn(files,name)) continue;
     const text = new TextDecoder().decode(Uint8Array.from(atob(file.base64),c=>c.charCodeAt(0)));
@@ -2417,7 +2423,7 @@ function syncRuntimeFiles(next) {
       loadEditor = false;
     }
   }
-  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n,f])=>[n,f.base64]));
+  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n,f])=>[n,f.hash]));
   if (updated) workspace?.changed();
 }
 function renderFiles() {

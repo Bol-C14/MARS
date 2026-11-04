@@ -18,7 +18,10 @@ with sync_playwright() as p:
   row.click();assert page.locator('.cm-content').inner_text()=='OK' and not page.locator('#modal').is_visible()
   assert page.locator('.cm-content').get_attribute('contenteditable')=='true'
   from workspace_browser import write,project_action
-  write(page,'EDITED');page.keyboard.press('Meta+S' if sys.platform=='darwin' else 'Control+S')
+  write(page,'EDITED')
+  # Editing a text file leaves the program usable and says when the edit applies (classroom 2026-11-04).
+  assert page.locator('#back').is_enabled() and '重新汇编后使用新内容' in page.locator('#banner').inner_text()
+  page.keyboard.press('Meta+S' if sys.platform=='darwin' else 'Control+S')
   page.evaluate('window.marsIDE.command("state")')
   assert page.locator('.cm-content').inner_text()=='EDITED'
   project_action(page,'save')
@@ -27,6 +30,10 @@ with sync_playwright() as p:
   with zipfile.ZipFile(dl.value.path()) as z: assert z.read('MIPS/output.txt')==b'EDITED'
   saved=json.loads(page.evaluate('localStorage.getItem("mars-trace:project:v2")'))
   assert saved['data']['MIPS/output.txt']=='EDITED' and saved['data']['MIPS/input.txt']=='KEEP' and saved['files']['main.s']==src
-  assert page.evaluate('window.marsIDE.state.generatedFiles["MIPS/output.txt"].base64')=='T0s='
+  # The runtime record keeps what the program wrote; once the page holds it,
+  # polls send only its size and hash, not the contents again.
+  g=page.evaluate('window.marsIDE.state.generatedFiles["MIPS/output.txt"]')
+  assert g['size']==2 and g['hash'] and g['base64'] is None, g
+  assert page.locator('#back').is_enabled()
   print('PASS: generated txt is an ordinary editable tree/tab file; save/export retain edits; state polls do not overwrite them; execution snapshot remains intact')
  finally:b.close()

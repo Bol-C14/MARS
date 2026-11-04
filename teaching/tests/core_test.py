@@ -68,6 +68,12 @@ class CoreTests(unittest.TestCase):
   s=self.call('previousBreakpoint',breakpoints=bp);self.assertEqual(s['registers'][8]['value'],0)
   s=self.call('previousBreakpoint',breakpoints=bp);self.assertEqual(s['stopReason'],'No earlier breakpoint');self.assertEqual(s['registers'][8]['value'],0)
   s=self.call('previousBreakpoint',breakpoints=[{'address':addi,'condition':'','log':'x'}]);self.assertEqual(s['stopReason'],'No earlier breakpoint')
+ def test_generated_files_are_sent_once(self):
+  # Classroom 2026-11-04: a file the client already holds comes back without its contents.
+  src='.data\nn: .asciiz "out.txt"\nm: .asciiz "OK"\n.text\nmain:\nla $a0,n\nli $a1,1\nli $a2,0\nli $v0,13\nsyscall\nmove $a0,$v0\nla $a1,m\nli $a2,2\nli $v0,15\nsyscall\nli $v0,10\nsyscall\n'
+  self.asm(src);s=self.finish();g=s['generatedFiles']['out.txt'];self.assertEqual(g['base64'],'T0s=');self.assertEqual(g['size'],2)
+  s=self.call('state',generatedKnown={'out.txt':g['hash']});self.assertIsNone(s['generatedFiles']['out.txt']['base64']);self.assertEqual(s['generatedFiles']['out.txt']['hash'],g['hash'])
+  s=self.call('state',generatedKnown={'out.txt':'stale'});self.assertEqual(s['generatedFiles']['out.txt']['base64'],'T0s=')
  def test_read_watch_and_same_value_memory_write(self):
   self.asm('.data\nx: .word 7\n.text\nmain:\nla $t0,x\nli $t1,7\nsw $t1,0($t0)\nlw $t2,0($t0)\nli $v0,10\nsyscall\n')
   s=self.call('run',watches=[{'address':0x10010002,'access':'write'}]);self.assertIn('Watchpoint',s['stopReason']);a=next(a for a in s['last']['accesses'] if a['kind']=='memory' and a['write']);self.assertEqual(a['before'],a['value']);self.assertEqual(s['lastWriters']['mem:268500994'],s['step']);s=self.call('run',watches=[{'address':0x10010000,'access':'read'}]);self.assertEqual(s['last']['instruction']['op'],'lw')
@@ -82,7 +88,7 @@ class CoreTests(unittest.TestCase):
    s=self.call('state')
    if s['preview'].get('service')==15:break
    self.call('step')
-  before=s['step'];self.assertEqual(s['handles'][0]['position'],0);s=self.call('step');self.assertEqual(s['handles'][0]['position'],2);self.assertEqual(s['generatedFiles']['out.txt'], {'base64':'T0s=','size':2});s=self.call('seek',step=before);self.assertEqual(s['handles'][0]['position'],0);self.assertEqual(s['generatedFiles']['out.txt']['size'],0);self.assertEqual(self.call('step')['generatedFiles']['out.txt']['base64'],'T0s=')
+  before=s['step'];self.assertEqual(s['handles'][0]['position'],0);s=self.call('step');self.assertEqual(s['handles'][0]['position'],2);self.assertEqual({k:s['generatedFiles']['out.txt'][k] for k in ('base64','size')}, {'base64':'T0s=','size':2});s=self.call('seek',step=before);self.assertEqual(s['handles'][0]['position'],0);self.assertEqual(s['generatedFiles']['out.txt']['size'],0);self.assertEqual(self.call('step')['generatedFiles']['out.txt']['base64'],'T0s=')
  def observable(self,s):
   return {k:s[k] for k in ('pc','step','registers','memory','output','inputCursor','handles','status','exitCode','preview')}
  def test_lookahead_matches_execution_without_side_effects(self):

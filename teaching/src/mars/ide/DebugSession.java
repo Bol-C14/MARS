@@ -36,6 +36,8 @@ public final class DebugSession {
   private final List<Object> logs = new ArrayList<>();
   /** Source lines of lookahead the client asked for with this request; 0 = none. */
   private int lookaheadLines = 0;
+  /** Hashes of the generated files the client already holds, from this request. */
+  private Map<String, Object> knownGenerated = Map.of();
 
   private record Entry(
     MachineState before,
@@ -620,6 +622,9 @@ public final class DebugSession {
     lookaheadLines = request.get("lookahead") instanceof Number n
       ? n.intValue()
       : 0;
+    knownGenerated = request.get("generatedKnown") instanceof Map<?, ?> m
+      ? (Map<String, Object>) m
+      : Map.of();
     if (command.equals("assemble")) return assemble(request);
     if (program == null) return state(false);
     if (
@@ -753,11 +758,19 @@ public final class DebugSession {
     stopReason = "Batch complete";
   }
 
+  /**
+   * Files the program wrote: always the size and a hash of the contents; the
+   * contents themselves only when the client's copy (generatedKnown, name to
+   * hash) differs, so stepping does not resend unchanged files every time.
+   */
+  @SuppressWarnings("unchecked")
   private Map<String, Object> generatedFiles() {
     var out = new LinkedHashMap<String, Object>();
     if (VirtualIO.current != null) for (String name : VirtualIO.current.written) {
       byte[] bytes = VirtualIO.current.files.get(name);
-      out.put(name, obj("base64", Base64.getEncoder().encodeToString(bytes), "size", bytes.length));
+      String hash = Integer.toHexString(Arrays.hashCode(bytes)) + ":" + bytes.length;
+      boolean known = knownGenerated.get(name) instanceof String h && h.equals(hash);
+      out.put(name, obj("base64", known ? null : Base64.getEncoder().encodeToString(bytes), "size", bytes.length, "hash", hash));
     }
     return out;
   }

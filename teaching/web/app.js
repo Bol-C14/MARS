@@ -22,7 +22,7 @@ var zh_CN_default = {
   "assembly.mode.single.hint": "\u53EA\u6C47\u7F16\u6B63\u5728\u7F16\u8F91\u7684\u6587\u4EF6",
   "assembly.mode.where": "\u5728\u6C47\u7F16\u6309\u94AE\u53F3\u4FA7 \u25BE \u5207\u6362",
   "banner.configChanged": "\u8FD0\u884C\u914D\u7F6E\u5DF2\u4FEE\u6539\uFF0C\u8BF7\u91CD\u65B0\u6C47\u7F16",
-  "banner.inputChanged": "\u8F93\u5165\u6587\u4EF6\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u4F7F\u7528\u65B0\u5185\u5BB9",
+  "banner.inputChanged": "\u6587\u672C\u6587\u4EF6\u5DF2\u4FEE\u6539 \xB7 \u5F53\u524D\u8C03\u8BD5\u4ECD\u4F7F\u7528\u6C47\u7F16\u65F6\u7684\u5185\u5BB9\uFF0C\u91CD\u65B0\u6C47\u7F16\u540E\u4F7F\u7528\u65B0\u5185\u5BB9",
   "banner.sourceChanged": "\u6E90\u7801\u5DF2\u4FEE\u6539 \xB7 \u91CD\u65B0\u6C47\u7F16\u540E\u7EE7\u7EED\u6267\u884C\uFF1B\u65E7\u8F68\u8FF9\u5C5E\u4E8E\u4E0A\u4E00\u7248\u672C",
   "beat.address": "\u5730\u5740 = \u57FA\u5740\u5BC4\u5B58\u5668 + 16 \u4F4D\u6709\u7B26\u53F7\u504F\u79FB\uFF08{imm}\uFF09\u3002",
   "beat.address.done": "\u5F97\u5230\u5730\u5740\u3002",
@@ -1594,7 +1594,7 @@ var en_default = {
   "assembly.mode.single.hint": "Assembles only the file being edited",
   "assembly.mode.where": "Change it with \u25BE beside the Assemble button",
   "banner.configChanged": "Run settings changed; assemble again",
-  "banner.inputChanged": "Input file changed \xB7 assemble again to use the new content",
+  "banner.inputChanged": "Text file changed \xB7 the current run still uses the contents from when it was assembled; assemble again to use the new contents",
   "banner.sourceChanged": "Source changed \xB7 assemble again to continue; the old trace belongs to the previous version",
   "beat.address": "Address = base register + 16-bit signed offset ({imm}).",
   "beat.address.done": "The address.",
@@ -31901,9 +31901,12 @@ var editor = new EditorView({
           if (source) live.edited(u.changes);
           workspace?.changed();
           renderTabs();
-          if (!source || !target || target.files.includes(activeFile)) {
+          if (!source) {
+            $2("banner").textContent = t("banner.inputChanged");
+            $2("banner").className = "visible";
+          } else if (!target || target.files.includes(activeFile)) {
             dirty = true;
-            $2("banner").textContent = source ? t("banner.sourceChanged") : t("banner.inputChanged");
+            $2("banner").textContent = t("banner.sourceChanged");
             $2("banner").className = "visible";
           }
           updateControls();
@@ -32508,6 +32511,8 @@ async function command2(name2, extra = {}) {
     let s = await api({
       command: name2,
       programVersion: state?.programVersion,
+      // The generated files already here: unchanged ones come back without contents.
+      generatedKnown: runtimeFiles,
       ...lookahead(),
       ...extra
     });
@@ -33175,7 +33180,7 @@ function syncRuntimeFiles(next) {
   const changed = next.generatedFiles || {};
   let updated = false;
   for (const [name2, file] of Object.entries(changed)) {
-    if (runtimeFiles[name2] === file.base64) continue;
+    if (runtimeFiles[name2] === file.hash || file.base64 == null) continue;
     try {
       if (pathName(name2) !== name2) continue;
     } catch {
@@ -33191,7 +33196,7 @@ function syncRuntimeFiles(next) {
       loadEditor = false;
     }
   }
-  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n, f]) => [n, f.base64]));
+  runtimeFiles = Object.fromEntries(Object.entries(changed).map(([n, f]) => [n, f.hash]));
   if (updated) workspace?.changed();
 }
 function renderFiles() {

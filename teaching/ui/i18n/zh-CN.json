@@ -21,7 +21,7 @@
   "assembly.mode.single.hint": "只汇编正在编辑的文件",
   "assembly.mode.where": "在汇编按钮右侧 ▾ 切换",
   "banner.configChanged": "运行配置已修改，请重新汇编",
-  "banner.inputChanged": "输入文件已修改 · 重新汇编后使用新内容",
+  "banner.inputChanged": "文本文件已修改 · 当前调试仍使用汇编时的内容，重新汇编后使用新内容",
   "banner.sourceChanged": "源码已修改 · 重新汇编后继续执行；旧轨迹属于上一版本",
   "beat.address": "地址 = 基址寄存器 + 16 位有符号偏移（{imm}）。",
   "beat.address.done": "得到地址。",
