@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "entry": "main.s",
-  "assembly": {
-    "mode": "manual",
-    "files": ["main.s", "task1.s", "libio.s"]
-  }
-}

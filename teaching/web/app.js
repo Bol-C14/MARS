@@ -444,11 +444,9 @@ var zh_CN_default = {
   "engine.switch": "\u5207\u6362\u5185\u6838\u2026",
   "engine.switch.hint": "\u6682\u4E0D\u63D0\u4F9B\uFF1B\u4E4B\u540E\u7684\u672C\u5730\u7248\u518D\u652F\u6301\u5176\u4ED6\u5185\u6838",
   "engine.title": "\u6C47\u7F16\u4E0E\u6267\u884C\u5185\u6838",
-  "examples.hexout": "Hexadecimal \xB7 \u4F4D\u4E0E\u5B57\u7B26",
   "examples.none": "\u6CA1\u6709\u793A\u4F8B",
   "examples.open": "\u6253\u5F00\u793A\u4F8B",
   "examples.open.note": "\u793A\u4F8B\u4F1A\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B\u3002\u53EF\u4EE5\u901A\u8FC7\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u5F53\u524D\u5185\u5BB9\u3002",
-  "examples.task1": "Task 1 \xB7 \u6587\u4EF6\u4E0E\u8C03\u7528",
   "examples.unavailable": "\u793A\u4F8B\u6682\u4E0D\u53EF\u7528",
   "examples.unavailableNow": "\u793A\u4F8B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528",
   "explain.add": "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
@@ -1102,6 +1100,9 @@ var zh_CN_default = {
   "mars.unknownOperator": "\u201C{name}\u201D\u4E0D\u662F\u53EF\u8BC6\u522B\u7684\u6307\u4EE4",
   "mars.unsupportedSyscall": "\u4E0D\u652F\u6301\u7684 syscall {n}",
   "memory.address": "\u5185\u5B58\u5730\u5740\u6216\u7B26\u53F7",
+  "memory.addressHint": "\u6807\u7B7E+8 \xB7 4($sp)",
+  "memory.bar.notReady": "\u6C47\u7F16\u540E\u663E\u793A\u5185\u5B58\u5206\u5E03",
+  "memory.bar.viewing": "\u5217\u8868\u6B63\u5728\u663E\u793A {address} \u9644\u8FD1",
   "memory.byte.inaccessible": "\u4E0D\u53EF\u8BBF\u95EE",
   "memory.byte.lastWrite": "\u6700\u540E\u5199\u5165 {step}",
   "memory.byte.title": "\u5185\u5B58 {address}",
@@ -1111,11 +1112,34 @@ var zh_CN_default = {
   "memory.cells.bin": "\u5355\u5143 0b",
   "memory.cells.dec": "\u5355\u5143 0d",
   "memory.cells.hex": "\u5355\u5143 0x",
-  "memory.data": "\u6570\u636E",
+  "memory.down": "\u5411\u4E0B 64 \u5B57\u8282",
+  "memory.empty": "\u6C47\u7F16\u540E\u8FD9\u91CC\u663E\u793A\u5185\u5B58\u3002\u4E4B\u540E\u53EF\u5728\u5730\u5740\u6846\u8F93\u5165\u5730\u5740\u3001\u6807\u7B7E\u6216\u5BC4\u5B58\u5668\uFF0C\u5982 scores+8\u3001$sp-4\u30014($sp)\u3002",
   "memory.go": "\u5B9A\u4F4D",
-  "memory.invalidAddress": "\u8BF7\u8F93\u5165\u6709\u6548\u5730\u5740\u6216\u6807\u7B7E",
-  "memory.stack": "\u6808",
+  "memory.invalidAddress": "\u8BF7\u8F93\u5165\u5730\u5740\u3001\u6807\u7B7E\u6216\u5BC4\u5B58\u5668\uFF0C\u53EF\u52A0\u51CF\u5E38\u6570\uFF0C\u5982 scores+8\u3001$sp-4\u30014($sp)",
+  "memory.map.close": "\u6536\u8D77\u5730\u56FE\uFF0C\u56DE\u5230\u5185\u5B58\u5217\u8868",
+  "memory.map.frame": "\u7B2C {step} \u6B65\u8C03\u7528 \xB7 {size} \u5B57\u8282",
+  "memory.map.heapBlock": "\u7B2C {step} \u6B65\u7533\u8BF7",
+  "memory.map.noData": "\u6CA1\u6709\u6570\u636E\u6807\u7B7E",
+  "memory.map.noHeap": "\u8FD9\u4E2A\u7A0B\u5E8F\u6CA1\u6709\u7528\u5230\u5806\uFF08syscall 9\uFF09",
+  "memory.map.noPc": "\u7A0B\u5E8F\u6CA1\u6709\u5728\u8FD0\u884C",
+  "memory.map.open": "\u5C55\u5F00\u5185\u5B58\u5730\u56FE",
+  "memory.map.startFrame": "\u7A0B\u5E8F\u5F00\u59CB\u65F6",
+  "memory.segment.data": "\u6570\u636E",
+  "memory.segment.free": "\u7A7A\u95F2",
+  "memory.segment.heap": "\u5806",
+  "memory.segment.stack": "\u6808",
+  "memory.segment.text": "\u4EE3\u7801",
+  "memory.size": "{n} \u5B57\u8282",
+  "memory.symbolTip": "\u4ECE\u8FD9\u91CC\u5F00\u59CB\uFF0C\u6309{view}\u663E\u793A",
   "memory.title": "\u5185\u5B58",
+  "memory.up": "\u5411\u4E0A 64 \u5B57\u8282",
+  "memory.view.bytes": "\u5B57\u8282",
+  "memory.view.bytesTip": "\u9010\u5B57\u8282\u663E\u793A\uFF0C\u53F3\u4FA7\u9644\u5B57\u7B26",
+  "memory.view.text": "\u6587\u5B57",
+  "memory.view.textTip": "\u628A\u5B57\u8282\u5F53\u4F5C\u5B57\u7B26\uFF0C\\n\u3001\\0 \u7B49\u8F6C\u4E49\u663E\u793A",
+  "memory.view.words": "\u5B57",
+  "memory.view.wordsTip": "\u6BCF 4 \u5B57\u8282\u5408\u6210\u4E00\u4E2A\u5B57\uFF08\u5C0F\u7AEF\uFF09",
+  "memory.views": "\u5185\u5B58\u89C6\u56FE",
   "menu.learn": "\u5B66\u4E60",
   "menu.learn.examples": "\u793A\u4F8B\u7A0B\u5E8F",
   "menu.learn.examples.hint": "\u6253\u5F00\u524D\u4F1A\u786E\u8BA4\uFF0C\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B",
@@ -2016,11 +2040,9 @@ var en_default = {
   "engine.switch": "Switch core\u2026",
   "engine.switch.hint": "Not available yet; a later local version will support other cores",
   "engine.title": "Assembler and execution core",
-  "examples.hexout": "Hexadecimal \xB7 bits and characters",
   "examples.none": "No examples",
   "examples.open": "Open example",
   "examples.open.note": "The example replaces the current project. \u201CUndo last project change\u201D brings the current contents back.",
-  "examples.task1": "Task 1 \xB7 files and calls",
   "examples.unavailable": "Examples unavailable",
   "examples.unavailableNow": "The example service is unavailable right now",
   "explain.add": "Adds two source registers; signed overflow raises an exception.",
@@ -2674,6 +2696,9 @@ var en_default = {
   "mars.unknownOperator": '"{name}" is not a recognized operator',
   "mars.unsupportedSyscall": "unsupported syscall {n}",
   "memory.address": "Memory address or symbol",
+  "memory.addressHint": "label+8 \xB7 4($sp)",
+  "memory.bar.notReady": "Assemble to see the memory layout",
+  "memory.bar.viewing": "The list shows memory near {address}",
   "memory.byte.inaccessible": "Not accessible",
   "memory.byte.lastWrite": "Last write {step}",
   "memory.byte.title": "Memory {address}",
@@ -2683,11 +2708,34 @@ var en_default = {
   "memory.cells.bin": "cells 0b",
   "memory.cells.dec": "cells 0d",
   "memory.cells.hex": "cells 0x",
-  "memory.data": "Data",
+  "memory.down": "Down 64 bytes",
+  "memory.empty": "Memory appears here after you assemble. Then type an address, label or register in the box, such as scores+8, $sp-4 or 4($sp).",
   "memory.go": "Go",
-  "memory.invalidAddress": "Enter a valid address or label",
-  "memory.stack": "Stack",
+  "memory.invalidAddress": "Enter an address, label or register, optionally \xB1 a constant: scores+8, $sp-4, 4($sp)",
+  "memory.map.close": "Close the map and go back to the list",
+  "memory.map.frame": "called at step {step} \xB7 {size} bytes",
+  "memory.map.heapBlock": "Allocated at step {step}",
+  "memory.map.noData": "No data labels",
+  "memory.map.noHeap": "This program does not use the heap (syscall 9)",
+  "memory.map.noPc": "The program is not running",
+  "memory.map.open": "Open the memory map",
+  "memory.map.startFrame": "At program start",
+  "memory.segment.data": "Data",
+  "memory.segment.free": "Free",
+  "memory.segment.heap": "Heap",
+  "memory.segment.stack": "Stack",
+  "memory.segment.text": "Code",
+  "memory.size": "{n, plural, one {# byte} other {# bytes}}",
+  "memory.symbolTip": "Starts here; shown as {view}",
   "memory.title": "Memory",
+  "memory.up": "Up 64 bytes",
+  "memory.view.bytes": "Bytes",
+  "memory.view.bytesTip": "One byte per cell, with characters on the right",
+  "memory.view.text": "Text",
+  "memory.view.textTip": "Bytes as characters, with escapes such as \\n and \\0",
+  "memory.view.words": "Words",
+  "memory.view.wordsTip": "Every 4 bytes as one word (little-endian)",
+  "memory.views": "Memory views",
   "menu.learn": "Learn",
   "menu.learn.examples": "Example programs",
   "menu.learn.examples.hint": "Asks first, then replaces the current project",
@@ -26337,7 +26385,7 @@ var OverlayRenderer = class {
         seen.add(k);
         if (scope === "focus" && focus2 !== name2) continue;
         let target2 = this.center(
-          a.kind === "register" ? document.querySelector(`[data-register="${a.name}"]`) : document.querySelector(`[data-byte="${a.address}"]`)
+          a.kind === "register" ? document.querySelector(`[data-register="${a.name}"]`) : memoryCell(a.address)
         );
         let offscreen = false;
         if (!target2) {
@@ -26384,6 +26432,15 @@ var OverlayRenderer = class {
     );
   }
 };
+function memoryCell(address) {
+  const exact = document.querySelector(`#memory [data-byte="${address}"]`);
+  if (exact) return exact;
+  for (const k of [1, 2, 3]) {
+    const e = document.querySelector(`#memory [data-byte="${address - k}"][data-width="4"]`);
+    if (e) return e;
+  }
+  return null;
+}
 
 // ui/bits.js
 var bitsOf = (v, n = 32) => Array.from({ length: n }, (_, i) => Number(BigInt.asUintN(n, BigInt(v)) >> BigInt(n - 1 - i) & 1n));
@@ -31322,6 +31379,124 @@ function liveCheck({ post, current: current2, scope, ready, held, showLines, sho
   };
 }
 
+// ui/memory-view.js
+var NUMBER = /^(?:0x[\da-f]+|\d+)$/i;
+function parseAddress(text2, { symbols = [], register = () => void 0 } = {}) {
+  const s = String(text2).trim();
+  let m = /^(-?(?:0x[\da-f]+|\d+))?\s*\(\s*(\$\w+)\s*\)$/i.exec(s);
+  if (m) {
+    const base3 = register(m[2]);
+    return base3 == null ? null : base3 + (m[1] ? Number(m[1]) : 0) | 0;
+  }
+  m = /^(\$?[A-Za-z_.][\w.]*|0x[\da-f]+|\d+)\s*(?:([+-])\s*(0x[\da-f]+|\d+))?$/i.exec(s);
+  if (!m) return null;
+  const base2 = NUMBER.test(m[1]) ? Number(m[1]) : m[1].startsWith("$") ? register(m[1]) : symbols.find((x) => x.name === m[1])?.address;
+  if (base2 == null || !Number.isFinite(base2)) return null;
+  const offset = m[3] ? Number(m[3]) : 0;
+  return base2 + (m[2] === "-" ? -offset : offset) | 0;
+}
+function directiveSize(directive, operands) {
+  const items = operands.split(",").filter((x) => x.trim()).length || 1;
+  const text2 = (/"((?:[^"\\]|\\.)*)"/.exec(operands)?.[1] ?? "").replace(/\\./g, "x");
+  switch (directive) {
+    case ".word":
+    case ".float":
+      return 4 * items;
+    case ".double":
+      return 8 * items;
+    case ".half":
+      return 2 * items;
+    case ".byte":
+      return items;
+    case ".space":
+      return Math.max(0, parseInt(operands, 0) || Number(operands.trim()) || 0);
+    case ".ascii":
+      return text2.length;
+    case ".asciiz":
+      return text2.length + 1;
+    default:
+      return 0;
+  }
+}
+function dataSymbols(symbols = [], sources = {}) {
+  const list = symbols.filter((s) => s.data).map((s) => {
+    const defines = new RegExp(`^\\s*${s.name.replace(/[.$]/g, "\\$&")}\\s*:`);
+    const text2 = [sources[s.file], ...Object.values(sources)].find((t3) => t3 && t3.split("\n").some((l) => defines.test(l))) || "";
+    const lines = text2.split("\n");
+    let directive = "", operands = "";
+    const at = lines.findIndex((l) => defines.test(l));
+    for (let i = at; at >= 0 && i < lines.length && i < at + 4; i++) {
+      const code = (i === at ? lines[i].replace(/^[^:]*:/, "") : lines[i]).replace(/#.*$/, "").trim();
+      const d = /^(\.\w+)\s*(.*)$/.exec(code);
+      if (d && d[1] !== ".align" && d[1] !== ".globl") {
+        [directive, operands] = [d[1], d[2]];
+        break;
+      }
+      if (code && !d) break;
+    }
+    return { name: s.name, address: s.address >>> 0, directive, size: directiveSize(directive, operands) };
+  }).sort((a, b) => a.address - b.address);
+  list.forEach((s, i) => {
+    const next = list[i + 1];
+    if (next) s.size = Math.min(s.size || Infinity, next.address - s.address);
+    s.size = Math.max(1, s.size || 4);
+    s.end = s.address + s.size;
+    s.view = s.directive === ".word" ? "words" : /^\.ascii/.test(s.directive) ? "text" : "bytes";
+  });
+  return list;
+}
+function memoryRows(memory = [], symbols = [], view2 = "words") {
+  const starts = new Map(symbols.map((s) => [s.address >>> 0, s]));
+  const perRow = view2 === "text" ? 16 : 8;
+  const rows = [];
+  let row2 = null;
+  for (let i = 0; i < memory.length; ) {
+    const address = memory[i].address >>> 0;
+    const symbol = starts.get(address);
+    if (symbol) {
+      rows.push({ label: symbol });
+      row2 = null;
+    }
+    if (!row2 || address % perRow === 0) {
+      row2 = { address, cells: [], bytes: 0 };
+      rows.push(row2);
+    }
+    const word = view2 === "words" && address % 4 === 0 && i + 4 <= memory.length && address % perRow <= perRow - 4 && ![1, 2, 3].some((k) => starts.has(address + k));
+    const width = word ? 4 : 1;
+    const bytes = memory.slice(i, i + width);
+    row2.cells.push({ address, width, bytes: bytes.map((b) => b.value) });
+    row2.bytes += width;
+    i += width;
+  }
+  return rows;
+}
+var wordValue = (bytes) => bytes.some((b) => b == null) ? null : bytes[0] | bytes[1] << 8 | bytes[2] << 16 | bytes[3] << 24 | 0;
+function memoryBar({ layout, sp, dataEnd, textEnd }) {
+  if (!layout) return [];
+  const text2 = layout.text >>> 0, data2 = layout.data >>> 0, heap = layout.heap >>> 0, stackTop = (layout.stack >>> 0) + 4, heapTop = Math.max(layout.heapTop >>> 0, heap + 64), stackLow = Math.min(sp >>> 0, stackTop - 64);
+  return [
+    { id: "text", share: 0.22, from: text2, to: Math.max(textEnd >>> 0, text2 + 4), end: data2 },
+    { id: "data", share: 0.3, from: data2, to: Math.max(dataEnd >>> 0, data2 + 16), end: heap },
+    { id: "heap", share: 0.14, from: heap, to: heapTop, end: heapTop },
+    { id: "free", share: 0.1, from: heapTop, to: stackLow, end: stackLow },
+    // Above the stack's start, up to the kernel at 0x80000000.
+    { id: "stack", share: 0.24, from: stackLow, to: stackTop, end: 2147483648 }
+  ];
+}
+function barPosition(segments, address) {
+  const a = address >>> 0;
+  let top2 = 0;
+  for (const s of segments) {
+    if (a >= s.from && a < Math.max(s.end, s.to)) {
+      const used = s.end > s.to ? 0.85 : 1;
+      const within = a < s.to ? (a - s.from) / Math.max(1, s.to - s.from) * used : used + (a - s.to) / Math.max(1, s.end - s.to) * (1 - used);
+      return { segment: s.id, y: top2 + Math.min(within, 0.999) * s.share };
+    }
+    top2 += s.share;
+  }
+  return null;
+}
+
 // ui/main.js
 var $2 = (id2) => document.getElementById(id2);
 var LIST_SEP = () => t("common.listSep");
@@ -32499,14 +32674,19 @@ var EXECUTING = /* @__PURE__ */ new Set([
   "line",
   "input"
 ]);
+var QUIET = /* @__PURE__ */ new Set(["memory"]);
+var commandSerial = 0;
 async function command2(name2, extra = {}) {
   if (busy) return null;
   if (EXECUTING.has(name2) && blocked()) {
     notify(blocked(), { transient: true });
     return null;
   }
-  busy = true;
-  updateControls();
+  const quiet = QUIET.has(name2), serial = ++commandSerial;
+  if (!quiet) {
+    busy = true;
+    updateControls();
+  }
   try {
     let s = await api({
       command: name2,
@@ -32516,6 +32696,7 @@ async function command2(name2, extra = {}) {
       ...lookahead(),
       ...extra
     });
+    if (quiet && serial !== commandSerial) return null;
     const before = state;
     state = s;
     syncRuntimeFiles(s);
@@ -32529,8 +32710,10 @@ async function command2(name2, extra = {}) {
     if (running) stopRequested = true;
     return null;
   } finally {
-    busy = false;
-    updateControls();
+    if (!quiet) {
+      busy = false;
+      updateControls();
+    }
   }
 }
 async function assemble() {
@@ -33281,19 +33464,38 @@ ${t("registers.signNote", { value: r.value | 0 })}` : "";
     };
   });
 }
+var memView = "words";
+var memMapOpen = false;
+var memAnchor = null;
+try {
+  memView = localStorage.getItem("memView") || "words";
+} catch {
+}
+var MEM_WINDOW = 256;
+var MEM_STEP = 64;
+var memSymbols = () => dataSymbols(program.symbols, files);
 function renderMemory() {
-  if (!state) return;
-  $2("address").value = hex(state.memoryBase);
-  let all = accesses().filter((a) => a.kind === "memory");
-  let rows = [];
-  for (let i = 0; i < state.memory.length; i += 8) {
-    let bytes = state.memory.slice(i, i + 8);
-    rows.push(
-      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)} \xB7 ${b.value == null ? "" : escapeHTML(formatValue(b.value, { radix: radix === "auto" ? "hex" : radix, width: 1, kind: "bits" }).text)}">${b.value == null ? "??" : escapeHTML(memoryCell(b.value))}</span>`).join("")}<span class="ascii">${bytes.map((b) => b.value >= 32 && b.value < 127 ? escapeHTML(String.fromCharCode(b.value)) : ".").join("")}</span></div>`
-    );
+  if (!state) {
+    $2("memory").innerHTML = `<p class="mem-empty">${t("memory.empty")}</p>`;
+    return renderMemoryBar();
   }
-  $2("memory").innerHTML = rows.join("");
+  if (document.activeElement !== $2("address")) $2("address").value = hex(state.memoryBase);
+  const all = accesses().filter((a) => a.kind === "memory");
+  const touched = (address, width, write) => all.some((a) => !a.write === !write && address < a.address + a.width && a.address < address + width);
+  const symbols = memSymbols();
+  const rows = memoryRows(state.memory, symbols, memView);
+  const cell = (c) => {
+    const word = c.width === 4, unknown = c.bytes.some((b) => b == null), title = unknown ? hex(c.address) : `${hex(c.address)} \xB7 ${escapeHTML(formatValue(word ? wordValue(c.bytes) : c.bytes[0], { radix: radix === "auto" ? "hex" : radix, width: c.width, kind: "bits" }).text)}`;
+    const shown = unknown ? "??".repeat(c.width) : word ? wordCell(c.bytes) : memView === "text" ? c.bytes[0] === 32 ? "\u2423" : escapeByte(c.bytes[0]) : memoryCell2(c.bytes[0]);
+    const focused = focus?.startsWith("mem:") && Number(focus.slice(4)) >= c.address && Number(focus.slice(4)) < c.address + c.width;
+    return `<span tabindex="0" class="byte${word ? " word" : ""}${touched(c.address, c.width, false) ? " read" : ""}${touched(c.address, c.width, true) ? " write" : ""}${focused ? " focus" : ""}${!word && memView === "text" && !unknown && !(c.bytes[0] > 32 && c.bytes[0] < 127) ? " escape" : ""}" data-byte="${c.address}" data-width="${c.width}" title="${title}">${escapeHTML(shown)}</span>`;
+  };
+  $2("memory").innerHTML = rows.map(
+    (r) => r.label ? `<div class="mem-label"><button type="button" data-mem-symbol="${escapeHTML(r.label.name)}" title="${escapeHTML(t("memory.symbolTip", { view: t(`memory.view.${r.label.view}`) }))}">${escapeHTML(r.label.name)}</button><small>${escapeHTML(r.label.directive || "")} \xB7 ${t("memory.size", { n: r.label.size })}</small></div>` : `<div class="mem-row"><span class="mem-address">${hex(r.address).slice(2)}</span>${r.cells.map(cell).join("")}${memView === "bytes" ? `<span class="ascii">${r.cells.map((c) => c.bytes[0] >= 32 && c.bytes[0] < 127 ? escapeHTML(String.fromCharCode(c.bytes[0])) : ".").join("")}</span>` : ""}</div>`
+  ).join("");
   $2("memory").dataset.radix = radix;
+  $2("memory").dataset.view = memView;
+  $2("mem-radix").classList.toggle("idle", memView === "text");
   $2("mem-radix").textContent = {
     auto: t("memory.cells.hex"),
     hex: t("memory.cells.hex"),
@@ -33301,19 +33503,38 @@ function renderMemory() {
     bin: t("memory.cells.bin"),
     ascii: t("memory.cells.ascii")
   }[radix];
+  document.querySelectorAll("[data-mem-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.memView === memView)));
   $2("memory").querySelectorAll("[data-byte]").forEach((e) => {
     e.onclick = () => inspectByte(Number(e.dataset.byte));
     e.onkeydown = (k) => {
       if (k.key === "Enter") e.click();
     };
   });
+  $2("memory").querySelectorAll("[data-mem-symbol]").forEach((b) => {
+    const s = symbols.find((x) => x.name === b.dataset.memSymbol);
+    b.onclick = () => showMemory(s.address, s.view === "bytes" ? memView : s.view);
+  });
+  if (memAnchor) {
+    const row2 = $2("memory").querySelector(`[data-byte="${memAnchor.address}"]`);
+    if (row2) $2("memory").scrollTop += row2.getBoundingClientRect().top - memAnchor.top;
+    memAnchor = null;
+  }
+  renderMemoryBar();
+  if (memMapOpen) renderMemoryMap();
 }
-function memoryCell(v) {
+function memoryCell2(v) {
   if (radix === "dec") return String(v);
   if (radix === "bin") return v.toString(2).padStart(8, "0");
   if (radix === "ascii")
     return v >= 32 && v < 127 ? String.fromCharCode(v) : formatValue(v, { radix: "ascii", width: 1 }).text.slice(1, -1);
   return v.toString(16).padStart(2, "0");
+}
+function wordCell(bytes) {
+  const v = wordValue(bytes);
+  if (radix === "dec") return String(v);
+  if (radix === "bin") return (v >>> 0).toString(2).padStart(32, "0").match(/.{8}/g).join(" ");
+  if (radix === "ascii") return bytes.map((b) => escapeByte(b)).join("");
+  return (v >>> 0).toString(16).padStart(8, "0");
 }
 function inspectByte(address) {
   following = false;
@@ -33332,8 +33553,139 @@ function inspectByte(address) {
   overlay.schedule();
 }
 async function memoryAt(address) {
-  await command2("memory", { address: address | 0 });
+  await command2("memory", { address: address & ~3, length: MEM_WINDOW });
+  $2("memory").scrollTop = 0;
   overlay.schedule();
+}
+function showMemory(address, view2 = memView) {
+  setMemView(view2, false);
+  setMemMap(false);
+  return memoryAt(address);
+}
+function setMemView(view2, render2 = true) {
+  memView = view2;
+  try {
+    localStorage.setItem("memView", view2);
+  } catch {
+  }
+  if (render2) {
+    renderMemory();
+    overlay.schedule();
+  }
+}
+async function shiftMemory(delta) {
+  if (!state) return;
+  const box = $2("memory").getBoundingClientRect(), first = [...$2("memory").querySelectorAll(".mem-row [data-byte]")].find((e) => e.getBoundingClientRect().bottom > box.top);
+  memAnchor = first ? { address: Number(first.dataset.byte), top: first.getBoundingClientRect().top } : null;
+  await command2("memory", { address: state.memoryBase + delta & ~3, length: MEM_WINDOW });
+  overlay.schedule();
+}
+function memoryLayout() {
+  const symbols = memSymbols(), last2 = program.instructions[program.instructions.length - 1];
+  return memoryBar({
+    layout: state?.layout,
+    sp: regValue("$sp"),
+    dataEnd: symbols.length ? symbols[symbols.length - 1].end : 0,
+    textEnd: last2 ? last2.address + 4 : 0
+  });
+}
+function renderMemoryBar() {
+  const segments = state?.layout ? memoryLayout() : [];
+  const ready = segments.length > 0;
+  $2("memory-bar").classList.toggle("empty", !ready);
+  $2("memory-bar").title = ready ? "" : t("memory.bar.notReady");
+  $2("mem-expand").disabled = !ready;
+  if (!ready) {
+    $2("mem-track").innerHTML = [0.22, 0.3, 0.14, 0.1, 0.24].map((share) => `<span class="seg" style="flex:${share}"></span>`).join("");
+    return;
+  }
+  const pos = (a) => barPosition(segments, a), view2 = pos(state.memoryBase), sp = pos(regValue("$sp")), pc = pos(state.pc);
+  $2("mem-track").innerHTML = segments.map(
+    (s) => `<button type="button" class="seg seg-${s.id}" style="flex:${s.share}" ${s.id === "free" ? "disabled" : `data-seg="${s.id}"`} title="${escapeHTML(t(`memory.segment.${s.id}`))}${s.from != null ? ` \xB7 ${hex(s.from)}` : ""}" aria-label="${escapeHTML(t(`memory.segment.${s.id}`))}"></button>`
+  ).join("") + (sp ? `<span class="tick tick-sp" style="top:${sp.y * 100}%" title="$sp ${hex(regValue("$sp"))}"></span>` : "") + (pc ? `<span class="tick tick-pc" style="top:${pc.y * 100}%" title="PC ${hex(state.pc)}"></span>` : "") + (view2 ? `<span class="view-mark" style="top:${view2.y * 100}%" title="${escapeHTML(t("memory.bar.viewing", { address: hex(state.memoryBase) }))}">\u25B6</span>` : "");
+  $2("mem-track").querySelectorAll("[data-seg]").forEach((b) => b.onclick = () => jumpToSegment(b.dataset.seg));
+}
+function jumpToSegment(id2) {
+  const l = state.layout;
+  if (id2 === "stack") return showMemory(regValue("$sp"), "words");
+  if (id2 === "heap") return showMemory(state.heapBlocks[0]?.address ?? l.heap, "words");
+  if (id2 === "data") return showMemory(l.data);
+  if (id2 === "text") return showMemory(state.pc, "words");
+}
+function setMemMap(open) {
+  memMapOpen = open && !!state?.layout;
+  $2("panel-memory").classList.toggle("map-open", memMapOpen);
+  $2("memory-map").hidden = !memMapOpen;
+  $2("mem-expand").setAttribute("aria-expanded", String(memMapOpen));
+  const label2 = memMapOpen ? t("memory.map.close") : t("memory.map.open");
+  $2("mem-expand").title = label2;
+  $2("mem-expand").setAttribute("aria-label", label2);
+  if (memMapOpen) renderMemoryMap();
+  overlay.schedule();
+}
+function savedRegisters(entry, sp) {
+  const start = program.instructions.findIndex((i) => i.address === entry);
+  const saved = [];
+  let delta = 0;
+  for (const ins of program.instructions.slice(Math.max(0, start), start < 0 ? 0 : start + 12)) {
+    const grow = /^addiu?\s+\$(?:29|sp),\s*\$(?:29|sp),\s*(-?(?:0x[\da-f]+|\d+))/i.exec(ins.basic);
+    if (grow) delta += Number(grow[1]) << 16 >> 16;
+    const store = /^sw\s+(\$\w+),\s*(-?(?:0x[\da-f]+|\d+))\(\$(?:29|sp)\)/i.exec(ins.basic);
+    if (store) saved.push({ name: regName(store[1]), address: sp + delta + (Number(store[2]) << 16 >> 16) | 0 });
+    if (/^(jr|j|jal|b\w*)\b/.test(ins.basic)) break;
+  }
+  return saved;
+}
+function regName(r) {
+  const n = /^\$(\d+)$/.exec(r);
+  return n ? state.registers[Number(n[1])]?.name ?? r : r;
+}
+function renderMemoryMap() {
+  if (!state?.layout) return;
+  const sp = regValue("$sp"), fp = regValue("$fp"), top2 = state.layout.stack + 4 | 0, symbolAt = (a) => program.symbols.find((s) => s.address === a)?.name;
+  const frames = state.calls.map((c, i) => {
+    const below = i + 1 < state.calls.length ? state.calls[i + 1].sp : sp;
+    return {
+      name: symbolAt(c.instruction.target) || hex(c.instruction.target ?? 0),
+      high: c.sp,
+      low: below,
+      step: c.step,
+      saved: savedRegisters(c.instruction.target, c.sp)
+    };
+  });
+  const item = (attrs, body) => `<button type="button" class="map-item" ${attrs}>${body}</button>`;
+  const stack = [
+    item(`data-map-address="${sp}" data-map-view="words"`, `<b>$sp</b><small>${hex(sp)}</small><span class="map-arrow">\u2190 $sp</span>`),
+    ...frames.slice().reverse().map(
+      (f) => item(
+        `data-map-address="${f.low}" data-map-view="words"`,
+        `<b>${escapeHTML(f.name)}</b><small>${t("memory.map.frame", { step: f.step, size: f.high - f.low | 0 })}</small>${f.saved.length ? `<span class="map-saved">${f.saved.map((s) => `<span>${escapeHTML(s.name)} @ ${hex(s.address).slice(2)}</span>`).join("")}</span>` : ""}${fp >>> 0 >= f.low >>> 0 && fp >>> 0 < f.high >>> 0 ? `<span class="map-arrow">\u2190 $fp</span>` : ""}`
+      )
+    ),
+    item(`data-map-address="${frames.length ? frames[0].high : top2 - 4}" data-map-view="words"`, `<b>${t("memory.map.startFrame")}</b><small>${hex(top2)}</small>`)
+  ];
+  const heap = state.heapBlocks.length ? state.heapBlocks.map(
+    (h) => item(`data-map-address="${h.address}" data-map-view="words"`, `<b>${t("memory.map.heapBlock", { step: h.step })}</b><small>${hex(h.address)} \xB7 ${t("memory.size", { n: h.size })}</small>`)
+  ) : [`<p class="muted">${t("memory.map.noHeap")}</p>`];
+  const data2 = memSymbols().map(
+    (s) => item(`data-map-address="${s.address}" data-map-view="${s.view}"`, `<b>${escapeHTML(s.name)}</b><small>${hex(s.address)} \xB7 ${escapeHTML(s.directive || "")} \xB7 ${t("memory.size", { n: s.size })}</small>`)
+  );
+  const place = program.instructions.find((i) => i.address === state.pc);
+  const text2 = [
+    state.status === "ended" || !place ? `<p class="muted">${t("memory.map.noPc")}</p>` : item(`data-map-pc`, `<b>PC</b><small>${hex(state.pc)} \xB7 ${escapeHTML(place.file)}:${place.line}</small><span class="map-saved">${escapeHTML(place.basic)}</span>`)
+  ];
+  const section = (id2, body, address) => `<section class="map-seg map-${id2}"><h4>${t(`memory.segment.${id2}`)}${address == null ? "" : ` <small>${hex(address)}</small>`}</h4>${body.join("")}</section>`;
+  $2("memory-map").innerHTML = section("text", text2, state.layout.text) + section("data", data2.length ? data2 : [`<p class="muted">${t("memory.map.noData")}</p>`], state.layout.data) + section("heap", heap, state.layout.heap) + `<div class="map-free">${t("memory.segment.free")}</div>` + section("stack", stack, sp);
+  $2("memory-map").querySelectorAll("[data-map-address]").forEach((b) => {
+    const view2 = b.dataset.mapView;
+    b.onclick = () => showMemory(Number(b.dataset.mapAddress), view2 === "bytes" ? memView : view2);
+  });
+  const pcItem = $2("memory-map").querySelector("[data-map-pc]");
+  if (pcItem)
+    pcItem.onclick = () => {
+      setMemMap(false);
+      gotoSource(place.file, place.line);
+    };
 }
 function renderMachine() {
   $2("machine").innerHTML = program.instructions.map(
@@ -34269,12 +34621,35 @@ $2("input-form").onsubmit = async (e) => {
 };
 $2("memory-form").onsubmit = (e) => {
   e.preventDefault();
-  let text2 = $2("address").value, s = program.symbols.find((s2) => s2.name === text2), value = s ? s.address : Number(text2);
-  if (Number.isFinite(value)) memoryAt(value);
-  else notify(t("memory.invalidAddress"));
+  const value = parseAddress($2("address").value, {
+    symbols: program.symbols,
+    register: (name2) => state?.registers.some((r) => r.name === canonicalReg(name2)) ? regValue(name2) : void 0
+  });
+  if (value != null) {
+    $2("address").blur();
+    memoryAt(value);
+  } else notify(t("memory.invalidAddress"));
 };
-$2("stack").onclick = () => memoryAt(regValue("$sp") - 16);
-$2("data").onclick = () => memoryAt(268500992);
+$2("mem-up").onclick = () => shiftMemory(-MEM_STEP);
+$2("mem-down").onclick = () => shiftMemory(MEM_STEP);
+$2("mem-expand").onclick = () => setMemMap(!memMapOpen);
+document.querySelectorAll("[data-mem-view]").forEach((b) => b.onclick = () => setMemView(b.dataset.memView));
+renderMemoryBar();
+$2("memory").addEventListener(
+  "wheel",
+  (e) => {
+    const m = $2("memory");
+    if (!state || memShifting) return;
+    if (e.deltaY > 0 && m.scrollTop + m.clientHeight >= m.scrollHeight - 2) memShift(MEM_STEP);
+    else if (e.deltaY < 0 && m.scrollTop <= 0) memShift(-MEM_STEP);
+  },
+  { passive: true }
+);
+var memShifting = false;
+function memShift(delta) {
+  memShifting = true;
+  shiftMemory(delta).finally(() => memShifting = false);
+}
 $2("add-watch").onclick = () => {
   modal(
     t("watch.add.title"),
@@ -34357,9 +34732,11 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   actions[r.action]();
 });
+var exampleCopy = (e) => e.languages?.[language()] || e.languages?.en || Object.values(e.languages || {})[0];
+var exampleTitle = (e) => e.title?.[language()] || e.title?.en || e.name;
 async function loadExample(index) {
-  const p = exampleList[index];
-  if (p) workspace.example(p, p.name);
+  const e = exampleList[index], copy = e && exampleCopy(e);
+  if (copy) workspace.example({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly }, exampleTitle(e));
 }
 function selectActiveFile(name2) {
   if (name2) {
@@ -34435,6 +34812,8 @@ workspace = projectManager({
     }
     $2("history-info").textContent = t("history.empty");
     $2("pc").textContent = "PC \u2014";
+    setMemMap(false);
+    renderMemory();
     selectActiveFile(p.activeFile);
     renderFiles();
     renderTabs();
@@ -34483,7 +34862,7 @@ function renderExamples() {
     return;
   }
   $2("example-list").innerHTML = exampleList.map(
-    (e, i) => `<button role="menuitem" data-example="${i}">${escapeHTML(e.name === "hexout" ? t("examples.hexout") : e.name === "task1" ? t("examples.task1") : e.name)}</button>`
+    (e, i) => `<button role="menuitem" data-example="${i}">${escapeHTML(exampleTitle(e))}</button>`
   ).join("") || `<button role="menuitem" disabled>${t("examples.none")}</button>`;
 }
 function renderLanguages() {

@@ -30,6 +30,8 @@ public final class DebugSession {
     stopReason = "";
   private boolean delay;
   private int memoryBase = Memory.dataBaseAddress;
+  /** Bytes in the memory window the client looks at (classroom 2026-11-04: scrolling). */
+  private int memoryLength = 256;
   /** Executions per instruction address in history before the cursor (hit counts). */
   private final Map<Integer, Integer> executed = new HashMap<>();
   /** Logpoint messages produced by the current request. */
@@ -652,9 +654,10 @@ public final class DebugSession {
       }
       case "source", "over", "out", "run" -> run(command, request);
       case "previousBreakpoint" -> previousBreakpoint(request);
-      case "memory" -> memoryBase = (
-        (Number) request.get("address")
-      ).intValue();
+      case "memory" -> {
+        memoryBase = ((Number) request.get("address")).intValue();
+        if (request.get("length") instanceof Number n) memoryLength = Math.max(16, Math.min(1024, n.intValue()));
+      }
       case "state" -> {
       }
       default -> throw new IllegalArgumentException("Unknown command");
@@ -847,7 +850,7 @@ public final class DebugSession {
       obj("name", "lo", "number", 34, "value", RegisterFile.getValue(34))
     );
     var memory = new ArrayList<Object>();
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < memoryLength; i++) {
       int a = memoryBase + i;
       try {
         memory.add(obj("address", a, "value", Globals.memory.getByte(a)));
@@ -865,8 +868,14 @@ public final class DebugSession {
     var lastWriters = new LinkedHashMap<String, Object>();
     var edges = new LinkedHashMap<String, Integer>();
     var calls = new ArrayList<Object>();
+    // Heap blocks handed out by syscall 9, for the memory map.
+    var heapBlocks = new ArrayList<Object>();
     for (int i = 0; i < history.position; i++) {
-      var e = history.get(i).event;
+      var entry = history.get(i);
+      var e = entry.event;
+      if (Integer.valueOf(9).equals(e.get("service")) && !"error".equals(e.get("status"))) heapBlocks.add(
+        obj("step", i + 1, "address", entry.after.gpr[2], "size", entry.before.gpr[4])
+      );
       for (var a : (List<Map<String, Object>>) e.get("accesses"))
         if (Boolean.TRUE.equals(a.get("write"))) {
           String key = a.get("kind").equals("register")
@@ -892,7 +901,10 @@ public final class DebugSession {
           "instruction",
           ins,
           "return",
-          ((Number) e.get("pc")).intValue() + (delay ? 8 : 4)
+          ((Number) e.get("pc")).intValue() + (delay ? 8 : 4),
+          // $sp when the call was made: the callee's frame starts below it.
+          "sp",
+          entry.before.gpr[29]
         )
       );
       if (
@@ -980,6 +992,13 @@ public final class DebugSession {
       edges,
       "calls",
       calls,
+      "heapBlocks",
+      heapBlocks,
+      "memoryLength",
+      memoryLength,
+      // Where each segment starts, for the memory map.
+      "layout",
+      obj("text", Memory.textBaseAddress, "data", Memory.dataBaseAddress, "heap", Memory.heapBaseAddress, "heapTop", Memory.heapAddress, "stack", Memory.stackPointer),
       "output",
       VirtualIO.current == null ? "" : VirtualIO.current.output,
       "generatedFiles",

@@ -124,7 +124,7 @@ export class OverlayRenderer {
         let target = this.center(
           a.kind === "register"
             ? document.querySelector(`[data-register="${a.name}"]`)
-            : document.querySelector(`[data-byte="${a.address}"]`),
+            : memoryCell(a.address),
         );
         let offscreen = false;
         if (!target) {
@@ -187,4 +187,15 @@ export class OverlayRenderer {
         }),
     );
   }
+}
+
+// The memory cell that holds an address: a byte, or a word that covers it.
+function memoryCell(address) {
+  const exact = document.querySelector(`#memory [data-byte="${address}"]`);
+  if (exact) return exact;
+  for (const k of [1, 2, 3]) {
+    const e = document.querySelector(`#memory [data-byte="${address - k}"][data-width="4"]`);
+    if (e) return e;
+  }
+  return null;
 }

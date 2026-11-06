@@ -1,0 +1,8 @@
+{
+  "order": 3,
+  "entry": "main.s",
+  "title": {
+    "zh-CN": "3 · 循环与分支：FizzBuzz",
+    "en": "3 · Loops and branches: FizzBuzz"
+  }
+}

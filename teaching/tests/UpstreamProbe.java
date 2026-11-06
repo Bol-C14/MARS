@@ -3,7 +3,7 @@ import mars.*;import mars.mips.hardware.*;import java.util.*;import java.io.*;
 public class UpstreamProbe {
  public static void main(String[] args)throws Exception{
   Globals.initialize(false);Globals.getSettings().setBooleanSettingNonPersistent(Settings.DELAYED_BRANCHING_ENABLED,Boolean.parseBoolean(args[0]));Globals.program=new MIPSprogram();var files=new ArrayList<String>();for(int i=1;i<args.length;i++)files.add(args[i]);var prepared=Globals.program.prepareFilesForAssembly(files,args[1],null);Globals.program.assemble(prepared,true,false);RegisterFile.initializeProgramCounter(true);
-  var realOut=System.out;var output=new ByteArrayOutputStream();System.setOut(new PrintStream(output));System.setIn(new ByteArrayInputStream("898\n".getBytes()));
+  var realOut=System.out;var output=new ByteArrayOutputStream();System.setOut(new PrintStream(output));System.setIn(new ByteArrayInputStream(System.getenv().getOrDefault("PROBE_STDIN","898\n").getBytes()));
   for(int step=0;step<300;step++){
    if(step>0&&Globals.program.simulateStepAtPC(null)){emit(realOut,output,step);break;}emit(realOut,output,step);
   }

@@ -189,10 +189,22 @@ header {
 }
 /* Lives at the foot of the left column: a notice must not push the layout
    around (classroom 2026-10-31: "执行进入" moved the whole window in a demo). */
-#banner {
+.side-foot {
   grid-column: 2;
   grid-row: 2;
+  position: relative;
+  border-top: 1px solid var(--line);
+}
+/* The assembly note belongs to the files tab only. */
+.sidebar:has(#side-files[hidden]) .assembly-choice { display: none; }
+#banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
   max-height: 180px;
+  box-shadow: 0 -4px 10px rgb(0 0 0 / 8%);
   overflow: auto;
   padding: 8px 10px;
   font-size: 12px;
@@ -203,6 +215,7 @@ header {
   color: var(--text);
   display: none;
 }
+#banner.visible { min-height: 100%; box-sizing: border-box; }
 #banner.visible {
   display: block;
 }
@@ -1868,9 +1881,87 @@ button#focus-open:hover { background: color-mix(in srgb, var(--accent) 22%, var(
 /* Longer languages (classroom 2026-11-04): register cells go to one column
    when the panel cannot hold a name and a full value twice side by side. */
 #registers-body { container-type: inline-size; }
-@container (max-width: 300px) { #registers:not(.bin) { grid-template-columns: 1fr; } }
+@container (max-width: 250px) { #registers:not(.bin) { grid-template-columns: 1fr; } }
 .reg { gap: 6px; }
 /* A crowded tab bar (narrow window, longer language) wraps instead of
    pushing the PC or the step count out of sight. */
 .viewbar { flex-wrap: wrap; row-gap: 2px; }
 .viewbar .pc-chip, #history-info { flex-shrink: 0; }
+/* Memory panel (classroom 2026-11-04): the same bytes as bytes, words or
+   text; a row per data label; a thin bar of the address space on the right
+   that opens into a map of stack, heap, data and code. */
+#panel-memory .panel-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; row-gap: 4px; }
+.mem-views { display: inline-flex; gap: 2px; margin-left: auto; }
+.mem-views button { padding: 3px 8px !important; font-size: 11px; border-radius: 5px; }
+.mem-views button[aria-pressed="true"] { color: var(--accent); background: var(--bg); font-weight: 600; }
+#panel-memory .mem-radix { margin-left: 0; font-size: 10px; white-space: nowrap; }
+#memory-body { display: flex; overflow: hidden; }
+#panel-memory.collapsed #memory-body { display: none; }
+.mem-main { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.mem-list { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+#memory-form { gap: 3px; align-items: center; margin: 0 6px 6px 10px; }
+#address { min-width: 0; }
+.mem-step svg, #mem-expand svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#memory { flex: 1; overflow: auto; min-height: 0; padding: 0 6px 12px 10px; }
+.mem-label { display: flex; align-items: baseline; gap: 6px; margin: 7px 0 2px; padding-left: 2px; border-top: 1px dashed var(--line); padding-top: 4px; }
+.mem-label button { padding: 0 !important; font: 600 11px var(--mono); color: var(--accent); }
+.mem-label small { color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.byte.word { min-width: 66px; }
+#memory[data-view="text"] .mem-row { gap: 1px; }
+#memory[data-view="text"] .byte { min-width: 13px; padding: 4px 1px; }
+#memory[data-view="text"] .byte.escape { color: var(--muted); font-size: 8px; }
+#memory[data-view="words"][data-radix="bin"] .byte.word { min-width: 0; font-size: 9px; }
+/* The bar: 14px, segments not to scale, a ▶ at what the list shows. */
+#memory-bar { position: relative; flex: 0 0 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 4px 8px 0; }
+#mem-expand { padding: 1px !important; display: inline-flex; }
+#mem-track { position: relative; flex: 1; width: 14px; display: flex; flex-direction: column; gap: 1px; min-height: 80px; }
+#mem-track .seg { padding: 0 !important; border: 0; border-radius: 3px; width: 100%; min-height: 4px; cursor: pointer; }
+#mem-track .seg:disabled { cursor: default; }
+.seg-stack { background: color-mix(in srgb, var(--write) 45%, var(--panel)); }
+.seg-free { background: repeating-linear-gradient(180deg, var(--line) 0 2px, transparent 2px 5px) !important; }
+.seg-heap { background: color-mix(in srgb, var(--read) 45%, var(--panel)); }
+.seg-data { background: color-mix(in srgb, var(--accent) 45%, var(--panel)); }
+.seg-text { background: color-mix(in srgb, var(--muted) 45%, var(--panel)); }
+#mem-track .seg:hover:not(:disabled) { filter: brightness(1.12); outline: 1px solid var(--accent); }
+#mem-track .tick { position: absolute; left: -2px; right: -2px; height: 2px; pointer-events: none; }
+.tick-sp { background: var(--write); }
+.tick-pc { background: var(--text); }
+#mem-track .view-mark { position: absolute; left: -11px; transform: translateY(-50%); font-size: 9px; line-height: 1; color: var(--accent); pointer-events: none; }
+#memory-bar.empty #mem-track .seg { background: color-mix(in srgb, var(--muted) 35%, var(--panel)); cursor: help; }
+.mem-empty { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 8px 2px; }
+/* Open, the map takes the panel: the list and its views step aside. */
+#memory-map { flex: 1; overflow: auto; min-width: 0; padding: 0 8px 12px 10px; font-size: 11px; }
+#panel-memory.map-open .mem-list { display: none; }
+/* The header keeps its size when the map opens; only its controls step aside. */
+#panel-memory.map-open .mem-views, #panel-memory.map-open .mem-radix, .mem-radix.idle { visibility: hidden; }
+#panel-memory.map-open #mem-expand svg { transform: scaleX(-1); }
+.map-seg { border-left: 4px solid var(--seg, var(--line)); padding: 2px 0 4px 8px; margin-bottom: 4px; }
+.map-seg h4 { margin: 2px 0 4px; font-size: 10px; letter-spacing: 1px; color: var(--muted); }
+.map-seg h4 small { font: 400 10px var(--mono); letter-spacing: 0; }
+.map-stack { --seg: color-mix(in srgb, var(--write) 55%, var(--panel)); }
+.map-heap { --seg: color-mix(in srgb, var(--read) 55%, var(--panel)); }
+.map-data { --seg: color-mix(in srgb, var(--accent) 55%, var(--panel)); }
+.map-text { --seg: color-mix(in srgb, var(--muted) 55%, var(--panel)); }
+.map-free { margin: 0 0 4px; padding: 6px 0 6px 12px; color: var(--muted); font-size: 10px; border-left: 4px dotted var(--line); }
+.map-item { display: flex !important; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; width: 100%; text-align: left; padding: 4px 6px !important; border-radius: 5px; }
+.map-item:hover { background: var(--bg); }
+.map-item b { font: 600 11px var(--mono); }
+.map-item small { color: var(--muted); font: 10px var(--mono); }
+.map-saved { flex-basis: 100%; color: var(--muted); font: 10px var(--mono); overflow-wrap: anywhere; }
+.map-arrow { margin-left: auto; color: var(--write); font: 600 10px var(--mono); }
+.map-item, .map-saved { white-space: normal; }
+.map-saved span { display: inline-block; margin-right: 10px; }
+/* Buttons keep one look per kind (classroom 2026-11-05: the memory arrows
+   and the map button did not read as buttons). Icon actions sit in a
+   bordered group like the toolbar's; a command beside an input is filled
+   like Send; a view switch marks the chosen one. */
+.mem-steps { display: inline-flex; flex-shrink: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); overflow: hidden; }
+.mem-steps .mem-step { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0 !important; border: 0; border-radius: 0; color: var(--text); }
+.mem-steps .mem-step + .mem-step { border-left: 1px solid var(--line); }
+.mem-steps .mem-step:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); }
+#mem-go { background: var(--bg); border-color: var(--line); padding: 3px 10px; }
+#mem-expand { width: 20px; height: 22px; align-items: center; justify-content: center; border: 1px solid var(--line) !important; border-radius: 5px; background: var(--bg); color: var(--text); }
+#mem-expand:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); }
+#mem-expand[aria-expanded="true"] { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)) !important; }
+#mem-expand:disabled { opacity: 0.45; }
+#memory-bar { flex-basis: 24px; padding-right: 2px; }

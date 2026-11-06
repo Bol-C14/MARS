@@ -1,0 +1,8 @@
+{
+  "order": 1,
+  "entry": "main.s",
+  "title": {
+    "zh-CN": "1 · 你好，MIPS",
+    "en": "1 · Hello, MIPS"
+  }
+}

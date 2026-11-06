@@ -67,50 +67,37 @@ public final class Server {
           return;
         }
         if (path.equals("/examples")) {
-          var examples = new ArrayList<Object>();
+          // Each example is a folder with example.json (order, entry, titles)
+          // and one complete copy per interface language (classroom
+          // 2026-11-04): the same code, comments in that language.
+          var examples = new ArrayList<Map<String, Object>>();
           Path root = Path.of("teaching/examples");
           try (var dirs = Files.list(root)) {
             for (var dir : dirs.filter(Files::isDirectory).sorted().toList()) {
-              var files = new LinkedHashMap<String, String>();
-              var data = new LinkedHashMap<String, String>();
-              try (var entries = Files.list(dir)) {
-                for (var p : entries
-                  .filter(Files::isRegularFile)
-                  .sorted()
-                  .toList()) {
-                  String name = p.getFileName().toString();
-                  if (name.endsWith(".s")) files.put(name, Files.readString(p));
-                  else if (name.endsWith(".txt")) data.put(
-                    name,
-                    Files.readString(p)
-                  );
+              Path meta = dir.resolve("example.json");
+              if (!Files.isRegularFile(meta)) continue;
+              var example = (Map<String, Object>) Json.parse(Files.readString(meta));
+              example.put("name", dir.getFileName().toString());
+              var languages = new LinkedHashMap<String, Object>();
+              try (var langs = Files.list(dir)) {
+                for (var lang : langs.filter(Files::isDirectory).sorted().toList()) {
+                  var files = new LinkedHashMap<String, String>();
+                  var data = new LinkedHashMap<String, String>();
+                  try (var entries = Files.list(lang)) {
+                    for (var p : entries.filter(Files::isRegularFile).sorted().toList()) {
+                      String name = p.getFileName().toString();
+                      if (name.endsWith(".s") || name.endsWith(".asm")) files.put(name, Files.readString(p));
+                      else if (!name.startsWith(".")) data.put(name, Files.readString(p));
+                    }
+                  }
+                  languages.put(lang.getFileName().toString(), Json.obj("files", files, "data", data));
                 }
               }
-              // An example that needs several sources declares its joint
-              // assembly in .mars-project.json; the rest assemble the file
-              // being edited.
-              var example = Json.obj(
-                "name",
-                dir.getFileName().toString(),
-                "files",
-                files,
-                "data",
-                data,
-                "entry",
-                "main.s"
-              );
-              Path meta = dir.resolve(".mars-project.json");
-              if (Files.isRegularFile(meta)) {
-                var declared = (Map<?, ?>) Json.parse(Files.readString(meta));
-                for (String key : List.of("entry", "assembly"))
-                  if (declared.containsKey(key)) example.put(
-                    key,
-                    declared.get(key)
-                  );
-              }
+              example.put("languages", languages);
               examples.add(example);
             }
           }
+          examples.sort(Comparator.comparingInt((Map<String, Object> e) -> e.get("order") instanceof Number n ? n.intValue() : 0));
           send(ex, 200, Json.stringify(examples), "application/json");
           return;
         }

@@ -124,11 +124,6 @@ data-i18n-title="toolbar.delay.tip"><input type="checkbox" id="delay" /><span da
               <span data-i18n="files.heading">工程文件</span> <span><button id="new-file" title="新建文件" aria-label="新建文件" data-i18n-title="files.newFile" data-i18n-aria-label="files.newFile" data-i18n="files.newFile.button">＋ 文件</button><button id="new-folder" title="新建文件夹" aria-label="新建文件夹" data-i18n-title="files.newFolder" data-i18n-aria-label="files.newFolder" data-i18n="files.newFolder.button">＋ 目录</button></span>
             </div>
             <div id="files"></div>
-            <div class="assembly-choice">
-              <div class="assembly-mode"><span data-i18n="assembly.mode">汇编方式</span><b id="assembly-mode-name"></b><small data-i18n="assembly.mode.where">在汇编按钮右侧 ▾ 切换</small></div>
-              <div id="joint-settings" class="entry-choice" hidden><label for="entry-file" data-i18n="assembly.entry">入口</label><select id="entry-file" aria-label="汇编入口" data-i18n-aria-label="assembly.entry.label"></select></div>
-              <p id="assembly-hint" class="muted"></p>
-            </div>
           </section>
           <section id="side-symbols" role="tabpanel" aria-labelledby="side-tab-symbols" hidden>
             <div class="section-title" data-i18n="side.symbols.heading">符号与定位</div>
@@ -143,7 +138,15 @@ data-i18n-aria-label="side.symbols.search" data-i18n-placeholder="side.symbols.p
             <div id="watches"></div>
           </section>
         </div>
-        <div id="banner" role="status"></div>
+        <!-- Pinned under the side panels; a notice lies over it instead of pushing the column up (classroom 2026-11-05). -->
+        <div class="side-foot">
+          <div class="assembly-choice">
+            <div class="assembly-mode"><span data-i18n="assembly.mode">汇编方式</span><b id="assembly-mode-name"></b><small data-i18n="assembly.mode.where">在汇编按钮右侧 ▾ 切换</small></div>
+            <div id="joint-settings" class="entry-choice" hidden><label for="entry-file" data-i18n="assembly.entry">入口</label><select id="entry-file" aria-label="汇编入口" data-i18n-aria-label="assembly.entry.label"></select></div>
+            <p id="assembly-hint" class="muted"></p>
+          </div>
+          <div id="banner" role="status"></div>
+        </div>
       </aside>
       <div
         class="splitter col"
@@ -241,14 +244,23 @@ data-i18n-title="layout.splitter.tip" data-i18n-aria-label="layout.splitter.righ
         <section class="panel" id="panel-memory">
           <div class="section-title panel-head">
             <button class="panel-toggle" aria-expanded="true" aria-controls="memory-body" data-i18n="memory.title">内存</button>
-            <span><button id="stack" data-i18n="memory.stack">栈</button><button id="data" data-i18n="memory.data">数据</button><small id="mem-radix" class="mem-radix"></small></span>
+            <span class="mem-views" role="group" data-i18n-aria-label="memory.views" aria-label="内存视图"><button type="button" data-mem-view="bytes" data-i18n="memory.view.bytes" data-i18n-title="memory.view.bytesTip">字节</button><button type="button" data-mem-view="words" data-i18n="memory.view.words" data-i18n-title="memory.view.wordsTip">字</button><button type="button" data-mem-view="text" data-i18n="memory.view.text" data-i18n-title="memory.view.textTip">文字</button></span><small id="mem-radix" class="mem-radix"></small>
           </div>
           <div id="memory-body" class="panel-body">
-            <form id="memory-form">
-              <input id="address" value="0x10010000" aria-label="内存地址或符号"
-data-i18n-aria-label="memory.address"/><button data-i18n="memory.go">定位</button>
-            </form>
-            <div id="memory"></div>
+            <div class="mem-main">
+              <div class="mem-list">
+                <form id="memory-form">
+                  <span class="mem-steps"><button type="button" id="mem-up" class="mem-step" data-i18n-title="memory.up" title="向上 64 字节" data-i18n-aria-label="memory.up" aria-label="向上 64 字节"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10l4-4 4 4"/></svg></button><button type="button" id="mem-down" class="mem-step" data-i18n-title="memory.down" title="向下 64 字节" data-i18n-aria-label="memory.down" aria-label="向下 64 字节"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg></button></span>
+                  <input id="address" value="0x10010000" aria-label="内存地址或符号" data-i18n-aria-label="memory.address" data-i18n-placeholder="memory.addressHint" placeholder="scores+8 · 4($sp)"/><button id="mem-go" data-i18n="memory.go">定位</button>
+                </form>
+                <div id="memory"></div>
+              </div>
+              <div id="memory-map" hidden></div>
+              <div id="memory-bar">
+                <button type="button" id="mem-expand" data-i18n-title="memory.map.open" title="展开内存地图" data-i18n-aria-label="memory.map.open" aria-label="展开内存地图" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4L6 8l4 4"/></svg></button>
+                <div id="mem-track"></div>
+              </div>
+            </div>
           </div>
         </section>
       </aside>

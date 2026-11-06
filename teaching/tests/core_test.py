@@ -10,7 +10,7 @@ class CoreTests(unittest.TestCase):
  def call(self,command,**kw):
   self.p.stdin.write(json.dumps(dict(command=command,**kw))+'\n');self.p.stdin.flush();s=json.loads(self.p.stdout.readline());self.assertIn('protocol',s,s);return s
  def asm(self,source=None,example=None,**kw):
-  files={'main.s':source} if source else {p.name:p.read_text() for p in (ROOT/'teaching/examples'/example).glob('*.s')}
+  files={'main.s':source} if source else {p.name:p.read_text() for p in (ROOT/'teaching/examples'/example/'en').glob('*.s')}
   return self.call('assemble',files=files,entry='main.s',**kw)
  def finish(self):
   for _ in range(200):
@@ -18,13 +18,13 @@ class CoreTests(unittest.TestCase):
    if s['status']!='paused': return s
    self.assertEqual(s['stopReason'],'Batch complete',s['stopReason'])
   self.fail('Execution budget exceeded')
- def test_hexout_and_rewind(self):
+ def test_numbers_and_rewind(self):
   for delay in (False,True):
-   self.asm(example='hexout',inputs=['898'],delay=delay);s=self.finish();self.assertEqual(s['output'],'Enter an integer: Hex: 00000382');self.assertEqual(s['status'],'ended');n=s['step'];self.call('seek',step=0);replay=self.call('seek',step=n);self.assertEqual(replay['output'],s['output']);self.call('seek',step=0);self.assertEqual(self.finish()['output'],s['output'])
- def test_task1_files(self):
+   self.asm(example='04-numbers',inputs=['898'],delay=delay);s=self.finish();self.assertEqual(s['output'],'Enter an integer: Decimal:  898\nHex:      0x00000382\nBinary:   00000000000000000000001110000010\nOne bits: 4\n');self.assertEqual(s['status'],'ended');n=s['step'];self.call('seek',step=0);replay=self.call('seek',step=n);self.assertEqual(replay['output'],s['output']);self.call('seek',step=0);self.assertEqual(self.finish()['output'],s['output'])
+ def test_grades_files(self):
   for delay in (False,True):
-   for content,expected,code in [('Hi','Hi',0),('','',0),('A\0B','A',0),(None,'Error opening file',-1)]:
-    self.asm(example='task1',delay=delay,data={} if content is None else {'input.txt':content});s=self.finish();self.assertEqual(s['output'],expected);self.assertEqual(s['exitCode'],code);self.assertEqual(s['registers'][29]['value'],0x7fffeffc);n=s['step'];self.call('seek',step=0);self.assertEqual(self.call('seek',step=n)['output'],expected)
+   for content,expected,code in [('85\n92\n','Scores:  2\nTotal:   177\nLowest:  85\nHighest: 92\nAverage: 88\n',0),('','No scores found\n',0),('A\0B','No scores found\n',0),(None,'Cannot open input.txt\n',1)]:
+    self.asm(example='05-grades',delay=delay,data={} if content is None else {'input.txt':content});s=self.finish();self.assertEqual(s['output'],expected);self.assertEqual(s['exitCode'],code);self.assertEqual(s['registers'][29]['value'],0x7fffeffc);n=s['step'];self.call('seek',step=0);self.assertEqual(self.call('seek',step=n)['output'],expected)
  def test_same_value_write_and_read(self):
   s=self.asm('.text\n.globl main\nmain:\n addiu $t0,$zero,0\n li $v0,10\n syscall\n');s=self.call('step');a=s['last']['accesses'];self.assertTrue(any(x.get('name')=='$t0' and x['write'] and x['before']==x['value']==0 for x in a));self.assertTrue(any(x.get('name')=='$zero' and not x['write'] for x in a));self.assertEqual(s['step'],1)
  def test_memory_preview_and_undo(self):
@@ -48,13 +48,14 @@ class CoreTests(unittest.TestCase):
   s=self.asm('.text\nmain:\nthis_is_not_an_instruction $t0\n');self.assertEqual(s['status'],'error');self.assertTrue(s['diagnostics']);self.assertEqual(s['diagnostics'][0]['file'],'main.s')
  def test_cross_file_step_over_out(self):
   for delay in (False,True):
-   s=self.asm(example='task1',data={'input.txt':'Hi'},delay=delay)
+   # The first call in main.s is loadFile in fileio.s; it returns the bytes read in $v0.
+   s=self.asm(example='05-grades',data={'input.txt':'Hi'},delay=delay)
    jal=next(i for i in s['instructions'] if i['file']=='main.s' and i['op']=='jal')
    s=self.call('run',breakpoints=[{'address':jal['address'],'condition':''}]);self.assertEqual(s['pc'],jal['address'])
-   s=self.call('over',limit=100000,skipBreakpoint=True);self.assertEqual(s['pc'],jal['address']+(8 if delay else 4));self.assertEqual(s['output'],'Hi')
+   s=self.call('over',limit=100000,skipBreakpoint=True);self.assertEqual(s['pc'],jal['address']+(8 if delay else 4));self.assertEqual(s['registers'][2]['value'],2)
    self.call('seek',step=0);self.call('run',breakpoints=[{'address':jal['address'],'condition':''}]);s=self.call('step')
    if delay:s=self.call('step')
-   s=self.call('out',limit=100000);self.assertEqual(s['pc'],jal['address']+(8 if delay else 4));self.assertEqual(s['output'],'Hi')
+   s=self.call('out',limit=100000);self.assertEqual(s['pc'],jal['address']+(8 if delay else 4));self.assertEqual(s['registers'][2]['value'],2)
  def test_step_over_moves_a_source_line(self):
   # Classroom 2026-11-03: step over on an ordinary line runs the whole line (la is two instructions).
   s=self.asm('.data\nx: .word 7\n.text\nmain:\nla $a0,x\nli $t0,1\nli $v0,10\nsyscall\n')
@@ -79,7 +80,7 @@ class CoreTests(unittest.TestCase):
   s=self.call('run',watches=[{'address':0x10010002,'access':'write'}]);self.assertIn('Watchpoint',s['stopReason']);a=next(a for a in s['last']['accesses'] if a['kind']=='memory' and a['write']);self.assertEqual(a['before'],a['value']);self.assertEqual(s['lastWriters']['mem:268500994'],s['step']);s=self.call('run',watches=[{'address':0x10010000,'access':'read'}]);self.assertEqual(s['last']['instruction']['op'],'lw')
  def test_loop_counts_and_independent_example(self):
   for delay in (False,True):
-   self.asm(example='array-sum',delay=delay);s=self.finish();self.assertEqual(s['output'],'18');loop=s['loops'][0];self.assertEqual(loop['backJumps'],4);self.assertEqual(loop['entries'],5);self.assertEqual(len(s['calls']),0)
+   self.asm(example='03-fizzbuzz',delay=delay);s=self.finish();self.assertTrue(s['output'].endswith('14\nFizzBuzz\n'));loop=s['loops'][0];self.assertEqual(loop['backJumps'],15);self.assertEqual(loop['entries'],16);self.assertEqual(len(s['calls']),0)
  def test_unknown_service_never_runs(self):
   self.asm('.text\nmain:\nli $v0,30\nsyscall\n');self.call('step');s=self.call('step');self.assertEqual(s['status'],'error');self.assertIn('unsupported',s['error'])
  def test_undo_virtual_write(self):
@@ -92,7 +93,7 @@ class CoreTests(unittest.TestCase):
  def observable(self,s):
   return {k:s[k] for k in ('pc','step','registers','memory','output','inputCursor','handles','status','exitCode','preview')}
  def test_lookahead_matches_execution_without_side_effects(self):
-  for example,kw in [('array-sum',{}),('hexout',{'inputs':['898']}),('task1',{'data':{'input.txt':'Hi'}})]:
+  for example,kw in [('03-fizzbuzz',{}),('04-numbers',{'inputs':['898']}),('05-grades',{'data':{'input.txt':'85\n92\n'}})]:
    for delay in (False,True):
     self.asm(example=example,delay=delay,**kw);checked=0
     for _ in range(40):
@@ -153,4 +154,15 @@ class CoreTests(unittest.TestCase):
   self.p.stdin.write(json.dumps(dict(command='assemble',files={'hello.s':one.format(1)},entry='nested/hexOut.s'))+'\n');self.p.stdin.flush()
   self.assertIn('not one of the assembled sources',json.loads(self.p.stdout.readline())['error'])
   s=self.call('assemble',files={'a.s':one.format(1),'b.s':one.format(2)},entry='a.s');self.assertEqual(s['status'],'error');self.assertIn('already defined as global',s['diagnostics'][0]['message'])
+ def test_memory_window_heap_blocks_frames_and_layout(self):
+  # Classroom 2026-11-04: the memory list scrolls a window of any length;
+  # the map shows syscall 9 blocks, each call's $sp and the segment bases.
+  s=self.asm('.text\n.globl main\nmain:\n li $a0,12\n li $v0,9\n syscall\n jal f\n nop\n li $v0,10\n syscall\nf:\n addiu $sp,$sp,-8\n sw $ra,4($sp)\n lw $ra,4($sp)\n addiu $sp,$sp,8\n jr $ra\n nop\n')
+  self.assertEqual(len(s['memory']),256);self.assertEqual(s['heapBlocks'],[])
+  self.assertEqual(s['layout'],{'text':0x400000,'data':0x10010000,'heap':0x10040000,'heapTop':0x10040000,'stack':0x7fffeffc})
+  for _ in range(4):s=self.call('step')
+  self.assertEqual(s['heapBlocks'],[{'step':3,'address':0x10040000,'size':12}]);self.assertEqual(s['calls'][0]['sp'],0x7fffeffc);self.assertGreater(s['layout']['heapTop'],0x10040000)
+  s=self.call('memory',address=0x7fffeff0,length=40);self.assertEqual(len(s['memory']),40);self.assertEqual(s['memory'][0]['address'],0x7fffeff0)
+  self.assertEqual(len(self.call('memory',address=0x10010000,length=99999)['memory']),1024)
+  self.assertEqual(self.call('back')['heapBlocks'],[{'step':3,'address':0x10040000,'size':12}]);self.assertEqual(self.call('seek',step=2)['heapBlocks'],[])
 if __name__=='__main__':unittest.main(verbosity=2)

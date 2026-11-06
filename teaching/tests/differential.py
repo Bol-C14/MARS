@@ -13,8 +13,8 @@ def finish():
  raise AssertionError('step budget')
 results=[]
 for delay in [False,True]:
- for name,data,stdin in [('hexout',{},'898\n'),('hexout',{},'-1\n'),('array-sum',{},''),*[('task1',{} if c is None else {'input.txt':c},'') for c in ['Hi','',None,'A\0B','x'*4095,'x'*4096]]]:
-  files={f.name:f.read_text() for f in (ROOT/'teaching/examples'/name).glob('*.s')}
+ for name,data,stdin in [('01-hello',{},''),('02-calculator',{},'17\n5\n'),('02-calculator',{},'-7\n0\n'),('03-fizzbuzz',{},''),('04-numbers',{},'898\n'),('04-numbers',{},'-1\n'),*[('05-grades',{} if c is None else {'input.txt':c},'') for c in ['85\n92\n78\n64\n99\n71\n','Hi','',None,'A\0B','x'*4095,'x'*4096,' '.join(['50']*120)]]]:
+  files={f.name:f.read_text() for f in (ROOT/'teaching/examples'/name/'en').glob('*.s')}
   call('assemble',files=files,data=data,inputs=stdin.splitlines(),entry='main.s',delay=delay);s=finish()
   with tempfile.TemporaryDirectory() as tmp:
    root=pathlib.Path(tmp)

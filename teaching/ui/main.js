@@ -54,6 +54,7 @@ import { projectManager } from "./project-manager.js";
 import { assemblyScope, scopeHints, pathName } from "./workspace.js";
 import { put, get, drop } from "./store.js";
 import { liveCheck } from "./live-check.js";
+import { parseAddress, dataSymbols, memoryRows, wordValue, memoryBar, barPosition } from "./memory-view.js";
 const $ = (id) => document.getElementById(id);
 // Joining words: 、 and ： in Chinese, ", " and ": " in English.
 const LIST_SEP = () => t("common.listSep");
@@ -1531,14 +1532,24 @@ const EXECUTING = new Set([
   "line",
   "input",
 ]);
+// Moving the memory window changes nothing in the program: it neither
+// locks nor redraws the run controls (classroom 2026-11-05: scrolling memory
+// made Assemble and the step buttons flicker). A newer command wins over a
+// window request still on its way.
+const QUIET = new Set(["memory"]);
+let commandSerial = 0;
 async function command(name, extra = {}) {
   if (busy) return null;
   if (EXECUTING.has(name) && blocked()) {
     notify(blocked(), { transient: true });
     return null;
   }
-  busy = true;
-  updateControls();
+  const quiet = QUIET.has(name),
+    serial = ++commandSerial;
+  if (!quiet) {
+    busy = true;
+    updateControls();
+  }
   try {
     let s = await api({
       command: name,
@@ -1548,6 +1559,7 @@ async function command(name, extra = {}) {
       ...lookahead(),
       ...extra,
     });
+    if (quiet && serial !== commandSerial) return null;
     const before = state;
     state = s;
     syncRuntimeFiles(s);
@@ -1561,8 +1573,10 @@ async function command(name, extra = {}) {
     if (running) stopRequested = true;
     return null;
   } finally {
-    busy = false;
-    updateControls();
+    if (!quiet) {
+      busy = false;
+      updateControls();
+    }
   }
 }
 async function assemble() {
@@ -2551,26 +2565,63 @@ ${t("registers.signNote", { value: r.value | 0 })}`
       };
     });
 }
+// The memory panel (classroom 2026-11-04): one list of the same bytes shown
+// as bytes, words or text, with a row for each data label, a thin bar of the
+// whole address space beside it, and a map that the bar opens into.
+// i18n-keys: memory.view.*
+// i18n-keys: memory.segment.*
+let memView = "words",
+  memMapOpen = false,
+  memAnchor = null;
+try {
+  memView = localStorage.getItem("memView") || "words";
+} catch {}
+const MEM_WINDOW = 256,
+  MEM_STEP = 64;
+const memSymbols = () => dataSymbols(program.symbols, files);
 function renderMemory() {
-  if (!state) return;
-  $("address").value = hex(state.memoryBase);
-  let all = accesses().filter((a) => a.kind === "memory");
-  let rows = [];
-  for (let i = 0; i < state.memory.length; i += 8) {
-    let bytes = state.memory.slice(i, i + 8);
-    rows.push(
-      `<div class="mem-row"><span class="mem-address">${hex(bytes[0].address).slice(2)}</span>${bytes.map((b) => `<span tabindex="0" class="byte ${all.some((a) => !a.write && b.address >= a.address && b.address < a.address + a.width) ? "read" : ""} ${all.some((a) => a.write && b.address >= a.address && b.address < a.address + a.width) ? "write" : ""} ${focus === "mem:" + b.address ? "focus" : ""}" data-byte="${b.address}" title="${hex(b.address)} · ${b.value == null ? "" : esc(formatValue(b.value, { radix: radix === "auto" ? "hex" : radix, width: 1, kind: "bits" }).text)}">${b.value == null ? "??" : esc(memoryCell(b.value))}</span>`).join("")}<span class="ascii">${bytes.map((b) => (b.value >= 32 && b.value < 127 ? esc(String.fromCharCode(b.value)) : ".")).join("")}</span></div>`,
-    );
+  if (!state) {
+    // Nothing assembled yet: say how to get memory here, not a blank panel.
+    $("memory").innerHTML = `<p class="mem-empty">${t("memory.empty")}</p>`;
+    return renderMemoryBar();
   }
-  $("memory").innerHTML = rows.join("");
+  if (document.activeElement !== $("address")) $("address").value = hex(state.memoryBase);
+  const all = accesses().filter((a) => a.kind === "memory");
+  const touched = (address, width, write) =>
+    all.some((a) => !a.write === !write && address < a.address + a.width && a.address < address + width);
+  const symbols = memSymbols();
+  const rows = memoryRows(state.memory, symbols, memView);
+  const cell = (c) => {
+    const word = c.width === 4,
+      unknown = c.bytes.some((b) => b == null),
+      title = unknown
+        ? hex(c.address)
+        : `${hex(c.address)} · ${esc(formatValue(word ? wordValue(c.bytes) : c.bytes[0], { radix: radix === "auto" ? "hex" : radix, width: c.width, kind: "bits" }).text)}`;
+    const shown = unknown ? "??".repeat(c.width) : word ? wordCell(c.bytes) : memView === "text" ? (c.bytes[0] === 32 ? "\u2423" : escapeByte(c.bytes[0])) : memoryCell(c.bytes[0]);
+    const focused = focus?.startsWith("mem:") && Number(focus.slice(4)) >= c.address && Number(focus.slice(4)) < c.address + c.width;
+    return `<span tabindex="0" class="byte${word ? " word" : ""}${touched(c.address, c.width, false) ? " read" : ""}${touched(c.address, c.width, true) ? " write" : ""}${focused ? " focus" : ""}${!word && memView === "text" && !unknown && !(c.bytes[0] > 32 && c.bytes[0] < 127) ? " escape" : ""}" data-byte="${c.address}" data-width="${c.width}" title="${title}">${esc(shown)}</span>`;
+  };
+  $("memory").innerHTML = rows
+    .map((r) =>
+      r.label
+        ? `<div class="mem-label"><button type="button" data-mem-symbol="${esc(r.label.name)}" title="${esc(t("memory.symbolTip", { view: t(`memory.view.${r.label.view}`) }))}">${esc(r.label.name)}</button><small>${esc(r.label.directive || "")} · ${t("memory.size", { n: r.label.size })}</small></div>`
+        : `<div class="mem-row"><span class="mem-address">${hex(r.address).slice(2)}</span>${r.cells.map(cell).join("")}${memView === "bytes" ? `<span class="ascii">${r.cells.map((c) => (c.bytes[0] >= 32 && c.bytes[0] < 127 ? esc(String.fromCharCode(c.bytes[0])) : ".")).join("")}</span>` : ""}</div>`,
+    )
+    .join("");
   $("memory").dataset.radix = radix;
-  $("mem-radix").textContent = {
-    auto: t("memory.cells.hex"),
-    hex: t("memory.cells.hex"),
-    dec: t("memory.cells.dec"),
-    bin: t("memory.cells.bin"),
-    ascii: t("memory.cells.ascii"),
-  }[radix];
+  $("memory").dataset.view = memView;
+  // Text has no radix: the label keeps its place but is hidden, so
+  // switching views never moves the header (classroom 2026-11-05).
+  $("mem-radix").classList.toggle("idle", memView === "text");
+  $("mem-radix").textContent =
+      {
+          auto: t("memory.cells.hex"),
+          hex: t("memory.cells.hex"),
+          dec: t("memory.cells.dec"),
+          bin: t("memory.cells.bin"),
+          ascii: t("memory.cells.ascii"),
+        }[radix];
+  document.querySelectorAll("[data-mem-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.memView === memView)));
   $("memory")
     .querySelectorAll("[data-byte]")
     .forEach((e) => {
@@ -2579,6 +2630,20 @@ function renderMemory() {
         if (k.key === "Enter") e.click();
       };
     });
+  $("memory")
+    .querySelectorAll("[data-mem-symbol]")
+    .forEach((b) => {
+      const s = symbols.find((x) => x.name === b.dataset.memSymbol);
+      b.onclick = () => showMemory(s.address, s.view === "bytes" ? memView : s.view);
+    });
+  // Keep the row that was under the reader where it was after a shift.
+  if (memAnchor) {
+    const row = $("memory").querySelector(`[data-byte="${memAnchor.address}"]`);
+    if (row) $("memory").scrollTop += row.getBoundingClientRect().top - memAnchor.top;
+    memAnchor = null;
+  }
+  renderMemoryBar();
+  if (memMapOpen) renderMemoryMap();
 }
 // Memory cells are too narrow for prefixes; the panel header shows the radix.
 function memoryCell(v) {
@@ -2589,6 +2654,13 @@ function memoryCell(v) {
       ? String.fromCharCode(v)
       : formatValue(v, { radix: "ascii", width: 1 }).text.slice(1, -1);
   return v.toString(16).padStart(2, "0");
+}
+function wordCell(bytes) {
+  const v = wordValue(bytes);
+  if (radix === "dec") return String(v);
+  if (radix === "bin") return (v >>> 0).toString(2).padStart(32, "0").match(/.{8}/g).join(" ");
+  if (radix === "ascii") return bytes.map((b) => escapeByte(b)).join("");
+  return (v >>> 0).toString(16).padStart(8, "0");
 }
 function inspectByte(address) {
   following = false;
@@ -2607,9 +2679,182 @@ function inspectByte(address) {
   renderMemory();
   overlay.schedule();
 }
+// Show memory from an address on: rows start on a word boundary.
 async function memoryAt(address) {
-  await command("memory", { address: address | 0 });
+  await command("memory", { address: address & ~3, length: MEM_WINDOW });
+  $("memory").scrollTop = 0;
   overlay.schedule();
+}
+// Jump there in a given view, closing the map (it opened only to choose).
+function showMemory(address, view = memView) {
+  setMemView(view, false);
+  setMemMap(false);
+  return memoryAt(address);
+}
+function setMemView(view, render = true) {
+  memView = view;
+  try {
+    localStorage.setItem("memView", view);
+  } catch {}
+  if (render) {
+    renderMemory();
+    overlay.schedule();
+  }
+}
+// Move the window by a number of bytes, keeping the rows on screen in place.
+async function shiftMemory(delta) {
+  if (!state) return;
+  const box = $("memory").getBoundingClientRect(),
+    first = [...$("memory").querySelectorAll(".mem-row [data-byte]")].find((e) => e.getBoundingClientRect().bottom > box.top);
+  memAnchor = first ? { address: Number(first.dataset.byte), top: first.getBoundingClientRect().top } : null;
+  await command("memory", { address: (state.memoryBase + delta) & ~3, length: MEM_WINDOW });
+  overlay.schedule();
+}
+function memoryLayout() {
+  const symbols = memSymbols(),
+    last = program.instructions[program.instructions.length - 1];
+  return memoryBar({
+    layout: state?.layout,
+    sp: regValue("$sp"),
+    dataEnd: symbols.length ? symbols[symbols.length - 1].end : 0,
+    textEnd: last ? last.address + 4 : 0,
+  });
+}
+function renderMemoryBar() {
+  const segments = state?.layout ? memoryLayout() : [];
+  const ready = segments.length > 0;
+  $("memory-bar").classList.toggle("empty", !ready);
+  $("memory-bar").title = ready ? "" : t("memory.bar.notReady");
+  $("mem-expand").disabled = !ready;
+  if (!ready) {
+    // The same five segments, greyed out until there is a program.
+    $("mem-track").innerHTML = [0.22, 0.3, 0.14, 0.1, 0.24].map((share) => `<span class="seg" style="flex:${share}"></span>`).join("");
+    return;
+  }
+  const pos = (a) => barPosition(segments, a),
+    view = pos(state.memoryBase),
+    sp = pos(regValue("$sp")),
+    pc = pos(state.pc);
+  $("mem-track").innerHTML =
+    segments
+      .map(
+        (s) =>
+          `<button type="button" class="seg seg-${s.id}" style="flex:${s.share}" ${s.id === "free" ? "disabled" : `data-seg="${s.id}"`} title="${esc(t(`memory.segment.${s.id}`))}${s.from != null ? ` · ${hex(s.from)}` : ""}" aria-label="${esc(t(`memory.segment.${s.id}`))}"></button>`,
+      )
+      .join("") +
+    (sp ? `<span class="tick tick-sp" style="top:${sp.y * 100}%" title="$sp ${hex(regValue("$sp"))}"></span>` : "") +
+    (pc ? `<span class="tick tick-pc" style="top:${pc.y * 100}%" title="PC ${hex(state.pc)}"></span>` : "") +
+    (view ? `<span class="view-mark" style="top:${view.y * 100}%" title="${esc(t("memory.bar.viewing", { address: hex(state.memoryBase) }))}">▶</span>` : "");
+  $("mem-track")
+    .querySelectorAll("[data-seg]")
+    .forEach((b) => (b.onclick = () => jumpToSegment(b.dataset.seg)));
+}
+function jumpToSegment(id) {
+  const l = state.layout;
+  if (id === "stack") return showMemory(regValue("$sp"), "words");
+  if (id === "heap") return showMemory(state.heapBlocks[0]?.address ?? l.heap, "words");
+  if (id === "data") return showMemory(l.data);
+  if (id === "text") return showMemory(state.pc, "words");
+}
+function setMemMap(open) {
+  memMapOpen = open && !!state?.layout;
+  $("panel-memory").classList.toggle("map-open", memMapOpen);
+  $("memory-map").hidden = !memMapOpen;
+  $("mem-expand").setAttribute("aria-expanded", String(memMapOpen));
+  const label = memMapOpen ? t("memory.map.close") : t("memory.map.open");
+  $("mem-expand").title = label;
+  $("mem-expand").setAttribute("aria-label", label);
+  if (memMapOpen) renderMemoryMap();
+  overlay.schedule();
+}
+// Registers a function saves on entry: "sw $r, off($sp)" in its first
+// instructions, at the $sp it has after making room for them.
+function savedRegisters(entry, sp) {
+  const start = program.instructions.findIndex((i) => i.address === entry);
+  const saved = [];
+  let delta = 0;
+  for (const ins of program.instructions.slice(Math.max(0, start), start < 0 ? 0 : start + 12)) {
+    // Basic code writes immediates in hex: 0xfffffff0 is -16.
+    const grow = /^addiu?\s+\$(?:29|sp),\s*\$(?:29|sp),\s*(-?(?:0x[\da-f]+|\d+))/i.exec(ins.basic);
+    if (grow) delta += (Number(grow[1]) << 16) >> 16;
+    const store = /^sw\s+(\$\w+),\s*(-?(?:0x[\da-f]+|\d+))\(\$(?:29|sp)\)/i.exec(ins.basic);
+    if (store) saved.push({ name: regName(store[1]), address: (sp + delta + ((Number(store[2]) << 16) >> 16)) | 0 });
+    if (/^(jr|j|jal|b\w*)\b/.test(ins.basic)) break;
+  }
+  return saved;
+}
+function regName(r) {
+  const n = /^\$(\d+)$/.exec(r);
+  return n ? state.registers[Number(n[1])]?.name ?? r : r;
+}
+function renderMemoryMap() {
+  if (!state?.layout) return;
+  const sp = regValue("$sp"),
+    fp = regValue("$fp"),
+    top = (state.layout.stack + 4) | 0,
+    symbolAt = (a) => program.symbols.find((s) => s.address === a)?.name;
+  // Frames from the oldest call to the newest; each runs from the $sp at its
+  // call down to the next one's (or the $sp now, for the innermost).
+  const frames = state.calls.map((c, i) => {
+    const below = i + 1 < state.calls.length ? state.calls[i + 1].sp : sp;
+    return {
+      name: symbolAt(c.instruction.target) || hex(c.instruction.target ?? 0),
+      high: c.sp,
+      low: below,
+      step: c.step,
+      saved: savedRegisters(c.instruction.target, c.sp),
+    };
+  });
+  const item = (attrs, body) => `<button type="button" class="map-item" ${attrs}>${body}</button>`;
+  // Low addresses first, as in the list: $sp, then the newest frame up to
+  // the stack's start.
+  const stack = [
+    item(`data-map-address="${sp}" data-map-view="words"`, `<b>$sp</b><small>${hex(sp)}</small><span class="map-arrow">\u2190 $sp</span>`),
+    ...frames
+      .slice()
+      .reverse()
+      .map((f) =>
+        item(
+          `data-map-address="${f.low}" data-map-view="words"`,
+          `<b>${esc(f.name)}</b><small>${t("memory.map.frame", { step: f.step, size: (f.high - f.low) | 0 })}</small>${f.saved.length ? `<span class="map-saved">${f.saved.map((s) => `<span>${esc(s.name)} @ ${hex(s.address).slice(2)}</span>`).join("")}</span>` : ""}${fp >>> 0 >= f.low >>> 0 && fp >>> 0 < f.high >>> 0 ? `<span class="map-arrow">\u2190 $fp</span>` : ""}`,
+        ),
+      ),
+    item(`data-map-address="${frames.length ? frames[0].high : top - 4}" data-map-view="words"`, `<b>${t("memory.map.startFrame")}</b><small>${hex(top)}</small>`),
+  ];
+  const heap = state.heapBlocks.length
+    ? state.heapBlocks.map((h) =>
+        item(`data-map-address="${h.address}" data-map-view="words"`, `<b>${t("memory.map.heapBlock", { step: h.step })}</b><small>${hex(h.address)} · ${t("memory.size", { n: h.size })}</small>`),
+      )
+    : [`<p class="muted">${t("memory.map.noHeap")}</p>`];
+  const data = memSymbols().map((s) =>
+    item(`data-map-address="${s.address}" data-map-view="${s.view}"`, `<b>${esc(s.name)}</b><small>${hex(s.address)} · ${esc(s.directive || "")} · ${t("memory.size", { n: s.size })}</small>`),
+  );
+  const place = program.instructions.find((i) => i.address === state.pc);
+  const text = [
+    state.status === "ended" || !place
+      ? `<p class="muted">${t("memory.map.noPc")}</p>`
+      : item(`data-map-pc`, `<b>PC</b><small>${hex(state.pc)} · ${esc(place.file)}:${place.line}</small><span class="map-saved">${esc(place.basic)}</span>`),
+  ];
+  const section = (id, body, address) =>
+    `<section class="map-seg map-${id}"><h4>${t(`memory.segment.${id}`)}${address == null ? "" : ` <small>${hex(address)}</small>`}</h4>${body.join("")}</section>`;
+  $("memory-map").innerHTML =
+    section("text", text, state.layout.text) +
+    section("data", data.length ? data : [`<p class="muted">${t("memory.map.noData")}</p>`], state.layout.data) +
+    section("heap", heap, state.layout.heap) +
+    `<div class="map-free">${t("memory.segment.free")}</div>` +
+    section("stack", stack, sp);
+  $("memory-map")
+    .querySelectorAll("[data-map-address]")
+    .forEach((b) => {
+      const view = b.dataset.mapView;
+      b.onclick = () => showMemory(Number(b.dataset.mapAddress), view === "bytes" ? memView : view);
+    });
+  const pcItem = $("memory-map").querySelector("[data-map-pc]");
+  if (pcItem)
+    pcItem.onclick = () => {
+      setMemMap(false);
+      gotoSource(place.file, place.line);
+    };
 }
 function renderMachine() {
   $("machine").innerHTML = program.instructions
@@ -3779,14 +4024,38 @@ $("input-form").onsubmit = async (e) => {
 };
 $("memory-form").onsubmit = (e) => {
   e.preventDefault();
-  let text = $("address").value,
-    s = program.symbols.find((s) => s.name === text),
-    value = s ? s.address : Number(text);
-  if (Number.isFinite(value)) memoryAt(value);
-  else notify(t("memory.invalidAddress"));
+  const value = parseAddress($("address").value, {
+    symbols: program.symbols,
+    register: (name) => (state?.registers.some((r) => r.name === canonicalReg(name)) ? regValue(name) : undefined),
+  });
+  if (value != null) {
+    $("address").blur();
+    memoryAt(value);
+  } else notify(t("memory.invalidAddress"));
 };
-$("stack").onclick = () => memoryAt(regValue("$sp") - 16);
-$("data").onclick = () => memoryAt(0x10010000);
+$("mem-up").onclick = () => shiftMemory(-MEM_STEP);
+$("mem-down").onclick = () => shiftMemory(MEM_STEP);
+$("mem-expand").onclick = () => setMemMap(!memMapOpen);
+document.querySelectorAll("[data-mem-view]").forEach((b) => (b.onclick = () => setMemView(b.dataset.memView)));
+// Before anything is assembled the bar is grey and says why.
+renderMemoryBar();
+// Scrolling past either end of the list moves the window on (classroom
+// 2026-11-04: memory should scroll like a document, not page by page).
+$("memory").addEventListener(
+  "wheel",
+  (e) => {
+    const m = $("memory");
+    if (!state || memShifting) return;
+    if (e.deltaY > 0 && m.scrollTop + m.clientHeight >= m.scrollHeight - 2) memShift(MEM_STEP);
+    else if (e.deltaY < 0 && m.scrollTop <= 0) memShift(-MEM_STEP);
+  },
+  { passive: true },
+);
+let memShifting = false;
+function memShift(delta) {
+  memShifting = true;
+  shiftMemory(delta).finally(() => (memShifting = false));
+}
 $("add-watch").onclick = () => {
   modal(
     t("watch.add.title"),
@@ -3876,9 +4145,14 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   actions[r.action]();
 });
+// An example in the interface language: its copy for that language, else
+// English, else whichever copy it has (classroom 2026-11-04).
+const exampleCopy = (e) => e.languages?.[language()] || e.languages?.en || Object.values(e.languages || {})[0];
+const exampleTitle = (e) => e.title?.[language()] || e.title?.en || e.name;
 async function loadExample(index) {
-  const p = exampleList[index];
-  if (p) workspace.example(p, p.name);
+  const e = exampleList[index],
+    copy = e && exampleCopy(e);
+  if (copy) workspace.example({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly }, exampleTitle(e));
 }
 function selectActiveFile(name) {
   if (name) { switchFile(name); return; }
@@ -3925,6 +4199,7 @@ workspace = projectManager({
     }
     $("history-info").textContent=t("history.empty");
     $("pc").textContent="PC —";
+    setMemMap(false); renderMemory();
     selectActiveFile(p.activeFile);
     renderFiles(); renderTabs(); renderStops(); updateControls();
     notify(t("project.updated"));
@@ -3973,7 +4248,7 @@ function renderExamples() {
     return;
   }
   $("example-list").innerHTML = exampleList.map((e,i) =>
-    `<button role="menuitem" data-example="${i}">${esc(e.name === "hexout" ? t("examples.hexout") : e.name === "task1" ? t("examples.task1") : e.name)}</button>`
+    `<button role="menuitem" data-example="${i}">${esc(exampleTitle(e))}</button>`
   ).join('') || `<button role="menuitem" disabled>${t("examples.none")}</button>`;
 }
 // Interface language (classroom 2026-11-03): applies at once; the program,
