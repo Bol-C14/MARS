@@ -14,10 +14,10 @@ var KernelWorker = class {
         const job = this.pending.get(data2.id);
         if (!job) return;
         this.pending.delete(data2.id);
-        data2.error ? job.reject(Error(data2.error)) : job.resolve(data2.result);
+        data2.error ? job.reject(Object.assign(Error(data2.error), { kernel: true })) : job.resolve(data2.result);
       };
       this.worker.onerror = (event) => {
-        const error = Error(event.message || "Browser kernel could not start");
+        const error = Object.assign(Error(event.message || "Browser kernel could not start"), { kernel: true });
         reject(error);
         for (const job of this.pending.values()) job.reject(error);
         this.pending.clear();
@@ -78,6 +78,22 @@ var runtime = {
     if (!response.ok) throw Error("Examples unavailable");
     return response.json();
   }
+};
+
+// site/config.json
+var config_default = {
+  author: "BShark",
+  github: "https://github.com/Bol-C14/MARS",
+  issues: "https://github.com/Bol-C14/MARS/issues/new",
+  umami: {
+    src: "https://cloud.umami.is/script.js",
+    websiteId: ""
+  },
+  tally: {
+    feedback: "",
+    contact: ""
+  },
+  email: ""
 };
 
 // ui/i18n/zh-CN.json
@@ -467,6 +483,7 @@ var zh_CN_default = {
   "console.input.placeholder": "\u8F93\u5165\u503C\uFF0C\u6309 Enter \u63D0\u4EA4",
   "console.input.send": "\u53D1\u9001",
   "console.input.waiting": "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter",
+  "credit.title": "MARS Trace \u7531 BShark \u5236\u4F5C",
   "diag.duplicateGlobal": "\u53C2\u4E0E\u8FD9\u6B21\u6C47\u7F16\u7684 {files} \u90FD\u5B9A\u4E49\u4E86\u5168\u5C40\u6807\u7B7E {label}\u3002",
   "diag.duplicateGlobal.manual": "\u5982\u679C\u5B83\u4EEC\u662F\u5404\u81EA\u72EC\u7ACB\u7684\u7EC3\u4E60\uFF0C\u8BF7\u53D6\u6D88\u52FE\u9009\u5176\u4E2D\u4E00\u4E2A\uFF0C\u6216\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u3002",
   "diag.duplicateGlobal.other": "\u540C\u4E00\u4E2A\u5168\u5C40\u6807\u7B7E\u53EA\u80FD\u5B9A\u4E49\u4E00\u6B21\uFF0C\u8BF7\u6539\u540D\u6216\u5220\u53BB\u5176\u4E2D\u4E00\u4E2A\u3002",
@@ -522,6 +539,7 @@ var zh_CN_default = {
   "editor.target.one": "\u7A0B\u5E8F\uFF1A{entry}",
   "editor.target.willChange": "\u70B9\u201C\u6C47\u7F16\u201D\u540E\u4F1A\u6362\u6210\u65B0\u7684\u7A0B\u5E8F",
   "engine.about": "MIPS \u6C47\u7F16\u5668\u4E0E\u6A21\u62DF\u5668\uFF08Missouri State University\uFF09\uFF0C\u672C IDE \u5728\u5176\u4E0A\u52A0\u4E86\u6267\u884C\u5386\u53F2\u3001\u56DE\u9000\u548C\u89E3\u91CA\u3002",
+  "engine.browser": "\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u8FD0\u884C \xB7 Java MARS \u7ECF TeaVM \u7F16\u8BD1\u3002\u7A0B\u5E8F\u4E0E\u6587\u4EF6\u4FDD\u5B58\u5728\u6B64\u6D4F\u89C8\u5668\u4E2D\u3002",
   "engine.state": "\u5EF6\u8FDF\u5206\u652F\uFF1A{delay} \xB7 \u7A0B\u5E8F\uFF1A{program}",
   "engine.switch": "\u5207\u6362\u5185\u6838\u2026",
   "engine.switch.hint": "\u6682\u4E0D\u63D0\u4F9B\uFF1B\u4E4B\u540E\u7684\u672C\u5730\u7248\u518D\u652F\u6301\u5176\u4ED6\u5185\u6838",
@@ -558,6 +576,16 @@ var zh_CN_default = {
   "export.note": "\u4FDD\u5B58\u5230\u7535\u8111\u540E\u53EF\u91CD\u65B0\u5BFC\u5165\uFF0C\u6216\u53D1\u7ED9\u8001\u5E08\u3002\u6E90\u7801\u3001\u8F93\u5165\u6587\u4EF6\u3001\u76EE\u5F55\u3001\u6C47\u7F16\u65B9\u5F0F\u548C\u624B\u52A8\u9009\u62E9\u7684\u8303\u56F4\u90FD\u4F1A\u4FDD\u7559\u3002",
   "export.title": "\u5BFC\u51FA\u5DE5\u7A0B",
   "export.zip": "\u4E0B\u8F7D ZIP\uFF08\u5305\u542B\u539F\u59CB\u6587\u4EF6\uFF09",
+  "feedback.attach": "\u9644\u4E0A\u5F53\u524D\u7A0B\u5E8F\uFF08{n} \u4E2A\u6587\u4EF6\uFF09",
+  "feedback.attach.note": "\u9ED8\u8BA4\u4E0D\u9644\u4E0A\uFF1A\u7A0B\u5E8F\u53EF\u80FD\u662F\u4F60\u7684\u4F5C\u4E1A\u3002\u53EA\u5728\u4F60\u613F\u610F\u8BA9\u6211\u4EEC\u770B\u5230\u65F6\u52FE\u9009\u3002",
+  "feedback.button": "\u53CD\u9988",
+  "feedback.continue": "\u7EE7\u7EED\u586B\u5199",
+  "feedback.details": "\u4F1A\u4E00\u8D77\u53D1\u9001\u7684\u8BCA\u65AD\u4FE1\u606F",
+  "feedback.github": "\u5728 GitHub \u63D0\u4EA4",
+  "feedback.github.prompt": "\u8BF7\u5728\u8FD9\u91CC\u5199\u4E0B\u9047\u5230\u7684\u95EE\u9898\u6216\u5EFA\u8BAE",
+  "feedback.note": "\u8BF4\u8BF4\u9047\u5230\u4E86\u4EC0\u4E48\u95EE\u9898\uFF0C\u6216\u8005\u4F60\u5E0C\u671B\u5B83\u80FD\u505A\u4EC0\u4E48\u3002\u4E0B\u9762\u7684\u8BCA\u65AD\u4FE1\u606F\u4F1A\u4E00\u8D77\u53D1\u9001\uFF0C\u5E2E\u52A9\u590D\u73B0\u95EE\u9898\uFF1B\u4E0D\u5305\u542B\u4F60\u7684\u4EE3\u7801\u548C\u4E2A\u4EBA\u4FE1\u606F\u3002",
+  "feedback.report": "\u62A5\u544A\u95EE\u9898",
+  "feedback.title": "\u53CD\u9988\u6216\u62A5\u544A\u95EE\u9898",
   "files.confirmDelete": "\u786E\u8BA4\u5220\u9664",
   "files.confirmDelete.contents": "\u53CA\u5176\u4E2D {count} \u4E2A\u6587\u4EF6",
   "files.confirmDelete.text": "\u5220\u9664 {path}{contents}\uFF1F",
@@ -1672,8 +1700,7 @@ var zh_CN_default = {
   "workspace.targetExists": "\u76EE\u6807\u5DF2\u5B58\u5728\uFF1A{path}",
   "workspace.textOnly": "\u76EE\u524D\u53EA\u652F\u6301 UTF-8 \u6587\u672C\u6587\u4EF6\u3002",
   "workspace.tooLarge": "\u5DE5\u7A0B\u6700\u591A {limit} \u6587\u672C\u5185\u5BB9\u3002",
-  "workspace.tooManyFolders": "\u5DE5\u7A0B\u6700\u591A {max} \u4E2A\u6587\u4EF6\u5939\u3002",
-  "engine.browser": "\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u8FD0\u884C \xB7 Java MARS \u7ECF TeaVM \u7F16\u8BD1\u3002\u7A0B\u5E8F\u4E0E\u6587\u4EF6\u4FDD\u5B58\u5728\u6B64\u6D4F\u89C8\u5668\u4E2D\u3002"
+  "workspace.tooManyFolders": "\u5DE5\u7A0B\u6700\u591A {max} \u4E2A\u6587\u4EF6\u5939\u3002"
 };
 
 // ui/i18n/en.json
@@ -2063,6 +2090,7 @@ var en_default = {
   "console.input.placeholder": "Type a value and press Enter",
   "console.input.send": "Send",
   "console.input.waiting": "The program is waiting for input: type here and press Enter",
+  "credit.title": "MARS Trace is made by BShark",
   "diag.duplicateGlobal": "{files} in this assembly all define the global label {label}.",
   "diag.duplicateGlobal.manual": "If they are separate exercises, untick one of them or switch to \u201CAuto assembly\u201D.",
   "diag.duplicateGlobal.other": "A global label can be defined only once; rename or remove one of them.",
@@ -2118,6 +2146,7 @@ var en_default = {
   "editor.target.one": "Program: {entry}",
   "editor.target.willChange": "Clicking \u201CAssemble\u201D loads a new program",
   "engine.about": "MIPS assembler and simulator (Missouri State University); this IDE adds execution history, stepping back and explanations on top of it.",
+  "engine.browser": "Runs on your device \xB7 Java MARS compiled with TeaVM. Your program and files stay in this browser.",
   "engine.state": "Delayed branching: {delay} \xB7 Program: {program}",
   "engine.switch": "Switch core\u2026",
   "engine.switch.hint": "Not available yet; a later local version will support other cores",
@@ -2154,6 +2183,16 @@ var en_default = {
   "export.note": "Saved to your computer, it can be imported again or sent to your teacher. Source, input files, folders, the assembly mode and the chosen files are all kept.",
   "export.title": "Export project",
   "export.zip": "Download ZIP (with the original files)",
+  "feedback.attach": "Attach the current program ({n, plural, one {# file} other {# files}})",
+  "feedback.attach.note": "Off by default: the program may be your homework. Tick it only if you are happy for us to see it.",
+  "feedback.button": "Feedback",
+  "feedback.continue": "Continue",
+  "feedback.details": "Diagnostics sent with it",
+  "feedback.github": "Report on GitHub",
+  "feedback.github.prompt": "Describe the problem or suggestion here",
+  "feedback.note": "Tell us what went wrong, or what you wish it could do. The diagnostics below go with it to help reproduce the problem; they contain none of your code or personal details.",
+  "feedback.report": "Report problem",
+  "feedback.title": "Feedback or report a problem",
   "files.confirmDelete": "Delete?",
   "files.confirmDelete.contents": " and the {count, plural, one {# file} other {# files}} in it",
   "files.confirmDelete.text": "Delete {path}{contents}?",
@@ -3268,8 +3307,7 @@ var en_default = {
   "workspace.targetExists": "Already exists: {path}",
   "workspace.textOnly": "Only UTF-8 text files are supported for now.",
   "workspace.tooLarge": "A project holds at most {limit} of text.",
-  "workspace.tooManyFolders": "A project holds at most {max} folders.",
-  "engine.browser": "Runs on your device \xB7 Java MARS compiled with TeaVM. Your program and files stay in this browser."
+  "workspace.tooManyFolders": "A project holds at most {max} folders."
 };
 
 // ui/i18n/index.js
@@ -3329,22 +3367,22 @@ function plural(n, forms) {
 function format(message, params = {}) {
   let out = "", i = 0;
   while (i < message.length) {
-    const open = message.indexOf("{", i);
-    if (open < 0) break;
-    const m = /^\{([A-Za-z_]\w*)(\s*,\s*plural\s*,)?/.exec(message.slice(open));
+    const open2 = message.indexOf("{", i);
+    if (open2 < 0) break;
+    const m = /^\{([A-Za-z_]\w*)(\s*,\s*plural\s*,)?/.exec(message.slice(open2));
     if (!m) {
-      out += message.slice(i, open + 1);
-      i = open + 1;
+      out += message.slice(i, open2 + 1);
+      i = open2 + 1;
       continue;
     }
-    out += message.slice(i, open);
+    out += message.slice(i, open2);
     if (!m[2]) {
-      const close = message.indexOf("}", open);
+      const close = message.indexOf("}", open2);
       out += params[m[1]] ?? "";
       i = close + 1;
       continue;
     }
-    let j = open + m[0].length, depth = 1;
+    let j = open2 + m[0].length, depth = 1;
     const forms = {};
     while (j < message.length && depth > 0) {
       const sel = /^\s*([=\w]+)\s*\{/.exec(message.slice(j));
@@ -3414,6 +3452,323 @@ function applyDom(root = globalThis.document) {
     }
 }
 if (globalThis.document) document.documentElement.lang = current;
+
+// ui/model.js
+var hex = (n) => "0x" + (n >>> 0).toString(16).padStart(8, "0");
+var escapeHTML = (s) => String(s ?? "").replace(
+  /[&<>"']/g,
+  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+);
+var registerNames = [
+  "zero",
+  "at",
+  "v0",
+  "v1",
+  "a0",
+  "a1",
+  "a2",
+  "a3",
+  "t0",
+  "t1",
+  "t2",
+  "t3",
+  "t4",
+  "t5",
+  "t6",
+  "t7",
+  "s0",
+  "s1",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
+  "s6",
+  "s7",
+  "t8",
+  "t9",
+  "k0",
+  "k1",
+  "gp",
+  "sp",
+  "fp",
+  "ra"
+];
+function canonicalReg(token) {
+  if (/^\$\d+$/.test(token)) return "$" + registerNames[Number(token.slice(1))];
+  return token === "$s8" ? "$fp" : token;
+}
+var services = localized(() => ({
+  1: [t("service.1"), ["$a0"], []],
+  2: [t("service.2"), ["$f12"], []],
+  3: [t("service.3"), ["$f12", "$f13"], []],
+  4: [t("service.4"), ["$a0"], []],
+  5: [t("service.5"), [], ["$v0"]],
+  6: [t("service.6"), [], ["$f0"]],
+  7: [t("service.7"), [], ["$f0", "$f1"]],
+  8: [t("service.8"), ["$a0", "$a1"], ["memory"]],
+  9: [t("service.9"), ["$a0"], ["$v0"]],
+  10: [t("service.10"), [], []],
+  11: [t("service.11"), ["$a0"], []],
+  12: [t("service.12"), [], ["$v0"]],
+  13: [t("service.13"), ["$a0", "$a1", "$a2"], ["$v0"]],
+  14: [t("service.14"), ["$a0", "$a1", "$a2"], ["memory", "$v0"]],
+  15: [t("service.15"), ["$a0", "$a1", "$a2"], ["$v0"]],
+  16: [t("service.16"), ["$a0"], []],
+  17: [t("service.17"), ["$a0"], []],
+  34: [t("service.34"), ["$a0"], []],
+  35: [t("service.35"), ["$a0"], []],
+  36: [t("service.36"), ["$a0"], []]
+}));
+var explanations = localized(() => ({
+  addiu: t("explain.addiu"),
+  addi: t("explain.addi"),
+  addu: t("explain.addu"),
+  add: t("explain.add"),
+  subu: t("explain.subu"),
+  lbu: t("explain.lbu"),
+  lb: t("explain.lb"),
+  lw: t("explain.lw"),
+  sw: t("explain.sw"),
+  sb: t("explain.sb"),
+  srl: t("explain.srl"),
+  sll: t("explain.sll"),
+  slti: t("explain.slti"),
+  beq: t("explain.beq"),
+  bne: t("explain.bne"),
+  jal: t("explain.jal"),
+  jr: t("explain.jr"),
+  syscall: t("explain.syscall"),
+  li: t("explain.li"),
+  la: t("explain.la"),
+  move: t("explain.move"),
+  nop: t("explain.nop"),
+  lui: t("explain.lui"),
+  ori: t("explain.ori")
+}));
+function role(name2) {
+  let n = registerNames.indexOf(name2.replace("$", ""));
+  return n === 0 ? t("role.zero") : n === 1 ? t("role.at") : n === 2 || n === 3 ? t("role.v") : n >= 4 && n <= 7 ? t("role.a") : n >= 16 && n <= 23 ? t("role.s") : n === 29 ? t("role.sp") : n === 31 ? t("role.ra") : n === 28 ? t("role.gp") : n === 30 ? t("role.fp") : n === 26 || n === 27 ? t("role.k") : t("role.t");
+}
+function references(files2, token) {
+  let out = [];
+  for (let [file, text2] of Object.entries(files2))
+    text2.split("\n").forEach((line, i) => {
+      let code = line.split("#")[0], tokens = code.match(/\$\w+|[\w.]+/g) || [];
+      if (!tokens.some((t3) => canonicalReg(t3) === canonicalReg(token))) return;
+      let op = tokens[0], regs = tokens.filter((t3) => t3.startsWith("$")), r = canonicalReg(token), k = t("refs.kind.use");
+      if (token.startsWith("$")) {
+        let occurrences = regs.map(canonicalReg), first = occurrences[0] === r, read = occurrences.slice(1).includes(r);
+        if (/^(sw|sb|sh|b\w*|jr|multu?|divu?|mthi|mtlo)$/.test(op)) k = t("refs.kind.read");
+        else if (/^(li|la|move|l[bhw]u?|sll|srl|sra|add\w*|sub\w*|and\w*|or\w*|xor\w*|nor|slt\w*|mfhi|mflo)$/.test(
+          op
+        ))
+          k = first ? read ? t("refs.kind.readWrite") : t("refs.kind.write") : t("refs.kind.read");
+        else k = t("refs.kind.operand");
+      } else if (new RegExp(
+        "^\\s*" + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:"
+      ).test(code))
+        k = t("refs.kind.definition");
+      else if (/^(b\w*|j|jal)$/.test(op)) k = t("refs.kind.transfer");
+      out.push({ file, line: i + 1, text: line, type: k });
+    });
+  return out;
+}
+function buildCFG(instructions, delay = false) {
+  let by = new Map(instructions.map((i) => [i.address, i])), leaders = /* @__PURE__ */ new Set();
+  if (instructions[0]) leaders.add(instructions[0].address);
+  for (let i of instructions)
+    if (i.flow !== "next") {
+      if (by.has(i.target)) leaders.add(i.target);
+      let next = i.address + (delay ? 8 : 4);
+      if (by.has(next)) leaders.add(next);
+    }
+  let blocks = [], current2;
+  for (let i of instructions) {
+    if (!current2 || leaders.has(i.address) || i.address !== current2.end + 4) {
+      current2 = {
+        id: i.address,
+        start: i.address,
+        end: i.address,
+        instructions: [],
+        edges: []
+      };
+      blocks.push(current2);
+    }
+    current2.instructions.push(i);
+    current2.end = i.address;
+  }
+  let owner = /* @__PURE__ */ new Map();
+  for (let b of blocks)
+    for (let i of b.instructions) owner.set(i.address, b.id);
+  for (let b of blocks) {
+    let terminal = [...b.instructions].reverse().find((i) => i.flow !== "next") || b.instructions.at(-1);
+    let add2 = (address, label2) => {
+      if (owner.has(address))
+        b.edges.push({ target: owner.get(address), label: label2 });
+    };
+    if (terminal.flow === "branch") {
+      add2(terminal.target, t("path.edge.taken"));
+      add2(terminal.address + (delay ? 8 : 4), t("path.edge.fallthrough"));
+    } else if (terminal.flow === "jump") add2(terminal.target, t("path.edge.jump"));
+    else if (terminal.flow === "call") {
+      add2(terminal.target, t("path.edge.call"));
+      add2(terminal.address + (delay ? 8 : 4), t("cfg.edge.afterReturn"));
+    } else if (terminal.flow === "indirect")
+      b.edges.push({ target: null, label: t("cfg.edge.runtime") });
+    else add2(b.end + 4, t("path.edge.next"));
+  }
+  return blocks;
+}
+function splitComment(line) {
+  let quote = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quote) {
+      if (c === "\\") i++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === "#")
+      return {
+        code: line.slice(0, i).trim(),
+        comment: line.slice(i + 1).trim()
+      };
+  }
+  return { code: line.trim(), comment: "" };
+}
+function nameRegisters(text2) {
+  return String(text2 ?? "").replace(
+    /\$(\d+)\b/g,
+    (m, n) => Number(n) < 32 ? "$" + registerNames[Number(n)] : m
+  );
+}
+function withOperands(description, example, line) {
+  const operands = (text2, op2) => text2.trim().replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").slice(op2.length).split(/[\s,()]+/).filter(Boolean);
+  const op = (example || "").trim().split(/\s+/)[0] || "";
+  const code = splitComment(line || "").code;
+  if (!op || !code.replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").startsWith(op))
+    return { text: description, substituted: false };
+  const from = operands(example, op), to = operands(code, op);
+  if (!from.length || from.length !== to.length)
+    return { text: description, substituted: false };
+  const map = new Map(from.map((f, i) => [f, to[i]]));
+  const pattern = new RegExp(
+    [...map.keys()].sort((a, b) => b.length - a.length).map((t3) => t3.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])").join("|"),
+    "g"
+  );
+  return {
+    text: description.replace(pattern, (m) => map.get(m) ?? m),
+    substituted: true
+  };
+}
+
+// ui/site.js
+var BUILD = typeof __MARS_BUILD__ !== "undefined" ? __MARS_BUILD__ : "dev";
+var enabled = false;
+var lastError = "";
+var once = /* @__PURE__ */ new Set();
+var PROGRAM_LIMIT = 8e3;
+function loadScript(src, attrs = {}) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.defer = true;
+    for (const [k, v] of Object.entries(attrs)) s.setAttribute(k, v);
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.append(s);
+  });
+}
+function startSite(on) {
+  enabled = Boolean(on);
+  if (!enabled) return;
+  document.documentElement.dataset.site = "public";
+  if (config_default.umami.websiteId)
+    loadScript(config_default.umami.src, { "data-website-id": config_default.umami.websiteId }).catch(() => {
+    });
+  addEventListener("error", (e) => remember(e.message));
+  addEventListener("unhandledrejection", (e) => remember(e.reason?.message || String(e.reason)));
+}
+function remember(message) {
+  if (message) lastError = String(message).slice(0, 300);
+}
+function track(name2, { first = false, ...data2 } = {}) {
+  if (!enabled) return;
+  if (first) {
+    if (once.has(name2)) return;
+    once.add(name2);
+  }
+  try {
+    globalThis.umami?.track(name2, { lang: language(), ...data2 });
+  } catch {
+  }
+}
+function diagnostics(ide) {
+  const s = ide.state?.() || null;
+  return {
+    build: BUILD,
+    runtime: document.documentElement.dataset.runtime || "",
+    language: language(),
+    browser: navigator.userAgent,
+    screen: `${innerWidth}x${innerHeight}`,
+    program: s ? { status: s.status || "", step: s.step ?? null, delay: Boolean(ide.delay?.()) } : null,
+    files: Object.keys(ide.files?.() || {}).length,
+    lastError
+  };
+}
+function programText(files2) {
+  let text2 = "";
+  for (const [name2, body] of Object.entries(files2 || {})) text2 += `# ==== ${name2} ====
+${body}
+`;
+  return text2.length > PROGRAM_LIMIT ? text2.slice(0, PROGRAM_LIMIT) + "\n# \u2026" : text2;
+}
+function githubIssue(info) {
+  const body = `<!-- ${t("feedback.github.prompt")} -->
+
+
+---
+\`\`\`json
+${JSON.stringify(info, null, 2)}
+\`\`\``;
+  return `${config_default.issues}?${new URLSearchParams({ title: "", body })}`;
+}
+async function openTally(formId, hiddenFields) {
+  if (!globalThis.Tally) await loadScript("https://tally.so/widgets/embed.js");
+  globalThis.Tally.openPopup(formId, { layout: "modal", width: 560, hiddenFields });
+}
+function openFeedback(ide, reason = "") {
+  if (reason) remember(reason);
+  track("feedback-open", { from: reason ? "error" : "button" });
+  const info = diagnostics(ide);
+  const files2 = ide.files?.() || {};
+  const count = Object.keys(files2).length;
+  const form = config_default.tally.feedback;
+  ide.modal(
+    t("feedback.title"),
+    `<p>${t("feedback.note")}</p>` + (reason ? `<p class="feedback-reason">${escapeHTML(reason)}</p>` : "") + `<details class="feedback-details"><summary>${t("feedback.details")}</summary><pre>${escapeHTML(JSON.stringify(info, null, 2))}</pre></details>` + (form && count ? `<label class="feedback-attach"><input type="checkbox" id="feedback-program"> ${t("feedback.attach", { n: count })}<small>${t("feedback.attach.note")}</small></label>` : "") + `<div class="file-actions"><button id="feedback-continue" class="primary">${form ? t("feedback.continue") : t("feedback.github")}</button>` + (form ? `<a id="feedback-issue" href="${escapeHTML(githubIssue(info))}" target="_blank" rel="noopener">${t("feedback.github")}</a>` : "") + `</div>`
+  );
+  document.getElementById("feedback-continue").onclick = async () => {
+    const attach = Boolean(document.getElementById("feedback-program")?.checked);
+    track("feedback-continue", { program: attach });
+    if (!form) {
+      open(githubIssue(info), "_blank", "noopener");
+      document.getElementById("modal").close();
+      return;
+    }
+    document.getElementById("modal").close();
+    try {
+      await openTally(form, {
+        source: "ide",
+        build: info.build,
+        language: info.language,
+        diagnostics: JSON.stringify(info),
+        program: attach ? programText(files2) : ""
+      });
+    } catch {
+      open(githubIssue(info), "_blank", "noopener");
+    }
+  };
+}
 
 // ui/i18n/mars.js
 var MESSAGES = [
@@ -3701,9 +4056,9 @@ var TextLeaf = class _TextLeaf extends Text {
       line++;
     }
   }
-  decompose(from, to, target2, open) {
+  decompose(from, to, target2, open2) {
     let text2 = from <= 0 && to >= this.length ? this : new _TextLeaf(sliceText(this.text, from, to), Math.min(to, this.length) - Math.max(0, from));
-    if (open & 1) {
+    if (open2 & 1) {
       let prev = target2.pop();
       let joined = appendText(text2.text, prev.text.slice(), 0, text2.length);
       if (joined.length <= 32) {
@@ -3780,11 +4135,11 @@ var TextNode = class _TextNode extends Text {
       line = endLine + 1;
     }
   }
-  decompose(from, to, target2, open) {
+  decompose(from, to, target2, open2) {
     for (let i = 0, pos = 0; pos <= to && i < this.children.length; i++) {
       let child = this.children[i], end = pos + child.length;
       if (from <= end && to >= pos) {
-        let childOpen = open & ((pos <= from ? 1 : 0) | (end >= to ? 2 : 0));
+        let childOpen = open2 & ((pos <= from ? 1 : 0) | (end >= to ? 2 : 0));
         if (pos >= from && end <= to && !childOpen)
           target2.push(child);
         else
@@ -4615,14 +4970,14 @@ function composeSets(setA, setB, mkSet = false) {
   let sections = [];
   let insert2 = mkSet ? [] : null;
   let a = new SectionIter(setA), b = new SectionIter(setB);
-  for (let open = false; ; ) {
+  for (let open2 = false; ; ) {
     if (a.done && b.done) {
       return insert2 ? ChangeSet.createSet(sections, insert2) : ChangeDesc.create(sections);
     } else if (a.ins == 0) {
-      addSection(sections, a.len, 0, open);
+      addSection(sections, a.len, 0, open2);
       a.next();
     } else if (b.len == 0 && !b.done) {
-      addSection(sections, 0, b.ins, open);
+      addSection(sections, 0, b.ins, open2);
       if (insert2)
         addInsert(insert2, sections, b.text);
       b.next();
@@ -4632,19 +4987,19 @@ function composeSets(setA, setB, mkSet = false) {
       let len = Math.min(a.len2, b.len), sectionLen = sections.length;
       if (a.ins == -1) {
         let insB = b.ins == -1 ? -1 : b.off ? 0 : b.ins;
-        addSection(sections, len, insB, open);
+        addSection(sections, len, insB, open2);
         if (insert2 && insB)
           addInsert(insert2, sections, b.text);
       } else if (b.ins == -1) {
-        addSection(sections, a.off ? 0 : a.len, len, open);
+        addSection(sections, a.off ? 0 : a.len, len, open2);
         if (insert2)
           addInsert(insert2, sections, a.textBit(len));
       } else {
-        addSection(sections, a.off ? 0 : a.len, b.off ? 0 : b.ins, open);
+        addSection(sections, a.off ? 0 : a.len, b.off ? 0 : b.ins, open2);
         if (insert2 && !b.off)
           addInsert(insert2, sections, b.text);
       }
-      open = (a.ins > len || b.ins >= 0 && b.len > len) && (open || sections.length > sectionLen);
+      open2 = (a.ins > len || b.ins >= 0 && b.len > len) && (open2 || sections.length > sectionLen);
       a.forward2(len);
       b.forward(len);
     }
@@ -6851,10 +7206,10 @@ var SpanCursor = class {
     return active.reverse();
   }
   openEnd(to) {
-    let open = 0;
+    let open2 = 0;
     for (let i = this.activeTo.length - 1; i >= 0 && this.activeTo[i] > to; i--)
-      open++;
-    return open;
+      open2++;
+    return open2;
   }
 };
 function compare(a, startA, b, startB, length, comparator) {
@@ -8512,12 +8867,12 @@ function getIsolatedRanges(view2, line) {
   RangeSet.spans(sets, line.from, line.to, {
     point() {
     },
-    span(fromDoc, toDoc, active, open) {
+    span(fromDoc, toDoc, active, open2) {
       let from = fromDoc - line.from, to = toDoc - line.from;
       let level = result;
-      for (let i = active.length - 1; i >= 0; i--, open--) {
+      for (let i = active.length - 1; i >= 0; i--, open2--) {
         let direction = active[i].spec.bidiIsolate, update;
-        if (open > 0 && level.length && (update = level[level.length - 1]).to == from && update.direction == direction) {
+        if (open2 > 0 && level.length && (update = level[level.length - 1]).to == from && update.direction == direction) {
           update.to = to;
           level = update.inner;
         } else {
@@ -8744,7 +9099,7 @@ var Tile = class {
   get domAttrs() {
     return null;
   }
-  sync(track) {
+  sync(track2) {
     this.flags |= 2;
     if (this.flags & 4) {
       this.flags &= -5;
@@ -8830,15 +9185,15 @@ var CompositeTile = class extends Tile {
     this.children.push(child);
     child.parent = this;
   }
-  sync(track) {
+  sync(track2) {
     if (this.flags & 2)
       return;
-    super.sync(track);
+    super.sync(track2);
     let parent = this.dom, prev = null, next;
-    let tracking = (track === null || track === void 0 ? void 0 : track.node) == parent ? track : null;
+    let tracking = (track2 === null || track2 === void 0 ? void 0 : track2.node) == parent ? track2 : null;
     let length = 0;
     for (let child of this.children) {
-      child.sync(track);
+      child.sync(track2);
       length += child.length + child.breakAfter;
       next = prev ? prev.nextSibling : parent.firstChild;
       if (tracking && next != child.dom)
@@ -9068,13 +9423,13 @@ var TextTile = class _TextTile extends Tile {
     super(dom, text2.length);
     this.text = text2;
   }
-  sync(track) {
+  sync(track2) {
     if (this.flags & 2)
       return;
-    super.sync(track);
+    super.sync(track2);
     if (this.dom.nodeValue != this.text) {
-      if (track && track.node == this.dom)
-        track.written = true;
+      if (track2 && track2.node == this.dom)
+        track2.written = true;
       this.dom.nodeValue = this.text;
     }
   }
@@ -10012,9 +10367,9 @@ var DocView = class {
       }
       this.tile.dom.style.height = this.view.viewState.contentHeight / this.view.scaleY + "px";
       this.tile.dom.style.flexBasis = this.minWidth ? this.minWidth + "px" : "";
-      let track = browser.chrome || browser.ios ? { node: observer.selectionRange.focusNode, written: false } : void 0;
-      this.tile.sync(track);
-      if (track && (track.written || observer.selectionRange.focusNode != track.node || !this.tile.dom.contains(track.node)))
+      let track2 = browser.chrome || browser.ios ? { node: observer.selectionRange.focusNode, written: false } : void 0;
+      this.tile.sync(track2);
+      if (track2 && (track2.written || observer.selectionRange.focusNode != track2.node || !this.tile.dom.contains(track2.node)))
         this.forceSelection = true;
       this.tile.dom.style.height = "";
     });
@@ -17005,7 +17360,7 @@ var HoverPlugin = class {
     this.activateHover(view2, pos, side);
   }
   activateHover(view2, pos, side, locked) {
-    let open = this.source(view2, pos, side);
+    let open2 = this.source(view2, pos, side);
     let done = (value) => {
       if (value && !(Array.isArray(value) && !value.length)) {
         let tooltips = Array.isArray(value) ? value : [value];
@@ -17014,16 +17369,16 @@ var HoverPlugin = class {
         view2.dispatch({ effects: this.setHover.of(tooltips) });
       }
     };
-    if (open && "then" in open) {
+    if (open2 && "then" in open2) {
       let pending = this.pending = { pos };
-      open.then((result) => {
+      open2.then((result) => {
         if (this.pending == pending) {
           this.pending = null;
           done(result);
         }
       }, (e) => logException(view2.state, e, "hover tooltip"));
     } else {
-      done(open);
+      done(open2);
     }
   }
   get tooltip() {
@@ -17347,8 +17702,8 @@ function showDialog(view2, config2) {
 }
 function getDialog(view2, className) {
   let dialogs = view2.state.field(dialogField, false) || [];
-  for (let open of dialogs) {
-    let panel = getPanel(view2, open);
+  for (let open2 of dialogs) {
+    let panel = getPanel(view2, open2);
     if (panel && panel.dom.classList.contains(className))
       return panel;
   }
@@ -21250,10 +21605,10 @@ var foldGutterDefaults = {
   foldingChanged: () => false
 };
 var FoldMarker = class extends GutterMarker {
-  constructor(config2, open) {
+  constructor(config2, open2) {
     super();
     this.config = config2;
-    this.open = open;
+    this.open = open2;
   }
   eq(other) {
     return this.config == other.config && this.open == other.open;
@@ -21774,12 +22129,12 @@ function getConfig(state2, pos) {
   return data2.length ? data2[0] : {};
 }
 var SearchMargin = 50;
-function findBlockComment(state2, { open, close }, from, to) {
+function findBlockComment(state2, { open: open2, close }, from, to) {
   let textBefore = state2.sliceDoc(from - SearchMargin, from);
   let textAfter = state2.sliceDoc(to, to + SearchMargin);
   let spaceBefore = /\s*$/.exec(textBefore)[0].length, spaceAfter = /^\s*/.exec(textAfter)[0].length;
   let beforeOff = textBefore.length - spaceBefore;
-  if (textBefore.slice(beforeOff - open.length, beforeOff) == open && textAfter.slice(spaceAfter, spaceAfter + close.length) == close) {
+  if (textBefore.slice(beforeOff - open2.length, beforeOff) == open2 && textAfter.slice(spaceAfter, spaceAfter + close.length) == close) {
     return {
       open: { pos: from - spaceBefore, margin: spaceBefore && 1 },
       close: { pos: to + spaceAfter, margin: spaceAfter && 1 }
@@ -21794,11 +22149,11 @@ function findBlockComment(state2, { open, close }, from, to) {
   }
   let startSpace = /^\s*/.exec(startText)[0].length, endSpace = /\s*$/.exec(endText)[0].length;
   let endOff = endText.length - endSpace - close.length;
-  if (startText.slice(startSpace, startSpace + open.length) == open && endText.slice(endOff, endOff + close.length) == close) {
+  if (startText.slice(startSpace, startSpace + open2.length) == open2 && endText.slice(endOff, endOff + close.length) == close) {
     return {
       open: {
-        pos: from + startSpace + open.length,
-        margin: /\s/.test(startText.charAt(startSpace + open.length)) ? 1 : 0
+        pos: from + startSpace + open2.length,
+        margin: /\s/.test(startText.charAt(startSpace + open2.length)) ? 1 : 0
       },
       close: {
         pos: to - endSpace - close.length,
@@ -21838,8 +22193,8 @@ function changeBlockComment(option, state2, ranges = state2.selection.ranges) {
     let changes = [];
     for (let i = 0, comment2; i < comments.length; i++)
       if (comment2 = comments[i]) {
-        let token = tokens[i], { open, close } = comment2;
-        changes.push({ from: open.pos - token.open.length, to: open.pos + open.margin }, { from: close.pos - close.margin, to: close.pos + token.close.length });
+        let token = tokens[i], { open: open2, close } = comment2;
+        changes.push({ from: open2.pos - token.open.length, to: open2.pos + open2.margin }, { from: close.pos - close.margin, to: close.pos + token.close.length });
       }
     return { changes };
   }
@@ -21950,7 +22305,7 @@ var historyField_ = /* @__PURE__ */ StateField.define({
     return new HistoryState(json.done.map(HistEvent.fromJSON), json.undone.map(HistEvent.fromJSON));
   }
 });
-function history(config2 = {}) {
+function history2(config2 = {}) {
   return [
     historyField_,
     historyConfig.of(config2),
@@ -23107,9 +23462,9 @@ function toCharEnd(text2, pos) {
   return pos;
 }
 var gotoLine = (view2) => {
-  let open = getDialog(view2, "cm-goto-line");
-  if (open) {
-    let field = open.dom.querySelector("input[type=text]");
+  let open2 = getDialog(view2, "cm-goto-line");
+  if (open2) {
+    let field = open2.dom.querySelector("input[type=text]");
     if (field)
       field.select();
     return true;
@@ -24421,15 +24776,15 @@ var CompletionTooltip = class {
       this.view.requestMeasure(this.placeInfoReq);
   }
   updateSel() {
-    let cState = this.view.state.field(this.stateField), open = cState.open;
-    if (open.selected > -1 && open.selected < this.range.from || open.selected >= this.range.to) {
-      this.range = rangeAroundSelected(open.options.length, open.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
-      this.showOptions(open.options, cState.id);
+    let cState = this.view.state.field(this.stateField), open2 = cState.open;
+    if (open2.selected > -1 && open2.selected < this.range.from || open2.selected >= this.range.to) {
+      this.range = rangeAroundSelected(open2.options.length, open2.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
+      this.showOptions(open2.options, cState.id);
     }
-    let newSel = this.updateSelectedOption(open.selected);
+    let newSel = this.updateSelectedOption(open2.selected);
     if (newSel) {
       this.destroyInfo();
-      let { completion: completion2 } = open.options[open.selected];
+      let { completion: completion2 } = open2.options[open2.selected];
       let { info } = completion2;
       if (!info)
         return;
@@ -24688,10 +25043,10 @@ var CompletionDialog = class _CompletionDialog {
   }
 };
 var CompletionState = class _CompletionState {
-  constructor(active, id2, open) {
+  constructor(active, id2, open2) {
     this.active = active;
     this.id = id2;
-    this.open = open;
+    this.open = open2;
   }
   static start() {
     return new _CompletionState(none3, "cm-ac-" + Math.floor(Math.random() * 2e6).toString(36), null);
@@ -24712,14 +25067,14 @@ var CompletionState = class _CompletionState {
     });
     if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
       active = this.active;
-    let open = this.open, didSet = tr.effects.some((e) => e.is(setActiveEffect));
-    if (open && tr.docChanged)
-      open = open.map(tr.changes);
+    let open2 = this.open, didSet = tr.effects.some((e) => e.is(setActiveEffect));
+    if (open2 && tr.docChanged)
+      open2 = open2.map(tr.changes);
     if (tr.selection || active.some((a) => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) || !sameResults(active, this.active) || didSet)
-      open = CompletionDialog.build(active, state2, this.id, open, conf, didSet);
-    else if (open && open.disabled && !active.some((a) => a.isPending))
-      open = null;
-    if (!open && active.every((a) => !a.isPending) && active.some((a) => a.hasResult()))
+      open2 = CompletionDialog.build(active, state2, this.id, open2, conf, didSet);
+    else if (open2 && open2.disabled && !active.some((a) => a.isPending))
+      open2 = null;
+    if (!open2 && active.every((a) => !a.isPending) && active.some((a) => a.hasResult()))
       active = active.map((a) => a.hasResult() ? new ActiveSource(
         a.source,
         0
@@ -24727,8 +25082,8 @@ var CompletionState = class _CompletionState {
       ) : a);
     for (let effect of tr.effects)
       if (effect.is(setSelectedEffect))
-        open = open && open.setSelected(effect.value, this.id);
-    return active == this.active && open == this.open ? this : new _CompletionState(active, this.id, open);
+        open2 = open2 && open2.setSelected(effect.value, this.id);
+    return active == this.active && open2 == this.open ? this : new _CompletionState(active, this.id, open2);
   }
   get tooltip() {
     return this.open ? this.open.tooltip : null;
@@ -25367,20 +25722,20 @@ function prevChar(doc2, pos) {
   let prev = doc2.sliceString(pos - 2, pos);
   return codePointSize2(codePointAt2(prev, 0)) == prev.length ? prev : prev.slice(1);
 }
-function handleOpen(state2, open, close, closeBefore) {
+function handleOpen(state2, open2, close, closeBefore) {
   let dont = null, changes = state2.changeByRange((range) => {
     if (!range.empty)
       return {
-        changes: [{ insert: open, from: range.from }, { insert: close, from: range.to }],
-        effects: closeBracketEffect.of(range.to + open.length),
-        range: EditorSelection.range(range.anchor + open.length, range.head + open.length)
+        changes: [{ insert: open2, from: range.from }, { insert: close, from: range.to }],
+        effects: closeBracketEffect.of(range.to + open2.length),
+        range: EditorSelection.range(range.anchor + open2.length, range.head + open2.length)
       };
     let next = nextChar(state2.doc, range.head);
     if (!next || /\s/.test(next) || closeBefore.indexOf(next) > -1)
       return {
-        changes: { insert: open + close, from: range.head },
-        effects: closeBracketEffect.of(range.head + open.length),
-        range: EditorSelection.cursor(range.head + open.length)
+        changes: { insert: open2 + close, from: range.head },
+        effects: closeBracketEffect.of(range.head + open2.length),
+        range: EditorSelection.cursor(range.head + open2.length)
       };
     return { range: dont = range };
   });
@@ -25518,16 +25873,16 @@ var SelectedDiagnostic = class {
   }
 };
 var LintState = class _LintState {
-  constructor(diagnostics, panel, selected) {
-    this.diagnostics = diagnostics;
+  constructor(diagnostics2, panel, selected) {
+    this.diagnostics = diagnostics2;
     this.panel = panel;
     this.selected = selected;
   }
-  static init(diagnostics, panel, state2) {
+  static init(diagnostics2, panel, state2) {
     let diagnosticFilter = state2.facet(lintConfig).markerFilter;
     if (diagnosticFilter)
-      diagnostics = diagnosticFilter(diagnostics, state2);
-    let sorted = diagnostics.slice().sort((a, b) => a.from - b.from || a.to - b.to);
+      diagnostics2 = diagnosticFilter(diagnostics2, state2);
+    let sorted = diagnostics2.slice().sort((a, b) => a.from - b.from || a.to - b.to);
     let deco = new RangeSetBuilder(), active = [], pos = 0;
     let scan = state2.doc.iter(), scanPos = 0, docLen = state2.doc.length;
     for (let i = 0; ; ) {
@@ -25605,9 +25960,9 @@ var LintState = class _LintState {
     return new _LintState(set, panel, findDiagnostic(set));
   }
 };
-function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
+function findDiagnostic(diagnostics2, diagnostic = null, after = 0) {
   let found = null;
-  diagnostics.between(after, 1e9, (from, to, { spec }) => {
+  diagnostics2.between(after, 1e9, (from, to, { spec }) => {
     if (diagnostic && spec.diagnostics.indexOf(diagnostic) < 0)
       return;
     if (!found)
@@ -25667,9 +26022,9 @@ var lintState = /* @__PURE__ */ StateField.define({
 });
 var activeMark = /* @__PURE__ */ Decoration.mark({ class: "cm-lintRange cm-lintRange-active" });
 function lintTooltip(view2, pos, side) {
-  let { diagnostics } = view2.state.field(lintState);
+  let { diagnostics: diagnostics2 } = view2.state.field(lintState);
   let found, start = -1, end = -1;
-  diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
+  diagnostics2.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
     if (pos >= from && pos <= to && (from == to || (pos > from || side > 0) && (pos < to || side < 0))) {
       found = spec.diagnostics;
       start = from;
@@ -25691,8 +26046,8 @@ function lintTooltip(view2, pos, side) {
     }
   };
 }
-function diagnosticsTooltip(view2, diagnostics) {
-  return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map((d) => renderDiagnostic(view2, d, false)));
+function diagnosticsTooltip(view2, diagnostics2) {
+  return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics2.map((d) => renderDiagnostic(view2, d, false)));
 }
 var openLintPanel = (view2) => {
   let field = view2.state.field(lintState, false);
@@ -25884,10 +26239,10 @@ var LintPanel = class _LintPanel {
     return -1;
   }
   update() {
-    let { diagnostics, selected } = this.view.state.field(lintState);
+    let { diagnostics: diagnostics2, selected } = this.view.state.field(lintState);
     let i = 0, needsSync = false, newSelectedItem = null;
     let seen = /* @__PURE__ */ new Set();
-    diagnostics.between(0, this.view.state.doc.length, (_start, _end, { spec }) => {
+    diagnostics2.between(0, this.view.state.doc.length, (_start, _end, { spec }) => {
       for (let diagnostic of spec.diagnostics) {
         if (seen.has(diagnostic))
           continue;
@@ -26094,9 +26449,9 @@ var baseTheme5 = /* @__PURE__ */ EditorView.baseTheme({
 function severityWeight(sev) {
   return sev == "error" ? 4 : sev == "warning" ? 3 : sev == "info" ? 2 : 1;
 }
-function maxSeverity(diagnostics) {
+function maxSeverity(diagnostics2) {
   let sev = "hint", weight = 1;
-  for (let d of diagnostics) {
+  for (let d of diagnostics2) {
     let w = severityWeight(d.severity);
     if (w > weight) {
       weight = w;
@@ -26123,7 +26478,7 @@ var basicSetup = /* @__PURE__ */ (() => [
   lineNumbers(),
   highlightActiveLineGutter(),
   highlightSpecialChars(),
-  history(),
+  history2(),
   foldGutter(),
   drawSelection(),
   dropCursor(),
@@ -26147,214 +26502,6 @@ var basicSetup = /* @__PURE__ */ (() => [
     ...lintKeymap
   ])
 ])();
-
-// ui/model.js
-var hex = (n) => "0x" + (n >>> 0).toString(16).padStart(8, "0");
-var escapeHTML = (s) => String(s ?? "").replace(
-  /[&<>"']/g,
-  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
-);
-var registerNames = [
-  "zero",
-  "at",
-  "v0",
-  "v1",
-  "a0",
-  "a1",
-  "a2",
-  "a3",
-  "t0",
-  "t1",
-  "t2",
-  "t3",
-  "t4",
-  "t5",
-  "t6",
-  "t7",
-  "s0",
-  "s1",
-  "s2",
-  "s3",
-  "s4",
-  "s5",
-  "s6",
-  "s7",
-  "t8",
-  "t9",
-  "k0",
-  "k1",
-  "gp",
-  "sp",
-  "fp",
-  "ra"
-];
-function canonicalReg(token) {
-  if (/^\$\d+$/.test(token)) return "$" + registerNames[Number(token.slice(1))];
-  return token === "$s8" ? "$fp" : token;
-}
-var services = localized(() => ({
-  1: [t("service.1"), ["$a0"], []],
-  2: [t("service.2"), ["$f12"], []],
-  3: [t("service.3"), ["$f12", "$f13"], []],
-  4: [t("service.4"), ["$a0"], []],
-  5: [t("service.5"), [], ["$v0"]],
-  6: [t("service.6"), [], ["$f0"]],
-  7: [t("service.7"), [], ["$f0", "$f1"]],
-  8: [t("service.8"), ["$a0", "$a1"], ["memory"]],
-  9: [t("service.9"), ["$a0"], ["$v0"]],
-  10: [t("service.10"), [], []],
-  11: [t("service.11"), ["$a0"], []],
-  12: [t("service.12"), [], ["$v0"]],
-  13: [t("service.13"), ["$a0", "$a1", "$a2"], ["$v0"]],
-  14: [t("service.14"), ["$a0", "$a1", "$a2"], ["memory", "$v0"]],
-  15: [t("service.15"), ["$a0", "$a1", "$a2"], ["$v0"]],
-  16: [t("service.16"), ["$a0"], []],
-  17: [t("service.17"), ["$a0"], []],
-  34: [t("service.34"), ["$a0"], []],
-  35: [t("service.35"), ["$a0"], []],
-  36: [t("service.36"), ["$a0"], []]
-}));
-var explanations = localized(() => ({
-  addiu: t("explain.addiu"),
-  addi: t("explain.addi"),
-  addu: t("explain.addu"),
-  add: t("explain.add"),
-  subu: t("explain.subu"),
-  lbu: t("explain.lbu"),
-  lb: t("explain.lb"),
-  lw: t("explain.lw"),
-  sw: t("explain.sw"),
-  sb: t("explain.sb"),
-  srl: t("explain.srl"),
-  sll: t("explain.sll"),
-  slti: t("explain.slti"),
-  beq: t("explain.beq"),
-  bne: t("explain.bne"),
-  jal: t("explain.jal"),
-  jr: t("explain.jr"),
-  syscall: t("explain.syscall"),
-  li: t("explain.li"),
-  la: t("explain.la"),
-  move: t("explain.move"),
-  nop: t("explain.nop"),
-  lui: t("explain.lui"),
-  ori: t("explain.ori")
-}));
-function role(name2) {
-  let n = registerNames.indexOf(name2.replace("$", ""));
-  return n === 0 ? t("role.zero") : n === 1 ? t("role.at") : n === 2 || n === 3 ? t("role.v") : n >= 4 && n <= 7 ? t("role.a") : n >= 16 && n <= 23 ? t("role.s") : n === 29 ? t("role.sp") : n === 31 ? t("role.ra") : n === 28 ? t("role.gp") : n === 30 ? t("role.fp") : n === 26 || n === 27 ? t("role.k") : t("role.t");
-}
-function references(files2, token) {
-  let out = [];
-  for (let [file, text2] of Object.entries(files2))
-    text2.split("\n").forEach((line, i) => {
-      let code = line.split("#")[0], tokens = code.match(/\$\w+|[\w.]+/g) || [];
-      if (!tokens.some((t3) => canonicalReg(t3) === canonicalReg(token))) return;
-      let op = tokens[0], regs = tokens.filter((t3) => t3.startsWith("$")), r = canonicalReg(token), k = t("refs.kind.use");
-      if (token.startsWith("$")) {
-        let occurrences = regs.map(canonicalReg), first = occurrences[0] === r, read = occurrences.slice(1).includes(r);
-        if (/^(sw|sb|sh|b\w*|jr|multu?|divu?|mthi|mtlo)$/.test(op)) k = t("refs.kind.read");
-        else if (/^(li|la|move|l[bhw]u?|sll|srl|sra|add\w*|sub\w*|and\w*|or\w*|xor\w*|nor|slt\w*|mfhi|mflo)$/.test(
-          op
-        ))
-          k = first ? read ? t("refs.kind.readWrite") : t("refs.kind.write") : t("refs.kind.read");
-        else k = t("refs.kind.operand");
-      } else if (new RegExp(
-        "^\\s*" + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:"
-      ).test(code))
-        k = t("refs.kind.definition");
-      else if (/^(b\w*|j|jal)$/.test(op)) k = t("refs.kind.transfer");
-      out.push({ file, line: i + 1, text: line, type: k });
-    });
-  return out;
-}
-function buildCFG(instructions, delay = false) {
-  let by = new Map(instructions.map((i) => [i.address, i])), leaders = /* @__PURE__ */ new Set();
-  if (instructions[0]) leaders.add(instructions[0].address);
-  for (let i of instructions)
-    if (i.flow !== "next") {
-      if (by.has(i.target)) leaders.add(i.target);
-      let next = i.address + (delay ? 8 : 4);
-      if (by.has(next)) leaders.add(next);
-    }
-  let blocks = [], current2;
-  for (let i of instructions) {
-    if (!current2 || leaders.has(i.address) || i.address !== current2.end + 4) {
-      current2 = {
-        id: i.address,
-        start: i.address,
-        end: i.address,
-        instructions: [],
-        edges: []
-      };
-      blocks.push(current2);
-    }
-    current2.instructions.push(i);
-    current2.end = i.address;
-  }
-  let owner = /* @__PURE__ */ new Map();
-  for (let b of blocks)
-    for (let i of b.instructions) owner.set(i.address, b.id);
-  for (let b of blocks) {
-    let terminal = [...b.instructions].reverse().find((i) => i.flow !== "next") || b.instructions.at(-1);
-    let add2 = (address, label2) => {
-      if (owner.has(address))
-        b.edges.push({ target: owner.get(address), label: label2 });
-    };
-    if (terminal.flow === "branch") {
-      add2(terminal.target, t("path.edge.taken"));
-      add2(terminal.address + (delay ? 8 : 4), t("path.edge.fallthrough"));
-    } else if (terminal.flow === "jump") add2(terminal.target, t("path.edge.jump"));
-    else if (terminal.flow === "call") {
-      add2(terminal.target, t("path.edge.call"));
-      add2(terminal.address + (delay ? 8 : 4), t("cfg.edge.afterReturn"));
-    } else if (terminal.flow === "indirect")
-      b.edges.push({ target: null, label: t("cfg.edge.runtime") });
-    else add2(b.end + 4, t("path.edge.next"));
-  }
-  return blocks;
-}
-function splitComment(line) {
-  let quote = null;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (quote) {
-      if (c === "\\") i++;
-      else if (c === quote) quote = null;
-    } else if (c === '"' || c === "'") quote = c;
-    else if (c === "#")
-      return {
-        code: line.slice(0, i).trim(),
-        comment: line.slice(i + 1).trim()
-      };
-  }
-  return { code: line.trim(), comment: "" };
-}
-function nameRegisters(text2) {
-  return String(text2 ?? "").replace(
-    /\$(\d+)\b/g,
-    (m, n) => Number(n) < 32 ? "$" + registerNames[Number(n)] : m
-  );
-}
-function withOperands(description, example, line) {
-  const operands = (text2, op2) => text2.trim().replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").slice(op2.length).split(/[\s,()]+/).filter(Boolean);
-  const op = (example || "").trim().split(/\s+/)[0] || "";
-  const code = splitComment(line || "").code;
-  if (!op || !code.replace(/^[A-Za-z_.$][\w.$]*\s*:\s*/, "").startsWith(op))
-    return { text: description, substituted: false };
-  const from = operands(example, op), to = operands(code, op);
-  if (!from.length || from.length !== to.length)
-    return { text: description, substituted: false };
-  const map = new Map(from.map((f, i) => [f, to[i]]));
-  const pattern = new RegExp(
-    [...map.keys()].sort((a, b) => b.length - a.length).map((t3) => t3.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])").join("|"),
-    "g"
-  );
-  return {
-    text: description.replace(pattern, (m) => map.get(m) ?? m),
-    substituted: true
-  };
-}
 
 // ui/overlay.js
 var OverlayRenderer = class {
@@ -26554,7 +26701,7 @@ function bitStory(event, name2 = (n) => "$" + n) {
   const result = written[0];
   const steps = [];
   const step = (caption, rows) => steps.push({ caption, rows });
-  const failed = event.error ? t("bits.exception") : "";
+  const failed2 = event.error ? t("bits.exception") : "";
   if (SHIFTS[op]) {
     const kind = SHIFTS[op], src = read(rtN) | 0, amount = op.endsWith("v") ? read(rsN) & 31 : sa;
     const fill = kind === "left" ? t("bits.shift.fillRight") : kind === "logical" ? t("bits.shift.fillLeftZero") : t("bits.shift.fillLeftSign");
@@ -26599,7 +26746,7 @@ function bitStory(event, name2 = (n) => "$" + n) {
     }
     const trapping = op === "add" || op === "addi" || op === "sub";
     const note = overflow ? trapping ? t("bits.overflow.trap", { op }) : t("bits.overflow.ignored", { op }) : carries[32] ? t("bits.overflow.carryOut") : t("bits.overflow.none");
-    step(`${note}${failed}${result ? ` ${t("bits.add.result", { value: hexOf(S.reduce((v, s) => v << 1 | s, 0)), reg: result.name })}` : ""}`, [
+    step(`${note}${failed2}${result ? ` ${t("bits.add.result", { value: hexOf(S.reduce((v, s) => v << 1 | s, 0)), reg: result.name })}` : ""}`, [
       row(t("bits.result"), S, {}, { result: true })
     ]);
     return { title: t("bits.add.title", { op, operation: sub ? t("bits.subtract") : t("bits.addition") }), steps, overflow };
@@ -26676,7 +26823,7 @@ function lastTransfer(step, before, delay) {
 }
 function layoutPath({
   last: last2 = null,
-  history: history2 = [],
+  history: history3 = [],
   earlier = 3,
   lookahead: lookahead2 = null,
   instructions = [],
@@ -26715,7 +26862,7 @@ function layoutPath({
     block: owner.get(events[0].instruction.address) ?? null
   });
   if (last2?.instruction) {
-    const byStep = new Map(history2.map((e) => [e.step, e]));
+    const byStep = new Map(history3.map((e) => [e.step, e]));
     const lineEnding = (end) => {
       const done = [end];
       for (let e = byStep.get(end.step - 1); e; e = byStep.get(e.step - 1)) {
@@ -28567,15 +28714,15 @@ var FocusLens = class {
         const machine = instructions.filter(
           (i) => i.file === line.file && i.line === line.line
         );
-        const open = this.expanded.has(line.address);
+        const open2 = this.expanded.has(line.address);
         const bp = this.host.hasBreakpoint(line.address);
         return `<div class="frow ${steps.some((s) => s.index === this.selected) ? "sel" : ""} ${steps.every((s) => s.predicted) ? "pred" : "done"}" data-row="${line.address}" data-line="${line.line}">
                 <button class="fbp ${bp ? "on" : ""}" data-bp="${line.address}" aria-label="${bp ? t("breakpoint.delete") : t("focus.setBreakpoint")}">${bp ? "\u25CF" : "\u25CB"}</button>
                 <span class="fln">${line.line}</span>
                 <code>${escapeHTML(splitComment(this.host.getSource(line.file, line.line) || "").code || machine[0]?.basic || "")}</code>
-                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open}">${t("focus.expand", { arrow: open ? "\u25BE" : "\u25B8", count: machine.length })}</button>` : ""}
+                ${machine.length > 1 ? `<button class="fexpand" data-expand="${line.address}" aria-expanded="${open2}">${t("focus.expand", { arrow: open2 ? "\u25BE" : "\u25B8", count: machine.length })}</button>` : ""}
                 <span class="fbadges">${steps.map(badge2).join("")}</span>
-              </div>${open ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}`;
+              </div>${open2 ? machine.map((i) => `<div class="fmachine">${hex(i.address)}  ${escapeHTML(i.basic)}</div>`).join("") : ""}`;
       }).join("");
       const at = placed.get(seg.id);
       return `<div class="fseg" data-seg="${seg.id}" style="grid-column:${at.col + 1};grid-row:${at.row}"><div class="fseg-head">${head}</div>${rows}</div>`;
@@ -30892,10 +31039,10 @@ function referencesIn(text2) {
   }
   return refs;
 }
-function scopeHints(diagnostics, project, scope) {
+function scopeHints(diagnostics2, project, scope) {
   const labels = new Map(Object.entries(project.files).map(([n, t3]) => [n, labelsIn(t3)]));
   const list = (names) => names.join(t("common.listSep"));
-  return (diagnostics || []).map((d) => {
+  return (diagnostics2 || []).map((d) => {
     let m = /^"(.+)" already defined as global in a different file/.exec(d.message || "");
     if (m) {
       const owners = scope.files.filter((n) => labels.get(n)?.globals.has(m[1]) && labels.get(n).defined.has(m[1]));
@@ -30991,7 +31138,7 @@ var ICONS = {
 };
 var icon = (kind) => `<svg class="file-icon ${kind}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[kind]}</svg>`;
 function projectManager(hooks) {
-  let meta2 = blankProject(), timer, failed = false, replacing = false, draftLocked = false, previous = null, hasBackup = false, saving = Promise.resolve();
+  let meta2 = blankProject(), timer, failed2 = false, replacing = false, draftLocked = false, previous = null, hasBackup = false, saving = Promise.resolve();
   const snapshot = () => normalizeProject({ ...meta2, ...hooks.snapshot() });
   const message = (text2) => {
     $("workspace-status").textContent = text2;
@@ -31003,7 +31150,7 @@ function projectManager(hooks) {
       return false;
     }
     const done = (ok2) => {
-      failed = !ok2;
+      failed2 = !ok2;
       message(ok2 ? t("project.status.saved") : t("project.status.failed"));
     };
     try {
@@ -31011,7 +31158,7 @@ function projectManager(hooks) {
     } catch {
       done(false);
     }
-    return !failed;
+    return !failed2;
   }
   function changed() {
     if (replacing) return;
@@ -31280,7 +31427,7 @@ function projectManager(hooks) {
   $("save-local").onclick = async () => {
     save();
     await saving;
-    hooks.notify(failed ? t("project.saveUnavailable") : t("project.savedNote"), { transient: true });
+    hooks.notify(failed2 ? t("project.saveUnavailable") : t("project.savedNote"), { transient: true });
   };
   $("save").onclick = () => {
     const p = snapshot();
@@ -31362,6 +31509,7 @@ function projectManager(hooks) {
       hasBackup = await get(BACKUP_KEY).then(Boolean, () => false);
       await apply(p || blankProject(), false);
       hooks.notify(p ? t("project.restored") : t("project.blankReady"));
+      return Boolean(p);
     }
   };
 }
@@ -31369,10 +31517,10 @@ function projectManager(hooks) {
 // ui/live-check.js
 var MAX_LINES = 200;
 function liveCheck({ post: post2, current: current2, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
-  let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
+  let enabled2 = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
   const flying = {}, waiting = {};
   async function send(kind, body, accept, asked = version) {
-    if (!enabled || asked !== version) return;
+    if (!enabled2 || asked !== version) return;
     if (flying[kind]) {
       waiting[kind] = [body, accept, asked];
       return;
@@ -31381,7 +31529,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
     const reply = await post2({ protocol: 1, id: asked, ...body }).catch(() => void 0);
     flying[kind] = false;
     if (reply === null) {
-      enabled = false;
+      enabled2 = false;
       clearTimeout(lineTimer);
       clearTimeout(fullTimer);
     } else if (asked === version) {
@@ -31397,7 +31545,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
     if (next) send(kind, ...next);
   }
   function checkLines() {
-    if (!enabled) return;
+    if (!enabled2) return;
     if (!ready()) {
       lineTimer = setTimeout(checkLines, retryDelay);
       return;
@@ -31420,7 +31568,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
     });
   }
   function checkScope() {
-    if (!enabled) return;
+    if (!enabled2) return;
     if (!ready()) {
       fullTimer = setTimeout(checkScope, retryDelay);
       return;
@@ -31467,7 +31615,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
       clearTimeout(lineTimer);
       clearTimeout(fullTimer);
     },
-    enabled: () => enabled
+    enabled: () => enabled2
   };
 }
 
@@ -31704,14 +31852,14 @@ function inlineValues() {
   const events = (state?.trace || []).filter(
     (e) => !dirty && e.step <= state.step
   );
-  let open = null;
+  let open2 = null;
   for (let i = events.length - 1; i >= 0 && map.size <= INLINE_LINES; i--) {
     const ins = events[i].instruction, line = ins.file + ":" + ins.line;
-    if (line !== open) {
-      if (open) closed.add(open);
-      open = closed.has(line) ? null : line;
+    if (line !== open2) {
+      if (open2) closed.add(open2);
+      open2 = closed.has(line) ? null : line;
     }
-    if (!open) continue;
+    if (!open2) continue;
     runs.set(line, [events[i], ...runs.get(line) || []]);
     const writes = map.get(line) || /* @__PURE__ */ new Map();
     for (const a of events[i].accesses)
@@ -31946,7 +32094,7 @@ function editorMenu(x, y, pos) {
   menu.id = "context-menu";
   menu.setAttribute("role", "menu");
   menu.innerHTML = items.map(
-    ([name2, enabled, , action], i) => `<button role="menuitem" data-menu="${i}" ${enabled ? "" : "disabled"}>${escapeHTML(name2)}${action && keys2.find(action) ? `<kbd>${label(keys2.find(action), mac2)}</kbd>` : ""}</button>`
+    ([name2, enabled2, , action], i) => `<button role="menuitem" data-menu="${i}" ${enabled2 ? "" : "disabled"}>${escapeHTML(name2)}${action && keys2.find(action) ? `<kbd>${label(keys2.find(action), mac2)}</kbd>` : ""}</button>`
   ).join("");
   document.body.appendChild(menu);
   const r = menu.getBoundingClientRect();
@@ -32764,6 +32912,18 @@ var EXECUTING = /* @__PURE__ */ new Set([
   "input"
 ]);
 var QUIET = /* @__PURE__ */ new Set(["memory"]);
+var STEPPING = /* @__PURE__ */ new Set(["step", "source", "over", "out", "back", "run"]);
+function failed(e) {
+  notify(e.message);
+  remember(e.message);
+  if (!browserRuntime || !e.kernel) return;
+  track("kernel-error");
+  const report = document.createElement("button");
+  report.className = "banner-report";
+  report.textContent = t("feedback.report");
+  report.onclick = () => openFeedback(siteHooks, e.message);
+  $2("banner").append(" ", report);
+}
 var commandSerial = 0;
 async function command2(name2, extra = {}) {
   if (busy) return null;
@@ -32793,9 +32953,10 @@ async function command2(name2, extra = {}) {
     render();
     ioAttention(name2, before, s);
     lens.update(dirty ? null : state);
+    if (STEPPING.has(name2)) track(name2 === "back" ? "back" : name2 === "run" ? "run" : "step", { first: true });
     return s;
   } catch (e) {
-    notify(e.message);
+    failed(e);
     if (running) stopRequested = true;
     return null;
   } finally {
@@ -32857,8 +33018,9 @@ async function assemble() {
     if (!activeFile || !start || start.file === activeFile || !target.files.includes(activeFile))
       followPC();
     lens.update(state);
+    track("assemble", { first: true, ok: !state.error });
   } catch (e) {
-    notify(e.message);
+    failed(e);
   } finally {
     busy = false;
     updateControls();
@@ -33298,12 +33460,12 @@ function setupMenu(buttonId, menuId) {
   };
   button.addEventListener("click", (e) => {
     e.stopPropagation();
-    const open = menu.hidden;
+    const open2 = menu.hidden;
     document.querySelectorAll(".menu").forEach((m) => m.hidden = true);
     document.querySelectorAll(".menu-button").forEach((b) => b.setAttribute("aria-expanded", "false"));
-    menu.hidden = !open;
-    button.setAttribute("aria-expanded", String(open));
-    if (open) menu.querySelector("button:not(:disabled)")?.focus();
+    menu.hidden = !open2;
+    button.setAttribute("aria-expanded", String(open2));
+    if (open2) menu.querySelector("button:not(:disabled)")?.focus();
   });
   button.addEventListener("mouseenter", () => {
     if (menu.hidden && document.querySelector(".menubar .menu:not([hidden])")) button.click();
@@ -33385,10 +33547,10 @@ function noteStop() {
 }
 var PANELS = ["context", "registers", "memory"];
 function layoutPanels() {
-  const open = PANELS.filter((n) => !$2("panel-" + n).classList.contains("collapsed"));
-  for (const n of PANELS) $2("panel-" + n).classList.toggle("fill", n === open.at(-1));
-  $2("split-context").hidden = !open.includes("context") || open.at(-1) === "context";
-  $2("split-registers").hidden = !open.includes("registers") || open.at(-1) === "registers";
+  const open2 = PANELS.filter((n) => !$2("panel-" + n).classList.contains("collapsed"));
+  for (const n of PANELS) $2("panel-" + n).classList.toggle("fill", n === open2.at(-1));
+  $2("split-context").hidden = !open2.includes("context") || open2.at(-1) === "context";
+  $2("split-registers").hidden = !open2.includes("registers") || open2.at(-1) === "registers";
   editor.requestMeasure();
   overlay.schedule();
 }
@@ -33428,10 +33590,10 @@ function closeAssembleMenu() {
 }
 $2("assemble-mode").onclick = (e) => {
   e.stopPropagation();
-  const open = $2("assemble-menu").hidden;
-  $2("assemble-menu").hidden = !open;
-  $2("assemble-mode").setAttribute("aria-expanded", String(open));
-  if (open)
+  const open2 = $2("assemble-menu").hidden;
+  $2("assemble-menu").hidden = !open2;
+  $2("assemble-mode").setAttribute("aria-expanded", String(open2));
+  if (open2)
     $2("assemble-menu").querySelector('[aria-checked="true"]')?.focus();
 };
 document.querySelectorAll("[data-assembly-mode]").forEach(
@@ -33709,8 +33871,8 @@ function jumpToSegment(id2) {
   if (id2 === "data") return showMemory(l.data);
   if (id2 === "text") return showMemory(state.pc, "words");
 }
-function setMemMap(open) {
-  memMapOpen = open && !!state?.layout;
+function setMemMap(open2) {
+  memMapOpen = open2 && !!state?.layout;
   $2("panel-memory").classList.toggle("map-open", memMapOpen);
   $2("memory-map").hidden = !memMapOpen;
   $2("mem-expand").setAttribute("aria-expanded", String(memMapOpen));
@@ -34213,7 +34375,8 @@ function commandList() {
       }
     ],
     [t("commands.syscalls"), () => inspectToken("syscall")],
-    [t("commands.findInstruction"), () => findInstruction()]
+    [t("commands.findInstruction"), () => findInstruction()],
+    ...browserRuntime ? [[t("feedback.title"), () => openFeedback(siteHooks)]] : []
   ];
   return commands.map(([label2, run3, action]) => ({
     label: label2,
@@ -34834,6 +34997,7 @@ var exampleCopy = (e) => e.languages?.[language()] || e.languages?.en || Object.
 var exampleTitle = (e) => e.title?.[language()] || e.title?.en || e.name;
 async function loadExample(index) {
   const e = exampleList[index], copy = e && exampleCopy(e);
+  if (copy) track("example", { name: e.name });
   if (copy) workspace.example({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly }, exampleTitle(e));
 }
 function selectActiveFile(name2) {
@@ -34921,7 +35085,21 @@ workspace = projectManager({
     notify(t("project.updated"));
   }
 });
-await workspace.start();
+var restored = await workspace.start();
+var siteHooks = {
+  state: () => state,
+  files: () => files,
+  delay: () => $2("delay").checked,
+  modal
+};
+startSite(browserRuntime);
+if (browserRuntime) {
+  $2("feedback-open").onclick = () => openFeedback(siteHooks);
+  if (location.hash === "#feedback") {
+    history.replaceState(null, "", location.pathname + location.search);
+    openFeedback(siteHooks);
+  }
+}
 window.marsIDE = {
   get state() {
     return state;
@@ -34948,11 +35126,31 @@ window.marsIDE = {
   try {
     exampleList = await runtime.examples();
     renderExamples();
+    openLinkedExample();
   } catch (e) {
     exampleList = null;
     renderExamples();
   }
 })();
+async function openLinkedExample() {
+  let params;
+  try {
+    params = new URLSearchParams(location.search);
+  } catch {
+    return;
+  }
+  const name2 = params.get("example");
+  const index = exampleList?.findIndex((e2) => e2.name === name2) ?? -1;
+  if (!name2) return;
+  params.delete("example");
+  history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
+  if (index < 0) return;
+  if (restored) return loadExample(index);
+  const e = exampleList[index], copy = exampleCopy(e);
+  track("example", { name: e.name, linked: true });
+  await workspace.apply({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly, name: exampleTitle(e) }, false);
+  await assemble();
+}
 function renderExamples() {
   if (!exampleList) {
     $2("example-list").innerHTML = `<button role="menuitem" disabled>${t("examples.unavailable")}</button>`;

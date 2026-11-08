@@ -281,6 +281,7 @@ export function projectManager(hooks) {
       hasBackup = await get(BACKUP_KEY).then(Boolean, () => false);
       await apply(p || blankProject(),false);
       hooks.notify(p ? t("project.restored") : t("project.blankReady"));
+      return Boolean(p);
     },
   };
 }

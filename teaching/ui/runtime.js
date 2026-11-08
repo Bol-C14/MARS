@@ -17,10 +17,10 @@ class KernelWorker {
         const job = this.pending.get(data.id);
         if (!job) return;
         this.pending.delete(data.id);
-        data.error ? job.reject(Error(data.error)) : job.resolve(data.result);
+        data.error ? job.reject(Object.assign(Error(data.error), { kernel: true })) : job.resolve(data.result);
       };
       this.worker.onerror = (event) => {
-        const error = Error(event.message || "Browser kernel could not start");
+        const error = Object.assign(Error(event.message || "Browser kernel could not start"), { kernel: true });
         reject(error);
         for (const job of this.pending.values()) job.reject(error);
         this.pending.clear();

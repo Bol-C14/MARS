@@ -1965,3 +1965,16 @@ button#focus-open:hover { background: color-mix(in srgb, var(--accent) 22%, var(
 #mem-expand[aria-expanded="true"] { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)) !important; }
 #mem-expand:disabled { opacity: 0.45; }
 #memory-bar { flex-basis: 24px; padding-right: 2px; }
+/* Public static edition (2026-11-08): feedback, the maker's credit and the
+   report dialog. Hidden in the classroom server build. */
+.site-only { display: none; }
+html[data-site="public"] .site-only { display: inline-flex; }
+.footer-credit { align-items: center; font-size: 11px; color: var(--muted); text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.footer-credit:hover { color: var(--accent); }
+#feedback-open { white-space: nowrap; flex-shrink: 0; }
+.banner-report { margin-left: 6px; padding: 1px 8px; font: inherit; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+.feedback-reason { padding: 6px 8px; border-left: 3px solid var(--warn, #c08a1e); background: var(--panel); font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.feedback-details pre { max-height: 180px; overflow: auto; font-size: 11px; background: var(--panel); padding: 8px; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.feedback-attach { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: baseline; margin: 10px 0; }
+.feedback-attach small { grid-column: 2; color: var(--muted); }
+#feedback-issue { align-self: center; font-size: 12px; color: var(--muted); }

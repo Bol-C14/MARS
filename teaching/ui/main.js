@@ -1,4 +1,5 @@
 import { runtime, browserRuntime } from "./runtime.js";
+import { startSite, track, openFeedback, remember } from "./site.js";
 document.documentElement.dataset.runtime = browserRuntime ? "browser" : "server";
 import { t, LANGUAGES, localized, language, setLanguage, onLanguageChange, applyDom } from "./i18n/index.js";
 import { marsText } from "./i18n/mars.js";
@@ -1531,6 +1532,20 @@ const EXECUTING = new Set([
 // made Assemble and the step buttons flicker). A newer command wins over a
 // window request still on its way.
 const QUIET = new Set(["memory"]);
+const STEPPING = new Set(["step", "source", "over", "out", "back", "run"]);
+// A failure of the IDE itself (not of the student's program) says so and,
+// in the public edition, offers to report it with what led there.
+function failed(e) {
+  notify(e.message);
+  remember(e.message);
+  if (!browserRuntime || !e.kernel) return;
+  track("kernel-error");
+  const report = document.createElement("button");
+  report.className = "banner-report";
+  report.textContent = t("feedback.report");
+  report.onclick = () => openFeedback(siteHooks, e.message);
+  $("banner").append(" ", report);
+}
 let commandSerial = 0;
 async function command(name, extra = {}) {
   if (busy) return null;
@@ -1561,9 +1576,10 @@ async function command(name, extra = {}) {
     render();
     ioAttention(name, before, s);
     lens.update(dirty ? null : state);
+    if (STEPPING.has(name)) track(name === "back" ? "back" : name === "run" ? "run" : "step", { first: true });
     return s;
   } catch (e) {
-    notify(e.message);
+    failed(e);
     if (running) stopRequested = true;
     return null;
   } finally {
@@ -1639,8 +1655,9 @@ async function assemble() {
     )
       followPC();
     lens.update(state);
+    track("assemble", { first: true, ok: !state.error });
   } catch (e) {
-    notify(e.message);
+    failed(e);
   } finally {
     busy = false;
     updateControls();
@@ -3437,6 +3454,7 @@ function commandList() {
     ],
     [t("commands.syscalls"), () => inspectToken("syscall")],
     [t("commands.findInstruction"), () => findInstruction()],
+    ...(browserRuntime ? [[t("feedback.title"), () => openFeedback(siteHooks)]] : []),
   ];
   return commands.map(([label, run, action]) => ({
     label,
@@ -4156,6 +4174,7 @@ const exampleTitle = (e) => e.title?.[language()] || e.title?.en || e.name;
 async function loadExample(index) {
   const e = exampleList[index],
     copy = e && exampleCopy(e);
+  if (copy) track("example", { name: e.name });
   if (copy) workspace.example({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly }, exampleTitle(e));
 }
 function selectActiveFile(name) {
@@ -4210,7 +4229,22 @@ workspace = projectManager({
     notify(t("project.updated"));
   },
 });
-await workspace.start();
+const restored = await workspace.start();
+const siteHooks = {
+  state: () => state,
+  files: () => files,
+  delay: () => $("delay").checked,
+  modal,
+};
+startSite(browserRuntime);
+if (browserRuntime) {
+  $("feedback-open").onclick = () => openFeedback(siteHooks);
+  // The site's own "feedback" link lands here.
+  if (location.hash === "#feedback") {
+    history.replaceState(null, "", location.pathname + location.search);
+    openFeedback(siteHooks);
+  }
+}
 window.marsIDE = {
   get state() {
     return state;
@@ -4239,11 +4273,30 @@ window.marsIDE = {
 try {
   exampleList = await runtime.examples();
   renderExamples();
+  openLinkedExample();
 } catch (e) {
   exampleList = null;
   renderExamples();
 }
 })();
+// A link may name an example (?example=03-fizzbuzz), as the public site's
+// "try it" links and ads do. A first visit opens it at once; a student with
+// work of their own is asked first, as from the menu.
+async function openLinkedExample() {
+  let params;
+  try { params = new URLSearchParams(location.search); } catch { return; }
+  const name = params.get("example");
+  const index = exampleList?.findIndex((e) => e.name === name) ?? -1;
+  if (!name) return;
+  params.delete("example");
+  history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
+  if (index < 0) return;
+  if (restored) return loadExample(index);
+  const e = exampleList[index], copy = exampleCopy(e);
+  track("example", { name: e.name, linked: true });
+  await workspace.apply({ files: copy.files, data: copy.data, entry: e.entry || "main.s", assembly: e.assembly, name: exampleTitle(e) }, false);
+  await assemble();
+}
 // The example menu, again after a language change.
 function renderExamples() {
   if (!exampleList) {

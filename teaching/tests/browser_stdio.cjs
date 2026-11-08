@@ -7,6 +7,6 @@ const scope = {
   console: new console.Console(process.stderr, process.stderr),
   postMessage(message) { if (!message.ready) process.stdout.write(JSON.stringify(plain ? message.result ?? { error: message.error } : message) + '\n'); },
 };
-vm.runInNewContext(fs.readFileSync('teaching/dist/kernel.js', 'utf8'), scope);
+vm.runInNewContext(fs.readFileSync('teaching/dist/app/kernel.js', 'utf8'), scope);
 scope.exports.main([], (error) => { if (error) throw error; });
 readline.createInterface({ input: process.stdin }).on('line', (message) => scope.marsReceive(plain ? JSON.stringify({ id: ++serial, body: JSON.parse(message) }) : message));

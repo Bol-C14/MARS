@@ -14,9 +14,9 @@ sh teaching/scripts/build-browser.sh
 python3 -m http.server 8877 --bind 127.0.0.1 --directory teaching/dist
 ```
 
-打开 `http://127.0.0.1:8877`。构建器优先使用系统 Maven；未安装时下载 Maven 3.9.11 到忽略的 `teaching/build/tools/`。TeaVM 依赖进入 Maven 缓存。以后构建复用缓存。
+打开 `http://127.0.0.1:8877` 是产品主页，`http://127.0.0.1:8877/app/` 是 IDE（见 [产品主页与反馈](SITE.md)）。构建器优先使用系统 Maven；未安装时下载 Maven 3.9.11 到忽略的 `teaching/build/tools/`。TeaVM 依赖进入 Maven 缓存。以后构建复用缓存。
 
-发布时把 **`teaching/dist/` 的完整内容** 上传到静态托管。入口是 `index.html`，`kernel-worker.js` 和 `kernel.js` 与它同目录。也能放到域名下的子目录。公网使用 HTTPS；本地 `localhost` / `127.0.0.1` 可直接使用 HTTP。无需运行 Java、Python 网关、数据库或服务密钥。
+发布时把 **`teaching/dist/` 的完整内容** 上传到静态托管。根目录的 `index.html` 是产品主页；IDE 在 `app/` 下，`kernel-worker.js` 和 `kernel.js` 与 `app/index.html` 同目录。也能放到域名下的子目录。公网使用 HTTPS；本地 `localhost` / `127.0.0.1` 可直接使用 HTTP。无需运行 Java、Python 网关、数据库或服务密钥。
 
 生成的内核和静态页面不提交主仓库。部署产物包含 MARS MIT 许可、TeaVM Apache 2.0 许可及字体许可。
 
@@ -67,9 +67,10 @@ syscall 范围与现有 IDE 一致：1–17、34–36。原 IDE 未开放的服�
 ```sh
 python3 teaching/tests/browser_core_test.py
 python3 teaching/tests/browser_parity.py
-python3 teaching/tests/browser_runtime.py http://127.0.0.1:8877
-python3 teaching/tests/browser_acceptance.py http://127.0.0.1:8877
-python3 teaching/tests/workspace_browser.py http://127.0.0.1:8877
+python3 teaching/tests/browser_runtime.py http://127.0.0.1:8877/app/
+python3 teaching/tests/browser_acceptance.py http://127.0.0.1:8877/app/
+python3 teaching/tests/workspace_browser.py http://127.0.0.1:8877/app/
+python3 teaching/tests/site_browser.py http://127.0.0.1:8877
 ```
 
 前两项将生成内核放在 Node 中运行，复用核心场景并与 JVM 逐指令对照；后三项用真实 Chromium 验证界面和 Worker。`browser_runtime.py` 额外验证两个执行器隔离、检查器隔离、首次单行检查、输入文件、生成文件 SHA-256、长循环跨过/跳出的暂停和无 `/api` 请求。

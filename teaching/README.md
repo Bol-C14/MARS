@@ -4,7 +4,7 @@ MARS Trace 在原 MARS 4.5 汇编器和执行器上增加现代代码编辑、�
 
 ## 部署入口
 
-- **纯浏览器版**：`npm ci --prefix teaching` 后运行 `sh teaching/scripts/build-browser.sh`，把 `teaching/dist/` 发布到静态托管。学生设备执行完整 Java MARS 内核，服务器不再为每人运行 JVM。详见 [浏览器内核版](docs/BROWSER-RUNTIME.md)。
+- **纯浏览器版**：`npm ci --prefix teaching` 后运行 `sh teaching/scripts/build-browser.sh`，把 `teaching/dist/` 发布到静态托管。学生设备执行完整 Java MARS 内核，服务器不再为每人运行 JVM。详见 [浏览器内核版](docs/BROWSER-RUNTIME.md)；产品主页、反馈和匿名统计见 [产品主页与反馈](docs/SITE.md)。
 
 - **个人本地**：`sh teaching/scripts/local.sh`；Windows 用 `teaching/scripts/local.ps1`。维护者可通过 `package-local.sh` 生成解压即用的 ZIP。
 - **教师公开发布**：`sh teaching/scripts/teacher.sh init mars.example.edu`，再执行 `sh teaching/scripts/teacher.sh up`。Docker Compose 启动 HTTPS、静态前端与多学生网关。

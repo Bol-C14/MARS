@@ -22,17 +22,22 @@ python3 teaching/browser/prepare.py
 "$mars_maven" -B -ntp -f teaching/browser/pom.xml compile org.teavm:teavm-maven-plugin:0.16.0:compile > teaching/build/browser/compiler.log 2>&1 || {
   cat teaching/build/browser/compiler.log; exit 1;
 }
-cp -R teaching/web/. teaching/dist/
-cp teaching/browser/kernel-worker.js teaching/dist/
-cp MARSlicense.txt teaching/dist/
-cp teaching/browser/TEAVM-LICENSE teaching/dist/TEAVM-LICENSE.txt
+# The IDE lives under app/; the product page is the site's root.
+app=teaching/dist/app
+mkdir -p "$app"
+cp -R teaching/web/. "$app/"
+cp teaching/browser/kernel-worker.js "$app/"
+cp MARSlicense.txt "$app/"
+cp teaching/browser/TEAVM-LICENSE "$app/TEAVM-LICENSE.txt"
 python3 teaching/browser/examples.py
-teaching/node_modules/.bin/esbuild teaching/ui/main.js --bundle --format=esm --define:__MARS_BROWSER__=true --outfile=teaching/dist/app.js
-python3 - <<'PY'
+mars_build="$(git rev-parse --short HEAD 2>/dev/null || echo local)$(git diff --quiet HEAD -- teaching 2>/dev/null || echo +)"
+teaching/node_modules/.bin/esbuild teaching/ui/main.js --bundle --format=esm --define:__MARS_BROWSER__=true --define:__MARS_BUILD__="\"$mars_build\"" --outfile="$app/app.js"
+python3 - <<'PY2'
 from pathlib import Path
-p=Path('teaching/dist/index.html')
+p=Path('teaching/dist/app/index.html')
 s=p.read_text().replace('<title>MARS · Trace IDE</title>', '<title>MARS Trace · Browser IDE</title>')
 s=s.replace('MARS 4.5 · local core','MARS 4.5 · browser core')
 p.write_text(s)
-PY
-printf 'Browser edition built in teaching/dist (serve with any static HTTP server).\n'
+PY2
+python3 teaching/site/build.py
+printf 'Site built in teaching/dist: product page at /, browser IDE at /app/ (serve with any static HTTP server).\n'

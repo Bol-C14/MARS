@@ -13,7 +13,7 @@
       <groupId>org.teavm</groupId><artifactId>teavm-maven-plugin</artifactId><version>0.16.0</version>
       <configuration>
         <mainClass>mars.ide.BrowserKernel</mainClass><targetType>JAVASCRIPT</targetType>
-        <targetDirectory>../dist</targetDirectory><targetFileName>kernel.js</targetFileName>
+        <targetDirectory>../dist/app</targetDirectory><targetFileName>kernel.js</targetFileName>
         <optimizationLevel>ADVANCED</optimizationLevel><minifying>true</minifying>
       </configuration>
     </plugin></plugins>

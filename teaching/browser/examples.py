@@ -17,4 +17,4 @@ for folder in sorted((root/'examples').iterdir()):
         languages[lang.name]={'files':files,'data':data}
     example['languages']=languages
     examples.append(example)
-(root/'dist/examples.json').write_text(json.dumps(sorted(examples,key=lambda e:e.get('order',0)),ensure_ascii=False))
+(root/'dist/app/examples.json').write_text(json.dumps(sorted(examples,key=lambda e:e.get('order',0)),ensure_ascii=False))
