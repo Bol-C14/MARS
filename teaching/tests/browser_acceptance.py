@@ -792,8 +792,15 @@ def classroom_1103(r, page, mod):
     code = ".text\nmain:\n li $a1, 1\n beqz $a1, done\n nop\n addi $a1, $a1, -1\n beqz $a1, done\n nop\n li $t0, 9\ndone:\n li $v0, 10\n syscall\n"
     r.js("(t) => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: t } }) }", code)
     page.locator("#assemble").click(); r.until("() => window.marsIDE.state?.status === 'paused' && window.marsIDE.state.step === 0")
-    # Fonts: bundled files are served as fonts and the choice reaches the editor.
-    r.check("bundled fonts are served as woff2", r.js("async () => (await fetch('fonts/jetbrains-mono/400-normal.woff2')).headers.get('content-type')") == "font/woff2")
+    # Static hosts may use application/octet-stream for WOFF2. Verify that
+    # the actual font is present and usable, rather than requiring one MIME spelling.
+    font = r.js("""async () => {
+      const response = await fetch('fonts/jetbrains-mono/400-normal.woff2');
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const faces = await document.fonts.load('14px \"JetBrains Mono Web\"');
+      return response.ok && String.fromCharCode(...bytes.slice(0,4)) === 'wOF2' && faces.some(f => f.status === 'loaded');
+    }""")
+    r.check("bundled WOFF2 fonts load in the browser", font)
     page.locator("#view-menu-button").click()
     r.check("six code font choices including the system one", page.locator("#font-list [data-font]").count() == 6 and "系统默认" in page.locator("#font-list").inner_text())
     page.locator('[data-font="plex"]').click()
