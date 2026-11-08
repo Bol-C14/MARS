@@ -2,6 +2,13 @@
 
 MARS Trace 在原 MARS 4.5 汇编器和执行器上增加现代代码编辑、可回退调试和执行关系叠加。前端使用本地打包的 CodeMirror，不依赖 CDN。机器指令仍由原 MARS `Simulator` 执行。
 
+## 部署入口
+
+- **个人本地**：`sh teaching/scripts/local.sh`；Windows 用 `teaching/scripts/local.ps1`。维护者可通过 `package-local.sh` 生成解压即用的 ZIP。
+- **教师公开发布**：`sh teaching/scripts/teacher.sh init mars.example.edu`，再执行 `sh teaching/scripts/teacher.sh up`。Docker Compose 启动 HTTPS、静态前端与多学生网关。
+
+完整步骤、配置、更新与回退见 [DEPLOYMENT.md](docs/DEPLOYMENT.md)。生产网关源码在 `teaching/hosting/`；个人与教师模式使用同一套核心与前端。
+
 ## 启动
 
 需要 JDK 17 或更新版本。已在 macOS arm64 / Java 25 验证。
@@ -137,7 +144,7 @@ sh teaching/scripts/test.sh
 
 ## Limitations
 
-- 当前为单用户、单活动会话；多个标签页共享同一执行状态。代码修改后需要重新汇编，旧轨迹会在重新汇编时清除。
+- 个人本地入口每个服务只有一个活动调试会话，多个标签页共用它；教师入口为每个浏览器会话提供独立 Java 进程。修改源码后需要重新汇编；文本编辑在下次汇编时使用，旧调试状态保持。
 - 接受整数寄存器为主的课程工程；面板显示 GPR、HI、LO。浮点／异常寄存器被纳入回退快照，但尚无专门面板。
 - 支持可回放的 syscall 1–17、34–36；时间、随机、音频、GUI 等服务明确阻止执行。文件访问使用会话内虚拟文件，不直接访问主机文件。
 - 当前固定 Default 内存配置和禁止自修改代码。`.include` / `.incbin` 尚未启用，请显式导入项目源码文件。

@@ -5,3 +5,8 @@ teaching/test-results/
 
 __pycache__/
 *.pyc
+
+teaching/dist/
+teaching/deploy/.env
+teaching/deploy/.env.*
+!teaching/deploy/.env.example

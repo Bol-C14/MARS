@@ -5,10 +5,20 @@ This fork adds a local CodeMirror-based teaching and debugging workspace backed 
 **[Start here: setup, controls and supported scope](teaching/README.md)** · [Design](teaching/docs/DESIGN.md) · [Architecture](teaching/docs/ARCHITECTURE.md) · [Validation](teaching/docs/VALIDATION.md)
 
 ```sh
-sh teaching/scripts/start.sh
+sh teaching/scripts/local.sh
 ```
 
 Open http://127.0.0.1:8765. Requires JDK 17+. The frontend is bundled for offline use.
+
+For a public classroom deployment with isolated student sessions and automatic HTTPS:
+
+```sh
+sh teaching/scripts/teacher.sh init mars.example.edu
+sh teaching/scripts/teacher.sh up
+```
+
+See [personal packages, teacher Docker Compose, configuration and updates](teaching/docs/DEPLOYMENT.md).
+
 
 M0–M2 includes source/expanded-instruction/CFG views, actual and preview data-flow overlays, reversible virtual I/O, conditional breakpoints, read/write watches, call stepping, loop history and last-writer lookup.
 

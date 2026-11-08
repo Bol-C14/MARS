@@ -49,3 +49,9 @@ The UI is paused at post-step state S_n. Actual overlay = event E_n. Preview = e
 ## Deferred boundaries
 
 The adapter is a tested M0–M2 implementation. M3 owns installer packaging, independent sessions, persisted histories, arbitrary layouts, lesson bundles, broader runtime services and long-session performance validation. `DebugSession` and the workspace controller can be split further as those capabilities grow; the upstream changes remain isolated.
+
+## 部署入口（2026-11-08）
+
+个人：`Server.java` 提供本机静态文件与单个 DebugSession，CheckerClient 启动独立检查进程。
+教师：Caddy 提供页面与 HTTPS，`teaching/hosting/gateway.py` 按 Cookie 分配独立 Stdio JVM，检查请求进入另一 JVM。Compose 内部执行网络隔离于公网；生产网关与通用部署配置已归入主仓库。
+工程草稿保存在浏览器，服务端保存执行状态。完整入口与数据生命周期见 [DEPLOYMENT.md](DEPLOYMENT.md)。

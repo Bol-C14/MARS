@@ -1,0 +1,18 @@
+# Set MARS_GATEWAY_TOKEN in Caddy's service environment too.
+mars.example.edu {
+    root * /opt/mars-trace/current/teaching/web
+    encode gzip
+    request_body {
+        max_size 8MB
+    }
+    @api path /api /api/check /examples /health
+    handle @api {
+        reverse_proxy 127.0.0.1:8767 {
+            header_up Authorization "Bearer {$MARS_GATEWAY_TOKEN}"
+        }
+    }
+    handle {
+        header Cache-Control "no-cache"
+        file_server
+    }
+}

@@ -1,0 +1,17 @@
+{$MARS_SITE_ADDRESS:http://localhost} {
+    root * /srv
+    encode gzip
+    request_body {
+        max_size 8MB
+    }
+    @api path /api /api/check /examples /health
+    handle @api {
+        reverse_proxy gateway:8767 {
+            header_up Authorization "Bearer {$MARS_GATEWAY_TOKEN}"
+        }
+    }
+    handle {
+        header Cache-Control "no-cache"
+        file_server
+    }
+}

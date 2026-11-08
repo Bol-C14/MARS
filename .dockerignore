@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/__pycache__
+teaching/build
+teaching/dist
+teaching/test-results
+teaching/deploy/.env
+teaching/deploy/.env.*
+!teaching/deploy/.env.example
+
+**/.env
+**/.env.*
+!teaching/deploy/.env.example
