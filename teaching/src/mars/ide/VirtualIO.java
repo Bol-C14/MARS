@@ -15,7 +15,32 @@ public final class VirtualIO {
   public Set<String> written = new LinkedHashSet<>();
   public List<String> inputs = new ArrayList<>();
   public int cursor = 0;
-  public String output = "";
+  public ConsoleText output = ConsoleText.EMPTY;
+
+  /** Persistent chunks: checkpoints share prefixes without retaining flattened strings. */
+  public static final class ConsoleText {
+    static final ConsoleText EMPTY = new ConsoleText(null, "");
+    private final ConsoleText previous;
+    private final String chunk;
+    private final int length;
+    private ConsoleText(ConsoleText previous, String chunk) {
+      this.previous = previous;
+      this.chunk = chunk;
+      this.length = (previous == null ? 0 : previous.length) + chunk.length();
+    }
+    public int length() { return length; }
+    ConsoleText append(String s) { return s.isEmpty() ? this : new ConsoleText(this, s); }
+    public String substring(int from) {
+      char[] chars = new char[length - from];
+      for (ConsoleText node = this; node != null && node.length > from; node = node.previous) {
+        int start = node.length - node.chunk.length();
+        int skip = Math.max(0, from - start);
+        node.chunk.getChars(skip, node.chunk.length(), chars, Math.max(0, start - from));
+      }
+      return new String(chars);
+    }
+    @Override public String toString() { return substring(0); }
+  }
   /** Output length at the moment each input was consumed (for echoing it); replaced, never mutated. */
   public List<Integer> echoAt = List.of();
   private Map<Integer, Handle> handles = new LinkedHashMap<>();
@@ -52,7 +77,7 @@ public final class VirtualIO {
     if (
       output.length() + s.length() > 1_000_000
     ) throw new IllegalStateException("Console limit: 1 MB");
-    output += s;
+    output = output.append(s);
   }
 
   public int open(String name, int flags) {

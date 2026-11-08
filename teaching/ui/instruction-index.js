@@ -207,7 +207,7 @@ const operandsOf = (source) => {
 function partMeaning(name, x, index, count) {
   const left = x.formula.split("←")[0],
     named = (text) => new RegExp(`(^|[^a-z])${name}([^a-z]|$)`).test(text);
-  const branch = /^若/.test(x.formula),
+  const branch = /^(beq|bne|bgez|bgtz|blez|bltz|blt|bgt|ble|bge|beqz|bnez)$/.test(x.op),
     memory = /offset/.test(x.format);
   if (name === "label") {
     if (x.op === "la") return t("usage.label.address");
@@ -221,7 +221,7 @@ function partMeaning(name, x, index, count) {
   if (memory) return named(left) ? t("usage.loadTarget") : t("usage.storeSource");
   if (x.formula.includes(`PC ← ${name}`)) return t("usage.jumpRegister");
   if (named(left)) return t("usage.result");
-  if (/低 5 位/.test(x.formula) && name === "rs") return t("usage.shiftRegister");
+  if (/^(sllv|srlv|srav)$/.test(x.op) && name === "rs") return t("usage.shiftRegister");
   return t("usage.operand");
 }
 export function usageOf(x, source = "") {

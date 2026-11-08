@@ -95,7 +95,7 @@ public final class DebugSession {
         "Source limit 1 MB"
       );
       if (
-        src.matches("(?s).*\\.(include|incbin)\\b.*")
+        java.util.regex.Pattern.compile("(?m)^\\s*(?:[\\w.$]+:\\s*)*\\.(include|incbin)\\b").matcher(src).find()
       ) throw new IllegalArgumentException(
         "Use explicit project source files; include/incbin is not enabled"
       );
@@ -198,7 +198,7 @@ public final class DebugSession {
   private String relative(String path) {
     if (path == null) return "";
     try {
-      return projectDir.relativize(Path.of(path)).toString();
+      return projectDir.relativize(Path.of(path)).toString().replace('\\', '/');
     } catch (Exception e) {
       return path;
     }
@@ -767,11 +767,11 @@ public final class DebugSession {
    * hash) differs, so stepping does not resend unchanged files every time.
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Object> generatedFiles() {
+  private Map<String, Object> generatedFiles() throws Exception {
     var out = new LinkedHashMap<String, Object>();
     if (VirtualIO.current != null) for (String name : VirtualIO.current.written) {
       byte[] bytes = VirtualIO.current.files.get(name);
-      String hash = Integer.toHexString(Arrays.hashCode(bytes)) + ":" + bytes.length;
+      String hash = HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
       boolean known = knownGenerated.get(name) instanceof String h && h.equals(hash);
       out.put(name, obj("base64", known ? null : Base64.getEncoder().encodeToString(bytes), "size", bytes.length, "hash", hash));
     }
@@ -1000,7 +1000,7 @@ public final class DebugSession {
       "layout",
       obj("text", Memory.textBaseAddress, "data", Memory.dataBaseAddress, "heap", Memory.heapBaseAddress, "heapTop", Memory.heapAddress, "stack", Memory.stackPointer),
       "output",
-      VirtualIO.current == null ? "" : VirtualIO.current.output,
+      VirtualIO.current == null ? "" : VirtualIO.current.output.toString(),
       "generatedFiles",
       generatedFiles(),
       "handles",

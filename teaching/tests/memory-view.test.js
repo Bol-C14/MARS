@@ -99,3 +99,10 @@ test("every address a program can look at has a place on the bar", () => {
   assert.equal(at(0x80000000), null);
   assert.deepEqual(memoryBar({}), []);
 });
+
+
+test("repeated data declarations count every element", () => {
+  const list = dataSymbols([{name:"values",address:0x10010000,data:true,file:"main.s"}],
+    {"main.s":".data\nvalues: .word 7:100\n"});
+  assert.equal(list[0].size,400);
+});

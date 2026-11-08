@@ -72,3 +72,14 @@ test("directives are explained with how to write them", () => {
   assert.match(directiveGuide[".asciiz"][1], /\\0/);
   assert.match(directiveGuide[".word"][0], /\.word/);
 });
+
+
+test("operand roles stay correct in English", async () => {
+  const {setLanguage} = await import("../ui/i18n/index.js");
+  setLanguage("en");
+  try {
+    assert.match(parts("beq","beq $t0,$t1,done").rs.meaning,/comparison/);
+    assert.match(parts("bgez","bgez $t0,done").rs.meaning,/compared/);
+    assert.match(parts("sllv","sllv $t0,$t1,$t2").rs.meaning,/5/);
+  } finally {setLanguage("zh-CN");}
+});

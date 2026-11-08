@@ -28170,6 +28170,11 @@ var FocusLens = class {
       }
     });
     new ResizeObserver(() => this.isOpen && this.draw()).observe(this.el);
+    for (const id2 of ["focus-path", "focus-objects"])
+      $3(id2).addEventListener("scroll", () => {
+        cancelAnimationFrame(this.scrollFrame);
+        this.scrollFrame = requestAnimationFrame(() => this.isOpen && this.draw());
+      }, { passive: true });
     this.drag();
   }
   load(key, fallback) {
@@ -29284,7 +29289,7 @@ var operandsOf = (source) => {
 };
 function partMeaning(name2, x, index, count) {
   const left = x.formula.split("\u2190")[0], named2 = (text2) => new RegExp(`(^|[^a-z])${name2}([^a-z]|$)`).test(text2);
-  const branch = /^若/.test(x.formula), memory = /offset/.test(x.format);
+  const branch = /^(beq|bne|bgez|bgtz|blez|bltz|blt|bgt|ble|bge|beqz|bnez)$/.test(x.op), memory = /offset/.test(x.format);
   if (name2 === "label") {
     if (x.op === "la") return t("usage.label.address");
     return t("usage.label.target", { what: branch ? t("usage.label.branch") : t("usage.label.jump") });
@@ -29297,7 +29302,7 @@ function partMeaning(name2, x, index, count) {
   if (memory) return named2(left) ? t("usage.loadTarget") : t("usage.storeSource");
   if (x.formula.includes(`PC \u2190 ${name2}`)) return t("usage.jumpRegister");
   if (named2(left)) return t("usage.result");
-  if (/低 5 位/.test(x.formula) && name2 === "rs") return t("usage.shiftRegister");
+  if (/^(sllv|srlv|srav)$/.test(x.op) && name2 === "rs") return t("usage.shiftRegister");
   return t("usage.operand");
 }
 function usageOf(x, source = "") {
@@ -30830,6 +30835,7 @@ function scopeHints(diagnostics, project, scope) {
 
 // ui/store.js
 var opened;
+var localWrites = /* @__PURE__ */ new Map();
 var db = () => opened ||= new Promise((resolve, reject) => {
   const request = indexedDB.open("mars-trace", 1);
   request.onupgradeneeded = () => request.result.createObjectStore("projects");
@@ -30847,15 +30853,19 @@ function put(key, value) {
   const text2 = JSON.stringify(value);
   try {
     localStorage.setItem(key, text2);
+    localWrites.set(key, (localWrites.get(key) || 0) + 1);
     return run("readwrite", (s) => s.delete(key)).catch(() => {
     });
   } catch {
   }
-  try {
-    localStorage.removeItem(key);
-  } catch {
-  }
-  return run("readwrite", (s) => s.put(text2, key));
+  const generation = localWrites.get(key);
+  return run("readwrite", (s) => s.put(text2, key)).then(() => {
+    if (localWrites.get(key) === generation)
+      try {
+        localStorage.removeItem(key);
+      } catch {
+      }
+  });
 }
 async function get(key) {
   let text2 = null;
@@ -31396,7 +31406,10 @@ function parseAddress(text2, { symbols = [], register = () => void 0 } = {}) {
   return base2 + (m[2] === "-" ? -offset : offset) | 0;
 }
 function directiveSize(directive, operands) {
-  const items = operands.split(",").filter((x) => x.trim()).length || 1;
+  const items = operands.split(",").filter((x) => x.trim()).reduce((sum, item) => {
+    const repeat = /:\s*(0x[\da-f]+|\d+)\s*$/i.exec(item);
+    return sum + (repeat ? Number(repeat[1]) : 1);
+  }, 0);
   const text2 = (/"((?:[^"\\]|\\.)*)"/.exec(operands)?.[1] ?? "").replace(/\\./g, "x");
   switch (directive) {
     case ".word":
@@ -31503,9 +31516,9 @@ var LIST_SEP = () => t("common.listSep");
 var COLON = () => t("common.colon");
 var chordNote = "";
 var CONTROL_OPS = /^(?:j|jal|jr|jalr|b|beq|bne|bgez|bgtz|blez|bltz|bgezal|bltzal|blt|bgt|ble|bge|bltu|bgtu|bleu|bgeu|beqz|bnez)$/;
-var CURATED = new Map(
+var CURATED = localized(() => new Map(
   instructionIndex({}).filter((x) => x.kind === "instruction").map((x) => [x.op, x])
-);
+));
 function zhDoc(op) {
   if (explanations[op]) return explanations[op];
   const c = CURATED.get(op);
@@ -32117,6 +32130,7 @@ var editor = new EditorView({
   }),
   parent: $2("editor")
 });
+var emptyEditorState = editor.state;
 var overlay = new OverlayRenderer({
   getState: () => dirty ? null : state ? { ...state, ...program } : null,
   getEditor: () => editor,
@@ -32195,7 +32209,7 @@ function syscallAt(place) {
   });
   const values = {};
   for (const [r] of serviceGuide[n]?.[2] || [])
-    values[r] = next ? regValue(r) : event?.accesses.find(
+    values[r] = next ? state.preview.accesses.find((a) => a.kind === "register" && !a.write && a.name === r)?.value ?? state.registers.find((a) => a.name === r)?.value ?? null : event?.accesses.find(
       (a) => a.kind === "register" && !a.write && a.name === r
     )?.value ?? null;
   const before = next ? state.step : event ? event.step - 1 : null;
@@ -32717,6 +32731,7 @@ async function command2(name2, extra = {}) {
   }
 }
 async function assemble() {
+  ++commandSerial;
   await requestStop();
   if (busy) return;
   busy = true;
@@ -32784,7 +32799,7 @@ function switchFile(file) {
   savedEditor();
   live.reset();
   hideTooltip2(0);
-  if (activeFile) fileStates.set(activeFile, editor.state.selection);
+  if (activeFile) fileStates.set(activeFile, editor.state);
   activeFile = file;
   const source = Object.hasOwn(files, file);
   if (source) lastSourceFile = file;
@@ -32793,11 +32808,11 @@ function switchFile(file) {
   const text2 = source ? files[file] : data[file];
   const saved = fileStates.get(file);
   loadEditor = true;
-  editor.dispatch({
-    effects: fileAccess.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
-    changes: { from: 0, to: editor.state.doc.length, insert: text2 },
-    selection: saved ? { anchor: Math.min(saved.main.anchor, text2.length), head: Math.min(saved.main.head, text2.length) } : { anchor: 0 }
-  });
+  const docState = saved?.doc.toString() === text2 ? saved : emptyEditorState.update({
+    changes: { from: 0, to: emptyEditorState.doc.length, insert: text2 },
+    annotations: Transaction.addToHistory.of(false)
+  }).state;
+  editor.setState(docState);
   loadEditor = false;
   drawErrors();
   renderTabs();
@@ -33375,7 +33390,7 @@ function syncRuntimeFiles(next) {
     updated = true;
     if (activeFile === name2 && editor.state.doc.toString() !== text2) {
       loadEditor = true;
-      editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: text2 }, selection: { anchor: Math.min(editor.state.selection.main.head, text2.length) } });
+      editor.dispatch({ annotations: Transaction.addToHistory.of(false), changes: { from: 0, to: editor.state.doc.length, insert: text2 }, selection: { anchor: Math.min(editor.state.selection.main.head, text2.length) } });
       loadEditor = false;
     }
   }
@@ -34775,6 +34790,7 @@ workspace = projectManager({
   sourceFile: () => Object.hasOwn(files, activeFile) ? activeFile : lastSourceFile,
   scopeChanged: () => updateControls(),
   replace: async (p) => {
+    ++commandSerial;
     await requestStop();
     if (busy) throw Error(t("block.wait"));
     lens.close();

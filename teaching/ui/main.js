@@ -1,4 +1,4 @@
-import { t, LANGUAGES, language, setLanguage, onLanguageChange, applyDom } from "./i18n/index.js";
+import { t, LANGUAGES, localized, language, setLanguage, onLanguageChange, applyDom } from "./i18n/index.js";
 import { marsText } from "./i18n/mars.js";
 import {
   EditorView,
@@ -10,7 +10,7 @@ import {
   gutterLineClass,
   keymap,
 } from "@codemirror/view";
-import { EditorState, RangeSet, StateEffect, StateField, Compartment } from "@codemirror/state";
+import { EditorState, RangeSet, StateEffect, StateField, Compartment, Transaction } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { autocompletion } from "@codemirror/autocomplete";
 import {
@@ -68,11 +68,11 @@ const CONTROL_OPS =
 // else the purpose and limits from the instruction search table, and only
 // then MARS's English text (round-4 trial: sub showed "Subtraction with
 // overflow"). One table serves search, hover and the inspector.
-const CURATED = new Map(
+const CURATED = localized(() => new Map(
   instructionIndex({})
     .filter((x) => x.kind === "instruction")
     .map((x) => [x.op, x]),
-);
+));
 function zhDoc(op) {
   if (explanations[op]) return explanations[op];
   const c = CURATED.get(op);
@@ -805,6 +805,7 @@ const editor = new EditorView({
   }),
   parent: $("editor"),
 });
+const emptyEditorState = editor.state;
 const overlay = new OverlayRenderer({
   getState: () => (dirty ? null : state ? { ...state, ...program } : null),
   getEditor: () => editor,
@@ -909,7 +910,7 @@ function syscallAt(place) {
   const values = {};
   for (const [r] of serviceGuide[n]?.[2] || [])
     values[r] = next
-      ? regValue(r)
+      ? (state.preview.accesses.find((a) => a.kind === "register" && !a.write && a.name === r)?.value ?? state.registers.find((a) => a.name === r)?.value ?? null)
       : (event?.accesses.find(
           (a) => a.kind === "register" && !a.write && a.name === r,
         )?.value ?? null);
@@ -1580,6 +1581,7 @@ async function command(name, extra = {}) {
   }
 }
 async function assemble() {
+  ++commandSerial;
   await requestStop();
   if (busy) return;
   busy = true;
@@ -1660,7 +1662,7 @@ function switchFile(file) {
   if (!autoMoving) leftExecution();
   savedEditor();
   live.reset(); hideTooltip(0);
-  if (activeFile) fileStates.set(activeFile, editor.state.selection);
+  if (activeFile) fileStates.set(activeFile, editor.state);
   activeFile = file;
   const source = Object.hasOwn(files,file);
   if (source) lastSourceFile = file;
@@ -1669,11 +1671,12 @@ function switchFile(file) {
   const text = source ? files[file] : data[file];
   const saved = fileStates.get(file);
   loadEditor = true;
-  editor.dispatch({
-    effects: fileAccess.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
-    changes: { from: 0, to: editor.state.doc.length, insert: text },
-    selection: saved ? {anchor: Math.min(saved.main.anchor,text.length), head: Math.min(saved.main.head,text.length)} : {anchor:0},
-  });
+  // Each document owns its undo stack; navigation is never an edit.
+  const docState = saved?.doc.toString() === text ? saved : emptyEditorState.update({
+    changes: { from: 0, to: emptyEditorState.doc.length, insert: text },
+    annotations: Transaction.addToHistory.of(false),
+  }).state;
+  editor.setState(docState);
   loadEditor = false;
   drawErrors(); renderTabs(); renderFiles(); updateControls(); overlay.schedule();
 }
@@ -2433,7 +2436,7 @@ function syncRuntimeFiles(next) {
     updated = true;
     if (activeFile === name && editor.state.doc.toString() !== text) {
       loadEditor = true;
-      editor.dispatch({changes:{from:0,to:editor.state.doc.length,insert:text},selection:{anchor:Math.min(editor.state.selection.main.head,text.length)}});
+      editor.dispatch({annotations: Transaction.addToHistory.of(false), changes:{from:0,to:editor.state.doc.length,insert:text},selection:{anchor:Math.min(editor.state.selection.main.head,text.length)}});
       loadEditor = false;
     }
   }
@@ -4175,6 +4178,7 @@ workspace = projectManager({
   sourceFile: () => Object.hasOwn(files,activeFile) ? activeFile : lastSourceFile,
   scopeChanged: () => updateControls(),
   replace: async p => {
+    ++commandSerial;
     await requestStop();
     if (busy) throw Error(t("block.wait"));
     lens.close();

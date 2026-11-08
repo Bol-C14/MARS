@@ -18,6 +18,33 @@ class CoreTests(unittest.TestCase):
    if s['status']!='paused': return s
    self.assertEqual(s['stopReason'],'Batch complete',s['stopReason'])
   self.fail('Execution budget exceeded')
+ def test_generated_hash_distinguishes_old_polynomial_collision(self):
+  src='.data\nname: .asciiz "output.txt"\none: .ascii "Aa"\ntwo: .ascii "BB"\n.text\nmain:\nla $a0,name\nli $a1,1\nli $v0,13\nsyscall\nmove $s0,$v0\nmove $a0,$s0\nla $a1,one\nli $a2,2\nli $v0,15\nsyscall\n# SECOND\nmove $a0,$s0\nli $v0,16\nsyscall\nla $a0,name\nli $a1,1\nli $v0,13\nsyscall\nmove $a0,$v0\nla $a1,two\nli $a2,2\nli $v0,15\nsyscall\nli $v0,10\nsyscall\n'
+  s=self.asm(src)
+  line=src.splitlines().index('# SECOND')+2
+  address=next(i['address'] for i in s['instructions'] if i['line']==line)
+  first=self.call('run',breakpoints=[{'address':address}])['generatedFiles']['output.txt']
+  final=self.call('run',skipBreakpoint=True,generatedKnown={'output.txt':first['hash']})['generatedFiles']['output.txt']
+  self.assertNotEqual(first['hash'],final['hash']);self.assertEqual(final['base64'],'QkI=')
+ def test_include_words_in_comments_and_strings(self):
+  for src in ['.text\n# .include "old.s"\nmain: nop\n', '.data\nmsg: .asciiz ".include"\n.text\nmain: nop\n']:
+   self.assertEqual(self.asm(src)['status'],'paused')
+ def test_output_history_with_bounded_heap(self):
+  p=subprocess.Popen(['java','-Xmx192m','-XX:+UseSerialGC','-Djava.awt.headless=true','-cp','teaching/build/classes','mars.ide.Stdio'],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
+  def request(**body):
+   p.stdin.write(json.dumps(body)+'\n');p.stdin.flush();return json.loads(p.stdout.readline())
+  try:
+   src='.data\nmsg: .asciiz "'+('x'*100)+'\\n"\n.text\nmain:\nli $s0,2000\nla $a0,msg\nloop:\nli $v0,4\nsyscall\naddiu $s0,$s0,-1\nbnez $s0,loop\nli $v0,10\nsyscall\n'
+   request(command='assemble',files={'main.s':src},entry='main.s')
+   for _ in range(60):
+    state=request(command='run',limit=150)
+    if state['status']=='ended':break
+   self.assertEqual(state['status'],'ended');self.assertEqual(state['output'],('x'*100+'\n')*2000)
+   end=state['step'];self.assertEqual(request(command='seek',step=0)['output'],'')
+   self.assertEqual(request(command='seek',step=end)['output'],state['output'])
+   request(command='seek',step=20)
+   self.assertEqual(request(command='run',limit=10)['output'],('x'*100+'\n')*7)
+  finally:p.terminate();p.wait(timeout=5);p.stdin.close();p.stdout.close()
  def test_numbers_and_rewind(self):
   for delay in (False,True):
    self.asm(example='04-numbers',inputs=['898'],delay=delay);s=self.finish();self.assertEqual(s['output'],'Enter an integer: Decimal:  898\nHex:      0x00000382\nBinary:   00000000000000000000001110000010\nOne bits: 4\n');self.assertEqual(s['status'],'ended');n=s['step'];self.call('seek',step=0);replay=self.call('seek',step=n);self.assertEqual(replay['output'],s['output']);self.call('seek',step=0);self.assertEqual(self.finish()['output'],s['output'])

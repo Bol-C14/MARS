@@ -3,6 +3,7 @@
 // large project and its backups, so those go to IndexedDB. A key lives in one
 // place at a time and localStorage is read first.
 let opened;
+const localWrites = new Map();
 const db = () => opened ||= new Promise((resolve, reject) => {
   const request = indexedDB.open('mars-trace', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('projects');
@@ -20,10 +21,15 @@ export function put(key, value) {
   const text = JSON.stringify(value);
   try {
     localStorage.setItem(key, text);
+    localWrites.set(key, (localWrites.get(key) || 0) + 1);
     return run('readwrite', s => s.delete(key)).catch(() => {});
   } catch {}
-  try { localStorage.removeItem(key); } catch {}
-  return run('readwrite', s => s.put(text, key));
+  const generation = localWrites.get(key);
+  return run('readwrite', s => s.put(text, key)).then(() => {
+    // A newer synchronous save may have won while IndexedDB was writing.
+    if (localWrites.get(key) === generation)
+      try { localStorage.removeItem(key); } catch {}
+  });
 }
 export async function get(key) {
   let text = null;

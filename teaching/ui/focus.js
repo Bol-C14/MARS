@@ -112,6 +112,11 @@ export class FocusLens {
       }
     });
     new ResizeObserver(() => this.isOpen && this.draw()).observe(this.el);
+    for (const id of ["focus-path", "focus-objects"])
+      $(id).addEventListener("scroll", () => {
+        cancelAnimationFrame(this.scrollFrame);
+        this.scrollFrame = requestAnimationFrame(() => this.isOpen && this.draw());
+      }, { passive: true });
     this.drag();
   }
 

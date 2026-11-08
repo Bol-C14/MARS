@@ -31,7 +31,10 @@ export function parseAddress(text, { symbols = [], register = () => undefined } 
 
 // Bytes a data directive takes, from its operands as written.
 function directiveSize(directive, operands) {
-  const items = operands.split(",").filter((x) => x.trim()).length || 1;
+  const items = operands.split(",").filter((x) => x.trim()).reduce((sum, item) => {
+    const repeat = /:\s*(0x[\da-f]+|\d+)\s*$/i.exec(item);
+    return sum + (repeat ? Number(repeat[1]) : 1);
+  }, 0);
   const text = (/"((?:[^"\\]|\\.)*)"/.exec(operands)?.[1] ?? "").replace(/\\./g, "x");
   switch (directive) {
     case ".word": case ".float": return 4 * items;

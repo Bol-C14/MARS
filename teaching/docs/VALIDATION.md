@@ -52,3 +52,26 @@ The differential script writes machine-readable results to ignored `teaching/tes
 ## Known scope
 
 No claim is made about full MARS GUI/tool compatibility, all syscall extensions, arbitrary host file access, advanced data-dependency slicing, nonstandard stack unwinding, Windows packaging or educational learning outcomes. The README lists exact supported service and workflow boundaries.
+
+## Release review fixes — 2026-11-08
+
+The release review fixes give each editor document its own undo history, share immutable
+console-output chunks between execution checkpoints, preserve the previous draft until
+IndexedDB commits, and invalidate outstanding memory requests on assembly/project changes.
+Source locations use `/` on every host; generated-file identities use SHA-256. Include
+restrictions match directive lines rather than comments or strings. Instruction roles no
+longer depend on translated wording; explanations refresh with the language, syscall
+arguments use recorded preview reads, focus arrows follow scrolling, and repeated data
+declarations contribute their full size to the memory map.
+
+Validation: 30 core tests, 10 checker tests, 123 frontend unit tests, 1,935 upstream step
+snapshots, 226 existing browser checks, 63 workspace checks, 28 English interface checks,
+and 9 gateway tests pass. `tests/release_browser.py`, now included in `scripts/test.sh`,
+adds six browser regressions for undo, delayed responses, failed storage, language changes,
+floating syscall arguments and focus scrolling. The storage unit test also covers a newer
+local save arriving during an older IndexedDB write.
+
+The previous console crash case completes on the production JRE 17 with a 192 MB heap:
+2,000 lines, 8,005 machine steps and 202,000 output characters. Core coverage checks rewind,
+replay and execution after rewinding as well. Windows path normalization was reviewed in
+code; no Windows runtime was available for this batch.
