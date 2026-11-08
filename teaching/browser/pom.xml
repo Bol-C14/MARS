@@ -1,0 +1,21 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>mars</groupId><artifactId>browser-runtime</artifactId><version>1</version>
+  <dependencies>
+    <dependency><groupId>org.teavm</groupId><artifactId>teavm-classlib</artifactId><version>0.16.0</version></dependency>
+    <dependency><groupId>org.teavm</groupId><artifactId>teavm-jso</artifactId><version>0.16.0</version></dependency>
+  </dependencies>
+  <build>
+    <directory>../build/browser</directory>
+    <sourceDirectory>../build/browser/src</sourceDirectory>
+    <outputDirectory>../build/browser/classes</outputDirectory>
+    <plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.0</version><configuration><release>17</release><encoding>UTF-8</encoding></configuration></plugin><plugin>
+      <groupId>org.teavm</groupId><artifactId>teavm-maven-plugin</artifactId><version>0.16.0</version>
+      <configuration>
+        <mainClass>mars.ide.BrowserKernel</mainClass><targetType>JAVASCRIPT</targetType>
+        <targetDirectory>../dist</targetDirectory><targetFileName>kernel.js</targetFileName>
+        <optimizationLevel>ADVANCED</optimizationLevel><minifying>true</minifying>
+      </configuration>
+    </plugin></plugins>
+  </build>
+</project>

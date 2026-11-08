@@ -55,3 +55,7 @@ The adapter is a tested M0–M2 implementation. M3 owns installer packaging, ind
 个人：`Server.java` 提供本机静态文件与单个 DebugSession，CheckerClient 启动独立检查进程。
 教师：Caddy 提供页面与 HTTPS，`teaching/hosting/gateway.py` 按 Cookie 分配独立 Stdio JVM，检查请求进入另一 JVM。Compose 内部执行网络隔离于公网；生产网关与通用部署配置已归入主仓库。
 工程草稿保存在浏览器，服务端保存执行状态。完整入口与数据生命周期见 [DEPLOYMENT.md](DEPLOYMENT.md)。
+
+## 浏览器内核部署（TeaVM）
+
+`ui/runtime.js` 在构建时选择 HTTP 或独立 Worker。静态版把同一 MARS Java 核心编译为 JavaScript；调试与检查各自拥有一个 Worker 内的全局状态。平台适配从原 Simulator 提取真实执行循环，并用协程在长命令中让出事件循环。完整构建、平台差异、文件生命周期与验证命令见 [BROWSER-RUNTIME.md](BROWSER-RUNTIME.md)。

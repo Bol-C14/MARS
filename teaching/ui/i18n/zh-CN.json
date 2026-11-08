@@ -447,7 +447,6 @@
   "examples.open": "打开示例",
   "examples.open.note": "示例会替换当前工程。可以通过“恢复上次管理操作”找回当前内容。",
   "examples.unavailable": "示例暂不可用",
-  "examples.unavailableNow": "示例服务暂时不可用",
   "explain.add": "两个源寄存器相加；有符号溢出产生异常。",
   "explain.addi": "读取源寄存器，将符号扩展后的立即数相加；有符号溢出产生异常。",
   "explain.addiu": "读取源寄存器，将 16 位立即数符号扩展后相加，写入目标。不会因有符号溢出产生异常。",
@@ -1590,5 +1589,6 @@
   "workspace.targetExists": "目标已存在：{path}",
   "workspace.textOnly": "目前只支持 UTF-8 文本文件。",
   "workspace.tooLarge": "工程最多 {limit} 文本内容。",
-  "workspace.tooManyFolders": "工程最多 {max} 个文件夹。"
+  "workspace.tooManyFolders": "工程最多 {max} 个文件夹。",
+  "engine.browser": "在你的设备上运行 · Java MARS 经 TeaVM 编译。程序与文件保存在此浏览器中。"
 }

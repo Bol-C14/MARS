@@ -512,7 +512,7 @@ def classroom_p1(r, page, mod):
     for _ in range(2):
         page.locator("#source").click(); page.wait_for_timeout(150)
     r.until("() => window.marsIDE.state.step === 2")
-    paused = "async () => { const r = await fetch('/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: 'memory', address: 268500992, length: 64 }) }); const s = await r.json(); return JSON.stringify([s.registers, s.pc, s.step, s.status, s.memory, s.programVersion]) }"
+    paused = "async () => { const s = await window.marsIDE.command('memory', { address: 268500992, length: 64 }); return JSON.stringify([s.registers, s.pc, s.step, s.status, s.memory, s.programVersion]) }"
     before = r.js(paused)
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ selection: { anchor: e.state.doc.line(5).to } }); e.focus() }")
     page.keyboard.press("Enter"); page.keyboard.type(" addd $t0, $t0, $t0")
@@ -527,13 +527,14 @@ def classroom_p1(r, page, mod):
     r.until("() => document.querySelectorAll('.cm-error-mark').length === 0", timeout=6000)
     r.until("() => document.querySelectorAll('.tree-row.has-error').length === 0", timeout=6000)
     r.check("fixing the code clears the marks and, after the full check, the tree", page.locator(".cm-error-mark").count() == 0)
-    # Without a checker (an older gateway) the editor just goes without.
-    asked = []
-    page.route("**/api/check", lambda route: (asked.append(1), route.fulfill(status=404, body="{}"))[1])
-    page.reload(); r.until("() => window.marsIDE")
-    page.locator(".cm-content").click(); page.keyboard.type("# a"); page.wait_for_timeout(900); page.keyboard.type("b"); page.wait_for_timeout(900)
-    r.check("no checker: one quiet try, then no more requests", len(asked) == 1 and "检查" not in page.locator("#banner").inner_text(), [len(asked), page.locator("#banner").inner_text()])
-    page.unroute("**/api/check")
+    if r.js("() => document.documentElement.dataset.runtime") != "browser":
+        # Without a checker (an older gateway) the editor just goes without.
+        asked = []
+        page.route("**/api/check", lambda route: (asked.append(1), route.fulfill(status=404, body="{}"))[1])
+        page.reload(); r.until("() => window.marsIDE")
+        page.locator(".cm-content").click(); page.keyboard.type("# a"); page.wait_for_timeout(900); page.keyboard.type("b"); page.wait_for_timeout(900)
+        r.check("no checker: one quiet try, then no more requests", len(asked) == 1 and "检查" not in page.locator("#banner").inner_text(), [len(asked), page.locator("#banner").inner_text()])
+        page.unroute("**/api/check")
     # Instruction detail: rule, this line, values before, calculation, result.
     page.locator("#project-menu-button").click(); page.locator("#new-project").click(); page.locator("#project-confirm").click()
     r.js("() => { const e = window.marsIDE.editor; e.dispatch({ changes: { from: 0, to: e.state.doc.length, insert: '.text\\nmain:\\n li $s0, 7\\n li $t0, 3\\n add $s0, $s0, $t0\\n li $v0, 10\\n syscall\\n' } }) }")
@@ -1072,11 +1073,14 @@ def reduced_motion(r, page, mod):
 
 def main():
     port = free_port()
-    server = subprocess.Popen(
-        ["java", "-Djava.awt.headless=true", "-cp", "teaching/build/classes", "mars.ide.Server", str(port)],
-        cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    server = None
+    supplied_url = sys.argv[1] if len(sys.argv) > 1 else None
+    if not supplied_url:
+        server = subprocess.Popen(
+            ["java", "-Djava.awt.headless=true", "-cp", "teaching/build/classes", "mars.ide.Server", str(port)],
+            cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        for _ in range(100):
+        for _ in range(0 if supplied_url else 100):
             try:
                 socket.create_connection(("127.0.0.1", port), timeout=0.2).close()
                 break
@@ -1088,7 +1092,7 @@ def main():
             page = browser.new_page(locale="zh-CN", viewport={"width": 1440, "height": 1000})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
-            page.goto(f"http://127.0.0.1:{port}")
+            page.goto(supplied_url or f"http://127.0.0.1:{port}")
             open_example(page, "4 · 一个数的几种写法")
             page.locator("#project-confirm").click()
             mod = "Meta" if "Mac" in page.evaluate("navigator.platform") else "Control"
@@ -1097,7 +1101,7 @@ def main():
                 scenario(r, page, mod)
                 calm = browser.new_page(locale="zh-CN", viewport={"width": 1280, "height": 850}, reduced_motion="reduce")
                 calm.on("pageerror", lambda e: errors.append(str(e)))
-                calm.goto(f"http://127.0.0.1:{port}")
+                calm.goto(supplied_url or f"http://127.0.0.1:{port}")
                 open_example(calm, "4 · 一个数的几种写法")
                 calm.locator("#project-confirm").click()
                 calm.wait_for_function("() => window.marsIDE?.state?.status === 'paused'")
@@ -1105,7 +1109,7 @@ def main():
                 calm.close()
                 wide = browser.new_page(locale="zh-CN", viewport={"width": 1440, "height": 1000})
                 wide.on("pageerror", lambda e: errors.append(str(e)))
-                wide.goto(f"http://127.0.0.1:{port}")
+                wide.goto(supplied_url or f"http://127.0.0.1:{port}")
                 open_example(wide, "4 · 一个数的几种写法")
                 wide.locator("#project-confirm").click()
                 p1 = Run(wide)
@@ -1135,8 +1139,9 @@ def main():
                 browser.close()
         print(f"PASS: {len(r.passed)} browser checks (Chromium {version}), real key events, no page errors")
     finally:
-        server.terminate()
-        server.wait(timeout=5)
+        if server:
+            server.terminate()
+            server.wait(timeout=5)
 
 
 if __name__ == "__main__":

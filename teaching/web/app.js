@@ -1,3 +1,85 @@
+// ui/runtime.js
+var browserRuntime = typeof __MARS_BROWSER__ !== "undefined" && __MARS_BROWSER__;
+var KernelWorker = class {
+  constructor(name2) {
+    this.worker = new Worker(new URL("./kernel-worker.js", import.meta.url), {
+      name: name2
+    });
+    this.nextId = 0;
+    this.pending = /* @__PURE__ */ new Map();
+    this.tail = Promise.resolve();
+    this.ready = new Promise((resolve, reject) => {
+      this.worker.onmessage = ({ data: data2 }) => {
+        if (data2.ready) return resolve();
+        const job = this.pending.get(data2.id);
+        if (!job) return;
+        this.pending.delete(data2.id);
+        data2.error ? job.reject(Error(data2.error)) : job.resolve(data2.result);
+      };
+      this.worker.onerror = (event) => {
+        const error = Error(event.message || "Browser kernel could not start");
+        reject(error);
+        for (const job of this.pending.values()) job.reject(error);
+        this.pending.clear();
+      };
+    });
+  }
+  call(body, check = false) {
+    const job = this.tail.then(async () => {
+      await this.ready;
+      return new Promise((resolve, reject) => {
+        const id2 = ++this.nextId;
+        this.pending.set(id2, { resolve, reject });
+        this.worker.postMessage({ id: id2, body, check });
+      });
+    });
+    this.tail = job.catch(() => {
+    });
+    return job;
+  }
+  pause() {
+    this.worker.postMessage({ pause: true });
+  }
+};
+var debug;
+var checker;
+async function post(path, body) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    if (path === "/api/check" && [404, 405, 501].includes(response.status))
+      return null;
+    const detail = await response.json().catch(() => ({}));
+    throw Object.assign(Error(detail.error || `HTTP ${response.status}`), {
+      status: response.status
+    });
+  }
+  return response.json();
+}
+var runtime = {
+  command(body) {
+    if (!browserRuntime) return post("/api", body);
+    return (debug ??= new KernelWorker("MARS debugger")).call(body);
+  },
+  async check(body) {
+    if (!browserRuntime) return post("/api/check", body).catch(() => void 0);
+    return (checker ??= new KernelWorker("MARS syntax checker")).call(body, true).catch(() => void 0);
+  },
+  pause() {
+    if (browserRuntime) debug?.pause();
+  },
+  async examples() {
+    const response = await fetch(
+      browserRuntime ? "./examples.json" : "/examples"
+    );
+    if (!response.ok) throw Error("Examples unavailable");
+    return response.json();
+  }
+};
+
 // ui/i18n/zh-CN.json
 var zh_CN_default = {
   "api.noState": "\u6267\u884C\u670D\u52A1\u672A\u8FD4\u56DE\u72B6\u6001",
@@ -448,7 +530,6 @@ var zh_CN_default = {
   "examples.open": "\u6253\u5F00\u793A\u4F8B",
   "examples.open.note": "\u793A\u4F8B\u4F1A\u66FF\u6362\u5F53\u524D\u5DE5\u7A0B\u3002\u53EF\u4EE5\u901A\u8FC7\u201C\u6062\u590D\u4E0A\u6B21\u7BA1\u7406\u64CD\u4F5C\u201D\u627E\u56DE\u5F53\u524D\u5185\u5BB9\u3002",
   "examples.unavailable": "\u793A\u4F8B\u6682\u4E0D\u53EF\u7528",
-  "examples.unavailableNow": "\u793A\u4F8B\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528",
   "explain.add": "\u4E24\u4E2A\u6E90\u5BC4\u5B58\u5668\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
   "explain.addi": "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06\u7B26\u53F7\u6269\u5C55\u540E\u7684\u7ACB\u5373\u6570\u76F8\u52A0\uFF1B\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
   "explain.addiu": "\u8BFB\u53D6\u6E90\u5BC4\u5B58\u5668\uFF0C\u5C06 16 \u4F4D\u7ACB\u5373\u6570\u7B26\u53F7\u6269\u5C55\u540E\u76F8\u52A0\uFF0C\u5199\u5165\u76EE\u6807\u3002\u4E0D\u4F1A\u56E0\u6709\u7B26\u53F7\u6EA2\u51FA\u4EA7\u751F\u5F02\u5E38\u3002",
@@ -1591,7 +1672,8 @@ var zh_CN_default = {
   "workspace.targetExists": "\u76EE\u6807\u5DF2\u5B58\u5728\uFF1A{path}",
   "workspace.textOnly": "\u76EE\u524D\u53EA\u652F\u6301 UTF-8 \u6587\u672C\u6587\u4EF6\u3002",
   "workspace.tooLarge": "\u5DE5\u7A0B\u6700\u591A {limit} \u6587\u672C\u5185\u5BB9\u3002",
-  "workspace.tooManyFolders": "\u5DE5\u7A0B\u6700\u591A {max} \u4E2A\u6587\u4EF6\u5939\u3002"
+  "workspace.tooManyFolders": "\u5DE5\u7A0B\u6700\u591A {max} \u4E2A\u6587\u4EF6\u5939\u3002",
+  "engine.browser": "\u5728\u4F60\u7684\u8BBE\u5907\u4E0A\u8FD0\u884C \xB7 Java MARS \u7ECF TeaVM \u7F16\u8BD1\u3002\u7A0B\u5E8F\u4E0E\u6587\u4EF6\u4FDD\u5B58\u5728\u6B64\u6D4F\u89C8\u5668\u4E2D\u3002"
 };
 
 // ui/i18n/en.json
@@ -2044,7 +2126,6 @@ var en_default = {
   "examples.open": "Open example",
   "examples.open.note": "The example replaces the current project. \u201CUndo last project change\u201D brings the current contents back.",
   "examples.unavailable": "Examples unavailable",
-  "examples.unavailableNow": "The example service is unavailable right now",
   "explain.add": "Adds two source registers; signed overflow raises an exception.",
   "explain.addi": "Reads the source register and adds the sign-extended immediate; signed overflow raises an exception.",
   "explain.addiu": "Reads the source register, sign-extends the 16-bit immediate, adds them and writes the target. Signed overflow raises no exception.",
@@ -3187,7 +3268,8 @@ var en_default = {
   "workspace.targetExists": "Already exists: {path}",
   "workspace.textOnly": "Only UTF-8 text files are supported for now.",
   "workspace.tooLarge": "A project holds at most {limit} of text.",
-  "workspace.tooManyFolders": "A project holds at most {max} folders."
+  "workspace.tooManyFolders": "A project holds at most {max} folders.",
+  "engine.browser": "Runs on your device \xB7 Java MARS compiled with TeaVM. Your program and files stay in this browser."
 };
 
 // ui/i18n/index.js
@@ -3366,10 +3448,10 @@ function match(table, text2) {
 }
 function marsText(message) {
   const text2 = String(message ?? "").trim();
-  const runtime = /^Error in .*? line (\d+): Runtime exception at (0x[0-9a-f]+): ([\s\S]*)$/i.exec(text2);
-  if (runtime) {
-    const reason = runtime[3].trim();
-    return t("mars.runtime", { line: runtime[1], address: runtime[2], reason: match(REASONS, reason) ?? reason });
+  const runtime2 = /^Error in .*? line (\d+): Runtime exception at (0x[0-9a-f]+): ([\s\S]*)$/i.exec(text2);
+  if (runtime2) {
+    const reason = runtime2[3].trim();
+    return t("mars.runtime", { line: runtime2[1], address: runtime2[2], reason: match(REASONS, reason) ?? reason });
   }
   return match(MESSAGES, text2) ?? text2;
 }
@@ -30158,10 +30240,10 @@ var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
 };
 var deo = /* @__PURE__ */ new i32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
 var et = /* @__PURE__ */ new u8(0);
-var dflt = function(dat, lvl, plvl, pre, post, st) {
+var dflt = function(dat, lvl, plvl, pre, post2, st) {
   var s = st.z || dat.length;
-  var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7e3)) + post);
-  var w = o.subarray(pre, o.length - post);
+  var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7e3)) + post2);
+  var w = o.subarray(pre, o.length - post2);
   var lst = st.l;
   var pos = (st.r || 0) & 7;
   if (lvl) {
@@ -30257,7 +30339,7 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
     }
     st.i = s;
   }
-  return slc(o, 0, pre + shft(pos) + post);
+  return slc(o, 0, pre + shft(pos) + post2);
 };
 var crct = /* @__PURE__ */ (function() {
   var t3 = new Int32Array(256);
@@ -30283,7 +30365,7 @@ var crc = function() {
     }
   };
 };
-var dopt = function(dat, opt, pre, post, st) {
+var dopt = function(dat, opt, pre, post2, st) {
   if (!st) {
     st = { l: 1 };
     if (opt.dictionary) {
@@ -30295,7 +30377,7 @@ var dopt = function(dat, opt, pre, post, st) {
       st.w = dict.length;
     }
   }
-  return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? st.l ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 20 : 12 + opt.mem, pre, post, st);
+  return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? st.l ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 20 : 12 + opt.mem, pre, post2, st);
 };
 var mrg = function(a, b) {
   var o = {};
@@ -31286,7 +31368,7 @@ function projectManager(hooks) {
 
 // ui/live-check.js
 var MAX_LINES = 200;
-function liveCheck({ post, current: current2, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
+function liveCheck({ post: post2, current: current2, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
   let enabled = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
   const flying = {}, waiting = {};
   async function send(kind, body, accept, asked = version) {
@@ -31296,7 +31378,7 @@ function liveCheck({ post, current: current2, scope, ready, held, showLines, sho
       return;
     }
     flying[kind] = true;
-    const reply = await post({ protocol: 1, id: asked, ...body }).catch(() => void 0);
+    const reply = await post2({ protocol: 1, id: asked, ...body }).catch(() => void 0);
     flying[kind] = false;
     if (reply === null) {
       enabled = false;
@@ -31511,6 +31593,7 @@ function barPosition(segments, address) {
 }
 
 // ui/main.js
+document.documentElement.dataset.runtime = browserRuntime ? "browser" : "server";
 var $2 = (id2) => document.getElementById(id2);
 var LIST_SEP = () => t("common.listSep");
 var COLON = () => t("common.colon");
@@ -31963,15 +32046,8 @@ function showLineProblems(lines, list) {
 }
 var live = liveCheck({
   post: async (body) => {
-    const r = await fetch("/api/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    if ([404, 405, 501].includes(r.status)) return null;
-    if (!r.ok) return void 0;
-    const reply = await r.json().catch(() => null);
-    return reply?.protocol === 1 ? reply : null;
+    const reply = await runtime.check(body);
+    return reply?.protocol === 1 ? reply : reply === null ? null : void 0;
   },
   current: () => ({ file: activeFile, doc: editor.state.doc }),
   scope: () => {
@@ -32669,12 +32745,11 @@ function named(s) {
   return s;
 }
 async function api(body) {
-  let r = await fetch("/api", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  }), s = r.status === 413 ? { error: t("api.tooLarge") } : await r.json();
-  if (!r.ok || !s.protocol) throw Error(s.error || t("api.noState"));
+  const s = await runtime.command(body).catch((e) => {
+    if (e.status === 413) throw Error(t("api.tooLarge"));
+    throw e;
+  });
+  if (!s.protocol) throw Error(s.error || t("api.noState"));
   return named(s);
 }
 var EXECUTING = /* @__PURE__ */ new Set([
@@ -33256,6 +33331,13 @@ function setupMenu(buttonId, menuId) {
   });
 }
 setupMenu("engine", "engine-menu");
+if (browserRuntime) {
+  const label2 = document.createElement("small");
+  label2.dataset.i18n = "engine.browser";
+  label2.textContent = t("engine.browser");
+  $2("engine-menu").querySelector(".engine-info").append(label2);
+  $2("engine").append(" \xB7 Browser");
+}
 $2("engine").addEventListener("click", () => {
   $2("engine-delay").textContent = t("engine.state", { delay: $2("delay").checked ? t("common.on") : t("common.off"), program: target ? describeScope(target) : t("status.notAssembled") });
 });
@@ -33983,6 +34065,7 @@ var runDone = Promise.resolve();
 function requestStop() {
   if (running) {
     stopRequested = true;
+    runtime.pause();
     updateControls();
   }
   return runDone;
@@ -34863,9 +34946,7 @@ window.marsIDE = {
 };
 (async () => {
   try {
-    const response = await fetch("/examples");
-    if (!response.ok) throw Error(t("examples.unavailableNow"));
-    exampleList = await response.json();
+    exampleList = await runtime.examples();
     renderExamples();
   } catch (e) {
     exampleList = null;

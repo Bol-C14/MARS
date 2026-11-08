@@ -1,3 +1,5 @@
+import { runtime, browserRuntime } from "./runtime.js";
+document.documentElement.dataset.runtime = browserRuntime ? "browser" : "server";
 import { t, LANGUAGES, localized, language, setLanguage, onLanguageChange, applyDom } from "./i18n/index.js";
 import { marsText } from "./i18n/mars.js";
 import {
@@ -630,15 +632,8 @@ function showLineProblems(lines, list) {
 }
 const live = liveCheck({
   post: async (body) => {
-    const r = await fetch("/api/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if ([404, 405, 501].includes(r.status)) return null;
-    if (!r.ok) return undefined;
-    const reply = await r.json().catch(() => null);
-    return reply?.protocol === 1 ? reply : null;
+    const reply = await runtime.check(body);
+    return reply?.protocol === 1 ? reply : reply === null ? null : undefined;
   },
   current: () => ({ file: activeFile, doc: editor.state.doc }),
   scope: () => {
@@ -1511,13 +1506,11 @@ function sourceOf(ins) {
   return splitComment(line).code || ins.basic;
 }
 async function api(body) {
-  let r = await fetch("/api", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }),
-    s = r.status === 413 ? { error: t("api.tooLarge") } : await r.json();
-  if (!r.ok || !s.protocol) throw Error(s.error || t("api.noState"));
+  const s = await runtime.command(body).catch((e) => {
+    if (e.status === 413) throw Error(t("api.tooLarge"));
+    throw e;
+  });
+  if (!s.protocol) throw Error(s.error || t("api.noState"));
   return named(s);
 }
 // Commands that execute or move through the loaded program's history. They
@@ -2283,6 +2276,13 @@ function setupMenu(buttonId, menuId) {
   });
 }
 setupMenu("engine", "engine-menu");
+if (browserRuntime) {
+  const label = document.createElement("small");
+  label.dataset.i18n = "engine.browser";
+  label.textContent = t("engine.browser");
+  $("engine-menu").querySelector(".engine-info").append(label);
+  $("engine").append(" · Browser");
+}
 $("engine").addEventListener("click", () => {
   $("engine-delay").textContent = t("engine.state", { delay: $("delay").checked ? t("common.on") : t("common.off"), program: target ? describeScope(target) : t("status.notAssembled") });
 });
@@ -3257,6 +3257,7 @@ let stopRequested = false,
 function requestStop() {
   if (running) {
     stopRequested = true;
+    runtime.pause();
     updateControls();
   }
   return runDone;
@@ -4236,9 +4237,7 @@ window.marsIDE = {
 // Examples are optional; editing and local draft recovery work without the backend.
 (async () => {
 try {
-  const response = await fetch("/examples");
-  if (!response.ok) throw Error(t("examples.unavailableNow"));
-  exampleList = await response.json();
+  exampleList = await runtime.examples();
   renderExamples();
 } catch (e) {
   exampleList = null;

@@ -447,7 +447,6 @@
   "examples.open": "Open example",
   "examples.open.note": "The example replaces the current project. “Undo last project change” brings the current contents back.",
   "examples.unavailable": "Examples unavailable",
-  "examples.unavailableNow": "The example service is unavailable right now",
   "explain.add": "Adds two source registers; signed overflow raises an exception.",
   "explain.addi": "Reads the source register and adds the sign-extended immediate; signed overflow raises an exception.",
   "explain.addiu": "Reads the source register, sign-extends the 16-bit immediate, adds them and writes the target. Signed overflow raises no exception.",
@@ -1590,5 +1589,6 @@
   "workspace.targetExists": "Already exists: {path}",
   "workspace.textOnly": "Only UTF-8 text files are supported for now.",
   "workspace.tooLarge": "A project holds at most {limit} of text.",
-  "workspace.tooManyFolders": "A project holds at most {max} folders."
+  "workspace.tooManyFolders": "A project holds at most {max} folders.",
+  "engine.browser": "Runs on your device · Java MARS compiled with TeaVM. Your program and files stay in this browser."
 }
