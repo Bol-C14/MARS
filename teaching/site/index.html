@@ -1,23 +1,34 @@
 <!doctype html>
-<html lang="en" data-lang="en">
+<html lang="{{PAGE_LANG}}" data-lang="{{PAGE_LANG}}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MARS Trace · MIPS assembly you can see, step and rewind</title>
-    <meta name="description" content="A free teaching IDE for MIPS assembly built on MARS 4.5. Assemble, step, rewind and inspect registers and memory, all in your browser. No Java, no sign-up." />
-    <meta property="og:title" content="MARS Trace" />
-    <meta property="og:description" content="MIPS assembly you can see, step and rewind — in your browser." />
-    <meta property="og:image" content="media/ide-en.png" />
+    <title>{{PAGE_TITLE}}</title>
+    <meta name="description" content="{{PAGE_DESCRIPTION}}" />
+    <meta property="og:title" content="{{PAGE_TITLE}}" />
+    <meta property="og:description" content="{{PAGE_DESCRIPTION}}" />
+    <meta property="og:image" content="{{URL}}media/ide-en.png" />
+    <meta property="og:url" content="{{PAGE_URL}}" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="{{PAGE_URL}}" />
+    <link rel="alternate" hreflang="en" href="{{URL}}" />
+    <link rel="alternate" hreflang="zh-CN" href="{{URL}}zh-cn/" />
+    <link rel="alternate" hreflang="x-default" href="{{URL}}" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23005fb8'/%3E%3Ctext x='8' y='12' font-family='monospace' font-size='11' font-weight='700' fill='white' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="site.css" />
+    <link rel="stylesheet" href="/site.css" />
     <script>
       // Same choice as the IDE (mars-trace:language), so it carries over.
       (function () {
-        var pick = "en";
+        var pick = "{{PAGE_LANG}}";
         try {
           var asked = new URLSearchParams(location.search).get("lang");
           var saved = localStorage.getItem("mars-trace:language");
-          if (asked === "zh-CN" || asked === "en") pick = asked;
+          if (location.pathname === "/zh-cn/" || location.pathname === "/zh-cn") {
+            pick = "zh-CN";
+            localStorage.setItem("mars-trace:language", pick);
+          }
+          else if (asked === "zh-CN" || asked === "en") pick = asked;
           else if (saved === "zh-CN" || saved === "en") pick = saved;
           else if ((navigator.languages || [navigator.language]).some(function (l) { return /^zh\b/i.test(l); })) pick = "zh-CN";
         } catch (e) {}
@@ -29,12 +40,12 @@
   </head>
   <body>
     <header class="top">
-      <a class="brand" href="./"><span class="brand-icon">M</span>MARS <b>Trace</b></a>
+      <a class="brand" href="/"><span class="brand-icon">M</span>MARS <b>Trace</b></a>
       <nav>
         <a href="#see"><span lang="zh-CN">功能</span><span lang="en">Features</span></a>
-        <a href="#teachers"><span lang="zh-CN">给老师</span><span lang="en">For teachers</span></a>
-        <button class="lang" type="button" data-switch-lang aria-label="Switch language / 切换语言"><span lang="zh-CN">English</span><span lang="en">中文</span></button>
-        <a class="button primary small" href="app/" data-umami-event="try" data-umami-event-from="nav"><span lang="zh-CN">打开 IDE</span><span lang="en">Open the IDE</span></a>
+        <a href="#course"><span lang="zh-CN">兼容性</span><span lang="en">Compatibility</span></a>
+        <a class="lang" href="{{SWITCH_URL}}" data-switch-lang aria-label="Switch language / 切换语言"><span lang="zh-CN">English</span><span lang="en">中文</span></a>
+        <a class="button primary small" href="/app/" data-umami-event="try" data-umami-event-from="nav"><span lang="zh-CN">打开 IDE</span><span lang="en">Open the IDE</span></a>
       </nav>
     </header>
 
@@ -47,12 +58,12 @@
             <span lang="en">MIPS assembly<br />you can see, step<br />and rewind.</span>
           </h1>
           <p class="lead">
-            <span lang="zh-CN">基于 MARS 4.5 的教学 IDE。汇编、单步、回退，看清每条指令改了哪个寄存器、哪块内存。全部在你的浏览器里运行：不用装 Java，不用注册。</span>
-            <span lang="en">A teaching IDE built on MARS 4.5. Assemble, step and rewind, and see exactly which register and which bytes each instruction changed. It all runs in your browser: no Java to install, no sign-up.</span>
+            <span lang="zh-CN">在线 MIPS 汇编模拟器与教学 IDE，基于 MARS 4.5。汇编、单步、回退，看清指令如何改变寄存器和内存。直接在浏览器运行，不用安装 Java，不用注册。</span>
+            <span lang="en">An online MIPS assembler, simulator and teaching IDE built on MARS 4.5. Run assembly code, step and rewind, and see how instructions change registers and memory. No Java installation or sign-up.</span>
           </p>
           <div class="actions">
-            <a class="button primary" href="app/?example=01-hello" data-umami-event="try" data-umami-event-from="hero"><span lang="zh-CN">立即试用</span><span lang="en">Try it now</span></a>
-            <a class="button" href="#teachers" data-umami-event="teachers"><span lang="zh-CN">我是老师</span><span lang="en">I teach this</span></a>
+            <a class="button primary" href="/app/" data-umami-event="try" data-umami-event-from="hero"><span lang="zh-CN">开始使用</span><span lang="en">Open the IDE</span></a>
+            <a class="button" href="#see" data-umami-event="features"><span lang="zh-CN">看看能做什么</span><span lang="en">See what it does</span></a>
           </div>
           <p class="fineprint"><span lang="zh-CN">免费 · 开源 · 程序和文件只存在你的浏览器里</span><span lang="en">Free · open source · your programs stay in your browser</span></p>
         </div>
@@ -73,16 +84,16 @@
       </section>
 
       <section class="shot">
-        <img src="media/ide-en.png" alt="The MARS Trace IDE with a program paused, registers and memory beside it" lang="en" width="1440" height="900" loading="eager" />
-        <img src="media/ide-zh-CN.png" alt="MARS Trace IDE：程序停在某一步，旁边是寄存器和内存" lang="zh-CN" width="1440" height="900" loading="eager" />
+        <img src="/media/ide-en.png" alt="The MARS Trace IDE with a program paused, registers and memory beside it" lang="en" width="1440" height="900" loading="eager" />
+        <img src="/media/ide-zh-CN.png" alt="MARS Trace IDE：程序停在某一步，旁边是寄存器和内存" lang="zh-CN" width="1440" height="900" loading="eager" />
       </section>
 
       <section id="see" class="features">
-        <h2><span lang="zh-CN">学生能看见什么</span><span lang="en">What students get to see</span></h2>
+        <h2><span lang="zh-CN">你能看见什么</span><span lang="en">What you get to see</span></h2>
         <div class="grid">
           <article>
             <h3><span lang="zh-CN">单步，也能回退</span><span lang="en">Step forward, and back</span></h3>
-            <p><span lang="zh-CN">走过头了就退回去。每一步改了哪个寄存器、哪块内存都会标出来，不用再靠猜。</span><span lang="en">Went one step too far? Go back. Every step marks the registers and memory it changed, so nobody has to guess.</span></p>
+            <p><span lang="zh-CN">走过头了就退回去。每一步改了哪个寄存器、哪块内存都会标出来，不用再靠猜。</span><span lang="en">Went one step too far? Go back. Every step marks the registers and memory it changed, so there is nothing to guess.</span></p>
           </article>
           <article>
             <h3><span lang="zh-CN">内存地图</span><span lang="en">A map of memory</span></h3>
@@ -100,35 +111,51 @@
         <p class="also"><span lang="zh-CN">还有：中英双语界面 · 内置示例程序 · 文件读写 syscall · 断点与观察 · 工程导入导出</span><span lang="en">Also: English and Chinese interface · built-in examples · file I/O syscalls · breakpoints and watches · project import and export</span></p>
       </section>
 
-      <section id="teachers" class="teachers">
+      <section class="learning" aria-labelledby="learning-title">
+        <h2 id="learning-title"><span lang="zh-CN">用 MIPS 汇编练习计算机组成</span><span lang="en">Learn computer architecture with MIPS assembly</span></h2>
+        <div class="learning-grid">
+          <article>
+            <h3><span lang="zh-CN">如何在线运行 MIPS 代码？</span><span lang="en">How do I run MIPS code online?</span></h3>
+            <p><span lang="zh-CN">打开 IDE，从 Hello World 示例开始，或导入自己的汇编文件。点击汇编和运行，即可在浏览器查看输出。</span><span lang="en">Open the IDE, start with Hello World or import your own assembly file. Assemble and run it to see the output in your browser.</span> <a href="/app/?example=01-hello"><span lang="zh-CN">打开 Hello World 示例 →</span><span lang="en">Open Hello World →</span></a></p>
+          </article>
+          <article>
+            <h3><span lang="zh-CN">如何理解寄存器、内存和分支？</span><span lang="en">How do I understand registers, memory and branches?</span></h3>
+            <p><span lang="zh-CN">逐条执行指令，观察寄存器和内存的变化；用断点、回退和专注模式跟踪循环与分支。内存地图还可以帮助理解栈、堆和数据段。</span><span lang="en">Step through instructions and watch registers and memory change. Use breakpoints, rewind and focus mode to follow loops and branches; explore the stack, heap and data on the memory map.</span></p>
+          </article>
+          <article>
+            <h3><span lang="zh-CN">可以用于 MARS 汇编课程吗？</span><span lang="en">Can I use it for a MARS assembly course?</span></h3>
+            <p><span lang="zh-CN">可以。它使用 MARS 4.5 的汇编器和模拟器，支持导入已有工程、文件读写及导出。教师可以分享链接，让学生直接开始练习。</span><span lang="en">Yes. It uses the MARS 4.5 assembler and simulator and supports project import, file I/O and export. Teachers can share a link for students to start practicing.</span></p>
+          </article>
+        </div>
+      </section>
+
+      <section id="course" class="teachers">
         <div>
-          <h2><span lang="zh-CN">给老师</span><span lang="en">For teachers</span></h2>
+          <h2><span lang="zh-CN">和你已有的 MARS 程序兼容</span><span lang="en">Works with the MARS code you already have</span></h2>
           <ul>
-            <li><span lang="zh-CN"><b>和 MARS 4.5 一致。</b>用的就是 MARS 的汇编器和模拟器，延迟分支可以开关，课上的代码不用改。</span><span lang="en"><b>Same as MARS 4.5.</b> It runs MARS's own assembler and simulator, delayed branching included, so course code works unchanged.</span></li>
-            <li><span lang="zh-CN"><b>打开网页就能用。</b>机房不用装 Java，你也没有服务器要维护，人再多也一样。</span><span lang="en"><b>Nothing to install.</b> No Java in the lab and no server for you to run, however many students open it.</span></li>
-            <li><span lang="zh-CN"><b>布置和收作业。</b>工程可以导出成 ZIP 或 JSON，学生导入就能接着做。</span><span lang="en"><b>Hand out and collect work.</b> Projects export as ZIP or JSON and open again with one import.</span></li>
+            <li><span lang="zh-CN"><b>和 MARS 4.5 一致。</b>用的就是 MARS 的汇编器和模拟器，延迟分支可以开关，已有的程序不用改。</span><span lang="en"><b>Same as MARS 4.5.</b> It runs MARS's own assembler and simulator, delayed branching included, so existing programs run unchanged.</span></li>
+            <li><span lang="zh-CN"><b>打开网页就能用。</b>不用装 Java，换台电脑也一样，不用注册账号。</span><span lang="en"><b>Nothing to install.</b> No Java, works on any computer with a browser, no account needed.</span></li>
+            <li><span lang="zh-CN"><b>工程随身带走。</b>工程可以导出成 ZIP 或 JSON，换个地方导入就能接着做。</span><span lang="en"><b>Take your work with you.</b> Projects export as ZIP or JSON and open again with one import.</span></li>
             <li><span lang="zh-CN"><b>中英文示例。</b>从 Hello World 到多文件、文件读写，都有现成的程序。</span><span lang="en"><b>Examples in both languages.</b> From Hello World to multi-file programs with file I/O.</span></li>
           </ul>
         </div>
         <div class="contact-card">
-          <p><span lang="zh-CN">想在课上用，或者需要什么功能？我很想听听你的课是怎么上的。</span><span lang="en">Thinking of using it in class, or missing something? I would love to hear how you teach this.</span></p>
-          <a class="button primary" {{CONTACT}} data-umami-event="contact" data-umami-event-from="teachers"><span lang="zh-CN">联系我</span><span lang="en">Get in touch</span></a>
+          <a class="button primary" {{CONTACT}} data-umami-event="contact" data-umami-event-from="course"><span lang="zh-CN">联系我</span><span lang="en">Contact me</span></a>
         </div>
       </section>
     </main>
 
     <footer>
       <p>
-        <span lang="zh-CN">MARS Trace 由 <a href="https://github.com/Bol-C14" rel="noopener">BShark</a> 制作</span><span lang="en">MARS Trace is made by <a href="https://github.com/Bol-C14" rel="noopener">BShark</a></span>
-        · <a href="{{GITHUB}}" rel="noopener">GitHub</a>
-        · <a href="app/#feedback" data-umami-event="feedback" data-umami-event-from="site"><span lang="zh-CN">反馈或报告问题</span><span lang="en">Feedback or report a problem</span></a>
+        MARS Trace{{GITHUB}}
+        · <a href="/app/#feedback" data-umami-event="feedback" data-umami-event-from="site"><span lang="zh-CN">反馈或报告问题</span><span lang="en">Feedback or report a problem</span></a>
         · <a {{CONTACT}} data-umami-event="contact" data-umami-event-from="footer"><span lang="zh-CN">联系</span><span lang="en">Contact</span></a>
       </p>
       <p class="credits">
-        <span lang="zh-CN">基于 MARS 4.5（Pete Sanderson 与 Kenneth Vollmar，Missouri State University），<a href="app/MARSlicense.txt">MIT 许可</a>；浏览器内核由 TeaVM 编译（<a href="app/TEAVM-LICENSE.txt">Apache 2.0</a>）。统计不使用 cookie，不收集个人信息。</span>
-        <span lang="en">Built on MARS 4.5 by Pete Sanderson and Kenneth Vollmar, Missouri State University (<a href="app/MARSlicense.txt">MIT licence</a>). The browser core is compiled with TeaVM (<a href="app/TEAVM-LICENSE.txt">Apache 2.0</a>). Usage statistics use no cookies and no personal data.</span>
+        <span lang="zh-CN">基于 MARS 4.5（Pete Sanderson 与 Kenneth Vollmar，Missouri State University），<a href="/app/MARSlicense.txt">MIT 许可</a>；浏览器内核由 TeaVM 编译（<a href="/app/TEAVM-LICENSE.txt">Apache 2.0</a>）。统计不使用 cookie，不收集个人信息。</span>
+        <span lang="en">Built on MARS 4.5 by Pete Sanderson and Kenneth Vollmar, Missouri State University (<a href="/app/MARSlicense.txt">MIT licence</a>). The browser core is compiled with TeaVM (<a href="/app/TEAVM-LICENSE.txt">Apache 2.0</a>). Usage statistics use no cookies and no personal data.</span>
       </p>
     </footer>
-    <script src="site.js"></script>
+    <script src="/site.js"></script>
   </body>
 </html>

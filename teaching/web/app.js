@@ -82,18 +82,19 @@ var runtime = {
 
 // site/config.json
 var config_default = {
-  author: "BShark",
-  github: "https://github.com/Bol-C14/MARS",
-  issues: "https://github.com/Bol-C14/MARS/issues/new",
+  author: "MARS Trace",
+  url: "https://mars.castralhub.com/",
+  github: "",
+  issues: "",
   umami: {
     src: "https://cloud.umami.is/script.js",
-    websiteId: ""
+    websiteId: "ced678b0-63d8-43c4-8324-c6c4aa4ccae8"
   },
   tally: {
-    feedback: "",
-    contact: ""
+    feedback: "ArKGxe",
+    contact: "RWdaR4"
   },
-  email: ""
+  email: "bsharkdev@gmail.com"
 };
 
 // ui/i18n/zh-CN.json
@@ -483,7 +484,6 @@ var zh_CN_default = {
   "console.input.placeholder": "\u8F93\u5165\u503C\uFF0C\u6309 Enter \u63D0\u4EA4",
   "console.input.send": "\u53D1\u9001",
   "console.input.waiting": "\u7A0B\u5E8F\u5728\u7B49\u5F85\u8F93\u5165\uFF1A\u5728\u8FD9\u91CC\u8F93\u5165\u540E\u6309 Enter",
-  "credit.title": "MARS Trace \u7531 BShark \u5236\u4F5C",
   "diag.duplicateGlobal": "\u53C2\u4E0E\u8FD9\u6B21\u6C47\u7F16\u7684 {files} \u90FD\u5B9A\u4E49\u4E86\u5168\u5C40\u6807\u7B7E {label}\u3002",
   "diag.duplicateGlobal.manual": "\u5982\u679C\u5B83\u4EEC\u662F\u5404\u81EA\u72EC\u7ACB\u7684\u7EC3\u4E60\uFF0C\u8BF7\u53D6\u6D88\u52FE\u9009\u5176\u4E2D\u4E00\u4E2A\uFF0C\u6216\u6539\u7528\u201C\u81EA\u52A8\u6C47\u7F16\u201D\u3002",
   "diag.duplicateGlobal.other": "\u540C\u4E00\u4E2A\u5168\u5C40\u6807\u7B7E\u53EA\u80FD\u5B9A\u4E49\u4E00\u6B21\uFF0C\u8BF7\u6539\u540D\u6216\u5220\u53BB\u5176\u4E2D\u4E00\u4E2A\u3002",
@@ -581,11 +581,13 @@ var zh_CN_default = {
   "feedback.button": "\u53CD\u9988",
   "feedback.continue": "\u7EE7\u7EED\u586B\u5199",
   "feedback.details": "\u4F1A\u4E00\u8D77\u53D1\u9001\u7684\u8BCA\u65AD\u4FE1\u606F",
+  "feedback.email": "\u53D1\u90AE\u4EF6",
   "feedback.github": "\u5728 GitHub \u63D0\u4EA4",
   "feedback.github.prompt": "\u8BF7\u5728\u8FD9\u91CC\u5199\u4E0B\u9047\u5230\u7684\u95EE\u9898\u6216\u5EFA\u8BAE",
-  "feedback.note": "\u8BF4\u8BF4\u9047\u5230\u4E86\u4EC0\u4E48\u95EE\u9898\uFF0C\u6216\u8005\u4F60\u5E0C\u671B\u5B83\u80FD\u505A\u4EC0\u4E48\u3002\u4E0B\u9762\u7684\u8BCA\u65AD\u4FE1\u606F\u4F1A\u4E00\u8D77\u53D1\u9001\uFF0C\u5E2E\u52A9\u590D\u73B0\u95EE\u9898\uFF1B\u4E0D\u5305\u542B\u4F60\u7684\u4EE3\u7801\u548C\u4E2A\u4EBA\u4FE1\u606F\u3002",
+  "feedback.note": "\u8BF4\u8BF4\u9047\u5230\u4E86\u4EC0\u4E48\u95EE\u9898\uFF0C\u6216\u8005\u4F60\u5E0C\u671B\u5B83\u80FD\u505A\u4EC0\u4E48\u3002\u53CD\u9988\u4F1A\u9644\u5E26\u4E0B\u65B9\u663E\u793A\u7684 IDE \u7248\u672C\u3001\u6D4F\u89C8\u5668\u548C\u6700\u8FD1\u7684\u9519\u8BEF\u6458\u8981\uFF1B\u8BF7\u68C0\u67E5\u540E\u518D\u53D1\u9001\u3002\u4EE3\u7801\u4EC5\u5728\u52FE\u9009\u65F6\u9644\u4E0A\u3002",
   "feedback.report": "\u62A5\u544A\u95EE\u9898",
   "feedback.title": "\u53CD\u9988\u6216\u62A5\u544A\u95EE\u9898",
+  "feedback.unavailable": "\u53CD\u9988\u8868\u5355\u8FD8\u6CA1\u6709\u8BBE\u7F6E\u3002\u53EF\u4EE5\u5148\u5C55\u5F00\u4E0A\u9762\u7684\u8BCA\u65AD\u4FE1\u606F\u5E76\u590D\u5236\uFF0C\u968F\u8054\u7CFB\u90AE\u4EF6\u4E00\u8D77\u53D1\u9001\u3002",
   "files.confirmDelete": "\u786E\u8BA4\u5220\u9664",
   "files.confirmDelete.contents": "\u53CA\u5176\u4E2D {count} \u4E2A\u6587\u4EF6",
   "files.confirmDelete.text": "\u5220\u9664 {path}{contents}\uFF1F",
@@ -2090,7 +2092,6 @@ var en_default = {
   "console.input.placeholder": "Type a value and press Enter",
   "console.input.send": "Send",
   "console.input.waiting": "The program is waiting for input: type here and press Enter",
-  "credit.title": "MARS Trace is made by BShark",
   "diag.duplicateGlobal": "{files} in this assembly all define the global label {label}.",
   "diag.duplicateGlobal.manual": "If they are separate exercises, untick one of them or switch to \u201CAuto assembly\u201D.",
   "diag.duplicateGlobal.other": "A global label can be defined only once; rename or remove one of them.",
@@ -2188,11 +2189,13 @@ var en_default = {
   "feedback.button": "Feedback",
   "feedback.continue": "Continue",
   "feedback.details": "Diagnostics sent with it",
+  "feedback.email": "Send an e-mail",
   "feedback.github": "Report on GitHub",
   "feedback.github.prompt": "Describe the problem or suggestion here",
-  "feedback.note": "Tell us what went wrong, or what you wish it could do. The diagnostics below go with it to help reproduce the problem; they contain none of your code or personal details.",
+  "feedback.note": "Tell us what went wrong or what you wish it could do. Your feedback includes the IDE version, browser and latest error shown below; please review them before sending. Code is attached only if you opt in.",
   "feedback.report": "Report problem",
   "feedback.title": "Feedback or report a problem",
+  "feedback.unavailable": "The feedback form is not set up yet. You can copy the diagnostics above and send them with an e-mail.",
   "files.confirmDelete": "Delete?",
   "files.confirmDelete.contents": " and the {count, plural, one {# file} other {# files}} in it",
   "files.confirmDelete.text": "Delete {path}{contents}?",
@@ -3664,6 +3667,7 @@ function withOperands(description, example, line) {
 // ui/site.js
 var BUILD = typeof __MARS_BUILD__ !== "undefined" ? __MARS_BUILD__ : "dev";
 var enabled = false;
+var waiting = [];
 var lastError = "";
 var once = /* @__PURE__ */ new Set();
 var PROGRAM_LIMIT = 8e3;
@@ -3678,13 +3682,33 @@ function loadScript(src, attrs = {}) {
     document.head.append(s);
   });
 }
+function testing() {
+  try {
+    return localStorage.getItem("mars-trace:analytics-test") === "1";
+  } catch {
+    return false;
+  }
+}
+function counted() {
+  return !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || testing();
+}
 function startSite(on) {
   enabled = Boolean(on);
   if (!enabled) return;
   document.documentElement.dataset.site = "public";
-  if (config_default.umami.websiteId)
-    loadScript(config_default.umami.src, { "data-website-id": config_default.umami.websiteId }).catch(() => {
-    });
+  if (config_default.umami.websiteId && counted())
+    loadScript(config_default.umami.src, {
+      "data-website-id": config_default.umami.websiteId,
+      ...testing() || !config_default.url ? {} : { "data-domains": new URL(config_default.url).hostname }
+    }).then(
+      () => {
+        const queued = waiting;
+        waiting = null;
+        for (const [name2, data2] of queued) send(name2, data2);
+      },
+      () => waiting = null
+    );
+  else waiting = null;
   addEventListener("error", (e) => remember(e.message));
   addEventListener("unhandledrejection", (e) => remember(e.reason?.message || String(e.reason)));
 }
@@ -3697,21 +3721,20 @@ function track(name2, { first = false, ...data2 } = {}) {
     if (once.has(name2)) return;
     once.add(name2);
   }
+  const payload = { lang: language(), ...data2 };
+  if (waiting) waiting.push([name2, payload]);
+  else send(name2, payload);
+}
+function send(name2, data2) {
   try {
-    globalThis.umami?.track(name2, { lang: language(), ...data2 });
+    globalThis.umami?.track(name2, data2);
   } catch {
   }
 }
 function diagnostics(ide) {
-  const s = ide.state?.() || null;
   return {
     build: BUILD,
-    runtime: document.documentElement.dataset.runtime || "",
-    language: language(),
     browser: navigator.userAgent,
-    screen: `${innerWidth}x${innerHeight}`,
-    program: s ? { status: s.status || "", step: s.step ?? null, delay: Boolean(ide.delay?.()) } : null,
-    files: Object.keys(ide.files?.() || {}).length,
     lastError
   };
 }
@@ -3734,7 +3757,7 @@ ${JSON.stringify(info, null, 2)}
 }
 async function openTally(formId, hiddenFields) {
   if (!globalThis.Tally) await loadScript("https://tally.so/widgets/embed.js");
-  globalThis.Tally.openPopup(formId, { layout: "modal", width: 560, hiddenFields });
+  globalThis.Tally.openPopup(formId, { layout: "modal", width: 560, hiddenFields, onSubmit: () => track("feedback-sent") });
 }
 function openFeedback(ide, reason = "") {
   if (reason) remember(reason);
@@ -3743,29 +3766,39 @@ function openFeedback(ide, reason = "") {
   const files2 = ide.files?.() || {};
   const count = Object.keys(files2).length;
   const form = config_default.tally.feedback;
+  const issue = config_default.issues ? githubIssue(info) : "";
+  const mail = config_default.email ? `mailto:${config_default.email}?${new URLSearchParams({ subject: "MARS Trace feedback", body: `
+
+---
+${JSON.stringify(info, null, 2)}` })}`.replace(/\+/g, "%20") : "";
+  const fallback = issue || mail;
+  const fallbackLabel = issue ? t("feedback.github") : t("feedback.email");
+  let actions2 = "";
+  if (form)
+    actions2 = `<button id="feedback-continue" class="primary">${t("feedback.continue")}</button>` + (fallback ? `<a id="feedback-issue" href="${escapeHTML(fallback)}" target="_blank" rel="noopener">${fallbackLabel}</a>` : "");
+  else if (fallback) actions2 = `<button id="feedback-continue" class="primary">${fallbackLabel}</button>`;
   ide.modal(
     t("feedback.title"),
-    `<p>${t("feedback.note")}</p>` + (reason ? `<p class="feedback-reason">${escapeHTML(reason)}</p>` : "") + `<details class="feedback-details"><summary>${t("feedback.details")}</summary><pre>${escapeHTML(JSON.stringify(info, null, 2))}</pre></details>` + (form && count ? `<label class="feedback-attach"><input type="checkbox" id="feedback-program"> ${t("feedback.attach", { n: count })}<small>${t("feedback.attach.note")}</small></label>` : "") + `<div class="file-actions"><button id="feedback-continue" class="primary">${form ? t("feedback.continue") : t("feedback.github")}</button>` + (form ? `<a id="feedback-issue" href="${escapeHTML(githubIssue(info))}" target="_blank" rel="noopener">${t("feedback.github")}</a>` : "") + `</div>`
+    `<p>${t("feedback.note")}</p>` + (reason ? `<p class="feedback-reason">${escapeHTML(reason)}</p>` : "") + `<details class="feedback-details"><summary>${t("feedback.details")}</summary><pre>${escapeHTML(JSON.stringify(info, null, 2))}</pre></details>` + (form && count ? `<label class="feedback-attach"><input type="checkbox" id="feedback-program"> ${t("feedback.attach", { n: count })}<small>${t("feedback.attach.note")}</small></label>` : "") + (actions2 ? `<div class="file-actions">${actions2}</div>` : `<p class="feedback-unavailable">${t("feedback.unavailable")}</p>`)
   );
-  document.getElementById("feedback-continue").onclick = async () => {
+  const go = document.getElementById("feedback-continue");
+  if (!go) return;
+  go.onclick = async () => {
     const attach = Boolean(document.getElementById("feedback-program")?.checked);
     track("feedback-continue", { program: attach });
     if (!form) {
-      open(githubIssue(info), "_blank", "noopener");
+      open(fallback, "_blank", "noopener");
       document.getElementById("modal").close();
       return;
     }
     document.getElementById("modal").close();
     try {
       await openTally(form, {
-        source: "ide",
-        build: info.build,
-        language: info.language,
         diagnostics: JSON.stringify(info),
         program: attach ? programText(files2) : ""
       });
     } catch {
-      open(githubIssue(info), "_blank", "noopener");
+      if (fallback) open(fallback, "_blank", "noopener");
     }
   };
 }
@@ -13761,15 +13794,15 @@ function findPosition({ total, ranges }, ratio) {
   }
 }
 function findFraction(structure, pos) {
-  let counted = 0;
+  let counted2 = 0;
   for (let { from, to } of structure.ranges) {
     if (pos <= to) {
-      counted += pos - from;
+      counted2 += pos - from;
       break;
     }
-    counted += to - from;
+    counted2 += to - from;
   }
-  return counted / structure.total;
+  return counted2 / structure.total;
 }
 function find(array, f) {
   for (let val of array)
@@ -27107,7 +27140,7 @@ function chosenBy(n, name2, setter, step) {
   const where = setter ? t("guide.chosen.setter", { line: setter.line, code: setter.text, when: step ? t("guide.chosen.step", { step }) : "" }) : "";
   return t("guide.chosen", { n, name: name2, where });
 }
-function syscallDetail({ n, values = {}, event, waiting, esc, show: show2 = String, regTitle = null, setter = null, step = null }) {
+function syscallDetail({ n, values = {}, event, waiting: waiting2, esc, show: show2 = String, regTitle = null, setter = null, step = null }) {
   const reg2 = (r) => regTitle ? `<abbr class="reg-term" title="${esc(regTitle(r))}">${r}</abbr>` : r;
   const g = serviceGuide[n];
   const head = n == null ? t("guide.title.unknown") : `syscall${t("common.colon")}${g ? g[0] : t("guide.title.unsupported")}`;
@@ -27120,7 +27153,7 @@ function syscallDetail({ n, values = {}, event, waiting, esc, show: show2 = Stri
     return `<li><code>${reg2(r)}</code> ${esc(meaning)}${v == null ? "" : ` = <b>${esc(show2(v, r))}</b>`}${m ? `<small> \xB7 ${esc(m)}</small>` : ""}</li>`;
   };
   const happened = [];
-  if (waiting) happened.push(t("guide.waiting", { n }));
+  if (waiting2) happened.push(t("guide.waiting", { n }));
   if (event) {
     if (event.output) happened.push(`${t("guide.output")} "${esc([...event.output].map((c) => escapeByte(c.charCodeAt(0))).join(""))}"`);
     for (const a of event.accesses || [])
@@ -28679,10 +28712,10 @@ var FocusLens = class {
   render() {
     const $3 = (id2) => document.getElementById(id2), state2 = this.host.getState(), L = this.layout;
     $3("focus-where").textContent = state2 ? t("focus.where", { step: state2.step, pc: hex(state2.pc) }) : "";
-    const waiting = state2?.status === "waiting";
-    if ($3("focus-input").hidden === waiting) {
-      $3("focus-input").hidden = !waiting;
-      if (waiting) $3("focus-input-value").focus();
+    const waiting2 = state2?.status === "waiting";
+    if ($3("focus-input").hidden === waiting2) {
+      $3("focus-input").hidden = !waiting2;
+      if (waiting2) $3("focus-input-value").focus();
     }
     const badge2 = (s) => `<button class="fbadge ${s.predicted ? "pred" : s.index < -1 ? "done earlier" : "done"} ${s.index === this.selected ? "sel" : ""}" data-step="${s.index}" title="${s.predicted ? t("focus.badge.predicted", { n: s.index + 1 }) : s.index < -1 ? t("focus.badge.earlier", { n: -s.index }) : t("focus.badge.done")}">${s.predicted ? "+" + (s.index + 1) : "\u2713"}</button>`;
     const byIndex = new Map(L.steps.map((s) => [s.index, s]));
@@ -31518,11 +31551,11 @@ function projectManager(hooks) {
 var MAX_LINES = 200;
 function liveCheck({ post: post2, current: current2, scope, ready, held, showLines, showScope, lineDelay = 600, fullDelay = 3e3, retryDelay = 1e3 }) {
   let enabled2 = true, version = 0, lineTimer, fullTimer, changed = null, checked = "", fullDue = 0, forceFull = false, cached = null;
-  const flying = {}, waiting = {};
-  async function send(kind, body, accept, asked = version) {
+  const flying = {}, waiting2 = {};
+  async function send2(kind, body, accept, asked = version) {
     if (!enabled2 || asked !== version) return;
     if (flying[kind]) {
-      waiting[kind] = [body, accept, asked];
+      waiting2[kind] = [body, accept, asked];
       return;
     }
     flying[kind] = true;
@@ -31540,9 +31573,9 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
         else fullTimer = setTimeout(checkScope, retryDelay);
       }
     }
-    const next = waiting[kind];
-    delete waiting[kind];
-    if (next) send(kind, ...next);
+    const next = waiting2[kind];
+    delete waiting2[kind];
+    if (next) send2(kind, ...next);
   }
   function checkLines() {
     if (!enabled2) return;
@@ -31554,7 +31587,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
     if (!changed || !file) return;
     const first = doc2.lineAt(Math.min(changed.from, doc2.length)).number, last2 = Math.min(doc2.lineAt(Math.min(changed.to, doc2.length)).number, first + MAX_LINES);
     const lines = Array.from({ length: last2 - first + 1 }, (_, i) => first + i);
-    send("line", { command: "line", file, text: doc2.toString(), lines }, (r) => {
+    send2("line", { command: "line", file, text: doc2.toString(), lines }, (r) => {
       if (changed && doc2.lineAt(Math.min(changed.to, doc2.length)).number > last2) {
         changed = { from: doc2.line(last2 + 1).from, to: changed.to };
         lineTimer = setTimeout(checkLines, 0);
@@ -31573,7 +31606,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
       fullTimer = setTimeout(checkScope, retryDelay);
       return;
     }
-    if (changed || flying.line || waiting.line) return;
+    if (changed || flying.line || waiting2.line) return;
     const s = scope();
     if (!forceFull && held() || !s) return;
     const key = JSON.stringify(s);
@@ -31581,7 +31614,7 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
       if (cached) showScope(cached, s.files);
       return;
     }
-    send("full", { command: "full", ...s }, (r) => {
+    send2("full", { command: "full", ...s }, (r) => {
       checked = key;
       cached = r.diagnostics;
       forceFull = false;
@@ -31610,8 +31643,8 @@ function liveCheck({ post: post2, current: current2, scope, ready, held, showLin
       checked = "";
       cached = null;
       forceFull = false;
-      delete waiting.line;
-      delete waiting.full;
+      delete waiting2.line;
+      delete waiting2.full;
       clearTimeout(lineTimer);
       clearTimeout(fullTimer);
     },
@@ -34003,9 +34036,9 @@ function renderTrace() {
 function render() {
   if (!state) return;
   noteStop();
-  const waiting = state.status === "waiting" && !dirty;
-  $2("console").classList.toggle("waiting", waiting);
-  $2("stdin").placeholder = waiting ? t("console.input.waiting") : t("console.input.placeholder");
+  const waiting2 = state.status === "waiting" && !dirty;
+  $2("console").classList.toggle("waiting", waiting2);
+  $2("stdin").placeholder = waiting2 ? t("console.input.waiting") : t("console.input.placeholder");
   renderFiles();
   renderTabs();
   renderSymbols();
@@ -35092,13 +35125,23 @@ var siteHooks = {
   delay: () => $2("delay").checked,
   modal
 };
+var linked = (() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    const example = params.get("example") || "";
+    const feedback = location.hash === "#feedback";
+    params.delete("example");
+    if (example || feedback)
+      history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + (feedback ? "" : location.hash));
+    return { example, feedback };
+  } catch {
+    return { example: "", feedback: false };
+  }
+})();
 startSite(browserRuntime);
 if (browserRuntime) {
   $2("feedback-open").onclick = () => openFeedback(siteHooks);
-  if (location.hash === "#feedback") {
-    history.replaceState(null, "", location.pathname + location.search);
-    openFeedback(siteHooks);
-  }
+  if (linked.feedback) openFeedback(siteHooks);
 }
 window.marsIDE = {
   get state() {
@@ -35133,17 +35176,8 @@ window.marsIDE = {
   }
 })();
 async function openLinkedExample() {
-  let params;
-  try {
-    params = new URLSearchParams(location.search);
-  } catch {
-    return;
-  }
-  const name2 = params.get("example");
-  const index = exampleList?.findIndex((e2) => e2.name === name2) ?? -1;
-  if (!name2) return;
-  params.delete("example");
-  history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
+  const name2 = linked.example;
+  const index = name2 ? exampleList?.findIndex((e2) => e2.name === name2) ?? -1 : -1;
   if (index < 0) return;
   if (restored) return loadExample(index);
   const e = exampleList[index], copy = exampleCopy(e);

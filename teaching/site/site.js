@@ -2,13 +2,21 @@
 (function () {
   var root = document.documentElement;
   document.querySelectorAll("[data-switch-lang]").forEach(function (b) {
+    b.href = root.dataset.lang === "zh-CN" ? "/" : "/zh-cn/";
     b.addEventListener("click", function () {
       var next = root.dataset.lang === "zh-CN" ? "en" : "zh-CN";
-      root.lang = next;
-      root.dataset.lang = next;
       try { localStorage.setItem("mars-trace:language", next); } catch (e) {}
       if (window.umami) try { window.umami.track("language", { to: next }); } catch (e) {}
     });
+  });
+
+  // A contact form sent through Tally's popup counts as "contact-sent".
+  window.addEventListener("message", function (e) {
+    if (e.origin !== "https://tally.so") return;
+    var data = e.data;
+    try { if (typeof data === "string") data = JSON.parse(data); } catch (err) { return; }
+    if (data && data.event === "Tally.FormSubmitted" && window.umami)
+      try { window.umami.track("contact-sent"); } catch (err) {}
   });
 
   var lines = Array.prototype.slice.call(document.querySelectorAll(".trace-lines li"));

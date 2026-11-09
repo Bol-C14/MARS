@@ -4236,14 +4236,27 @@ const siteHooks = {
   delay: () => $("delay").checked,
   modal,
 };
+// A link may carry ?example=… and #feedback. Both are read and removed from
+// the address before analytics starts, so the page counts once, with its
+// UTM parameters intact.
+const linked = (() => {
+  try {
+    const params = new URLSearchParams(location.search);
+    const example = params.get("example") || "";
+    const feedback = location.hash === "#feedback";
+    params.delete("example");
+    if (example || feedback)
+      history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + (feedback ? "" : location.hash));
+    return { example, feedback };
+  } catch {
+    return { example: "", feedback: false };
+  }
+})();
 startSite(browserRuntime);
 if (browserRuntime) {
   $("feedback-open").onclick = () => openFeedback(siteHooks);
   // The site's own "feedback" link lands here.
-  if (location.hash === "#feedback") {
-    history.replaceState(null, "", location.pathname + location.search);
-    openFeedback(siteHooks);
-  }
+  if (linked.feedback) openFeedback(siteHooks);
 }
 window.marsIDE = {
   get state() {
@@ -4283,13 +4296,8 @@ try {
 // "try it" links and ads do. A first visit opens it at once; a student with
 // work of their own is asked first, as from the menu.
 async function openLinkedExample() {
-  let params;
-  try { params = new URLSearchParams(location.search); } catch { return; }
-  const name = params.get("example");
-  const index = exampleList?.findIndex((e) => e.name === name) ?? -1;
-  if (!name) return;
-  params.delete("example");
-  history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
+  const name = linked.example;
+  const index = name ? exampleList?.findIndex((e) => e.name === name) ?? -1 : -1;
   if (index < 0) return;
   if (restored) return loadExample(index);
   const e = exampleList[index], copy = exampleCopy(e);

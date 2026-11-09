@@ -52,7 +52,7 @@ html[data-lang="en"] [lang="zh-CN"], html[data-lang="zh-CN"] [lang="en"] { displ
 .top nav { display: flex; align-items: center; gap: 18px; font-size: 14px; }
 .top nav a:not(.button) { color: var(--muted); text-decoration: none; }
 .top nav a:not(.button):hover { color: var(--text); }
-.lang { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.lang { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; text-decoration: none; }
 .lang:hover { color: var(--text); border-color: var(--muted); }
 
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-weight: 600; text-decoration: none; cursor: pointer; }
@@ -103,12 +103,17 @@ h2 { margin: 0 0 24px; font-size: 30px; line-height: 1.25; }
 .grid p { margin: 0; color: var(--muted); }
 .also { margin: 20px 0 0; font-size: 14px; color: var(--muted); }
 
+.learning { border-top: 1px solid var(--line); padding: 56px 0 64px; }
+.learning-grid { display: grid; gap: 22px; max-width: 840px; }
+.learning h3 { margin: 0 0 6px; font-size: 18px; }
+.learning p { margin: 0; color: var(--muted); }
+
 .teachers { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: start; padding: 56px 0 80px; border-top: 1px solid var(--line); }
 .teachers ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .teachers li { padding-left: 18px; position: relative; color: var(--muted); }
 .teachers li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); }
 .teachers li b { color: var(--text); }
-.contact-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+.contact-card { padding-top: 4px; }
 .contact-card p { margin: 0 0 18px; }
 
 footer { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }

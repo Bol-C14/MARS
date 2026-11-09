@@ -1,14 +1,15 @@
 {
-  "author": "BShark",
-  "github": "https://github.com/Bol-C14/MARS",
-  "issues": "https://github.com/Bol-C14/MARS/issues/new",
+  "author": "MARS Trace",
+  "url": "https://mars.castralhub.com/",
+  "github": "",
+  "issues": "",
   "umami": {
     "src": "https://cloud.umami.is/script.js",
-    "websiteId": ""
+    "websiteId": "ced678b0-63d8-43c4-8324-c6c4aa4ccae8"
   },
   "tally": {
-    "feedback": "",
-    "contact": ""
+    "feedback": "ArKGxe",
+    "contact": "RWdaR4"
   },
-  "email": ""
+  "email": "bsharkdev@gmail.com"
 }
