@@ -60,10 +60,10 @@ template = template.replace(
     "{{GITHUB}}", f' · <a href="{escape(github)}" rel="noopener">GitHub</a>' if github else ""
 )
 versions = [
-    ("en", "", "Online MIPS Simulator & Assembly Debugger | MARS Trace",
-     "Run MIPS assembly online with the MARS 4.5 assembler and simulator. Step, rewind, and explore registers and memory in your browser."),
-    ("zh-CN", "zh-cn/", "在线 MIPS 汇编模拟器与调试工具 | MARS Trace",
-     "在线汇编和运行 MIPS 程序，单步调试、回退并查看寄存器和内存。基于 MARS 4.5，适合计算机组成与汇编语言教学。"),
+    ("en", "", "Free Online MIPS Simulator & Debugger | MARS Trace",
+     "Run and debug MIPS assembly free in your browser. Based on MARS 4.5, with single-step, rewind, registers and memory. No Java or sign-up."),
+    ("zh-CN", "zh-cn/", "免费在线 MIPS 汇编模拟器与调试工具 | MARS Trace",
+     "免费在线汇编、运行和调试 MIPS 程序，单步、回退并查看寄存器与内存。基于 MARS 4.5，无需安装 Java 或注册。"),
 ]
 for lang, path, title, description in versions:
     page = template
@@ -89,11 +89,11 @@ for name in ("site.css", "site.js"):
 app = dist / "app" / "index.html"
 if app.exists():
     content = app.read_text()
-    content = re.sub(r"<title>.*?</title>", "<title>Online MIPS Simulator and Debugger | MARS Trace</title>", content, count=1)
+    content = re.sub(r"<title>.*?</title>", "<title>Free Online MIPS Simulator &amp; Debugger | MARS Trace</title>", content, count=1)
     content = re.sub(r"\s*<!-- site-search:start -->.*?<!-- site-search:end -->", "", content, flags=re.S)
     meta = (
         '\n    <!-- site-search:start -->\n'
-        '    <meta name="description" content="Write, assemble and debug MIPS assembly online. Step forward and back, inspect registers and memory, and run MARS 4.5 programs in your browser." />\n'
+        '    <meta name="description" content="Write, assemble and debug MIPS assembly online for free. Step forward and back, inspect registers and memory, and run MARS 4.5 programs in your browser." />\n'
         f'    <link rel="canonical" href="{escape(url)}app/" />\n'
         '    <!-- site-search:end -->'
     )
